@@ -56,3 +56,12 @@
     - Notification spam prevention using event history.
     - Automated Push Notifications to circle members via Expo API.
 - Verified backend tracking and geofencing with `GeofencingTest`.
+
+## [2026-06-04] Phase 6 Completed
+- Implemented `EmergencyAlert` model with UUID for secure public access.
+- Updated `SendInactivityAlerts` job to generate emergency links in WhatsApp and Email notifications.
+- Created `EmergencyAlertController` to serve public alert data and last known location via PostGIS.
+- Developed Next.js dynamic route `/emergencia/[id]` with a professional crisis screen UI.
+- Integrated `Leaflet` for real-time map visualization of the user's last coordinates.
+- Verified backend logic with `EmergencyAlertTest` covering creation, retrieval, and expiration.
+- Verified frontend integrity with linting.

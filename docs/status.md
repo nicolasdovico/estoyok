@@ -34,10 +34,11 @@
   - [x] Verified with `GeofencingTest`.
 
 ### In Progress:
-- [ ] **FASE 6: Visualización Web de Emergencia**
-  - [ ] Dynamic emergency routes (Next.js).
-  - [ ] Map rendering with last known location.
-  - [ ] Crisis screen UI.
+- [x] **FASE 6: Visualización Web de Emergencia**
+  - [x] Dynamic emergency routes (Next.js).
+  - [x] Map rendering with last known location.
+  - [x] Crisis screen UI.
+  - [x] Secure UUID links for public access.
 
 ### Next Steps:
 - Research Next.js dynamic routing for encrypted alert IDs.

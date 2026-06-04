@@ -3,6 +3,7 @@
 namespace App\Jobs;
 
 use App\Models\User;
+use App\Models\EmergencyAlert;
 use App\Services\WhatsAppServiceInterface;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -31,15 +32,24 @@ class SendInactivityAlerts implements ShouldQueue
     public function handle(WhatsAppServiceInterface $whatsAppService): void
     {
         try {
+            $alert = EmergencyAlert::create([
+                'user_id' => $this->user->id,
+                'type' => 'inactivity',
+                'status' => 'active',
+                'expires_at' => now()->addHours(48),
+            ]);
+
+            $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000')) . "/emergencia/{$alert->id}";
+
             $this->sendPushNotification();
-            $this->sendEmailAlert();
+            $this->sendEmailAlert($emergencyUrl);
 
             if ($this->user->hasPremiumAccess()) {
-                $this->sendPremiumAlerts($whatsAppService);
+                $this->sendPremiumAlerts($whatsAppService, $emergencyUrl);
             }
             
             // Log success
-            Log::info("Inactivity alerts sent for user: {$this->user->id}");
+            Log::info("Inactivity alerts sent for user: {$this->user->id} with alert ID: {$alert->id}");
         } catch (Exception $e) {
             Log::error("Failed to send inactivity alerts for user {$this->user->id}: " . $e->getMessage());
             throw $e; // Retry if configured
@@ -64,7 +74,7 @@ class SendInactivityAlerts implements ShouldQueue
         }
     }
 
-    protected function sendEmailAlert()
+    protected function sendEmailAlert(string $emergencyUrl)
     {
         $contacts = $this->user->emergencyContacts;
 
@@ -76,18 +86,18 @@ class SendInactivityAlerts implements ShouldQueue
         foreach ($contacts as $contact) {
             if ($contact->email) {
                 // In a real app, we would send a real email
-                Log::info("Simulating email to emergency contact {$contact->email} for user {$this->user->name}");
+                Log::info("Simulating email to emergency contact {$contact->email} for user {$this->user->name}. Link: {$emergencyUrl}");
             }
         }
     }
 
-    protected function sendPremiumAlerts(WhatsAppServiceInterface $whatsAppService)
+    protected function sendPremiumAlerts(WhatsAppServiceInterface $whatsAppService, string $emergencyUrl)
     {
         $contacts = $this->user->emergencyContacts;
 
         foreach ($contacts as $contact) {
             if ($contact->phone) {
-                $message = "Aviso de seguridad: {$this->user->name} no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas 24 horas. Por favor, intente contactarlo.";
+                $message = "Aviso de seguridad: {$this->user->name} no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas 24 horas. Ver última ubicación y estado aquí: {$emergencyUrl}";
                 
                 $success = $whatsAppService->sendWhatsApp($contact->phone, $message);
 
