@@ -28,6 +28,38 @@ services:
       - postgres
       - redis
 
+  # Laravel Queue Worker
+  worker:
+    build:
+      context: ./backend
+      dockerfile: ../docker/php/Dockerfile
+    container_name: estoyok-worker
+    command: php artisan queue:work
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - estoyok-network
+    depends_on:
+      - postgres
+      - redis
+      - backend
+
+  # Laravel Scheduler
+  scheduler:
+    build:
+      context: ./backend
+      dockerfile: ../docker/php/Dockerfile
+    container_name: estoyok-scheduler
+    command: php artisan schedule:work
+    volumes:
+      - ./backend:/var/www/html
+    networks:
+      - estoyok-network
+    depends_on:
+      - postgres
+      - redis
+      - backend
+
   # Base de Datos Geoespacial
   postgres:
     image: postgis/postgis:16-3.4
