@@ -52,6 +52,25 @@ services:
     networks:
       - estoyok-network
 
+  # Frontend Web (Next.js)
+  frontend:
+    build:
+      context: ./frontend-web
+      dockerfile: ../docker/node/Dockerfile
+    container_name: estoyok-frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-web:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:8000/api
+    networks:
+      - estoyok-network
+    depends_on:
+      - backend
+
 networks:
   estoyok-network:
     driver: bridge
