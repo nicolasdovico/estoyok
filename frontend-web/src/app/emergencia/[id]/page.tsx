@@ -132,7 +132,7 @@ export default async function EmergencyPage({ params }: { params: Promise<{ id: 
             )}
           </div>
           <div className="flex-1 relative">
-            {data.location ? (
+            {data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number' ? (
               <EmergencyMap center={[data.location.latitude, data.location.longitude]} />
             ) : (
               <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center text-center p-6">

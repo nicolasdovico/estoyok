@@ -26,14 +26,13 @@ export default function RegisterScreen() {
 
     setLoading(true);
     try {
-      const response = await api.post('/register', { 
+      await api.post('/register', { 
         name, 
         email, 
         password, 
         password_confirmation: passwordConfirmation 
       });
-      await login(response.data.token, response.data.user);
-      router.replace('/');
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (error: any) {
       const message = error.response?.data?.message || 'Error al crear cuenta';
       Alert.alert('Error', message);

@@ -39,7 +39,7 @@ class CircleResource extends Resource
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('invite_code'),
                 Tables\Columns\TextColumn::make('owner.name')->label('Owner'),
-                Tables\Columns\TextColumn::make('members_count')->counts('members'),
+                Tables\Columns\TextColumn::make('users_count')->counts('users')->label('Members'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([

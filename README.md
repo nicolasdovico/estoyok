@@ -12,4 +12,7 @@ http://localhost:8000/api/documentation
 
 ## Abrir la app de prueba
 Ir a la carpeta ~/aplicaciones/estoyok/mobile
-y ejecutar npx expo start -c -> escanear el QR y listo
+y ejecutar `npx expo start -c` -> escanear el QR y listo
+
+## URL de Mailpit
+`http://localhost:8025`

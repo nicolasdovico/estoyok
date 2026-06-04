@@ -1,6 +1,31 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import Link from "next/link";
+import Dashboard from '@/components/Dashboard';
 
 export default function Home() {
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    // Verificar si hay un token en el localStorage
+    const token = localStorage.getItem('auth_token');
+    setIsAuthenticated(!!token);
+  }, []);
+
+  // Mientras verificamos la autenticación, mostramos un estado de carga simple
+  if (isAuthenticated === null) {
+    return <div className="min-h-screen bg-white flex items-center justify-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-600"></div>
+    </div>;
+  }
+
+  // Si está autenticado, mostrar el Dashboard
+  if (isAuthenticated) {
+    return <Dashboard />;
+  }
+
+  // Si no está autenticado, mostrar la Landing Page
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Navigation */}
@@ -38,9 +63,9 @@ export default function Home() {
               <div className="space-x-4 mt-8">
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-xl bg-red-600 px-8 text-sm font-bold text-white shadow transition-colors hover:bg-red-700 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-red-700 disabled:pointer-events-none disabled:opacity-50"
-                  href="/download"
+                  href="/register"
                 >
-                  Descargar App
+                  Registrarse Gratis
                 </Link>
                 <Link
                   className="inline-flex h-12 items-center justify-center rounded-xl border border-gray-200 bg-white px-8 text-sm font-bold text-gray-900 shadow-sm transition-colors hover:bg-gray-100 hover:text-gray-900 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-gray-950 disabled:pointer-events-none disabled:opacity-50"

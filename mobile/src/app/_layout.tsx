@@ -15,7 +15,7 @@ function RootLayoutNav() {
   useEffect(() => {
     if (isLoading) return;
 
-    const isAuthScreen = segments[0] === 'login' || segments[0] === 'register';
+    const isAuthScreen = segments[0] === 'login' || segments[0] === 'register' || segments[0] === 'verify-email';
 
     if (!user && !isAuthScreen) {
       router.replace('/login');
@@ -30,6 +30,7 @@ function RootLayoutNav() {
         <Stack.Screen name="index" options={{ title: 'Estoy Ok', headerShown: true }} />
         <Stack.Screen name="login" options={{ title: 'Iniciar Sesión', headerShown: false }} />
         <Stack.Screen name="register" options={{ title: 'Crear Cuenta', headerShown: false }} />
+        <Stack.Screen name="verify-email" options={{ title: 'Verificar Email', headerShown: false }} />
       </Stack>
     </ThemeProvider>
   );

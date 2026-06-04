@@ -45,8 +45,8 @@ export default function RegisterPage() {
         throw new Error(data.message || 'Error al registrarse');
       }
 
-      localStorage.setItem('auth_token', data.token);
-      router.push('/');
+      // Redirigir a la pantalla de verificación
+      router.push(`/verify-email?email=${encodeURIComponent(email)}`);
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);

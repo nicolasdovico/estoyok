@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
+Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 // Webhooks
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
@@ -32,6 +34,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/locations/update', [LocationController::class, 'update']);
 
     Route::get('/user', function (Request $request) {
-        return $request->user();
+        return $request->user()->load(['currentLocation', 'circles']);
     });
 });

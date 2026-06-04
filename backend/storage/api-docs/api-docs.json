@@ -65,7 +65,63 @@
                 },
                 "responses": {
                     "201": {
-                        "description": "Usuario registrado exitosamente",
+                        "description": "Usuario registrado. Se ha enviado un código de verificación al email.",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Usuario registrado exitosamente. Por favor verifica tu email."
+                                        },
+                                        "email": {
+                                            "type": "string",
+                                            "example": "juan@example.com"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/verify-email": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Verificar email con código OTP",
+                "operationId": "02076c23389c10136110c5fb053d8acc",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email",
+                                    "code"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "juan@example.com"
+                                    },
+                                    "code": {
+                                        "type": "string",
+                                        "example": "123456"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Email verificado correctamente",
                         "content": {
                             "application/json": {
                                 "schema": {
@@ -82,6 +138,43 @@
                                 }
                             }
                         }
+                    },
+                    "422": {
+                        "description": "Código inválido o expirado"
+                    }
+                }
+            }
+        },
+        "/resend-otp": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Reenviar código OTP",
+                "operationId": "5c5c7919f89a315f4249bc02ea5eae4c",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "email"
+                                ],
+                                "properties": {
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "juan@example.com"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Código reenviado"
                     }
                 }
             }

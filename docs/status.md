@@ -32,6 +32,12 @@
   - [x] Geofencing logic (ST_DWithin) with anti-spam events.
   - [x] Automated Push Notifications for entry/exit.
   - [x] Verified with `GeofencingTest`.
+- [x] **FASE 7: Verificación de Email con OTP**
+  - [x] Sistema de códigos de 6 dígitos (Backend).
+  - [x] Endpoints de verificación y reenvío.
+  - [x] Mailable con colas (Redis).
+  - [x] Integración en App Mobile (Expo).
+  - [x] Swagger y Tests de integración.
 
 ### In Progress:
 - [x] **FASE 6: Visualización Web de Emergencia**

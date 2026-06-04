@@ -65,3 +65,16 @@
 - Integrated `Leaflet` for real-time map visualization of the user's last coordinates.
 - Verified backend logic with `EmergencyAlertTest` covering creation, retrieval, and expiration.
 - Verified frontend integrity with linting.
+
+## [2026-06-04] Phase 7 Completed
+- Implemented Email Verification via 6-digit OTP.
+- Created `email_verifications` table and model.
+- Updated `AuthController@register` to require verification before issuing tokens.
+- Added `POST /api/verify-email` and `POST /api/resend-otp` endpoints.
+- Implemented `OtpVerificationMail` using Markdown and Queues.
+- Updated Swagger documentation with new authentication endpoints.
+- Verified entire flow with `EmailVerificationTest`.
+- Integrated OTP flow into the Expo mobile app and Next.js web frontend:
+    - New `verify-email` screens with 6-digit input.
+    - Updated `register` flows to navigate to verification.
+    - Adjusted routing and navigation state to handle the verification phase.
