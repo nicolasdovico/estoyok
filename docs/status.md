@@ -1,6 +1,6 @@
 # Project Status
 
-## Current Phase: FASE 3: Monetización y Pasarelas de Pago Multi-Región
+## Current Phase: FASE 4: Canales Críticos de Comunicación (WhatsApp Automatizado)
 
 ### Completed Phases:
 - [x] **FASE 1: Infraestructura de Contenedores**
@@ -17,13 +17,17 @@
   - [x] Inactivity alerts (Email/Push logic enqueued).
   - [x] Basic Filament Admin Panel (Users, Circles, Contacts).
   - [x] Swagger Documentation.
+- [x] **FASE 3: Monetización y Pasarelas de Pago Multi-Región (Suscripción Premium)**
+  - [x] Mercado Pago Integration (Argentina).
+  - [x] Stripe Billing (International).
+  - [x] PayPal Subscriptions (Alternative).
+  - [x] Subscription models and `is_premium` logic synced.
 
 ### In Progress:
-- [ ] **FASE 3: Monetización y Pasarelas de Pago Multi-Región (Suscripción Premium)**
-  - [ ] Mercado Pago Integration (Argentina).
-  - [ ] Stripe Billing (International).
-  - [ ] Subscription models and `is_premium` logic.
+- [ ] **FASE 4: Canales Críticos de Comunicación (WhatsApp Automatizado)**
+  - [ ] WhatsApp API Integration (Twilio/Meta).
+  - [ ] Premium-only automated alerts.
 
 ### Next Steps:
-- Implement multi-region payment gateway infrastructure.
-- Configure Webhooks for payment notifications.
+- Research Twilio vs Meta Cloud API for WhatsApp automation.
+- Implement WhatsApp messaging Job for premium users.

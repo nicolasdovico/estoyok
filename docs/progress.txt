@@ -24,3 +24,15 @@
     - Scheduled verification to run every 30 minutes.
 - Built basic Filament resources for Users, Circles, and Emergency Contacts.
 - Verified end-to-end flow with seeders and manual command execution.
+
+## [2026-06-04] Phase 3 Completed
+- Integrated multi-region payment gateways: Stripe, Mercado Pago, and PayPal.
+- Installed and configured Laravel Cashier for international Stripe subscriptions.
+- Implemented Mercado Pago subscription flow using the official PHP SDK.
+- Integrated PayPal Subscriptions for alternative international payments.
+- Developed a unified `SubscriptionController` for generating checkout URLs across all providers.
+- Created Webhook endpoints for Mercado Pago and PayPal to sync subscription status and `is_premium` flag.
+- Updated `User` model with `Billable` trait and subscription status helper methods.
+- Enhanced Filament Admin Panel to manage user subscription details and premium status.
+- Verified subscription logic with Feature tests using mocked gateway services.
+- Updated Swagger documentation with new subscription and checkout endpoints.

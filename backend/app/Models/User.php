@@ -8,11 +8,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Sanctum\HasApiTokens;
+use Laravel\Cashier\Billable;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, Billable;
 
     /**
      * The attributes that are mass assignable.
@@ -27,6 +28,10 @@ class User extends Authenticatable
         'expo_push_token',
         'is_premium',
         'phone',
+        'mp_subscription_id',
+        'mp_status',
+        'paypal_subscription_id',
+        'paypal_status',
     ];
 
     /**
@@ -77,5 +82,16 @@ class User extends Authenticatable
     public function locationHistories()
     {
         return $this->hasMany(LocationHistory::class);
+    }
+
+    /**
+     * Determine if the user has an active premium subscription.
+     */
+    public function hasPremiumAccess(): bool
+    {
+        return $this->is_premium || 
+               $this->subscribed('default') || 
+               in_array($this->mp_status, ['authorized', 'active']) || 
+               in_array($this->paypal_status, ['active', 'approved']);
     }
 }

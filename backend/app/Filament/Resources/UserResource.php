@@ -29,6 +29,13 @@ class UserResource extends Resource
                 Forms\Components\DateTimePicker::make('last_check_in_at'),
                 Forms\Components\Toggle::make('is_premium'),
                 Forms\Components\TextInput::make('expo_push_token'),
+                Forms\Components\Section::make('Subscriptions')
+                    ->schema([
+                        Forms\Components\TextInput::make('mp_subscription_id'),
+                        Forms\Components\TextInput::make('mp_status'),
+                        Forms\Components\TextInput::make('paypal_subscription_id'),
+                        Forms\Components\TextInput::make('paypal_status'),
+                    ])->columns(2),
             ]);
     }
 
@@ -41,6 +48,8 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('phone'),
                 Tables\Columns\TextColumn::make('last_check_in_at')->dateTime()->sortable(),
                 Tables\Columns\IconColumn::make('is_premium')->boolean(),
+                Tables\Columns\TextColumn::make('mp_status')->label('MP Status')->badge(),
+                Tables\Columns\TextColumn::make('paypal_status')->label('PayPal Status')->badge(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([

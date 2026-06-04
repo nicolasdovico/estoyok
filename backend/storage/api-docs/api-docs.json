@@ -167,12 +167,52 @@
                     }
                 ]
             }
+        },
+        "/check-in": {
+            "post": {
+                "tags": [
+                    "Check-in"
+                ],
+                "summary": "Realizar check-in diario",
+                "operationId": "ee57a7431caf3c03bc54120991be471c",
+                "responses": {
+                    "200": {
+                        "description": "Check-in realizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Check-in exitoso"
+                                        },
+                                        "last_check_in_at": {
+                                            "type": "string",
+                                            "format": "date-time"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
         {
             "name": "Autenticación",
             "description": "Autenticación"
+        },
+        {
+            "name": "Check-in",
+            "description": "Check-in"
         }
     ],
     "components": {
