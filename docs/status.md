@@ -1,6 +1,6 @@
 # Project Status
 
-## Current Phase: FASE 4: Canales Críticos de Comunicación (WhatsApp Automatizado)
+## Current Phase: FASE 5: Tracking Activo y Geofencing (Módulo Tipo Life360)
 
 ### Completed Phases:
 - [x] **FASE 1: Infraestructura de Contenedores**
@@ -22,12 +22,20 @@
   - [x] Stripe Billing (International).
   - [x] PayPal Subscriptions (Alternative).
   - [x] Subscription models and `is_premium` logic synced.
+- [x] **FASE 4: Canales Críticos de Comunicación (WhatsApp Automatizado)**
+  - [x] Twilio SDK Integration.
+  - [x] WhatsApp messaging Job for premium users.
+  - [x] SMS fallback logic.
+  - [x] Automated tests for alerts.
 
 ### In Progress:
-- [ ] **FASE 4: Canales Críticos de Comunicación (WhatsApp Automatizado)**
-  - [ ] WhatsApp API Integration (Twilio/Meta).
-  - [ ] Premium-only automated alerts.
+- [ ] **FASE 5: Tracking Activo y Geofencing (Módulo Tipo Life360)**
+  - [ ] Development build for Expo (Background tasks).
+  - [ ] `expo-location` and `expo-task-manager` implementation.
+  - [ ] PostGIS endpoints for high-frequency coordinates.
+  - [ ] Geofencing logic (ST_Distance/ST_Contains).
 
 ### Next Steps:
-- Research Twilio vs Meta Cloud API for WhatsApp automation.
-- Implement WhatsApp messaging Job for premium users.
+- Configure PostGIS extension in migrations if not already done.
+- Create endpoints for location tracking.
+- Implement background location task in Expo (Mobile).
