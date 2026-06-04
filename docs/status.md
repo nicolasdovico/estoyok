@@ -35,10 +35,16 @@
 
 ### In Progress:
 - [x] **FASE 6: Visualización Web de Emergencia**
+  - [x] Landing page and SEO metadata.
   - [x] Dynamic emergency routes (Next.js).
   - [x] Map rendering with last known location.
   - [x] Crisis screen UI.
   - [x] Secure UUID links for public access.
+- [x] **FASE Mobile: Aplicación Expo Funcional**
+  - [x] Authentication (Login/Register) connected to Backend.
+  - [x] "Estoy Ok" Check-in functionality.
+  - [x] Background Location Tracking implemented.
+  - [x] Real-device connectivity optimized (Local IP).
 
 ### Next Steps:
 - Research Next.js dynamic routing for encrypted alert IDs.

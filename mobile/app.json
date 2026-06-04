@@ -1,23 +1,37 @@
 {
   "expo": {
-    "name": "mobile",
-    "slug": "mobile",
+    "name": "Estoy Ok",
+    "slug": "estoy-ok",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "mobile",
+    "scheme": "estoyok",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "icon": "./assets/expo.icon"
+      "icon": "./assets/expo.icon",
+      "bundleIdentifier": "com.estoyok.app",
+      "infoPlist": {
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ],
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Necesitamos tu ubicación para el monitoreo de seguridad activo, incluso con la app cerrada.",
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte en el mapa y alertar a tus contactos."
+      }
     },
     "android": {
+      "package": "com.estoyok.app",
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#dc2626",
+        "foregroundImage": "./assets/images/android-icon-foreground.png"
       },
-      "predictiveBackGestureEnabled": false
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE"
+      ]
     },
     "web": {
       "output": "static",
@@ -26,19 +40,23 @@
     "plugins": [
       "expo-router",
       [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permitir que Estoy Ok acceda a tu ubicación siempre para tu seguridad."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
-          "backgroundColor": "#208AEF",
-          "android": {
-            "image": "./assets/images/splash-icon.png",
-            "imageWidth": 76
-          }
+          "backgroundColor": "#dc2626",
+          "image": "./assets/images/splash-icon.png",
+          "imageWidth": 120
         }
-      ]
+      ],
+      "expo-asset"
     ],
     "experiments": {
-      "typedRoutes": true,
-      "reactCompiler": true
+      "typedRoutes": true
     }
   }
 }
