@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckInController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\Api\LocationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,9 @@ Route::middleware('auth:sanctum')->group(function () {
     // Subscriptions
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
     Route::get('/subscriptions/callback/{provider}', [SubscriptionController::class, 'callback'])->name('subscription.callback');
+
+    // Tracking
+    Route::post('/locations/update', [LocationController::class, 'update']);
 
     Route::get('/user', function (Request $request) {
         return $request->user();

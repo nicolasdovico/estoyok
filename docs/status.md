@@ -1,6 +1,6 @@
 # Project Status
 
-## Current Phase: FASE 5: Tracking Activo y Geofencing (Módulo Tipo Life360)
+## Current Phase: FASE 6: Visualización Web de Emergencia
 
 ### Completed Phases:
 - [x] **FASE 1: Infraestructura de Contenedores**
@@ -27,15 +27,19 @@
   - [x] WhatsApp messaging Job for premium users.
   - [x] SMS fallback logic.
   - [x] Automated tests for alerts.
+- [x] **FASE 5: Tracking Activo y Geofencing (Módulo Tipo Life360)**
+  - [x] PostGIS endpoints for high-frequency coordinates.
+  - [x] Geofencing logic (ST_DWithin) with anti-spam events.
+  - [x] Automated Push Notifications for entry/exit.
+  - [x] Verified with `GeofencingTest`.
 
 ### In Progress:
-- [ ] **FASE 5: Tracking Activo y Geofencing (Módulo Tipo Life360)**
-  - [ ] Development build for Expo (Background tasks).
-  - [ ] `expo-location` and `expo-task-manager` implementation.
-  - [ ] PostGIS endpoints for high-frequency coordinates.
-  - [ ] Geofencing logic (ST_Distance/ST_Contains).
+- [ ] **FASE 6: Visualización Web de Emergencia**
+  - [ ] Dynamic emergency routes (Next.js).
+  - [ ] Map rendering with last known location.
+  - [ ] Crisis screen UI.
 
 ### Next Steps:
-- Configure PostGIS extension in migrations if not already done.
-- Create endpoints for location tracking.
-- Implement background location task in Expo (Mobile).
+- Research Next.js dynamic routing for encrypted alert IDs.
+- Implement Map component (Leaflet/Mapbox) in the frontend.
+- Link WhatsApp alerts to the emergency web view.
