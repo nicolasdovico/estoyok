@@ -8,4 +8,8 @@ Artisan::command('inspire', function () {
     $this->comment(Inspiring::quote());
 })->purpose('Display an inspiring quote');
 
-Schedule::command('checkins:verify-inactivity')->everyThirtyMinutes();
+if (app()->environment('local')) {
+    Schedule::command('checkins:verify-inactivity')->everyMinute();
+} else {
+    Schedule::command('checkins:verify-inactivity')->everyThirtyMinutes();
+}

@@ -25,6 +25,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'last_check_in_at',
+        'checkin_interval_hours',
         'expo_push_token',
         'is_premium',
         'phone',
@@ -55,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
             'last_check_in_at' => 'datetime',
+            'checkin_interval_hours' => 'integer',
             'is_premium' => 'boolean',
         ];
     }

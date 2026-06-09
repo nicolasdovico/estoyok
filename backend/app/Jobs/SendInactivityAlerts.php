@@ -5,6 +5,7 @@ namespace App\Jobs;
 use App\Models\User;
 use App\Models\EmergencyAlert;
 use App\Services\WhatsAppServiceInterface;
+use App\Mail\InactivityAlertMail;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -76,28 +77,34 @@ class SendInactivityAlerts implements ShouldQueue
 
     protected function sendEmailAlert(string $emergencyUrl)
     {
-        $contacts = $this->user->emergencyContacts;
+        $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
         if ($contacts->isEmpty()) {
-            Log::info("No emergency contacts for user {$this->user->id}");
+            Log::info("No active emergency contacts for user {$this->user->id}");
             return;
         }
 
         foreach ($contacts as $contact) {
             if ($contact->email) {
-                // In a real app, we would send a real email
-                Log::info("Simulating email to emergency contact {$contact->email} for user {$this->user->name}. Link: {$emergencyUrl}");
+                Mail::to($contact->email)->send(new InactivityAlertMail(
+                    $this->user,
+                    $emergencyUrl,
+                    $contact->relationship
+                ));
             }
         }
     }
 
     protected function sendPremiumAlerts(WhatsAppServiceInterface $whatsAppService, string $emergencyUrl)
     {
-        $contacts = $this->user->emergencyContacts;
+        $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
         foreach ($contacts as $contact) {
             if ($contact->phone) {
-                $message = "Aviso de seguridad: {$this->user->name} no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas 24 horas. Ver última ubicación y estado aquí: {$emergencyUrl}";
+                $relationshipText = $contact->relationship ? " (Usted figura como '{$contact->relationship}')" : "";
+                $hours = $this->user->checkin_interval_hours;
+                
+                $message = "Aviso de seguridad: Su contacto '{$this->user->name}' no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas {$hours} horas.{$relationshipText} Ver última ubicación y estado aquí: {$emergencyUrl}";
                 
                 $success = $whatsAppService->sendWhatsApp($contact->phone, $message);
 

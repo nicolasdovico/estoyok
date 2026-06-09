@@ -30,14 +30,23 @@ class VerifyInactivity extends Command
     {
         $this->info('Iniciando verificación de inactividad...');
 
-        // Por defecto 24 horas. En el futuro esto podría ser configurable por usuario Premium.
-        $threshold = Carbon::now()->subHours(24);
+        $isLocal = app()->environment('local');
+        $unit = $isLocal ? 'minutes' : 'hours';
 
-        $inactiveUsers = User::where(function ($query) use ($threshold) {
-            $query->where('last_check_in_at', '<', $threshold)
-                  ->orWhereNull('last_check_in_at');
+        if ($isLocal) {
+            $this->warn('ENTORNO LOCAL DETECTADO: Los intervalos se tratarán como MINUTOS para pruebas.');
+        }
+
+        // Buscamos usuarios que han superado su umbral personalizado de check-in
+        $inactiveUsers = User::where(function ($query) use ($unit) {
+            // El usuario es inactivo si su último check-in fue hace más de X unidades (horas o minutos)
+            // O si nunca hizo uno y su cuenta tiene más de X unidades
+            $query->whereRaw("last_check_in_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval")
+                  ->orWhere(function($q) use ($unit) {
+                      $q->whereNull('last_check_in_at')
+                        ->whereRaw("created_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval");
+                  });
         })
-        ->where('created_at', '<', Carbon::now()->subHours(24)) // Evitar alertar a usuarios recién creados
         ->get();
 
         $count = 0;

@@ -296,6 +296,233 @@
                     }
                 ]
             }
+        },
+        "/emergency-contacts": {
+            "get": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Listar contactos de emergencia",
+                "operationId": "50fa14d0ee417094cac749ac7966f7c1",
+                "responses": {
+                    "200": {
+                        "description": "Lista de contactos"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Crear contacto de emergencia",
+                "operationId": "c0b2da6fd2a2b30cc15845d2cc7d4f95",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "phone"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Mamá"
+                                    },
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+541122334455"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email",
+                                        "example": "mama@example.com"
+                                    },
+                                    "relationship": {
+                                        "type": "string",
+                                        "example": "Madre"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Contacto creado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/emergency-contacts/{id}": {
+            "get": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Obtener un contacto específico",
+                "operationId": "7affa0aafa608edec718556b344846c8",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Datos del contacto"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "put": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Actualizar contacto de emergencia",
+                "operationId": "e4a7dca4f39b3b3e33ebede3e9cb8c18",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string"
+                                    },
+                                    "phone": {
+                                        "type": "string"
+                                    },
+                                    "email": {
+                                        "type": "string",
+                                        "format": "email"
+                                    },
+                                    "relationship": {
+                                        "type": "string"
+                                    },
+                                    "is_active": {
+                                        "type": "boolean"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contacto actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Eliminar contacto de emergencia",
+                "operationId": "482b9cd15c738c718eef3c5b772643ba",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Contacto eliminado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/settings/checkin-interval": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar intervalo de check-in",
+                "operationId": "c31ec33668dde62fcaa6ade8b6aedf48",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "checkin_interval_hours"
+                                ],
+                                "properties": {
+                                    "checkin_interval_hours": {
+                                        "type": "integer",
+                                        "example": 24,
+                                        "maximum": 168,
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Intervalo actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
@@ -306,6 +533,14 @@
         {
             "name": "Check-in",
             "description": "Check-in"
+        },
+        {
+            "name": "Contactos de Emergencia",
+            "description": "Contactos de Emergencia"
+        },
+        {
+            "name": "Configuración",
+            "description": "Configuración"
         }
     ],
     "components": {

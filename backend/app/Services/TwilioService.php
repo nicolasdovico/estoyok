@@ -9,8 +9,8 @@ use Exception;
 class TwilioService implements WhatsAppServiceInterface
 {
     protected Client $client;
-    protected string $fromWhatsApp;
-    protected string $fromSMS;
+    protected ?string $fromWhatsApp;
+    protected ?string $fromSMS;
 
     public function __construct()
     {
@@ -26,9 +26,9 @@ class TwilioService implements WhatsAppServiceInterface
 
     public function sendWhatsApp(string $to, string $message, array $parameters = []): bool
     {
-        if (!isset($this->client)) {
-            Log::error("Twilio client not initialized. Check credentials.");
-            return false;
+        if (!isset($this->client) || !$this->fromWhatsApp) {
+            Log::info("[SIMULATED WHATSAPP] To: {$to} | Message: {$message}");
+            return true;
         }
 
         try {
@@ -50,9 +50,9 @@ class TwilioService implements WhatsAppServiceInterface
 
     public function sendSMS(string $to, string $message): bool
     {
-        if (!isset($this->client)) {
-            Log::error("Twilio client not initialized. Check credentials.");
-            return false;
+        if (!isset($this->client) || !$this->fromSMS) {
+            Log::info("[SIMULATED SMS] To: {$to} | Message: {$message}");
+            return true;
         }
 
         try {

@@ -31,6 +31,8 @@ function RootLayoutNav() {
         <Stack.Screen name="login" options={{ title: 'Iniciar Sesión', headerShown: false }} />
         <Stack.Screen name="register" options={{ title: 'Crear Cuenta', headerShown: false }} />
         <Stack.Screen name="verify-email" options={{ title: 'Verificar Email', headerShown: false }} />
+        <Stack.Screen name="contacts" options={{ title: 'Contactos', headerShown: true }} />
+        <Stack.Screen name="settings" options={{ title: 'Configuración', headerShown: true }} />
       </Stack>
     </ThemeProvider>
   );

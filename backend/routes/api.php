@@ -6,6 +6,8 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\EmergencyAlertController;
+use App\Http\Controllers\Api\EmergencyContactController;
+use App\Http\Controllers\Api\SettingsController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -33,7 +35,13 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tracking
     Route::post('/locations/update', [LocationController::class, 'update']);
 
+    // Emergency Contacts
+    Route::apiResource('emergency-contacts', EmergencyContactController::class);
+
+    // Settings
+    Route::put('/settings/checkin-interval', [SettingsController::class, 'updateCheckinInterval']);
+
     Route::get('/user', function (Request $request) {
-        return $request->user()->load(['currentLocation', 'circles']);
+        return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);
     });
 });

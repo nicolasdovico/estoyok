@@ -2,7 +2,7 @@
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 // Fix for default marker icons in Leaflet + Next.js
 const DefaultIcon = L.icon({
@@ -28,6 +28,14 @@ function RecenterMap({ center }: { center: [number, number] }) {
 }
 
 export default function EmergencyMap({ center, zoom = 15 }: MapProps) {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  if (!isMounted) return null;
+
   return (
     <div className="h-full w-full rounded-xl overflow-hidden shadow-inner border border-red-100">
       <link
