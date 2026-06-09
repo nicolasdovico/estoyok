@@ -1,6 +1,6 @@
 # Project Status
 
-## Current Phase: FASE 6: Visualización Web de Emergencia
+## Current Phase: FASE 8: Gestión de Círculos y Seguridad Avanzada
 
 ### Completed Phases:
 - [x] **FASE 1: Infraestructura de Contenedores**
@@ -32,27 +32,30 @@
   - [x] Geofencing logic (ST_DWithin) with anti-spam events.
   - [x] Automated Push Notifications for entry/exit.
   - [x] Verified with `GeofencingTest`.
+- [x] **FASE 6: Visualización Web de Emergencia**
+  - [x] Landing page and SEO metadata.
+  - [x] Dynamic emergency routes (Next.js) with UUID.
+  - [x] Map rendering with Leaflet for last known location.
+  - [x] Crisis screen UI.
+  - [x] Linked WhatsApp/Email alerts to public emergency view.
 - [x] **FASE 7: Verificación de Email con OTP**
   - [x] Sistema de códigos de 6 dígitos (Backend).
   - [x] Endpoints de verificación y reenvío.
   - [x] Mailable con colas (Redis).
-  - [x] Integración en App Mobile (Expo).
+  - [x] Integración en App Mobile (Expo) y Web (Next.js).
   - [x] Swagger y Tests de integración.
+- [x] **FASE Mobile: Estabilización y Expo Go**
+  - [x] Migración a Expo SDK 54.
+  - [x] Soporte para React 19 y React Native 0.81.
+  - [x] Optimización de conectividad real-device (IP local).
 
 ### In Progress:
-- [x] **FASE 6: Visualización Web de Emergencia**
-  - [x] Landing page and SEO metadata.
-  - [x] Dynamic emergency routes (Next.js).
-  - [x] Map rendering with last known location.
-  - [x] Crisis screen UI.
-  - [x] Secure UUID links for public access.
-- [x] **FASE Mobile: Aplicación Expo Funcional**
-  - [x] Authentication (Login/Register) connected to Backend.
-  - [x] "Estoy Ok" Check-in functionality.
-  - [x] Background Location Tracking implemented.
-  - [x] Real-device connectivity optimized (Local IP).
+- [ ] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [ ] Interfaz de gestión de miembros del círculo.
+  - [ ] Visualización de miembros en el mapa del Dashboard.
+  - [ ] Alertas personalizadas por miembro.
 
 ### Next Steps:
-- Research Next.js dynamic routing for encrypted alert IDs.
-- Implement Map component (Leaflet/Mapbox) in the frontend.
-- Link WhatsApp alerts to the emergency web view.
+- Implement Circles Management UI in Mobile/Web.
+- Add "Circle Map" view to allow users to see their family members.
+- Refine background location frequency vs battery consumption.

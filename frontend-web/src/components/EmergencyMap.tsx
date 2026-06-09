@@ -1,7 +1,6 @@
 'use client';
 
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { useEffect } from 'react';
 
@@ -31,6 +30,12 @@ function RecenterMap({ center }: { center: [number, number] }) {
 export default function EmergencyMap({ center, zoom = 15 }: MapProps) {
   return (
     <div className="h-full w-full rounded-xl overflow-hidden shadow-inner border border-red-100">
+      <link
+        rel="stylesheet"
+        href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+        integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+        crossOrigin=""
+      />
       <MapContainer 
         center={center} 
         zoom={zoom} 

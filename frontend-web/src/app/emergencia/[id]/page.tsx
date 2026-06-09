@@ -1,9 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const EmergencyMap = dynamic(() => import('@/components/EmergencyMap'), {
-  ssr: false,
-  loading: () => <div className="h-full w-full bg-gray-100 flex items-center justify-center">Cargando mapa...</div>
-});
+import DynamicEmergencyMap from '@/components/DynamicEmergencyMap';
 
 interface EmergencyData {
   user_name: string;
@@ -133,7 +128,7 @@ export default async function EmergencyPage({ params }: { params: Promise<{ id: 
           </div>
           <div className="flex-1 relative">
             {data.location && typeof data.location.latitude === 'number' && typeof data.location.longitude === 'number' ? (
-              <EmergencyMap center={[data.location.latitude, data.location.longitude]} />
+              <DynamicEmergencyMap center={[data.location.latitude, data.location.longitude]} />
             ) : (
               <div className="absolute inset-0 bg-gray-100 flex flex-col items-center justify-center text-center p-6">
                 <p className="text-gray-500 font-medium">Ubicación no disponible en este momento</p>

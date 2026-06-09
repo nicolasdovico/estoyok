@@ -78,3 +78,10 @@
     - New `verify-email` screens with 6-digit input.
     - Updated `register` flows to navigate to verification.
     - Adjusted routing and navigation state to handle the verification phase.
+
+## [2026-06-09] Mobile Environment Stabilization
+- Upgraded Expo SDK to v54.0.0 to ensure compatibility with Expo Go and latest dependencies.
+- Updated React to v19.1.0 and React Native to v0.81.5.
+- Synchronized all Expo modules (`location`, `task-manager`, `notifications`, etc.) to versions compatible with SDK 54.
+- Verified background location tracking and manual check-in functionality on real devices via Expo Go.
+- Fixed dependency conflicts with `react-native-reanimated` and `expo-router` resulting from the SDK upgrade.
