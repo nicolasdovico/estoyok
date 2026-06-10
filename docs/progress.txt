@@ -85,3 +85,20 @@
 - Synchronized all Expo modules (`location`, `task-manager`, `notifications`, etc.) to versions compatible with SDK 54.
 - Verified background location tracking and manual check-in functionality on real devices via Expo Go.
 - Fixed dependency conflicts with `react-native-reanimated` and `expo-router` resulting from the SDK upgrade.
+
+## [2026-06-09] Inactivity Alert System & UI Refactor
+- **Customizable Thresholds:** Implemented `checkin_interval_hours` in `users` table and updated backend logic to support user-defined inactivity periods.
+- **Enhanced Emergency Contacts:** Added `relationship` and `is_active` fields to `emergency_contacts`.
+- **Mailable Implementation:** Created `InactivityAlertMail` with professional Markdown design and integration with Mailpit.
+- **Dev-Testing Mode:** Added a mechanism to treat intervals as minutes and run the scheduler every minute in the `local` environment for rapid testing.
+- **UI Modularization:** 
+    - **Web:** Refactored Dashboard into two distinct modules: "Mi Bienestar Diario" (Check-in, Contacts, Settings) and "Rastreo y Círculos" (Map, Circles).
+    - **Mobile:** Redesigned Home screen with independent cards for Wellbeing and Tracking, including embedded configuration buttons.
+- **Bug Fixes:** Resolved timezone discrepancies in web reports by implementing client-side date formatting.
+- **Verification:** Verified end-to-end alert flow with logs, Mailpit, and automated feature tests.
+
+## [2026-06-10] Password Visibility Toggle
+- Added password visibility toggles (eye/eye-off icons) in both login and register screens.
+- Supported both Web (Next.js) and Mobile (React Native / Expo) platforms.
+- Integrated Lucide icons for React Native and custom inline SVGs for Next.js.
+

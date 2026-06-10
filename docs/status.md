@@ -51,11 +51,15 @@
 
 ### In Progress:
 - [ ] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] Implementación completa de Alertas de Inactividad ("Estoy Ok") personalizables.
+  - [x] Refactorización de UI (Web/Mobile) para separar Bienestar de Rastreo.
+  - [x] Modo de pruebas rápidas (minutos) para desarrollo.
+  - [x] Visualizador de contraseña (ojo) en login y registro (Web & Mobile).
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.
 
 ### Next Steps:
-- Implement Circles Management UI in Mobile/Web.
-- Add "Circle Map" view to allow users to see their family members.
+- Implement Circles Management UI (Create/Join/Invite).
+- Add "Circle Map" view to see other family members' locations.
 - Refine background location frequency vs battery consumption.
