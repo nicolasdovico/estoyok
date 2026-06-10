@@ -12,10 +12,11 @@ export default function HomeScreen() {
   const router = useRouter();
   const [checkingIn, setCheckingIn] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
-  const [lastCheckIn, setLastCheckIn] = useState<string | null>(null);
+  const [freshUser, setFreshUser] = useState<any>(null);
 
   useEffect(() => {
     checkTrackingStatus();
+    fetchUserData();
   }, []);
 
   const checkTrackingStatus = async () => {
@@ -27,17 +28,91 @@ export default function HomeScreen() {
     }
   };
 
+  const fetchUserData = async () => {
+    try {
+      const response = await api.get('/user');
+      setFreshUser(response.data);
+    } catch (e) {
+      console.error('Error fetching user data', e);
+    }
+  };
+
   const handleCheckIn = async () => {
     setCheckingIn(true);
     try {
       await api.post('/check-in');
-      setLastCheckIn(new Date().toLocaleTimeString());
+      await fetchUserData();
       Alert.alert('¡Excelente!', 'Tu estado ha sido actualizado.');
     } catch (error) {
       Alert.alert('Error', 'No pudimos registrar tu check-in.');
     } finally {
       setCheckingIn(false);
     }
+  };
+
+  const getStatus = () => {
+    const targetUser = freshUser || user;
+    if (!targetUser || !targetUser.last_check_in_at) {
+      return { safe: false, lastCheckInTime: null, nextCheckInTime: null };
+    }
+
+    const lastCheckInTime = new Date(targetUser.last_check_in_at).getTime();
+    const intervalMs = targetUser.checkin_interval_hours * (__DEV__ ? 60 * 1000 : 60 * 60 * 1000);
+    const nextCheckInTime = lastCheckInTime + intervalMs;
+    const now = new Date().getTime();
+
+    return {
+      safe: nextCheckInTime > now,
+      lastCheckInTime,
+      nextCheckInTime
+    };
+  };
+
+  const renderStatusBanner = () => {
+    const status = getStatus();
+    
+    if (!status.lastCheckInTime) {
+      return (
+        <View style={[styles.statusBanner, styles.statusInfo]}>
+          <Text style={styles.statusEmoji}>ℹ️</Text>
+          <View style={styles.statusTextContainer}>
+            <Text style={styles.statusTitleInfo}>Sin Reportes</Text>
+            <Text style={styles.statusDescInfo}>
+              Aún no has enviado tu primer reporte. Presiona el botón "Estoy OK" para iniciar la protección.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (status.safe) {
+      return (
+        <View style={[styles.statusBanner, styles.statusSuccess]}>
+          <Text style={styles.statusEmoji}>🛡️</Text>
+          <View style={styles.statusTextContainer}>
+            <Text style={styles.statusTitleSuccess}>Protegido y a Salvo</Text>
+            <Text style={styles.statusDescSuccess}>
+              Tu temporizador está activo. Próximo reporte antes de:{'\n'}
+              <Text style={{ fontWeight: '800' }}>
+                {new Date(status.nextCheckInTime).toLocaleString()}
+              </Text>
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={[styles.statusBanner, styles.statusWarning]}>
+        <Text style={styles.statusEmoji}>⚠️</Text>
+        <View style={styles.statusTextContainer}>
+          <Text style={styles.statusTitleWarning}>Reporte Vencido</Text>
+          <Text style={styles.statusDescWarning}>
+            El tiempo límite expiró. Presiona el botón "Estoy OK" de inmediato para evitar falsas alertas.
+          </Text>
+        </View>
+      </View>
+    );
   };
 
   const toggleTracking = async () => {
@@ -99,6 +174,9 @@ export default function HomeScreen() {
           <Shield size={20} color="#2563eb" />
           <Text style={styles.moduleTitle}>Mi Bienestar Diario</Text>
         </View>
+
+        {/* Status Banner */}
+        {renderStatusBanner()}
         
         <View style={styles.wellbeingContent}>
           <TouchableOpacity 
@@ -117,11 +195,8 @@ export default function HomeScreen() {
           </TouchableOpacity>
           
           <View style={styles.wellbeingInfo}>
-            <Text style={styles.wellbeingStatus}>
-              {lastCheckIn ? `Último reporte: ${lastCheckIn}` : 'No te has reportado hoy'}
-            </Text>
             <Text style={styles.wellbeingDesc}>
-              Avisaremos a tus contactos si pasan {user?.checkin_interval_hours} {__DEV__ ? 'minutos' : 'horas'} sin noticias.
+              Avisaremos a tus contactos si pasan {freshUser?.checkin_interval_hours || user?.checkin_interval_hours} {__DEV__ ? 'minutos' : 'horas'} sin noticias.
             </Text>
           </View>
         </View>
@@ -190,8 +265,69 @@ const styles = StyleSheet.create({
   checkInButton: { width: 160, height: 160, borderRadius: 80, backgroundColor: '#2563eb', justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#2563eb', shadowOffset: { width: 0, height: 8 }, shadowOpacity: 0.3, shadowRadius: 15 },
   checkInText: { color: '#fff', fontSize: 20, fontWeight: '900', marginTop: 8 },
   wellbeingInfo: { alignItems: 'center' },
-  wellbeingStatus: { fontSize: 16, fontWeight: '700', color: '#111827' },
   wellbeingDesc: { fontSize: 12, color: '#6b7280', textAlign: 'center', marginTop: 4, paddingHorizontal: 20 },
+  statusBanner: {
+    flexDirection: 'row',
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 20,
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  statusSuccess: {
+    backgroundColor: '#ecfdf5',
+    borderColor: '#a7f3d0',
+    borderWidth: 1,
+  },
+  statusWarning: {
+    backgroundColor: '#fff5f5',
+    borderColor: '#feb2b2',
+    borderWidth: 1,
+  },
+  statusInfo: {
+    backgroundColor: '#eff6ff',
+    borderColor: '#bfdbfe',
+    borderWidth: 1,
+  },
+  statusEmoji: {
+    fontSize: 20,
+  },
+  statusTextContainer: {
+    flex: 1,
+  },
+  statusTitleSuccess: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#064e3b',
+  },
+  statusDescSuccess: {
+    fontSize: 12,
+    color: '#047857',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  statusTitleWarning: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#7f1d1d',
+  },
+  statusDescWarning: {
+    fontSize: 12,
+    color: '#b91c1c',
+    marginTop: 2,
+    lineHeight: 16,
+  },
+  statusTitleInfo: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: '#1e3a8a',
+  },
+  statusDescInfo: {
+    fontSize: 12,
+    color: '#1d4ed8',
+    marginTop: 2,
+    lineHeight: 16,
+  },
   
   moduleActions: { flexDirection: 'row', gap: 12, borderTopWidth: 1, borderTopColor: '#f3f4f6', paddingTop: 16 },
   subActionButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: '#f9fafb', paddingVertical: 12, borderRadius: 15, borderWidth: 1, borderColor: '#f3f4f6' },

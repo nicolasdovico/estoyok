@@ -34,6 +34,45 @@ export default function Dashboard() {
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
   const [activeTab, setActiveTab] = useState<'wellbeing' | 'tracking'>('wellbeing');
+  const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [justCheckedIn, setJustCheckedIn] = useState(false);
+
+  const showToast = (message: string, type: 'success' | 'error' = 'success') => {
+    setNotification({ message, type });
+  };
+
+  useEffect(() => {
+    if (notification) {
+      const timer = setTimeout(() => {
+        setNotification(null);
+      }, 4000);
+      return () => clearTimeout(timer);
+    }
+  }, [notification]);
+
+  useEffect(() => {
+    if (justCheckedIn) {
+      const timer = setTimeout(() => {
+        setJustCheckedIn(false);
+      }, 8000);
+      return () => clearTimeout(timer);
+    }
+  }, [justCheckedIn]);
+
+  const getStatus = () => {
+    if (!userData?.last_check_in_at) return { safe: false, lastCheckInTime: null, nextCheckInTime: null };
+    
+    const lastCheckInTime = new Date(userData.last_check_in_at).getTime();
+    const intervalMs = userData.checkin_interval_hours * (app_env === 'local' ? 60 * 1000 : 60 * 60 * 1000);
+    const nextCheckInTime = lastCheckInTime + intervalMs;
+    const now = new Date().getTime();
+    
+    return {
+      safe: nextCheckInTime > now,
+      lastCheckInTime,
+      nextCheckInTime
+    };
+  };
 
   const fetchUserData = async () => {
     const token = localStorage.getItem('auth_token');
@@ -77,11 +116,13 @@ export default function Dashboard() {
       });
 
       if (response.ok) {
-        alert('¡Excelente! Tu estado ha sido actualizado.');
+        setJustCheckedIn(true);
         fetchUserData();
+      } else {
+        showToast('Error al realizar el check-in.', 'error');
       }
     } catch (err) {
-      alert('Error al realizar el check-in.');
+      showToast('Error al realizar el check-in.', 'error');
     } finally {
       setIsCheckingIn(false);
     }
@@ -154,6 +195,81 @@ export default function Dashboard() {
           <div className="max-w-4xl mx-auto space-y-8">
             {activeTab === 'wellbeing' && (
               <div className="space-y-8">
+                {/* Temporary Success Banner */}
+                {justCheckedIn && (
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 text-white p-6 rounded-3xl flex items-center gap-4 shadow-lg animate-bounce-short">
+                    <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center text-2xl">
+                      🎉
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-black text-lg">¡Reporte de Bienestar Recibido!</h3>
+                      <p className="text-emerald-100 text-sm mt-0.5">
+                        Tu estado ha sido actualizado con éxito. Tus contactos de emergencia están notificados de que te encuentras bien.
+                      </p>
+                    </div>
+                    <button 
+                      onClick={() => setJustCheckedIn(false)}
+                      className="text-white/85 hover:text-white text-xs font-bold bg-white/10 hover:bg-white/20 px-3.5 py-2 rounded-xl transition-all cursor-pointer"
+                    >
+                      Entendido
+                    </button>
+                  </div>
+                )}
+
+                {/* Status Banner */}
+                {userData && (() => {
+                  const status = getStatus();
+                  return status.lastCheckInTime ? (
+                    status.safe ? (
+                      <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-3xl flex items-start gap-4 shadow-sm">
+                        <div className="p-3 bg-emerald-500 text-white rounded-2xl text-xl">
+                          🛡️
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-emerald-950 font-black text-lg">Estado: Protegido y a Salvo</h3>
+                          <p className="text-emerald-700 text-sm mt-1 leading-relaxed">
+                            Has confirmado tu bienestar recientemente. Tu temporizador está activo y tu red de contactos de emergencia está tranquila.
+                          </p>
+                          <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-xs font-bold text-emerald-800">
+                            <span>Último reporte: <strong className="text-emerald-950 font-extrabold">{new Date(status.lastCheckInTime).toLocaleString()}</strong></span>
+                            <span className="hidden sm:inline">•</span>
+                            <span>Próximo vencimiento: <strong className="text-emerald-950 font-extrabold">{new Date(status.nextCheckInTime).toLocaleString()}</strong></span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="bg-rose-50 border border-rose-100 p-6 rounded-3xl flex items-start gap-4 shadow-sm animate-pulse">
+                        <div className="p-3 bg-rose-500 text-white rounded-2xl text-xl">
+                          ⚠️
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-rose-950 font-black text-lg">Estado: Reporte Vencido</h3>
+                          <p className="text-rose-700 text-sm mt-1 leading-relaxed">
+                            El tiempo límite para reportar tu bienestar ha expirado. Por favor, presiona el botón "Estoy OK" para actualizar tu estado y avisar a tus contactos que estás bien.
+                          </p>
+                          <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-xs font-bold text-rose-800">
+                            <span>Último reporte: <strong className="text-rose-950 font-extrabold">{new Date(status.lastCheckInTime).toLocaleString()}</strong></span>
+                            <span className="hidden sm:inline">•</span>
+                            <span className="text-rose-600 font-extrabold">Venció el: {new Date(status.nextCheckInTime).toLocaleString()}</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  ) : (
+                    <div className="bg-blue-50 border border-blue-100 p-6 rounded-3xl flex items-start gap-4 shadow-sm">
+                      <div className="p-3 bg-blue-500 text-white rounded-2xl text-xl">
+                        ℹ️
+                      </div>
+                      <div className="flex-1">
+                        <h3 className="text-blue-950 font-black text-lg">Estado: Sin Reportes</h3>
+                        <p className="text-blue-700 text-sm mt-1 leading-relaxed">
+                          Aún no has enviado tu primer reporte de bienestar. Presiona el botón "Estoy OK" a continuación para activar tu sistema de protección pasiva.
+                        </p>
+                      </div>
+                    </div>
+                  );
+                })()}
+
                 {/* Check-in Module */}
                 <div className="bg-white p-10 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row items-center gap-10">
                   <div className="flex-1 text-center md:text-left">
@@ -256,6 +372,24 @@ export default function Dashboard() {
             )}
           </div>
         </main>
+        {notification && (
+          <div className={`fixed bottom-6 right-6 z-50 flex items-center gap-3 px-4 py-3 rounded-2xl shadow-xl border transition-all duration-300 ${
+            notification.type === 'success' 
+              ? 'bg-emerald-50 border-emerald-100 text-emerald-800' 
+              : 'bg-red-50 border-red-100 text-red-800'
+          }`}>
+            <span className="text-lg">{notification.type === 'success' ? '✅' : '❌'}</span>
+            <div className="flex-1">
+              <p className="text-xs font-bold">{notification.message}</p>
+            </div>
+            <button 
+              onClick={() => setNotification(null)}
+              className="text-gray-400 hover:text-gray-600 text-xs font-bold ml-2 cursor-pointer"
+            >
+              ✕
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

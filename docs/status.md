@@ -55,6 +55,9 @@
   - [x] Refactorización de UI (Web/Mobile) para separar Bienestar de Rastreo.
   - [x] Modo de pruebas rápidas (minutos) para desarrollo.
   - [x] Visualizador de contraseña (ojo) en login y registro (Web & Mobile).
+  - [x] Reemplazo de alerts nativos por notificaciones Toast personalizadas en la Web.
+  - [x] Banner de estado de bienestar persistente y cartel animado de éxito de check-in en la Web.
+  - [x] Banner de estado de bienestar persistente ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") en la App Mobile.
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.

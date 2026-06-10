@@ -102,3 +102,12 @@
 - Supported both Web (Next.js) and Mobile (React Native / Expo) platforms.
 - Integrated Lucide icons for React Native and custom inline SVGs for Next.js.
 
+## [2026-06-10] UX Improvement: Web Toast Notifications
+- Replaced native browser `alert()` windows in the Web Dashboard with custom designed, floating Toast notifications.
+- Added support for auto-dismissible Success/Error notifications matching the site color scheme and layout.
+- Designed and integrated a persistent status banner ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") matching the security state of the user.
+- Implemented a prominent, modern congratulations banner (emerald-teal gradient) that dynamically displays when a user successfully checks in.
+
+## [2026-06-10] UX Improvement: Mobile Wellbeing Status Banner
+- Added the same persistent wellbeing status banner ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") to the Mobile home screen.
+- Integrated automated fetch calls on mount and check-in to keep user state in Mobile synchronised.
