@@ -112,3 +112,12 @@
 - Added the same persistent wellbeing status banner ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") to the Mobile home screen.
 - Integrated automated fetch calls on mount and check-in to keep user state in Mobile synchronised.
 - Added native Pull-to-Refresh (`RefreshControl`) support on Mobile Home screen to allow users to pull down to reload active state and tracking status.
+
+## [2026-06-10] Automatic Emergency Alert Resolution & Privacy
+- Modified `POST /api/check-in` in the backend (`CheckInController`) to automatically update active user emergency alerts to `resolved` status.
+- Added `emergencyAlerts` relationship to the `User` model.
+- Restructured `EmergencyAlertController@show` to completely hide location coordinates (returning `null`) when the status of the alert is `resolved`.
+- Updated the public Next.js emergency page (`EmergencyClientPage` at `/emergencia/[id]`) to show a prominent green reassurance banner when the alert is resolved.
+- Deactivated map rendering in the public emergency view when the alert is resolved, replacing it with a secure padlock view explaining the privacy protection.
+- Handled theme coloring transition in header to green and updated vivos badge to `RESUELTA` when resolved.
+- Verified all additions with unit and integration tests.

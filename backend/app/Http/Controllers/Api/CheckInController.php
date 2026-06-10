@@ -35,6 +35,11 @@ class CheckInController extends Controller
             'last_check_in_at' => Carbon::now(),
         ]);
 
+        // Resolve any active emergency alerts for the user
+        $user->emergencyAlerts()->where('status', 'active')->update([
+            'status' => 'resolved',
+        ]);
+
         return response()->json([
             'message' => 'Check-in exitoso',
             'last_check_in_at' => $user->last_check_in_at,

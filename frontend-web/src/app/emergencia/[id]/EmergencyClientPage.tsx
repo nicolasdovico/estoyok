@@ -72,22 +72,42 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className="bg-red-600 text-white p-4 shadow-lg sticky top-0 z-50">
+      <header className={`${data.status === 'resolved' ? 'bg-emerald-600' : 'bg-red-600'} text-white p-4 shadow-lg sticky top-0 z-50`}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">ALERTA DE SEGURIDAD</h1>
-            <p className="text-sm opacity-90">Protocolo de Emergencia Activado</p>
+            <h1 className="text-xl font-bold">
+              {data.status === 'resolved' ? 'ESTADO ACTUALIZADO' : 'ALERTA DE SEGURIDAD'}
+            </h1>
+            <p className="text-sm opacity-90">
+              {data.status === 'resolved' ? 'El usuario se encuentra a salvo' : 'Protocolo de Emergencia Activado'}
+            </p>
           </div>
-          <div className="bg-white text-red-600 px-3 py-1 rounded-full text-xs font-bold animate-pulse">VIVO</div>
+          <div className={`bg-white ${data.status === 'resolved' ? 'text-emerald-600' : 'text-red-600'} px-3 py-1 rounded-full text-xs font-bold ${data.status === 'resolved' ? '' : 'animate-pulse'}`}>
+            {data.status === 'resolved' ? 'RESUELTA' : 'VIVO'}
+          </div>
         </div>
       </header>
 
       <main className="flex-1 max-w-4xl w-full mx-auto p-4 md:p-6 space-y-6">
+        {data.status === 'resolved' && (
+          <div className="bg-emerald-50 border border-emerald-100 p-6 rounded-2xl flex items-start gap-4 shadow-sm animate-fade-in">
+            <div className="p-3 bg-emerald-500 text-white rounded-xl text-xl">
+              🛡️
+            </div>
+            <div>
+              <h3 className="text-emerald-950 font-black text-lg">¡Buenas noticias!</h3>
+              <p className="text-emerald-700 text-sm mt-1 leading-relaxed">
+                El usuario ya se ha reportado y se encuentra bien. Esta alerta ha sido resuelta.
+              </p>
+            </div>
+          </div>
+        )}
+
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
               <h2 className="text-3xl font-extrabold text-gray-900">{data.user_name}</h2>
-              <p className="text-gray-500 mt-1">Estado: <span className="font-semibold text-red-600 uppercase">{data.status}</span></p>
+              <p className="text-gray-500 mt-1">Estado: <span className={`font-semibold uppercase ${data.status === 'resolved' ? 'text-emerald-600' : 'text-red-600'}`}>{data.status === 'resolved' ? 'Resuelta' : data.status === 'active' ? 'Activa' : data.status}</span></p>
             </div>
           </div>
           <hr className="my-6 border-gray-100" />
@@ -103,15 +123,23 @@ export default function EmergencyClientPage({ id }: { id: string }) {
           </div>
         </section>
 
-        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex-1 min-h-[400px] flex flex-col">
+        <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">
             <h3 className="font-bold text-gray-800 flex items-center gap-2">📍 Mapa de Rastreo</h3>
           </div>
-          <div className="flex-1 relative">
-            {data.location ? (
+          <div className="h-[400px] w-full relative">
+            {data.status === 'resolved' ? (
+              <div className="absolute inset-0 bg-gray-50 flex flex-col items-center justify-center p-8 text-center">
+                <div className="text-5xl mb-4">🔒</div>
+                <h4 className="font-extrabold text-gray-900 text-lg">Ubicación Privada</h4>
+                <p className="text-xs text-gray-500 mt-2 max-w-md leading-relaxed">
+                  El mapa de rastreo se ha desactivado por razones de privacidad debido a que el usuario ya se reportó y la alerta de emergencia ha sido resuelta.
+                </p>
+              </div>
+            ) : data.location ? (
               <EmergencyMap center={[data.location.latitude, data.location.longitude]} />
             ) : (
-              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">Ubicación no disponible</div>
+              <div className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-500">Ubicación no disponible</div>
             )}
           </div>
         </section>

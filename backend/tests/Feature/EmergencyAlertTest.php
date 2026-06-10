@@ -83,4 +83,56 @@ class EmergencyAlertTest extends TestCase
         $response->assertStatus(404)
             ->assertJson(['message' => 'Alert link expired']);
     }
+
+    public function test_checkin_resolves_active_alerts()
+    {
+        $user = User::factory()->create();
+        $alert1 = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'inactivity',
+            'status' => 'active',
+            'expires_at' => now()->addHours(24),
+        ]);
+        $alert2 = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'inactivity',
+            'status' => 'active',
+            'expires_at' => now()->addHours(24),
+        ]);
+
+        $this->actingAs($user)
+            ->postJson('/api/check-in')
+            ->assertStatus(200);
+
+        $this->assertEquals('resolved', $alert1->fresh()->status);
+        $this->assertEquals('resolved', $alert2->fresh()->status);
+    }
+
+    public function test_resolved_alert_hides_location()
+    {
+        $user = User::factory()->create(['name' => 'John Doe', 'last_check_in_at' => now()]);
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'inactivity',
+            'status' => 'resolved',
+            'expires_at' => now()->addHours(1),
+        ]);
+
+        CurrentLocation::create([
+            'user_id' => $user->id,
+            'latitude' => -34.6037,
+            'longitude' => -58.3816,
+            'location' => 'POINT(-58.3816 -34.6037)',
+            'recorded_at' => now(),
+        ]);
+
+        $response = $this->getJson("/api/emergency-alerts/{$alert->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'user_name' => 'John Doe',
+                'status' => 'resolved',
+                'location' => null,
+            ]);
+    }
 }

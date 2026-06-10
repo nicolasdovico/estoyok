@@ -48,18 +48,25 @@ class EmergencyAlertController extends Controller
         }
 
         $user = $alert->user;
-        $location = CurrentLocation::whereUser($user->id);
+        
+        $location = null;
+        if ($alert->status !== 'resolved') {
+            $locationRecord = CurrentLocation::whereUser($user->id);
+            if ($locationRecord) {
+                $location = [
+                    'latitude' => $locationRecord->latitude,
+                    'longitude' => $locationRecord->longitude,
+                    'updated_at' => $locationRecord->updated_at,
+                ];
+            }
+        }
 
         return response()->json([
             'user_name' => $user->name,
             'status' => $alert->status,
             'type' => $alert->type,
             'last_check_in_at' => $user->last_check_in_at,
-            'location' => $location ? [
-                'latitude' => $location->latitude,
-                'longitude' => $location->longitude,
-                'updated_at' => $location->updated_at,
-            ] : null,
+            'location' => $location,
         ]);
     }
 }
