@@ -111,3 +111,4 @@
 ## [2026-06-10] UX Improvement: Mobile Wellbeing Status Banner
 - Added the same persistent wellbeing status banner ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") to the Mobile home screen.
 - Integrated automated fetch calls on mount and check-in to keep user state in Mobile synchronised.
+- Added native Pull-to-Refresh (`RefreshControl`) support on Mobile Home screen to allow users to pull down to reload active state and tracking status.

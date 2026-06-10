@@ -58,6 +58,7 @@
   - [x] Reemplazo de alerts nativos por notificaciones Toast personalizadas en la Web.
   - [x] Banner de estado de bienestar persistente y cartel animado de éxito de check-in en la Web.
   - [x] Banner de estado de bienestar persistente ("Protegido y a Salvo", "Reporte Vencido", "Sin Reportes") en la App Mobile.
+  - [x] Soporte para deslizar y actualizar (Pull-to-Refresh) en la pantalla de inicio Mobile.
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.

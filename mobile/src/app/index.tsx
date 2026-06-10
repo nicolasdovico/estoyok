@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
@@ -13,6 +13,16 @@ export default function HomeScreen() {
   const [checkingIn, setCheckingIn] = useState(false);
   const [isTracking, setIsTracking] = useState(false);
   const [freshUser, setFreshUser] = useState<any>(null);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([
+      checkTrackingStatus(),
+      fetchUserData()
+    ]);
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     checkTrackingStatus();
@@ -156,7 +166,13 @@ export default function HomeScreen() {
   };
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+    <ScrollView 
+      style={styles.container} 
+      contentContainerStyle={styles.contentContainer}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={['#dc2626']} />
+      }
+    >
       {/* Header Compacto */}
       <View style={styles.header}>
         <View style={styles.userInfo}>
