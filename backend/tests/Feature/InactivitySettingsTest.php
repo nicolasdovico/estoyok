@@ -66,4 +66,30 @@ class InactivitySettingsTest extends TestCase
 
         $response->assertStatus(403);
     }
+
+    public function test_phone_number_is_sanitized_before_saving()
+    {
+        $user = User::factory()->create();
+        
+        // 1. Check user phone sanitization
+        $user->phone = '+54 9 11-2233 (4455)';
+        $user->save();
+        $this->assertEquals('+5491122334455', $user->fresh()->phone);
+
+        // 2. Check emergency contact phone sanitization
+        $data = [
+            'name' => 'Papá',
+            'phone' => '+54 9 11 9999-8888',
+            'relationship' => 'Padre',
+            'email' => 'papa@example.com',
+        ];
+
+        $response = $this->actingAs($user)->postJson('/api/emergency-contacts', $data);
+
+        $response->assertStatus(201);
+        $this->assertDatabaseHas('emergency_contacts', [
+            'user_id' => $user->id,
+            'phone' => '+5491199998888', // sanitized!
+        ]);
+    }
 }

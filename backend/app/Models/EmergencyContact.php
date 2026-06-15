@@ -26,4 +26,12 @@ class EmergencyContact extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    /**
+     * Mutator to sanitize phone numbers by removing spaces, dashes, and parentheses.
+     */
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['phone'] = $value ? preg_replace('/[\s\-\(\)]+/', '', $value) : null;
+    }
 }

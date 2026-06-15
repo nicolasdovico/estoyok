@@ -37,6 +37,17 @@ export default function ContactsScreen() {
       return;
     }
 
+    if (!formData.phone.trim().startsWith('+')) {
+      Alert.alert('Formato Incorrecto', 'El número de teléfono debe comenzar con "+". Ejemplo: +54911...');
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email.trim())) {
+      Alert.alert('Email Inválido', 'Por favor ingresa un correo electrónico válido (ej: contacto@ejemplo.com).');
+      return;
+    }
+
     try {
       if (editingContact) {
         await emergencyContactsService.update(editingContact.id!, formData);
@@ -47,7 +58,14 @@ export default function ContactsScreen() {
       setEditingContact(null);
       setFormData({ name: '', phone: '', email: '', relationship: '' });
       fetchContacts();
-    } catch (error) {
+    } catch (error: any) {
+      if (error.response && error.response.status === 422) {
+        const validationErrors = error.response.data.errors;
+        if (validationErrors && validationErrors.email) {
+          Alert.alert('Email Inválido', 'El servidor rechazó el formato del correo electrónico. Por favor verifica que sea correcto.');
+          return;
+        }
+      }
       Alert.alert('Error', 'No pudimos guardar el contacto.');
     }
   };
@@ -163,11 +181,12 @@ export default function ContactsScreen() {
             />
             <TextInput
               style={styles.input}
-              placeholder="Teléfono (ej: +54...)"
+              placeholder="Teléfono (ej: +54911...)"
               keyboardType="phone-pad"
               value={formData.phone}
               onChangeText={(text) => setFormData({ ...formData, phone: text })}
             />
+            <Text style={styles.helperText}>Ejemplo: +54911...</Text>
             <TextInput
               style={styles.input}
               placeholder="Email (opcional)"
@@ -237,6 +256,7 @@ const styles = StyleSheet.create({
   modalContent: { backgroundColor: '#fff', borderTopLeftRadius: 30, borderTopRightRadius: 30, padding: 30 },
   modalTitle: { fontSize: 20, fontWeight: '800', marginBottom: 20, textAlign: 'center' },
   input: { backgroundColor: '#f3f4f6', padding: 15, borderRadius: 12, marginBottom: 12, fontSize: 16 },
+  helperText: { fontSize: 12, color: '#9ca3af', marginTop: -8, marginBottom: 12, marginLeft: 4 },
   modalActions: { flexDirection: 'row', gap: 12, marginTop: 10 },
   modalButton: { flex: 1, padding: 15, borderRadius: 12, alignItems: 'center' },
   cancelButton: { backgroundColor: '#f3f4f6' },

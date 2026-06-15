@@ -16,6 +16,8 @@ export default function EmergencyContacts() {
   const [isLoading, setIsLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [phoneError, setPhoneError] = useState('');
+  const [emailError, setEmailError] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -44,6 +46,19 @@ export default function EmergencyContacts() {
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!formData.phone.trim().startsWith('+')) {
+      setPhoneError('El teléfono debe comenzar con el prefijo "+". Ejemplo: +54911...');
+      return;
+    }
+    setPhoneError('');
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (formData.email && !emailRegex.test(formData.email.trim())) {
+      setEmailError('Por favor ingresa un correo electrónico válido (ej: contacto@ejemplo.com).');
+      return;
+    }
+    setEmailError('');
+
     const token = localStorage.getItem('auth_token');
     const method = editingContact ? 'PUT' : 'POST';
     const url = editingContact 
@@ -65,6 +80,11 @@ export default function EmergencyContacts() {
         setEditingContact(null);
         setFormData({ name: '', phone: '', email: '', relationship: '' });
         fetchContacts();
+      } else if (response.status === 422) {
+        const resData = await response.json();
+        if (resData.errors && resData.errors.email) {
+          setEmailError('El correo electrónico tiene un formato no válido.');
+        }
       }
     } catch (err) {
       console.error(err);
@@ -98,6 +118,8 @@ export default function EmergencyContacts() {
           onClick={() => {
             setEditingContact(null);
             setFormData({ name: '', phone: '', email: '', relationship: '' });
+            setPhoneError('');
+            setEmailError('');
             setIsModalOpen(true);
           }}
           className="bg-red-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors"
@@ -136,6 +158,8 @@ export default function EmergencyContacts() {
                       email: contact.email || '',
                       relationship: contact.relationship || '',
                     });
+                    setPhoneError('');
+                    setEmailError('');
                     setIsModalOpen(true);
                   }}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -174,11 +198,15 @@ export default function EmergencyContacts() {
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Teléfono</label>
                 <input 
                   required
-                  placeholder="+5411..."
+                  placeholder="+54911..."
                   className="w-full bg-gray-50 border-none rounded-2xl px-5 py-4 text-gray-900 focus:ring-2 focus:ring-red-600 outline-none transition-all"
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                 />
+                <p className="text-xs text-gray-400 mt-1.5 ml-1">Ejemplo: +54911...</p>
+                {phoneError && (
+                  <p className="text-xs text-red-600 mt-1.5 ml-1 font-bold">{phoneError}</p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Email</label>
@@ -188,6 +216,9 @@ export default function EmergencyContacts() {
                   value={formData.email}
                   onChange={(e) => setFormData({...formData, email: e.target.value})}
                 />
+                {emailError && (
+                  <p className="text-xs text-red-600 mt-1.5 ml-1 font-bold">{emailError}</p>
+                )}
               </div>
               <div>
                 <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest mb-1 ml-1">Relación</label>

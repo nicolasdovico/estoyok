@@ -103,4 +103,12 @@ class User extends Authenticatable implements MustVerifyEmail
                in_array($this->mp_status, ['authorized', 'active']) ||
                in_array($this->paypal_status, ['active', 'approved']);
     }
+
+    /**
+     * Mutator to sanitize phone numbers by removing spaces, dashes, and parentheses.
+     */
+    public function setPhoneAttribute($value)
+    {
+        $this->attributes['phone'] = $value ? preg_replace('/[\s\-\(\)]+/', '', $value) : null;
+    }
 }
