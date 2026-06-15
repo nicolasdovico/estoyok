@@ -121,3 +121,8 @@
 - Deactivated map rendering in the public emergency view when the alert is resolved, replacing it with a secure padlock view explaining the privacy protection.
 - Handled theme coloring transition in header to green and updated vivos badge to `RESUELTA` when resolved.
 - Verified all additions with unit and integration tests.
+
+## [2026-06-15] Fix Frontend Leaflet Dependency & Autoinstallation
+- Fixed missing `leaflet` and `react-leaflet` dependency issue in the frontend Docker volume.
+- Modified `docker-compose.yml` to automatically run `npm install` before launching Next.js in the frontend container.
+- Verified frontend successfully compiles and starts up without errors.

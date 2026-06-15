@@ -92,6 +92,7 @@ services:
       context: ./frontend-web
       dockerfile: ../docker/node/Dockerfile
     container_name: estoyok-frontend
+    command: sh -c "npm install && npm run dev"
     ports:
       - "3000:3000"
     volumes:
