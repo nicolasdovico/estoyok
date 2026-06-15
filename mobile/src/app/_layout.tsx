@@ -1,6 +1,6 @@
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { useColorScheme } from 'react-native';
+import { useColorScheme, View, ActivityIndicator } from 'react-native';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
@@ -23,6 +23,14 @@ function RootLayoutNav() {
       router.replace('/');
     }
   }, [user, isLoading, segments]);
+
+  if (isLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: colorScheme === 'dark' ? '#000' : '#fff' }}>
+        <ActivityIndicator size="large" color="#2563eb" />
+      </View>
+    );
+  }
 
   return (
     <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>

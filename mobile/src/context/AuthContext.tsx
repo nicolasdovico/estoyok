@@ -7,6 +7,7 @@ interface User {
   name: string;
   email: string;
   is_premium: boolean;
+  checkin_interval_hours?: number;
 }
 
 interface AuthContextType {

@@ -25,9 +25,11 @@ export default function HomeScreen() {
   };
 
   useEffect(() => {
-    checkTrackingStatus();
-    fetchUserData();
-  }, []);
+    if (user) {
+      checkTrackingStatus();
+      fetchUserData();
+    }
+  }, [user]);
 
   const checkTrackingStatus = async () => {
     try {
@@ -39,6 +41,7 @@ export default function HomeScreen() {
   };
 
   const fetchUserData = async () => {
+    if (!user) return;
     try {
       const response = await api.get('/user');
       setFreshUser(response.data);

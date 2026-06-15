@@ -63,14 +63,12 @@ export default function VerifyEmailScreen() {
 
         <Text style={styles.label}>Código de Verificación</Text>
         <TextInput
-          style={styles.input}
+          style={[styles.input, { letterSpacing: 10, textAlign: 'center' }]}
           placeholder="123456"
           value={code}
           onChangeText={setCode}
           keyboardType="number-pad"
           maxLength={6}
-          letterSpacing={10}
-          textAlign="center"
         />
 
         <TouchableOpacity 
