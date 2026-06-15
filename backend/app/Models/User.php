@@ -93,6 +93,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(EmergencyAlert::class);
     }
 
+    public function checkIns()
+    {
+        return $this->hasMany(CheckIn::class);
+    }
+
     /**
      * Determine if the user has an active premium subscription.
      */

@@ -129,3 +129,13 @@
 - Fixed 8 TypeScript type check compilation errors in the mobile codebase (`index.tsx`, `settings.tsx`, `verify-email.tsx`, `animated-icon.tsx`, `collapsible.tsx`, `AuthContext.tsx`, and `use-theme.ts`), achieving clean build execution (`npx tsc --noEmit` exits with 0).
 - Implemented E.164 phone formatting feature: added model-level sanitization mutators in backend `User` and `EmergencyContact` models, added phone prefix validation (`+`) in web (`EmergencyContacts.tsx`) and mobile (`contacts.tsx`) components, and added helper instructions for users.
 - Implemented specific email format validation checks on both client-side and server-side in Web (`EmergencyContacts.tsx`) and Mobile (`contacts.tsx`) views, replacing generic error messages with clear, actionable user feedback.
+
+## [2026-06-15] Check-in Logging & History (Web & Mobile)
+- Created database migration for `check_ins` table to record check-in historical logs linked to users.
+- Created `CheckIn` Eloquent model with user relationship, and updated `User` model with `checkIns` relation.
+- Updated `CheckInController@store` to log a check-in history record on successful check-in.
+- Implemented `GET /api/check-ins` endpoint with Swagger annotations to retrieve the last 20 check-in logs.
+- Added comprehensive integration tests in `CheckInHistoryTest` verifying logging and retrieval endpoints.
+- Updated Next.js `Dashboard.tsx` with check-in history state, fetching mechanism, and a premium "Historial de Reportes" card under Wellbeing.
+- Updated Expo React Native `index.tsx` home screen to fetch and display the last 5 check-in logs in a modern compact card.
+- Fixed minor pre-existing web ESLint warnings (unused variables, unescaped double quotes).

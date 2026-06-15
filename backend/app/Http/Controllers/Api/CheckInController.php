@@ -35,6 +35,9 @@ class CheckInController extends Controller
             'last_check_in_at' => Carbon::now(),
         ]);
 
+        // Create a historical log record
+        $user->checkIns()->create();
+
         // Resolve any active emergency alerts for the user
         $user->emergencyAlerts()->where('status', 'active')->update([
             'status' => 'resolved',
@@ -44,5 +47,34 @@ class CheckInController extends Controller
             'message' => 'Check-in exitoso',
             'last_check_in_at' => $user->last_check_in_at,
         ]);
+    }
+
+    #[OA\Get(
+        path: '/check-ins',
+        summary: 'Obtener el historial de check-ins del usuario',
+        tags: ['Check-in'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Historial de check-ins obtenido exitosamente',
+                content: new OA\JsonContent(
+                    type: 'array',
+                    items: new OA\Items(
+                        properties: [
+                            new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
+                        ]
+                    )
+                )
+            ),
+        ]
+    )]
+    public function index(Request $request)
+    {
+        $user = $request->user();
+        $checkIns = $user->checkIns()->latest()->take(20)->get();
+
+        return response()->json($checkIns);
     }
 }

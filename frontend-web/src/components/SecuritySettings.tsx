@@ -48,7 +48,7 @@ export default function SecuritySettings({ initialInterval }: { initialInterval:
       <p className="text-sm text-gray-500 mb-6">Define cada cuánto tiempo debes confirmar que estás bien.</p>
       
       <div className="space-y-4">
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Intervalo de "Estoy Ok"</label>
+        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Intervalo de &quot;Estoy Ok&quot;</label>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
           {INTERVAL_OPTIONS.map((option) => (
             <button
@@ -77,7 +77,7 @@ export default function SecuritySettings({ initialInterval }: { initialInterval:
 
       <div className="mt-8 p-4 bg-blue-50 rounded-2xl border border-blue-100">
         <p className="text-xs text-blue-800 leading-relaxed">
-          <strong>Importante:</strong> Si pasan más de {interval} horas sin que presiones el botón "Estoy Ok", el sistema notificará automáticamente a tus contactos de emergencia con tu última ubicación.
+          <strong>Importante:</strong> Si pasan más de {interval} horas sin que presiones el botón &quot;Estoy Ok&quot;, el sistema notificará automáticamente a tus contactos de emergencia con tu última ubicación.
         </p>
       </div>
     </div>

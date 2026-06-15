@@ -27,6 +27,7 @@ Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/check-in', [CheckInController::class, 'store']);
+    Route::get('/check-ins', [CheckInController::class, 'index']);
 
     // Subscriptions
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);

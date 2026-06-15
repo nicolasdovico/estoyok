@@ -297,6 +297,45 @@
                 ]
             }
         },
+        "/check-ins": {
+            "get": {
+                "tags": [
+                    "Check-in"
+                ],
+                "summary": "Obtener el historial de check-ins del usuario",
+                "operationId": "78bad792011621c407c78a3ffba5d2ac",
+                "responses": {
+                    "200": {
+                        "description": "Historial de check-ins obtenido exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "properties": {
+                                            "id": {
+                                                "type": "integer",
+                                                "example": 1
+                                            },
+                                            "created_at": {
+                                                "type": "string",
+                                                "format": "date-time"
+                                            }
+                                        },
+                                        "type": "object"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/emergency-contacts": {
             "get": {
                 "tags": [

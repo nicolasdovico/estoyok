@@ -14,12 +14,15 @@ export default function HomeScreen() {
   const [isTracking, setIsTracking] = useState(false);
   const [freshUser, setFreshUser] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [checkIns, setCheckIns] = useState<any[]>([]);
+  const [loadingCheckIns, setLoadingCheckIns] = useState(false);
 
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
       checkTrackingStatus(),
-      fetchUserData()
+      fetchUserData(),
+      fetchCheckIns()
     ]);
     setRefreshing(false);
   };
@@ -28,6 +31,7 @@ export default function HomeScreen() {
     if (user) {
       checkTrackingStatus();
       fetchUserData();
+      fetchCheckIns();
     }
   }, [user]);
 
@@ -50,11 +54,27 @@ export default function HomeScreen() {
     }
   };
 
+  const fetchCheckIns = async () => {
+    if (!user) return;
+    setLoadingCheckIns(true);
+    try {
+      const response = await api.get('/check-ins');
+      setCheckIns(response.data);
+    } catch (e) {
+      console.error('Error fetching check-ins', e);
+    } finally {
+      setLoadingCheckIns(false);
+    }
+  };
+
   const handleCheckIn = async () => {
     setCheckingIn(true);
     try {
       await api.post('/check-in');
-      await fetchUserData();
+      await Promise.all([
+        fetchUserData(),
+        fetchCheckIns()
+      ]);
       Alert.alert('¡Excelente!', 'Tu estado ha sido actualizado.');
     } catch (error) {
       Alert.alert('Error', 'No pudimos registrar tu check-in.');
@@ -220,6 +240,32 @@ export default function HomeScreen() {
           </View>
         </View>
 
+        {/* Historial Reciente */}
+        <View style={styles.historySection}>
+          <Text style={styles.historyTitle}>Historial Reciente</Text>
+          {loadingCheckIns && checkIns.length === 0 ? (
+            <ActivityIndicator size="small" color="#2563eb" style={{ marginVertical: 10 }} />
+          ) : checkIns.length === 0 ? (
+            <Text style={styles.emptyHistoryText}>No hay reportes registrados aún.</Text>
+          ) : (
+            <View style={styles.historyList}>
+              {checkIns.slice(0, 5).map((checkIn) => (
+                <View key={checkIn.id} style={styles.historyItem}>
+                  <View style={styles.historyItemLeft}>
+                    <View style={styles.historyCheckIcon}>
+                      <Text style={{ fontSize: 10, color: '#059669', fontWeight: 'bold' }}>✓</Text>
+                    </View>
+                    <Text style={styles.historyItemText}>Reporte verificado</Text>
+                  </View>
+                  <Text style={styles.historyItemDate}>
+                    {new Date(checkIn.created_at).toLocaleString([], { dateStyle: 'short', timeStyle: 'short' })}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+        </View>
+
         <View style={styles.moduleActions}>
           <TouchableOpacity style={styles.subActionButton} onPress={() => router.push('/contacts')}>
             <Users size={18} color="#4b5563" />
@@ -361,5 +407,62 @@ const styles = StyleSheet.create({
   
   footer: { marginTop: 20, alignItems: 'center' },
   footerText: { fontSize: 11, color: '#9ca3af', fontWeight: '600' },
-  buttonDisabled: { opacity: 0.7, backgroundColor: '#9ca3af' }
+  buttonDisabled: { opacity: 0.7, backgroundColor: '#9ca3af' },
+  historySection: {
+    marginTop: 10,
+    marginBottom: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f3f4f6',
+    paddingTop: 16,
+  },
+  historyTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#374151',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 10,
+  },
+  emptyHistoryText: {
+    fontSize: 12,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    marginVertical: 10,
+  },
+  historyList: {
+    gap: 8,
+  },
+  historyItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#f9fafb',
+    borderRadius: 12,
+  },
+  historyItemLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  historyCheckIcon: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
+    backgroundColor: '#d1fae5',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  historyItemText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#4b5563',
+  },
+  historyItemDate: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#9ca3af',
+  }
 });

@@ -63,6 +63,8 @@
   - [x] Recordatorios preventivos (`checkins:send-reminders`) vía Push y Email antes de expirar el umbral.
   - [x] Sanitización de teléfonos en backend (mutadores) y validación de prefijo `+` con texto de ayuda (Web & Mobile).
   - [x] Validación específica de formato de email y mensajes de error detallados (Web & Mobile).
+  - [x] Endpoint GET /api/check-ins y registro histórico de reportes de bienestar en base de datos.
+  - [x] Sección de "Historial de Reportes" en el Dashboard Web (Bienestar) y en la App Móvil (Bienestar).
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.

@@ -36,6 +36,8 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'wellbeing' | 'tracking'>('wellbeing');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
+  const [checkIns, setCheckIns] = useState<Array<{ id: number; created_at: string }>>([]);
+  const [isLoadingCheckIns, setIsLoadingCheckIns] = useState(false);
 
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
@@ -97,8 +99,33 @@ export default function Dashboard() {
     }
   };
 
+  const fetchCheckIns = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    setIsLoadingCheckIns(true);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/check-ins`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setCheckIns(data);
+      }
+    } catch (err) {
+      console.error('Error fetching check-ins history:', err);
+    } finally {
+      setIsLoadingCheckIns(false);
+    }
+  };
+
   useEffect(() => {
     fetchUserData();
+    fetchCheckIns();
     const interval = setInterval(fetchUserData, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -118,10 +145,11 @@ export default function Dashboard() {
       if (response.ok) {
         setJustCheckedIn(true);
         fetchUserData();
+        fetchCheckIns();
       } else {
         showToast('Error al realizar el check-in.', 'error');
       }
-    } catch (err) {
+    } catch {
       showToast('Error al realizar el check-in.', 'error');
     } finally {
       setIsCheckingIn(false);
@@ -245,7 +273,7 @@ export default function Dashboard() {
                         <div className="flex-1">
                           <h3 className="text-rose-950 font-black text-lg">Estado: Reporte Vencido</h3>
                           <p className="text-rose-700 text-sm mt-1 leading-relaxed">
-                            El tiempo límite para reportar tu bienestar ha expirado. Por favor, presiona el botón "Estoy OK" para actualizar tu estado y avisar a tus contactos que estás bien.
+                            El tiempo límite para reportar tu bienestar ha expirado. Por favor, presiona el botón &quot;Estoy OK&quot; para actualizar tu estado y avisar a tus contactos que estás bien.
                           </p>
                           <div className="flex flex-wrap gap-x-6 gap-y-2 mt-3 text-xs font-bold text-rose-800">
                             <span>Último reporte: <strong className="text-rose-950 font-extrabold">{new Date(status.lastCheckInTime).toLocaleString()}</strong></span>
@@ -263,7 +291,7 @@ export default function Dashboard() {
                       <div className="flex-1">
                         <h3 className="text-blue-950 font-black text-lg">Estado: Sin Reportes</h3>
                         <p className="text-blue-700 text-sm mt-1 leading-relaxed">
-                          Aún no has enviado tu primer reporte de bienestar. Presiona el botón "Estoy OK" a continuación para activar tu sistema de protección pasiva.
+                          Aún no has enviado tu primer reporte de bienestar. Presiona el botón &quot;Estoy OK&quot; a continuación para activar tu sistema de protección pasiva.
                         </p>
                       </div>
                     </div>
@@ -311,6 +339,46 @@ export default function Dashboard() {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <EmergencyContacts />
                   <SecuritySettings initialInterval={userData?.checkin_interval_hours || 24} />
+                </div>
+
+                {/* Historial de Reportes */}
+                <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100">
+                  <div className="flex items-center gap-3 mb-6">
+                    <span className="text-2xl">📋</span>
+                    <div>
+                      <h3 className="text-xl font-black text-gray-900">Historial de Reportes</h3>
+                      <p className="text-xs text-gray-500">Últimos registros de check-in para verificar que el sistema está activo.</p>
+                    </div>
+                  </div>
+
+                  {isLoadingCheckIns && checkIns.length === 0 ? (
+                    <div className="py-8 flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-600"></div>
+                    </div>
+                  ) : checkIns.length === 0 ? (
+                    <div className="py-8 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+                      <p className="text-sm text-gray-500 italic">No hay reportes de bienestar registrados aún.</p>
+                    </div>
+                  ) : (
+                    <div className="max-h-80 overflow-y-auto space-y-3 pr-2 scrollbar-thin scrollbar-thumb-gray-200">
+                      {checkIns.map((checkIn) => (
+                        <div 
+                          key={checkIn.id} 
+                          className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-transparent hover:border-emerald-100 hover:bg-emerald-50/20 transition-all"
+                        >
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xs font-bold">
+                              ✓
+                            </div>
+                            <span className="text-sm font-semibold text-gray-700">Reporte de Bienestar Confirmado</span>
+                          </div>
+                          <span className="text-xs font-bold text-gray-500">
+                            {new Date(checkIn.created_at).toLocaleString()}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
