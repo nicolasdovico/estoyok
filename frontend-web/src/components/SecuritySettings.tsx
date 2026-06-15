@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 const INTERVAL_OPTIONS = [
   { label: '6 Horas', value: 6 },
@@ -10,10 +10,49 @@ const INTERVAL_OPTIONS = [
   { label: '1 Semana', value: 168 },
 ];
 
-export default function SecuritySettings({ initialInterval }: { initialInterval: number }) {
+interface SecuritySettingsProps {
+  initialInterval: number;
+  initialQuietHoursEnabled: boolean;
+  initialQuietHoursStart: string;
+  initialQuietHoursEnd: string;
+}
+
+export default function SecuritySettings({
+  initialInterval,
+  initialQuietHoursEnabled,
+  initialQuietHoursStart,
+  initialQuietHoursEnd,
+}: SecuritySettingsProps) {
   const [interval, setIntervalValue] = useState(initialInterval);
+  const [quietHoursEnabled, setQuietHoursEnabled] = useState(initialQuietHoursEnabled);
+  const [quietHoursStart, setQuietHoursStart] = useState(initialQuietHoursStart ? initialQuietHoursStart.substring(0, 5) : '23:00');
+  const [quietHoursEnd, setQuietHoursEnd] = useState(initialQuietHoursEnd ? initialQuietHoursEnd.substring(0, 5) : '07:00');
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setIntervalValue(initialInterval);
+  }, [initialInterval]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setQuietHoursEnabled(initialQuietHoursEnabled);
+  }, [initialQuietHoursEnabled]);
+
+  useEffect(() => {
+    if (initialQuietHoursStart) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuietHoursStart(initialQuietHoursStart.substring(0, 5));
+    }
+  }, [initialQuietHoursStart]);
+
+  useEffect(() => {
+    if (initialQuietHoursEnd) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      setQuietHoursEnd(initialQuietHoursEnd.substring(0, 5));
+    }
+  }, [initialQuietHoursEnd]);
 
   const handleUpdate = async (value: number) => {
     setIsUpdating(true);
@@ -32,7 +71,7 @@ export default function SecuritySettings({ initialInterval }: { initialInterval:
 
       if (response.ok) {
         setIntervalValue(value);
-        setMessage('Configuración actualizada correctamente');
+        setMessage('Configuración de intervalo actualizada');
         setTimeout(() => setMessage(''), 3000);
       }
     } catch (err) {
@@ -42,43 +81,142 @@ export default function SecuritySettings({ initialInterval }: { initialInterval:
     }
   };
 
+  const handleUpdateQuietHours = async (enabled: boolean, start: string, end: string) => {
+    setIsUpdating(true);
+    setMessage('');
+    const token = localStorage.getItem('auth_token');
+    const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/quiet-hours`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          quiet_hours_enabled: enabled,
+          quiet_hours_start: start,
+          quiet_hours_end: end,
+          timezone: timezone
+        }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setQuietHoursEnabled(data.quiet_hours_enabled);
+        setQuietHoursStart(data.quiet_hours_start);
+        setQuietHoursEnd(data.quiet_hours_end);
+        setMessage('Configuración de Modo Sueño actualizada');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Validation errors:', errorData);
+        setMessage('Error al actualizar Modo Sueño: ' + JSON.stringify(errorData.errors || errorData.message));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Error de conexión');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <h3 className="text-lg font-bold text-gray-900 mb-2">Configuración de Seguridad</h3>
-      <p className="text-sm text-gray-500 mb-6">Define cada cuánto tiempo debes confirmar que estás bien.</p>
-      
-      <div className="space-y-4">
-        <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Intervalo de &quot;Estoy Ok&quot;</label>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {INTERVAL_OPTIONS.map((option) => (
+    <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col justify-between">
+      <div>
+        <h3 className="text-xl font-black text-gray-900 mb-2">Configuración de Seguridad</h3>
+        <p className="text-xs text-gray-500 mb-6">Define los parámetros de protección pasiva del sistema.</p>
+        
+        <div className="space-y-4">
+          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Intervalo de &quot;Estoy Ok&quot;</label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {INTERVAL_OPTIONS.map((option) => (
+              <button
+                key={option.value}
+                onClick={() => handleUpdate(option.value)}
+                disabled={isUpdating}
+                className={`
+                  px-5 py-4 rounded-2xl text-sm font-bold transition-all cursor-pointer
+                  ${interval === option.value 
+                    ? 'bg-red-600 text-white shadow-lg shadow-red-100' 
+                    : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}
+                `}
+              >
+                {option.label}
+                {interval === option.value && <span className="ml-2">✓</span>}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Modo Sueño (Horas Silenciosas)</label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Pausa las alertas mientras duermes o realizas otras actividades.
+              </p>
+            </div>
             <button
-              key={option.value}
-              onClick={() => handleUpdate(option.value)}
+              onClick={() => handleUpdateQuietHours(!quietHoursEnabled, quietHoursStart, quietHoursEnd)}
               disabled={isUpdating}
               className={`
-                px-5 py-4 rounded-2xl text-sm font-bold transition-all
-                ${interval === option.value 
-                  ? 'bg-red-600 text-white shadow-lg shadow-red-100' 
-                  : 'bg-gray-50 text-gray-600 hover:bg-gray-100'}
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center
+                ${quietHoursEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
               `}
             >
-              {option.label}
-              {interval === option.value && <span className="ml-2">✓</span>}
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
             </button>
-          ))}
+          </div>
+
+          {quietHoursEnabled && (
+            <div className="grid grid-cols-2 gap-4 pt-2">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Hora Inicio</label>
+                <input
+                  type="time"
+                  value={quietHoursStart}
+                  onChange={(e) => {
+                    setQuietHoursStart(e.target.value);
+                    handleUpdateQuietHours(quietHoursEnabled, e.target.value, quietHoursEnd);
+                  }}
+                  disabled={isUpdating}
+                  className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+                />
+              </div>
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Hora Fin</label>
+                <input
+                  type="time"
+                  value={quietHoursEnd}
+                  onChange={(e) => {
+                    setQuietHoursEnd(e.target.value);
+                    handleUpdateQuietHours(quietHoursEnabled, quietHoursStart, e.target.value);
+                  }}
+                  disabled={isUpdating}
+                  className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+                />
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
-      {message && (
-        <p className="mt-4 text-sm font-bold text-green-600 bg-green-50 p-3 rounded-xl text-center animate-pulse">
-          {message}
-        </p>
-      )}
+      <div>
+        {message && (
+          <p className="mt-6 text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 p-3.5 rounded-2xl text-center">
+            {message}
+          </p>
+        )}
 
-      <div className="mt-8 p-4 bg-blue-50 rounded-2xl border border-blue-100">
-        <p className="text-xs text-blue-800 leading-relaxed">
-          <strong>Importante:</strong> Si pasan más de {interval} horas sin que presiones el botón &quot;Estoy Ok&quot;, el sistema notificará automáticamente a tus contactos de emergencia con tu última ubicación.
-        </p>
+        <div className="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
+          <p className="text-[11px] text-blue-800 leading-relaxed">
+            <strong>Importante:</strong> Si pasan más de {interval} horas sin que confirmes tu bienestar (y no estás en tu Modo Sueño), notificaremos automáticamente a tus contactos con tu última ubicación conocida.
+          </p>
+        </div>
       </div>
     </div>
   );

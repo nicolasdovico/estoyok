@@ -6,5 +6,18 @@ export const settingsService = {
       checkin_interval_hours: hours
     });
     return response.data;
+  },
+  updateQuietHours: async (enabled: boolean, start: string, end: string, timezone: string) => {
+    const response = await api.put('/settings/quiet-hours', {
+      quiet_hours_enabled: enabled,
+      quiet_hours_start: start,
+      quiet_hours_end: end,
+      timezone: timezone
+    });
+    return response.data;
+  },
+  fetchUserSettings: async () => {
+    const response = await api.get('/user');
+    return response.data;
   }
 };

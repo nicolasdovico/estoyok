@@ -5,6 +5,7 @@ namespace App\Console\Commands;
 use App\Jobs\SendInactivityAlerts;
 use App\Models\User;
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Log;
 
 class VerifyInactivity extends Command
 {
@@ -50,6 +51,11 @@ class VerifyInactivity extends Command
 
         $count = 0;
         foreach ($inactiveUsers as $user) {
+            if ($user->isInQuietHours()) {
+                Log::info("Usuario {$user->id} ({$user->email}) está en horas silenciosas. Omitiendo alerta de inactividad.");
+                continue;
+            }
+
             // Despachar el Job de alertas
             SendInactivityAlerts::dispatch($user);
             $count++;

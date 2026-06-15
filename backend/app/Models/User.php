@@ -34,6 +34,10 @@ class User extends Authenticatable implements MustVerifyEmail
         'paypal_subscription_id',
         'paypal_status',
         'last_reminder_sent_at',
+        'quiet_hours_enabled',
+        'quiet_hours_start',
+        'quiet_hours_end',
+        'timezone',
     ];
 
     /**
@@ -60,6 +64,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'checkin_interval_hours' => 'integer',
             'is_premium' => 'boolean',
             'last_reminder_sent_at' => 'datetime',
+            'quiet_hours_enabled' => 'boolean',
         ];
     }
 
@@ -96,6 +101,31 @@ class User extends Authenticatable implements MustVerifyEmail
     public function checkIns()
     {
         return $this->hasMany(CheckIn::class);
+    }
+
+    /**
+     * Determine if the user is currently in their quiet hours.
+     */
+    public function isInQuietHours(): bool
+    {
+        if (!$this->quiet_hours_enabled || !$this->quiet_hours_start || !$this->quiet_hours_end) {
+            return false;
+        }
+
+        $timezone = $this->timezone ?? config('app.timezone', 'America/Argentina/Buenos_Aires');
+        $now = now()->setTimezone($timezone);
+        $currentTimeString = $now->format('H:i:s');
+
+        $start = $this->quiet_hours_start;
+        $end = $this->quiet_hours_end;
+
+        if ($start <= $end) {
+            // Normal range (e.g. 09:00 to 17:00)
+            return $currentTimeString >= $start && $currentTimeString <= $end;
+        } else {
+            // Midnight crossover range (e.g. 23:00 to 07:00)
+            return $currentTimeString >= $start || $currentTimeString <= $end;
+        }
     }
 
     /**

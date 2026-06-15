@@ -338,7 +338,12 @@ export default function Dashboard() {
                 {/* Configuration of Wellbeing */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                   <EmergencyContacts />
-                  <SecuritySettings initialInterval={userData?.checkin_interval_hours || 24} />
+                  <SecuritySettings 
+                    initialInterval={userData?.checkin_interval_hours || 24}
+                    initialQuietHoursEnabled={userData?.quiet_hours_enabled || false}
+                    initialQuietHoursStart={userData?.quiet_hours_start || '23:00'}
+                    initialQuietHoursEnd={userData?.quiet_hours_end || '07:00'}
+                  />
                 </div>
 
                 {/* Historial de Reportes */}

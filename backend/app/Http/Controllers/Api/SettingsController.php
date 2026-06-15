@@ -41,4 +41,87 @@ class SettingsController extends Controller
             'checkin_interval_hours' => $user->checkin_interval_hours,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/quiet-hours',
+        summary: 'Actualizar configuración de horas silenciosas',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['quiet_hours_enabled', 'quiet_hours_start', 'quiet_hours_end', 'timezone'],
+                properties: [
+                    new OA\Property(property: 'quiet_hours_enabled', type: 'boolean', example: true),
+                    new OA\Property(property: 'quiet_hours_start', type: 'string', example: '23:00'),
+                    new OA\Property(property: 'quiet_hours_end', type: 'string', example: '07:00'),
+                    new OA\Property(property: 'timezone', type: 'string', example: 'America/Argentina/Buenos_Aires'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Configuración actualizada'),
+        ]
+    )]
+    public function updateQuietHours(Request $request)
+    {
+        if ($request->has('quiet_hours_start')) {
+            $request->merge([
+                'quiet_hours_start' => substr($request->input('quiet_hours_start'), 0, 5)
+            ]);
+        }
+        if ($request->has('quiet_hours_end')) {
+            $request->merge([
+                'quiet_hours_end' => substr($request->input('quiet_hours_end'), 0, 5)
+            ]);
+        }
+
+        $timezone = $request->input('timezone');
+        if ($timezone) {
+            // First check if it is already a canonical identifier
+            if (!in_array($timezone, \DateTimeZone::listIdentifiers())) {
+                // Try to resolve it by matching the city part
+                $parts = explode('/', $timezone);
+                $city = end($parts);
+                if ($city) {
+                    $resolved = null;
+                    foreach (\DateTimeZone::listIdentifiers() as $id) {
+                        if (str_ends_with($id, '/' . $city)) {
+                            $resolved = $id;
+                            break;
+                        }
+                    }
+                    if ($resolved) {
+                        $timezone = $resolved;
+                        $request->merge(['timezone' => $timezone]);
+                    }
+                }
+            }
+
+            // Verify with PHP DateTimeZone construction
+            try {
+                new \DateTimeZone($timezone);
+            } catch (\Exception $e) {
+                $request->merge(['timezone' => 'America/Argentina/Buenos_Aires']);
+            }
+        }
+
+        $validated = $request->validate([
+            'quiet_hours_enabled' => 'present|boolean',
+            'quiet_hours_start' => 'required|date_format:H:i',
+            'quiet_hours_end' => 'required|date_format:H:i',
+            'timezone' => 'required|timezone',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Quiet hours settings updated successfully',
+            'quiet_hours_enabled' => $user->quiet_hours_enabled,
+            'quiet_hours_start' => substr($user->quiet_hours_start, 0, 5),
+            'quiet_hours_end' => substr($user->quiet_hours_end, 0, 5),
+            'timezone' => $user->timezone,
+        ]);
+    }
 }

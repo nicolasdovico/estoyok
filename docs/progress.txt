@@ -139,3 +139,19 @@
 - Updated Next.js `Dashboard.tsx` with check-in history state, fetching mechanism, and a premium "Historial de Reportes" card under Wellbeing.
 - Updated Expo React Native `index.tsx` home screen to fetch and display the last 5 check-in logs in a modern compact card.
 - Fixed minor pre-existing web ESLint warnings (unused variables, unescaped double quotes).
+
+## [2026-06-15] Sleep Mode / Quiet Hours (Web, Mobile & Backend)
+- Created database migration adding `quiet_hours_enabled`, `quiet_hours_start`, `quiet_hours_end`, and `timezone` to the `users` table.
+- Added quiet hours properties to the `User` model and implemented the `isInQuietHours()` helper method to resolve midnight crossovers correctly.
+- Created `PUT /api/settings/quiet-hours` API endpoint in `SettingsController` with Swagger annotations to update quiet hours preferences.
+- Modified `checkins:verify-inactivity` and `checkins:send-reminders` console commands to skip users during quiet hours.
+- Created robust feature integration tests in `QuietHoursTest` verifying the crossover logic and console command skipping.
+- Expanded Next.js `SecuritySettings.tsx` to include the "Modo Sueño" section with a custom switch toggle and time inputs.
+- Redesigned the Expo React Native `settings.tsx` screen into a scrollable layout including the "Modo Sueño" configuration section with switch and format-validated time inputs.
+
+## [2026-06-15] Fix Timezone Validation in Sleep Mode Settings
+- Resolved timezone validation error (`The timezone field must be a valid timezone.`) when saving or disabling Sleep Mode on Web.
+- Implemented automatic timezone normalization in `SettingsController` to resolve non-canonical browser-supplied timezones (like `America/Buenos_Aires`) to canonical identifiers (like `America/Argentina/Buenos_Aires`) before validation.
+- Restored `timezone` rule validation in backend SettingsController for stricter security constraints.
+- Added integration test `test_user_timezone_is_normalized_automatically` to prevent regressions.
+- Optimized mobile settings: wrapped settings screen in `KeyboardAvoidingView` to prevent inputs from being covered by the keyboard, and split quiet hours selection into separate Hour (HH) and Minute (MM) numeric inputs to ensure stable `number-pad` entry.

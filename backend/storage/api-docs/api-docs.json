@@ -562,6 +562,59 @@
                     }
                 ]
             }
+        },
+        "/settings/quiet-hours": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar configuración de horas silenciosas",
+                "operationId": "4956ddf94a4bf05809e44cdb2227e111",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "quiet_hours_enabled",
+                                    "quiet_hours_start",
+                                    "quiet_hours_end",
+                                    "timezone"
+                                ],
+                                "properties": {
+                                    "quiet_hours_enabled": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "quiet_hours_start": {
+                                        "type": "string",
+                                        "example": "23:00"
+                                    },
+                                    "quiet_hours_end": {
+                                        "type": "string",
+                                        "example": "07:00"
+                                    },
+                                    "timezone": {
+                                        "type": "string",
+                                        "example": "America/Argentina/Buenos_Aires"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuración actualizada"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [

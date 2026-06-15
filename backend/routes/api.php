@@ -41,6 +41,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Settings
     Route::put('/settings/checkin-interval', [SettingsController::class, 'updateCheckinInterval']);
+    Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

@@ -65,6 +65,7 @@
   - [x] Validación específica de formato de email y mensajes de error detallados (Web & Mobile).
   - [x] Endpoint GET /api/check-ins y registro histórico de reportes de bienestar en base de datos.
   - [x] Sección de "Historial de Reportes" en el Dashboard Web (Bienestar) y en la App Móvil (Bienestar).
+  - [x] Modo Sueño (Horas Silenciosas) configurable con soporte para cruce de medianoche y pausa de avisos/recordatorios (Web, App & Backend).
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.

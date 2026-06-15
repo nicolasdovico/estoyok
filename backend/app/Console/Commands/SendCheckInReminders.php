@@ -58,6 +58,11 @@ class SendCheckInReminders extends Command
         $count = 0;
         foreach ($usersToRemind as $user) {
             try {
+                if ($user->isInQuietHours()) {
+                    Log::info("Usuario {$user->id} ({$user->email}) está en horas silenciosas. Omitiendo recordatorio preventivo.");
+                    continue;
+                }
+
                 $this->sendReminder($user);
 
                 // Actualizar el timestamp del último recordatorio enviado
