@@ -122,7 +122,8 @@
 - Handled theme coloring transition in header to green and updated vivos badge to `RESUELTA` when resolved.
 - Verified all additions with unit and integration tests.
 
-## [2026-06-15] Fix Frontend Leaflet Dependency & Autoinstallation
+## [2026-06-15] Fix Frontend Leaflet Dependency & Mobile Authrush Checks
 - Fixed missing `leaflet` and `react-leaflet` dependency issue in the frontend Docker volume.
 - Modified `docker-compose.yml` to automatically run `npm install` before launching Next.js in the frontend container.
-- Verified frontend successfully compiles and starts up without errors.
+- Resolved mobile start-up Axios 401 error by displaying an `ActivityIndicator` loading state in `_layout.tsx` while authentication details are loading, and guarding the `fetchUserData` call in `index.tsx` so it only runs once the user is loaded.
+- Fixed 8 TypeScript type check compilation errors in the mobile codebase (`index.tsx`, `settings.tsx`, `verify-email.tsx`, `animated-icon.tsx`, `collapsible.tsx`, `AuthContext.tsx`, and `use-theme.ts`), achieving clean build execution (`npx tsc --noEmit` exits with 0).
