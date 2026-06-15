@@ -2,9 +2,9 @@
 
 namespace Tests\Feature;
 
+use App\Mail\OtpVerificationMail;
 use App\Models\EmailVerification;
 use App\Models\User;
-use App\Mail\OtpVerificationMail;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;

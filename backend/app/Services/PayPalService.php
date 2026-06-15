@@ -19,7 +19,7 @@ class PayPalService
     public function createSubscriptionLink($user, $planId = 'P-PREMIUM-PLAN-ID')
     {
         // $planId should be the ID created in PayPal dashboard
-        
+
         $data = [
             'plan_id' => $planId,
             'quantity' => '1',
@@ -41,7 +41,7 @@ class PayPalService
 
         try {
             $response = $this->provider->createSubscription($data);
-            
+
             if (isset($response['links'])) {
                 foreach ($response['links'] as $link) {
                     if ($link['rel'] == 'approve') {
@@ -49,10 +49,11 @@ class PayPalService
                     }
                 }
             }
-            
+
             return null;
         } catch (\Exception $e) {
-            \Log::error('PayPal Subscription Error: ' . $e->getMessage());
+            \Log::error('PayPal Subscription Error: '.$e->getMessage());
+
             return null;
         }
     }

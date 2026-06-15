@@ -16,33 +16,33 @@ use OpenApi\Attributes as OA;
 class AuthController extends Controller
 {
     #[OA\Post(
-        path: "/register",
-        summary: "Registrar un nuevo usuario",
-        tags: ["Autenticación"],
+        path: '/register',
+        summary: 'Registrar un nuevo usuario',
+        tags: ['Autenticación'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["name", "email", "password", "password_confirmation"],
+                required: ['name', 'email', 'password', 'password_confirmation'],
                 properties: [
-                    new OA\Property(property: "name", type: "string", example: "Juan Pérez"),
-                    new OA\Property(property: "email", type: "string", format: "email", example: "juan@example.com"),
-                    new OA\Property(property: "password", type: "string", format: "password", example: "secret123"),
-                    new OA\Property(property: "password_confirmation", type: "string", format: "password", example: "secret123"),
-                    new OA\Property(property: "phone", type: "string", example: "+541122334455")
+                    new OA\Property(property: 'name', type: 'string', example: 'Juan Pérez'),
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
+                    new OA\Property(property: 'password_confirmation', type: 'string', format: 'password', example: 'secret123'),
+                    new OA\Property(property: 'phone', type: 'string', example: '+541122334455'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 201,
-                description: "Usuario registrado. Se ha enviado un código de verificación al email.",
+                description: 'Usuario registrado. Se ha enviado un código de verificación al email.',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "message", type: "string", example: "Usuario registrado exitosamente. Por favor verifica tu email."),
-                        new OA\Property(property: "email", type: "string", example: "juan@example.com")
+                        new OA\Property(property: 'message', type: 'string', example: 'Usuario registrado exitosamente. Por favor verifica tu email.'),
+                        new OA\Property(property: 'email', type: 'string', example: 'juan@example.com'),
                     ]
                 )
-            )
+            ),
         ]
     )]
     public function register(Request $request)
@@ -70,31 +70,31 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/verify-email",
-        summary: "Verificar email con código OTP",
-        tags: ["Autenticación"],
+        path: '/verify-email',
+        summary: 'Verificar email con código OTP',
+        tags: ['Autenticación'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["email", "code"],
+                required: ['email', 'code'],
                 properties: [
-                    new OA\Property(property: "email", type: "string", format: "email", example: "juan@example.com"),
-                    new OA\Property(property: "code", type: "string", example: "123456")
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
+                    new OA\Property(property: 'code', type: 'string', example: '123456'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Email verificado correctamente",
+                description: 'Email verificado correctamente',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "token", type: "string", example: "1|abcde..."),
-                        new OA\Property(property: "user", type: "object")
+                        new OA\Property(property: 'token', type: 'string', example: '1|abcde...'),
+                        new OA\Property(property: 'user', type: 'object'),
                     ]
                 )
             ),
-            new OA\Response(response: 422, description: "Código inválido o expirado")
+            new OA\Response(response: 422, description: 'Código inválido o expirado'),
         ]
     )]
     public function verifyEmail(Request $request)
@@ -109,7 +109,7 @@ class AuthController extends Controller
             ->where('expires_at', '>', Carbon::now())
             ->first();
 
-        if (!$verification) {
+        if (! $verification) {
             return response()->json([
                 'message' => 'El código es inválido o ha expirado.',
             ], 422);
@@ -132,20 +132,20 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/resend-otp",
-        summary: "Reenviar código OTP",
-        tags: ["Autenticación"],
+        path: '/resend-otp',
+        summary: 'Reenviar código OTP',
+        tags: ['Autenticación'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["email"],
+                required: ['email'],
                 properties: [
-                    new OA\Property(property: "email", type: "string", format: "email", example: "juan@example.com")
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
                 ]
             )
         ),
         responses: [
-            new OA\Response(response: 200, description: "Código reenviado")
+            new OA\Response(response: 200, description: 'Código reenviado'),
         ]
     )]
     public function resendOtp(Request $request)
@@ -185,32 +185,32 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/login",
-        summary: "Iniciar sesión",
-        tags: ["Autenticación"],
+        path: '/login',
+        summary: 'Iniciar sesión',
+        tags: ['Autenticación'],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ["email", "password"],
+                required: ['email', 'password'],
                 properties: [
-                    new OA\Property(property: "email", type: "string", format: "email", example: "juan@example.com"),
-                    new OA\Property(property: "password", type: "string", format: "password", example: "secret123"),
-                    new OA\Property(property: "device_name", type: "string", example: "iPhone 15")
+                    new OA\Property(property: 'email', type: 'string', format: 'email', example: 'juan@example.com'),
+                    new OA\Property(property: 'password', type: 'string', format: 'password', example: 'secret123'),
+                    new OA\Property(property: 'device_name', type: 'string', example: 'iPhone 15'),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Login exitoso",
+                description: 'Login exitoso',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "token", type: "string", example: "1|abcde..."),
-                        new OA\Property(property: "user", type: "object")
+                        new OA\Property(property: 'token', type: 'string', example: '1|abcde...'),
+                        new OA\Property(property: 'user', type: 'object'),
                     ]
                 )
             ),
-            new OA\Response(response: 422, description: "Credenciales inválidas")
+            new OA\Response(response: 422, description: 'Credenciales inválidas'),
         ]
     )]
     public function login(Request $request)
@@ -239,12 +239,12 @@ class AuthController extends Controller
     }
 
     #[OA\Post(
-        path: "/logout",
-        summary: "Cerrar sesión",
-        tags: ["Autenticación"],
+        path: '/logout',
+        summary: 'Cerrar sesión',
+        tags: ['Autenticación'],
         security: [['sanctum' => []]],
         responses: [
-            new OA\Response(response: 200, description: "Sesión cerrada")
+            new OA\Response(response: 200, description: 'Sesión cerrada'),
         ]
     )]
     public function logout(Request $request)

@@ -16,17 +16,23 @@ class SubscriptionController extends Controller
      *     summary="Generate a checkout URL for a subscription",
      *     tags={"Subscriptions"},
      *     security={{"sanctum":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="provider", type="string", enum={"stripe", "mercadopago", "paypal"}),
      *             @OA\Property(property="plan", type="string", default="premium")
      *         )
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Checkout URL generated",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="checkout_url", type="string")
      *         )
      *     )
@@ -36,7 +42,7 @@ class SubscriptionController extends Controller
     {
         $request->validate([
             'provider' => 'required|in:stripe,mercadopago,paypal',
-            'plan' => 'string'
+            'plan' => 'string',
         ]);
 
         $user = Auth::user();
@@ -63,7 +69,7 @@ class SubscriptionController extends Controller
                 break;
         }
 
-        if (!$checkoutUrl) {
+        if (! $checkoutUrl) {
             return response()->json(['message' => 'Could not generate checkout URL'], 500);
         }
 
@@ -75,7 +81,9 @@ class SubscriptionController extends Controller
      *     path="/api/subscriptions/callback/{provider}",
      *     summary="Callback for subscription redirects",
      *     tags={"Subscriptions"},
+     *
      *     @OA\Parameter(name="provider", in="path", required=true, @OA\Schema(type="string")),
+     *
      *     @OA\Response(response=200, description="Redirects to app")
      * )
      */
@@ -86,7 +94,7 @@ class SubscriptionController extends Controller
         return response()->json([
             'message' => 'Subscription process finished',
             'provider' => $provider,
-            'status' => $request->query('status', 'unknown')
+            'status' => $request->query('status', 'unknown'),
         ]);
     }
 }

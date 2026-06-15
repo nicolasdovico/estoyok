@@ -2,14 +2,16 @@
 
 namespace App\Services;
 
-use Twilio\Rest\Client;
-use Illuminate\Support\Facades\Log;
 use Exception;
+use Illuminate\Support\Facades\Log;
+use Twilio\Rest\Client;
 
 class TwilioService implements WhatsAppServiceInterface
 {
     protected Client $client;
+
     protected ?string $fromWhatsApp;
+
     protected ?string $fromSMS;
 
     public function __construct()
@@ -26,8 +28,9 @@ class TwilioService implements WhatsAppServiceInterface
 
     public function sendWhatsApp(string $to, string $message, array $parameters = []): bool
     {
-        if (!isset($this->client) || !$this->fromWhatsApp) {
+        if (! isset($this->client) || ! $this->fromWhatsApp) {
             Log::info("[SIMULATED WHATSAPP] To: {$to} | Message: {$message}");
+
             return true;
         }
 
@@ -38,32 +41,35 @@ class TwilioService implements WhatsAppServiceInterface
 
             $this->client->messages->create($to, [
                 'from' => $from,
-                'body' => $message
+                'body' => $message,
             ]);
 
             return true;
         } catch (Exception $e) {
-            Log::error("Twilio WhatsApp Error: " . $e->getMessage());
+            Log::error('Twilio WhatsApp Error: '.$e->getMessage());
+
             return false;
         }
     }
 
     public function sendSMS(string $to, string $message): bool
     {
-        if (!isset($this->client) || !$this->fromSMS) {
+        if (! isset($this->client) || ! $this->fromSMS) {
             Log::info("[SIMULATED SMS] To: {$to} | Message: {$message}");
+
             return true;
         }
 
         try {
             $this->client->messages->create($to, [
                 'from' => $this->fromSMS,
-                'body' => $message
+                'body' => $message,
             ]);
 
             return true;
         } catch (Exception $e) {
-            Log::error("Twilio SMS Error: " . $e->getMessage());
+            Log::error('Twilio SMS Error: '.$e->getMessage());
+
             return false;
         }
     }

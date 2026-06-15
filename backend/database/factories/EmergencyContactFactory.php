@@ -13,12 +13,12 @@ class EmergencyContactFactory extends Factory
     public function definition(): array
     {
         return [
-            "user_id" => User::factory(),
-            "name" => $this->faker->name,
-            "phone" => $this->faker->e164PhoneNumber,
-            "email" => $this->faker->safeEmail,
-            "relationship" => $this->faker->randomElement(["Padre", "Madre", "Amigo", "Hermano", "Cónyuge"]),
-            "is_active" => true,
+            'user_id' => User::factory(),
+            'name' => $this->faker->name,
+            'phone' => $this->faker->e164PhoneNumber,
+            'email' => $this->faker->safeEmail,
+            'relationship' => $this->faker->randomElement(['Padre', 'Madre', 'Amigo', 'Hermano', 'Cónyuge']),
+            'is_active' => true,
         ];
     }
 }

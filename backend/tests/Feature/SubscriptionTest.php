@@ -7,7 +7,6 @@ use App\Services\MercadoPagoService;
 use App\Services\PayPalService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
-use Mockery;
 
 class SubscriptionTest extends TestCase
 {
@@ -26,7 +25,7 @@ class SubscriptionTest extends TestCase
 
         $response = $this->postJson('/api/subscriptions/checkout', [
             'provider' => 'mercadopago',
-            'plan' => 'premium'
+            'plan' => 'premium',
         ]);
 
         $response->assertStatus(200)
@@ -46,7 +45,7 @@ class SubscriptionTest extends TestCase
 
         $response = $this->postJson('/api/subscriptions/checkout', [
             'provider' => 'paypal',
-            'plan' => 'premium'
+            'plan' => 'premium',
         ]);
 
         $response->assertStatus(200)
@@ -58,7 +57,7 @@ class SubscriptionTest extends TestCase
         // This is a simplified test for the webhook logic we'll implement later
         $response = $this->postJson('/api/webhooks/mercadopago', [
             'type' => 'subscription_preapproval',
-            'data' => ['id' => 'mp-123']
+            'data' => ['id' => 'mp-123'],
         ]);
 
         $response->assertStatus(200);

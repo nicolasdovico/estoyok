@@ -3,9 +3,9 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\ProcessGeofencing;
 use App\Models\CurrentLocation;
 use App\Models\LocationHistory;
-use App\Jobs\ProcessGeofencing;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -18,15 +18,19 @@ class LocationController extends Controller
      *     summary="Update user's current location",
      *     tags={"Location"},
      *     security={{"sanctum":{}}},
+     *
      *     @OA\RequestBody(
      *         required=true,
+     *
      *         @OA\JsonContent(
      *             required={"latitude", "longitude"},
+     *
      *             @OA\Property(property="latitude", type="number", format="float", example=-34.6037),
      *             @OA\Property(property="longitude", type="number", format="float", example=-58.3816),
      *             @OA\Property(property="accuracy", type="number", format="float", example=15.5)
      *         )
      *     ),
+     *
      *     @OA\Response(response=200, description="Location updated successfully"),
      *     @OA\Response(response=401, description="Unauthenticated")
      * )
@@ -53,7 +57,7 @@ class LocationController extends Controller
                     [
                         'accuracy' => $accuracy,
                         'recorded_at' => $recordedAt,
-                        'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)")
+                        'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
                     ]
                 );
 
@@ -62,16 +66,17 @@ class LocationController extends Controller
                     'user_id' => $user->id,
                     'accuracy' => $accuracy,
                     'recorded_at' => $recordedAt,
-                    'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)")
+                    'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
                 ]);
-                
+
                 // 3. Dispatch Geofencing processing
                 ProcessGeofencing::dispatch($user, $lat, $lng);
             });
 
             return response()->json(['message' => 'Location updated']);
         } catch (\Exception $e) {
-            Log::error("Failed to update location for user {$user->id}: " . $e->getMessage());
+            Log::error("Failed to update location for user {$user->id}: ".$e->getMessage());
+
             return response()->json(['error' => 'Failed to update location'], 500);
         }
     }

@@ -2,9 +2,9 @@
 
 namespace App\Jobs;
 
-use App\Models\User;
 use App\Models\Geofence;
 use App\Models\GeofenceEvent;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -46,7 +46,7 @@ class ProcessGeofencing implements ShouldQueue
 
         foreach ($allGeofences as $geofence) {
             $isInside = DB::selectOne(
-                "SELECT ST_DWithin(center, ST_GeomFromText(?, 4326), ?) as inside FROM geofences WHERE id = ?",
+                'SELECT ST_DWithin(center, ST_GeomFromText(?, 4326), ?) as inside FROM geofences WHERE id = ?',
                 [$pointWkt, $geofence->radius, $geofence->id]
             )->inside;
 
@@ -60,7 +60,7 @@ class ProcessGeofencing implements ShouldQueue
             if ($isInside && $lastType === 'exit') {
                 $this->recordEvent($geofence, 'entry');
                 $this->sendGeofenceAlert($geofence, 'ingresado a');
-            } elseif (!$isInside && $lastType === 'entry') {
+            } elseif (! $isInside && $lastType === 'entry') {
                 $this->recordEvent($geofence, 'exit');
                 $this->sendGeofenceAlert($geofence, 'salido de');
             }
@@ -90,9 +90,9 @@ class ProcessGeofencing implements ShouldQueue
                     'title' => 'Alerta de Perímetro',
                     'body' => "{$this->user->name} ha {$action}: {$geofence->name}",
                     'data' => [
-                        'type' => 'geofence_alert', 
+                        'type' => 'geofence_alert',
                         'geofence_id' => $geofence->id,
-                        'event' => $action == 'ingresado a' ? 'entry' : 'exit'
+                        'event' => $action == 'ingresado a' ? 'entry' : 'exit',
                     ],
                 ]);
             }

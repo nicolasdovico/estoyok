@@ -20,7 +20,7 @@ class WebhookController extends Controller
             // In a real scenario, you'd fetch the preapproval details from MP API using the ID
             // and find the user by external_reference or payer_email.
             // For this MVP, we'll assume we can identify the user somehow or it's a simplified flow.
-            
+
             // Example:
             // $mpUser = User::where('mp_subscription_id', $id)->first();
             // if ($mpUser) { $mpUser->update(['is_premium' => true, 'mp_status' => 'authorized']); }
@@ -42,7 +42,7 @@ class WebhookController extends Controller
             if ($user) {
                 $user->update([
                     'is_premium' => true,
-                    'paypal_status' => 'active'
+                    'paypal_status' => 'active',
                 ]);
             }
         }
@@ -53,7 +53,7 @@ class WebhookController extends Controller
             if ($user) {
                 $user->update([
                     'is_premium' => false,
-                    'paypal_status' => 'cancelled'
+                    'paypal_status' => 'cancelled',
                 ]);
             }
         }

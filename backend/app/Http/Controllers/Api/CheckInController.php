@@ -10,27 +10,27 @@ use OpenApi\Attributes as OA;
 class CheckInController extends Controller
 {
     #[OA\Post(
-        path: "/check-in",
-        summary: "Realizar check-in diario",
-        tags: ["Check-in"],
+        path: '/check-in',
+        summary: 'Realizar check-in diario',
+        tags: ['Check-in'],
         security: [['sanctum' => []]],
         responses: [
             new OA\Response(
                 response: 200,
-                description: "Check-in realizado exitosamente",
+                description: 'Check-in realizado exitosamente',
                 content: new OA\JsonContent(
                     properties: [
-                        new OA\Property(property: "message", type: "string", example: "Check-in exitoso"),
-                        new OA\Property(property: "last_check_in_at", type: "string", format: "date-time")
+                        new OA\Property(property: 'message', type: 'string', example: 'Check-in exitoso'),
+                        new OA\Property(property: 'last_check_in_at', type: 'string', format: 'date-time'),
                     ]
                 )
-            )
+            ),
         ]
     )]
     public function store(Request $request)
     {
         $user = $request->user();
-        
+
         $user->update([
             'last_check_in_at' => Carbon::now(),
         ]);

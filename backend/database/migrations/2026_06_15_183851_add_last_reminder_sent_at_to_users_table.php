@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->integer('checkin_interval_hours')->default(24)->after('last_check_in_at');
+            $table->timestamp('last_reminder_sent_at')->nullable();
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropColumn('checkin_interval_hours');
+            $table->dropColumn('last_reminder_sent_at');
         });
     }
 };

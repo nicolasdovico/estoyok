@@ -8,8 +8,8 @@ use App\Models\User;
 use App\Services\WhatsAppServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Http;
-use Tests\TestCase;
 use Mockery;
+use Tests\TestCase;
 
 class WhatsAppAlertTest extends TestCase
 {
@@ -20,14 +20,14 @@ class WhatsAppAlertTest extends TestCase
         // 1. Create a premium user with emergency contacts
         $user = User::factory()->create([
             'is_premium' => true,
-            'name' => 'John Doe'
+            'name' => 'John Doe',
         ]);
 
         $contact = EmergencyContact::create([
             'user_id' => $user->id,
             'name' => 'Jane Doe',
             'phone' => '+5491122334455',
-            'email' => 'jane@example.com'
+            'email' => 'jane@example.com',
         ]);
 
         // 2. Mock Expo Push API
@@ -56,7 +56,7 @@ class WhatsAppAlertTest extends TestCase
         // 1. Create a premium user with emergency contacts
         $user = User::factory()->create([
             'is_premium' => true,
-            'name' => 'John Doe'
+            'name' => 'John Doe',
         ]);
 
         $contact = EmergencyContact::create([
@@ -89,7 +89,7 @@ class WhatsAppAlertTest extends TestCase
         // 1. Create a free user
         $user = User::factory()->create([
             'is_premium' => false,
-            'name' => 'Free User'
+            'name' => 'Free User',
         ]);
 
         EmergencyContact::create([

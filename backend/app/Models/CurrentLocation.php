@@ -2,10 +2,10 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Database\Eloquent\Builder;
 
 class CurrentLocation extends Model
 {
@@ -37,7 +37,7 @@ class CurrentLocation extends Model
             $builder->addSelect([
                 'current_locations.*',
                 DB::raw('ST_Y(location::geometry) as latitude'),
-                DB::raw('ST_X(location::geometry) as longitude')
+                DB::raw('ST_X(location::geometry) as longitude'),
             ]);
         });
     }

@@ -2,18 +2,18 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
-use Laravel\Sanctum\HasApiTokens;
 use Laravel\Cashier\Billable;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
-    use HasApiTokens, HasFactory, Notifiable, Billable;
+    use Billable, HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -33,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'mp_status',
         'paypal_subscription_id',
         'paypal_status',
+        'last_reminder_sent_at',
     ];
 
     /**
@@ -58,6 +59,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_check_in_at' => 'datetime',
             'checkin_interval_hours' => 'integer',
             'is_premium' => 'boolean',
+            'last_reminder_sent_at' => 'datetime',
         ];
     }
 
@@ -96,9 +98,9 @@ class User extends Authenticatable implements MustVerifyEmail
      */
     public function hasPremiumAccess(): bool
     {
-        return $this->is_premium || 
-               $this->subscribed('default') || 
-               in_array($this->mp_status, ['authorized', 'active']) || 
+        return $this->is_premium ||
+               $this->subscribed('default') ||
+               in_array($this->mp_status, ['authorized', 'active']) ||
                in_array($this->paypal_status, ['active', 'approved']);
     }
 }

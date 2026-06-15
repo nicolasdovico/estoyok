@@ -10,6 +10,8 @@ Artisan::command('inspire', function () {
 
 if (app()->environment('local')) {
     Schedule::command('checkins:verify-inactivity')->everyMinute();
+    Schedule::command('checkins:send-reminders')->everyMinute();
 } else {
     Schedule::command('checkins:verify-inactivity')->everyThirtyMinutes();
+    Schedule::command('checkins:send-reminders')->everyFifteenMinutes();
 }

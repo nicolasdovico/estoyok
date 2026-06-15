@@ -21,7 +21,7 @@ class Circle extends Model
         parent::boot();
 
         static::creating(function ($circle) {
-            if (!$circle->invite_code) {
+            if (! $circle->invite_code) {
                 $circle->invite_code = Str::upper(Str::random(10));
             }
         });

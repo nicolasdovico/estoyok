@@ -2,16 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
+use App\Jobs\ProcessGeofencing;
 use App\Models\Circle;
 use App\Models\Geofence;
 use App\Models\GeofenceEvent;
-use App\Jobs\ProcessGeofencing;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Tests\TestCase;
-use Mockery;
 
 class GeofencingTest extends TestCase
 {
@@ -25,19 +24,19 @@ class GeofencingTest extends TestCase
         $response = $this->postJson('/api/locations/update', [
             'latitude' => -34.6037,
             'longitude' => -58.3816,
-            'accuracy' => 10.5
+            'accuracy' => 10.5,
         ]);
 
         $response->assertStatus(200);
 
         $this->assertDatabaseHas('current_locations', [
             'user_id' => $user->id,
-            'accuracy' => 10.5
+            'accuracy' => 10.5,
         ]);
 
         $this->assertDatabaseHas('location_histories', [
             'user_id' => $user->id,
-            'accuracy' => 10.5
+            'accuracy' => 10.5,
         ]);
     }
 
@@ -45,7 +44,7 @@ class GeofencingTest extends TestCase
     {
         $owner = User::factory()->create(['name' => 'Owner', 'expo_push_token' => 'token-1']);
         $member = User::factory()->create(['name' => 'Member', 'expo_push_token' => 'token-2']);
-        
+
         $circle = Circle::create(['name' => 'Test Circle', 'owner_id' => $owner->id]);
         $circle->users()->attach([$owner->id, $member->id]);
 
@@ -53,7 +52,7 @@ class GeofencingTest extends TestCase
             'circle_id' => $circle->id,
             'name' => 'Obelisco',
             'radius' => 500,
-            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)"),
         ]);
 
         Http::fake();
@@ -65,7 +64,7 @@ class GeofencingTest extends TestCase
         $this->assertDatabaseHas('geofence_events', [
             'user_id' => $member->id,
             'geofence_id' => $geofence->id,
-            'type' => 'entry'
+            'type' => 'entry',
         ]);
 
         Http::assertSent(function ($request) {
@@ -77,7 +76,7 @@ class GeofencingTest extends TestCase
     {
         $owner = User::factory()->create(['name' => 'Owner', 'expo_push_token' => 'token-1']);
         $member = User::factory()->create(['name' => 'Member']);
-        
+
         $circle = Circle::create(['name' => 'Test Circle', 'owner_id' => $owner->id]);
         $circle->users()->attach([$owner->id, $member->id]);
 
@@ -85,7 +84,7 @@ class GeofencingTest extends TestCase
             'circle_id' => $circle->id,
             'name' => 'Obelisco',
             'radius' => 500,
-            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)"),
         ]);
 
         // Pre-record an ENTRY event
@@ -93,7 +92,7 @@ class GeofencingTest extends TestCase
             'user_id' => $member->id,
             'geofence_id' => $geofence->id,
             'type' => 'entry',
-            'occurred_at' => now()->subMinutes(10)
+            'occurred_at' => now()->subMinutes(10),
         ]);
 
         Http::fake();
@@ -105,7 +104,7 @@ class GeofencingTest extends TestCase
         $this->assertDatabaseHas('geofence_events', [
             'user_id' => $member->id,
             'geofence_id' => $geofence->id,
-            'type' => 'exit'
+            'type' => 'exit',
         ]);
 
         Http::assertSent(function ($request) {
@@ -117,7 +116,7 @@ class GeofencingTest extends TestCase
     {
         $owner = User::factory()->create(['expo_push_token' => 'token-1']);
         $member = User::factory()->create();
-        
+
         $circle = Circle::create(['name' => 'Test Circle', 'owner_id' => $owner->id]);
         $circle->users()->attach([$owner->id, $member->id]);
 
@@ -125,7 +124,7 @@ class GeofencingTest extends TestCase
             'circle_id' => $circle->id,
             'name' => 'Obelisco',
             'radius' => 500,
-            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)"),
         ]);
 
         // Pre-record an ENTRY event
@@ -133,7 +132,7 @@ class GeofencingTest extends TestCase
             'user_id' => $member->id,
             'geofence_id' => $geofence->id,
             'type' => 'entry',
-            'occurred_at' => now()->subMinutes(10)
+            'occurred_at' => now()->subMinutes(10),
         ]);
 
         Http::fake();

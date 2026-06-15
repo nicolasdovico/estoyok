@@ -5,7 +5,6 @@ namespace App\Console\Commands;
 use App\Jobs\SendInactivityAlerts;
 use App\Models\User;
 use Illuminate\Console\Command;
-use Illuminate\Support\Carbon;
 
 class VerifyInactivity extends Command
 {
@@ -42,12 +41,12 @@ class VerifyInactivity extends Command
             // El usuario es inactivo si su último check-in fue hace más de X unidades (horas o minutos)
             // O si nunca hizo uno y su cuenta tiene más de X unidades
             $query->whereRaw("last_check_in_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval")
-                  ->orWhere(function($q) use ($unit) {
-                      $q->whereNull('last_check_in_at')
+                ->orWhere(function ($q) use ($unit) {
+                    $q->whereNull('last_check_in_at')
                         ->whereRaw("created_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval");
-                  });
+                });
         })
-        ->get();
+            ->get();
 
         $count = 0;
         foreach ($inactiveUsers as $user) {

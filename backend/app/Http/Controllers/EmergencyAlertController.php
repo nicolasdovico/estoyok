@@ -2,10 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\EmergencyAlert;
 use App\Models\CurrentLocation;
+use App\Models\EmergencyAlert;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\Request;
 
 class EmergencyAlertController extends Controller
 {
@@ -14,17 +13,22 @@ class EmergencyAlertController extends Controller
      *     path="/api/emergency-alerts/{id}",
      *     summary="Get emergency alert details",
      *     tags={"Emergency"},
+     *
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
      *         required=true,
      *         description="Alert UUID",
+     *
      *         @OA\Schema(type="string", format="uuid")
      *     ),
+     *
      *     @OA\Response(
      *         response=200,
      *         description="Emergency alert details",
+     *
      *         @OA\JsonContent(
+     *
      *             @OA\Property(property="user_name", type="string"),
      *             @OA\Property(property="status", type="string"),
      *             @OA\Property(property="type", type="string"),
@@ -36,6 +40,7 @@ class EmergencyAlertController extends Controller
      *             )
      *         )
      *     ),
+     *
      *     @OA\Response(response=404, description="Alert not found or expired")
      * )
      */
@@ -48,7 +53,7 @@ class EmergencyAlertController extends Controller
         }
 
         $user = $alert->user;
-        
+
         $location = null;
         if ($alert->status !== 'resolved') {
             $locationRecord = CurrentLocation::whereUser($user->id);

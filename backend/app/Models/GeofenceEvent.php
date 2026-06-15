@@ -10,11 +10,11 @@ class GeofenceEvent extends Model
         'user_id',
         'geofence_id',
         'type',
-        'occurred_at'
+        'occurred_at',
     ];
 
     protected $casts = [
-        'occurred_at' => 'datetime'
+        'occurred_at' => 'datetime',
     ];
 
     public function user()

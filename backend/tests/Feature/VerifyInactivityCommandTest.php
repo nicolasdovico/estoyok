@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
 use App\Jobs\SendInactivityAlerts;
+use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Queue;
 use Tests\TestCase;
-use Carbon\Carbon;
 
 class VerifyInactivityCommandTest extends TestCase
 {
@@ -19,31 +19,31 @@ class VerifyInactivityCommandTest extends TestCase
 
         // 1. User with 24h interval, last check-in 25h ago -> INACTIVE
         $user1 = User::factory()->create([
-            "checkin_interval_hours" => 24,
-            "last_check_in_at" => Carbon::now()->subHours(25)
+            'checkin_interval_hours' => 24,
+            'last_check_in_at' => Carbon::now()->subHours(25),
         ]);
 
         // 2. User with 24h interval, last check-in 23h ago -> ACTIVE
         $user2 = User::factory()->create([
-            "checkin_interval_hours" => 24,
-            "last_check_in_at" => Carbon::now()->subHours(23)
+            'checkin_interval_hours' => 24,
+            'last_check_in_at' => Carbon::now()->subHours(23),
         ]);
 
         // 3. User with 6h interval, last check-in 7h ago -> INACTIVE
         $user3 = User::factory()->create([
-            "checkin_interval_hours" => 6,
-            "last_check_in_at" => Carbon::now()->subHours(7)
+            'checkin_interval_hours' => 6,
+            'last_check_in_at' => Carbon::now()->subHours(7),
         ]);
 
         // 4. User with 48h interval, last check-in 47h ago -> ACTIVE
         $user4 = User::factory()->create([
-            "checkin_interval_hours" => 48,
-            "last_check_in_at" => Carbon::now()->subHours(47)
+            'checkin_interval_hours' => 48,
+            'last_check_in_at' => Carbon::now()->subHours(47),
         ]);
 
-        $this->artisan("checkins:verify-inactivity")
-             ->expectsOutput("Proceso completado. Se han encolado alertas para 2 usuarios.")
-             ->assertExitCode(0);
+        $this->artisan('checkins:verify-inactivity')
+            ->expectsOutput('Proceso completado. Se han encolado alertas para 2 usuarios.')
+            ->assertExitCode(0);
 
         Queue::assertPushed(SendInactivityAlerts::class, function ($job) use ($user1) {
             return $job->user->id === $user1->id;

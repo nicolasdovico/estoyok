@@ -3,15 +3,12 @@
 namespace App\Filament\Resources;
 
 use App\Filament\Resources\EmergencyContactResource\Pages;
-use App\Filament\Resources\EmergencyContactResource\RelationManagers;
 use App\Models\EmergencyContact;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class EmergencyContactResource extends Resource
 {

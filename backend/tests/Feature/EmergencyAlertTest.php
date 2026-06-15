@@ -2,16 +2,15 @@
 
 namespace Tests\Feature;
 
-use App\Models\User;
-use App\Models\EmergencyAlert;
-use App\Models\CurrentLocation;
 use App\Jobs\SendInactivityAlerts;
+use App\Models\CurrentLocation;
+use App\Models\EmergencyAlert;
+use App\Models\User;
 use App\Services\WhatsAppServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\Queue;
 use Illuminate\Support\Str;
-use Tests\TestCase;
 use Mockery;
+use Tests\TestCase;
 
 class EmergencyAlertTest extends TestCase
 {
@@ -60,7 +59,7 @@ class EmergencyAlertTest extends TestCase
                 'location' => [
                     'latitude' => -34.6037,
                     'longitude' => -58.3816,
-                ]
+                ],
             ]);
     }
 

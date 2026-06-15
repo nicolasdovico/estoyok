@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table("emergency_contacts", function (Blueprint $table) {
-            $table->string("relationship")->nullable()->after("email");
-            $table->boolean("is_active")->default(true)->after("relationship");
+        Schema::table('emergency_contacts', function (Blueprint $table) {
+            $table->string('relationship')->nullable()->after('email');
+            $table->boolean('is_active')->default(true)->after('relationship');
         });
     }
 
@@ -22,8 +22,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table("emergency_contacts", function (Blueprint $table) {
-            $table->dropColumn(["relationship", "is_active"]);
+        Schema::table('emergency_contacts', function (Blueprint $table) {
+            $table->dropColumn(['relationship', 'is_active']);
         });
     }
 };

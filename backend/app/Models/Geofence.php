@@ -12,12 +12,12 @@ class Geofence extends Model
         'radius',
         'type',
         'is_active',
-        'center'
+        'center',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
-        'radius' => 'float'
+        'radius' => 'float',
     ];
 
     public function circle()
