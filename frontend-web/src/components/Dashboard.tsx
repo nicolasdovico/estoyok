@@ -18,6 +18,10 @@ interface UserData {
   is_premium: boolean;
   checkin_interval_hours: number;
   last_check_in_at: string | null;
+  quiet_hours_enabled?: boolean;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  allow_sms_whatsapp_checkin?: boolean;
   current_location?: {
     latitude: number;
     longitude: number;
@@ -343,6 +347,7 @@ export default function Dashboard() {
                     initialQuietHoursEnabled={userData?.quiet_hours_enabled || false}
                     initialQuietHoursStart={userData?.quiet_hours_start || '23:00'}
                     initialQuietHoursEnd={userData?.quiet_hours_end || '07:00'}
+                    initialAllowSmsWhatsappCheckin={userData?.allow_sms_whatsapp_checkin || false}
                   />
                 </div>
 

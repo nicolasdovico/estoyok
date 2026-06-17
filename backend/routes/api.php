@@ -20,6 +20,7 @@ Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
 Route::post('/webhooks/stripe', [Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook']);
+Route::post('/webhooks/twilio/message', [WebhookController::class, 'twilioMessage']);
 
 // Emergency Routes (Public)
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);
@@ -42,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Settings
     Route::put('/settings/checkin-interval', [SettingsController::class, 'updateCheckinInterval']);
     Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
+    Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

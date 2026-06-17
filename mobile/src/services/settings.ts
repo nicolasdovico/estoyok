@@ -16,6 +16,12 @@ export const settingsService = {
     });
     return response.data;
   },
+  updateSmsWhatsappCheckin: async (enabled: boolean) => {
+    const response = await api.put('/settings/sms-whatsapp-checkin', {
+      allow_sms_whatsapp_checkin: enabled
+    });
+    return response.data;
+  },
   fetchUserSettings: async () => {
     const response = await api.get('/user');
     return response.data;

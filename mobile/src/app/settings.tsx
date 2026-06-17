@@ -26,6 +26,7 @@ export default function SettingsScreen() {
   const [startMinutes, setStartMinutes] = useState('00');
   const [endHours, setEndHours] = useState('07');
   const [endMinutes, setEndMinutes] = useState('00');
+  const [allowSmsWhatsappCheckin, setAllowSmsWhatsappCheckin] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -49,6 +50,7 @@ export default function SettingsScreen() {
         setEndHours(parts[0] || '07');
         setEndMinutes(parts[1] || '00');
       }
+      setAllowSmsWhatsappCheckin(data.allow_sms_whatsapp_checkin || false);
     } catch (e) {
       console.error('Error fetching settings', e);
     } finally {
@@ -86,6 +88,20 @@ export default function SettingsScreen() {
     } catch (error) {
       setQuietHoursEnabled(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar el Modo Sueño.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggleSmsWhatsappCheckin = async (enabled: boolean) => {
+    setAllowSmsWhatsappCheckin(enabled);
+    setIsUpdating(true);
+    try {
+      await settingsService.updateSmsWhatsappCheckin(enabled);
+      Alert.alert('Éxito', `Check-in por SMS/WhatsApp ${enabled ? 'activado' : 'desactivado'}.`);
+    } catch (error) {
+      setAllowSmsWhatsappCheckin(!enabled); // revert
+      Alert.alert('Error', 'No se pudo actualizar la configuración.');
     } finally {
       setIsUpdating(false);
     }
@@ -303,6 +319,23 @@ export default function SettingsScreen() {
               )}
             </TouchableOpacity>
           )}
+        </View>
+
+        {/* SECCION CHECK-IN POR SMS/WHATSAPP */}
+        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={styles.sectionTitle}>Check-in por SMS / WhatsApp</Text>
+              <Text style={styles.description}>Permite confirmar tu bienestar respondiendo directamente a los mensajes preventivos.</Text>
+            </View>
+            <Switch
+              value={allowSmsWhatsappCheckin}
+              onValueChange={handleToggleSmsWhatsappCheckin}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={allowSmsWhatsappCheckin ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
         </View>
 
         <View style={styles.infoCard}>

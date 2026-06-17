@@ -155,3 +155,15 @@
 - Restored `timezone` rule validation in backend SettingsController for stricter security constraints.
 - Added integration test `test_user_timezone_is_normalized_automatically` to prevent regressions.
 - Optimized mobile settings: wrapped settings screen in `KeyboardAvoidingView` to prevent inputs from being covered by the keyboard, and split quiet hours selection into separate Hour (HH) and Minute (MM) numeric inputs to ensure stable `number-pad` entry.
+
+## [2026-06-17] Twilio Webhook for SMS/WhatsApp Check-in
+- Added database migration defining the `allow_sms_whatsapp_checkin` boolean column in `users`.
+- Updated the `User` model with the new column in `$fillable` and `casts()`.
+- Created `PUT /api/settings/sms-whatsapp-checkin` API endpoint with Swagger/OpenAPI documentation.
+- Created public webhook `POST /api/webhooks/twilio/message` to receive incoming SMS/WhatsApp replies from Twilio.
+- Added E.164 phone parser, active user validation, check-in registration, emergency alert resolution, and TwiML XML responses.
+- Covered all webhook flows with automated feature tests (`TwilioWebhookTest`).
+- Exposed the `allow_sms_whatsapp_checkin` setting in the Filament Admin Panel (`UserResource`).
+- Integrated settings toggle in Web Dashboard settings (`SecuritySettings.tsx`, `Dashboard.tsx`).
+- Integrated settings toggle in Mobile application Settings screen (`settings.tsx`, `settings.ts`).
+- Verified zero compilation and type-check errors across Web and Mobile frontends.

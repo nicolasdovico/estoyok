@@ -15,6 +15,7 @@ interface SecuritySettingsProps {
   initialQuietHoursEnabled: boolean;
   initialQuietHoursStart: string;
   initialQuietHoursEnd: string;
+  initialAllowSmsWhatsappCheckin: boolean;
 }
 
 export default function SecuritySettings({
@@ -22,11 +23,13 @@ export default function SecuritySettings({
   initialQuietHoursEnabled,
   initialQuietHoursStart,
   initialQuietHoursEnd,
+  initialAllowSmsWhatsappCheckin,
 }: SecuritySettingsProps) {
   const [interval, setIntervalValue] = useState(initialInterval);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(initialQuietHoursEnabled);
   const [quietHoursStart, setQuietHoursStart] = useState(initialQuietHoursStart ? initialQuietHoursStart.substring(0, 5) : '23:00');
   const [quietHoursEnd, setQuietHoursEnd] = useState(initialQuietHoursEnd ? initialQuietHoursEnd.substring(0, 5) : '07:00');
+  const [allowSmsWhatsappCheckin, setAllowSmsWhatsappCheckin] = useState(initialAllowSmsWhatsappCheckin);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -53,6 +56,11 @@ export default function SecuritySettings({
       setQuietHoursEnd(initialQuietHoursEnd.substring(0, 5));
     }
   }, [initialQuietHoursEnd]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setAllowSmsWhatsappCheckin(initialAllowSmsWhatsappCheckin);
+  }, [initialAllowSmsWhatsappCheckin]);
 
   const handleUpdate = async (value: number) => {
     setIsUpdating(true);
@@ -122,6 +130,40 @@ export default function SecuritySettings({
     }
   };
 
+  const handleUpdateSmsWhatsappCheckin = async (enabled: boolean) => {
+    setIsUpdating(true);
+    setMessage('');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/sms-whatsapp-checkin`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          allow_sms_whatsapp_checkin: enabled,
+        }),
+      });
+
+      if (response.ok) {
+        setAllowSmsWhatsappCheckin(enabled);
+        setMessage('Configuración de check-in por SMS/WhatsApp actualizada');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Validation errors:', errorData);
+        setMessage('Error al actualizar check-in: ' + JSON.stringify(errorData.errors || errorData.message));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Error de conexión');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col justify-between">
       <div>
@@ -164,7 +206,7 @@ export default function SecuritySettings({
               onClick={() => handleUpdateQuietHours(!quietHoursEnabled, quietHoursStart, quietHoursEnd)}
               disabled={isUpdating}
               className={`
-                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
                 ${quietHoursEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
               `}
             >
@@ -202,6 +244,29 @@ export default function SecuritySettings({
               </div>
             </div>
           )}
+        </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Check-in por SMS / WhatsApp</label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Permite responder &quot;OK&quot;, &quot;1&quot; o &quot;BIEN&quot; directamente al mensaje preventivo para confirmar tu bienestar.
+              </p>
+            </div>
+            <button
+              onClick={() => handleUpdateSmsWhatsappCheckin(!allowSmsWhatsappCheckin)}
+              disabled={isUpdating}
+              className={`
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                ${allowSmsWhatsappCheckin ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+              `}
+            >
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
         </div>
       </div>
 

@@ -25,6 +25,7 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\DateTimePicker::make('last_check_in_at'),
                 Forms\Components\Toggle::make('is_premium'),
+                Forms\Components\Toggle::make('allow_sms_whatsapp_checkin'),
                 Forms\Components\TextInput::make('expo_push_token'),
                 Forms\Components\Section::make('Subscriptions')
                     ->schema([
@@ -45,6 +46,7 @@ class UserResource extends Resource
                 Tables\Columns\TextColumn::make('phone'),
                 Tables\Columns\TextColumn::make('last_check_in_at')->dateTime()->sortable(),
                 Tables\Columns\IconColumn::make('is_premium')->boolean(),
+                Tables\Columns\IconColumn::make('allow_sms_whatsapp_checkin')->boolean(),
                 Tables\Columns\TextColumn::make('mp_status')->label('MP Status')->badge(),
                 Tables\Columns\TextColumn::make('paypal_status')->label('PayPal Status')->badge(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),

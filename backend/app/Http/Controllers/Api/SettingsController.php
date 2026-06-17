@@ -124,4 +124,46 @@ class SettingsController extends Controller
             'timezone' => $user->timezone,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/sms-whatsapp-checkin',
+        summary: 'Actualizar configuración de check-in por SMS/WhatsApp',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['allow_sms_whatsapp_checkin'],
+                properties: [
+                    new OA\Property(property: 'allow_sms_whatsapp_checkin', type: 'boolean', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración actualizada',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'SMS/WhatsApp check-in settings updated successfully'),
+                        new OA\Property(property: 'allow_sms_whatsapp_checkin', type: 'boolean', example: true),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function updateSmsWhatsappCheckin(Request $request)
+    {
+        $validated = $request->validate([
+            'allow_sms_whatsapp_checkin' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'SMS/WhatsApp check-in settings updated successfully',
+            'allow_sms_whatsapp_checkin' => $user->allow_sms_whatsapp_checkin,
+        ]);
+    }
 }
