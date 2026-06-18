@@ -22,6 +22,13 @@ export const settingsService = {
     });
     return response.data;
   },
+  updateEscalation: async (enabled: boolean, minutes: number) => {
+    const response = await api.put('/settings/escalation', {
+      escalation_enabled: enabled,
+      escalation_interval_minutes: minutes
+    });
+    return response.data;
+  },
   fetchUserSettings: async () => {
     const response = await api.get('/user');
     return response.data;

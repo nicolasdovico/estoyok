@@ -22,6 +22,8 @@ interface UserData {
   quiet_hours_start?: string | null;
   quiet_hours_end?: string | null;
   allow_sms_whatsapp_checkin?: boolean;
+  escalation_enabled?: boolean;
+  escalation_interval_minutes?: number;
   current_location?: {
     latitude: number;
     longitude: number;
@@ -223,7 +225,7 @@ export default function Dashboard() {
           </div>
         </aside>
 
-        <main className="flex-1 p-4 md:p-8">
+        <main className="flex-1 p-4 md:p-8 pb-32">
           <div className="max-w-4xl mx-auto space-y-8">
             {activeTab === 'wellbeing' && (
               <div className="space-y-8">
@@ -348,6 +350,8 @@ export default function Dashboard() {
                     initialQuietHoursStart={userData?.quiet_hours_start || '23:00'}
                     initialQuietHoursEnd={userData?.quiet_hours_end || '07:00'}
                     initialAllowSmsWhatsappCheckin={userData?.allow_sms_whatsapp_checkin || false}
+                    initialEscalationEnabled={userData?.escalation_enabled || false}
+                    initialEscalationIntervalMinutes={userData?.escalation_interval_minutes || 15}
                   />
                 </div>
 

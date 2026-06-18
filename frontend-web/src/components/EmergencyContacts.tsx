@@ -44,6 +44,70 @@ export default function EmergencyContacts() {
     fetchContacts();
   }, []);
 
+  const handleDragStart = (e: React.DragEvent, index: number) => {
+    e.dataTransfer.setData('text/plain', index.toString());
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e: React.DragEvent, targetIndex: number) => {
+    const sourceIndex = parseInt(e.dataTransfer.getData('text/plain'), 10);
+    if (isNaN(sourceIndex) || sourceIndex === targetIndex) return;
+
+    const reorderedContacts = [...contacts];
+    const [removed] = reorderedContacts.splice(sourceIndex, 1);
+    reorderedContacts.splice(targetIndex, 0, removed);
+    
+    setContacts(reorderedContacts);
+
+    const token = localStorage.getItem('auth_token');
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-contacts/reorder`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: reorderedContacts.map(c => c.id),
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to reorder contacts', err);
+      fetchContacts();
+    }
+  };
+
+  const moveContact = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= contacts.length) return;
+
+    const reorderedContacts = [...contacts];
+    const [removed] = reorderedContacts.splice(index, 1);
+    reorderedContacts.splice(targetIndex, 0, removed);
+
+    setContacts(reorderedContacts);
+
+    const token = localStorage.getItem('auth_token');
+    try {
+      await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-contacts/reorder`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ids: reorderedContacts.map(c => c.id),
+        }),
+      });
+    } catch (err) {
+      console.error('Failed to move contact', err);
+      fetchContacts();
+    }
+  };
+
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.phone.trim().startsWith('+')) {
@@ -132,20 +196,56 @@ export default function EmergencyContacts() {
         {contacts.length === 0 ? (
           <div className="p-12 text-center text-gray-400 italic">No tienes contactos configurados.</div>
         ) : (
-          contacts.map((contact) => (
-            <div key={contact.id} className="p-6 flex justify-between items-start hover:bg-gray-50 transition-colors">
-              <div>
-                <p className="font-bold text-gray-900">{contact.name}</p>
-                <p className="text-xs font-bold text-red-600 uppercase tracking-wider">{contact.relationship || 'Contacto'}</p>
-                <div className="mt-2 space-y-1">
-                  <p className="text-sm text-gray-600 flex items-center gap-2">
-                    <span className="opacity-50 text-xs">📞</span> {contact.phone}
-                  </p>
-                  {contact.email && (
+          contacts.map((contact, index) => (
+            <div 
+              key={contact.id} 
+              draggable
+              onDragStart={(e) => handleDragStart(e, index)}
+              onDragOver={handleDragOver}
+              onDrop={(e) => handleDrop(e, index)}
+              className="p-6 flex justify-between items-start hover:bg-gray-50 transition-colors cursor-move"
+            >
+              <div className="flex gap-4 items-start">
+                {contacts.length > 1 && (
+                  <div className="flex flex-col items-center gap-1 mr-2 bg-gray-50 p-2 rounded-xl border border-gray-100">
+                    <button
+                      type="button"
+                      disabled={index === 0}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveContact(index, 'up');
+                      }}
+                      className={`text-xs p-1 hover:bg-white rounded transition-colors ${index === 0 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      ▲
+                    </button>
+                    <span className="text-[11px] font-black text-gray-700">{index + 1}°</span>
+                    <button
+                      type="button"
+                      disabled={index === contacts.length - 1}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        moveContact(index, 'down');
+                      }}
+                      className={`text-xs p-1 hover:bg-white rounded transition-colors ${index === contacts.length - 1 ? 'text-gray-300 cursor-not-allowed' : 'text-gray-600 hover:text-gray-900'}`}
+                    >
+                      ▼
+                    </button>
+                  </div>
+                )}
+                <div>
+                  <p className="font-bold text-gray-900">{contact.name}</p>
+                  <p className="text-xs font-bold text-red-600 uppercase tracking-wider">{contact.relationship || 'Contacto'}</p>
+                  <div className="mt-2 space-y-1">
                     <p className="text-sm text-gray-600 flex items-center gap-2">
-                      <span className="opacity-50 text-xs">✉️</span> {contact.email}
+                      <span className="opacity-50 text-xs">📞</span> {contact.phone}
                     </p>
-                  )}
+                    {contact.email && (
+                      <p className="text-sm text-gray-600 flex items-center gap-2">
+                        <span className="opacity-50 text-xs">✉️</span> {contact.email}
+                      </p>
+                    )}
+                  </div>
                 </div>
               </div>
               <div className="flex gap-2">

@@ -39,6 +39,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'quiet_hours_end',
         'timezone',
         'allow_sms_whatsapp_checkin',
+        'escalation_enabled',
+        'escalation_interval_minutes',
     ];
 
     /**
@@ -67,6 +69,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'last_reminder_sent_at' => 'datetime',
             'quiet_hours_enabled' => 'boolean',
             'allow_sms_whatsapp_checkin' => 'boolean',
+            'escalation_enabled' => 'boolean',
+            'escalation_interval_minutes' => 'integer',
         ];
     }
 

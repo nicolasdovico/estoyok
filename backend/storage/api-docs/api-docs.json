@@ -523,6 +523,70 @@
                 ]
             }
         },
+        "/emergency-contacts/reorder": {
+            "post": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Reordenar contactos de emergencia",
+                "operationId": "49ba3b5eb3d448d753b2f6dd43ad5695",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "ids"
+                                ],
+                                "properties": {
+                                    "ids": {
+                                        "type": "array",
+                                        "items": {
+                                            "type": "integer"
+                                        },
+                                        "example": [
+                                            3,
+                                            1,
+                                            2
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Contactos reordenados",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Priorities updated successfully"
+                                        },
+                                        "contacts": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "object"
+                                            }
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/settings/checkin-interval": {
             "put": {
                 "tags": [
@@ -656,6 +720,72 @@
                                         "allow_sms_whatsapp_checkin": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/settings/escalation": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar configuración de escalamiento secuencial",
+                "operationId": "457426df9b4c14a74b83f0bd73a7b889",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "escalation_enabled",
+                                    "escalation_interval_minutes"
+                                ],
+                                "properties": {
+                                    "escalation_enabled": {
+                                        "type": "boolean",
+                                        "example": true
+                                    },
+                                    "escalation_interval_minutes": {
+                                        "type": "integer",
+                                        "example": 15,
+                                        "maximum": 1440,
+                                        "minimum": 1
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuración actualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Escalation settings updated successfully"
+                                        },
+                                        "escalation_enabled": {
+                                            "type": "boolean",
+                                            "example": true
+                                        },
+                                        "escalation_interval_minutes": {
+                                            "type": "integer",
+                                            "example": 15
                                         }
                                     },
                                     "type": "object"

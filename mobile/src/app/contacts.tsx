@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, FlatList, TouchableOpacity, Modal, TextInput, Alert, ActivityIndicator } from 'react-native';
 import { emergencyContactsService, EmergencyContact } from '@/services/emergencyContacts';
-import { Plus, Trash2, Edit2, Shield, Phone, Mail, User } from 'lucide-react-native';
+import { Plus, Trash2, Edit2, Shield, Phone, Mail, User, ArrowUp, ArrowDown } from 'lucide-react-native';
 
 export default function ContactsScreen() {
   const [contacts, setContacts] = useState<EmergencyContact[]>([]);
@@ -15,6 +15,25 @@ export default function ContactsScreen() {
     email: '',
     relationship: '',
   });
+
+  const handleMoveContact = async (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= contacts.length) return;
+
+    const reorderedContacts = [...contacts];
+    const [removed] = reorderedContacts.splice(index, 1);
+    reorderedContacts.splice(targetIndex, 0, removed);
+
+    setContacts(reorderedContacts);
+
+    try {
+      const ids = reorderedContacts.map(c => c.id!);
+      await emergencyContactsService.reorder(ids);
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo reordenar los contactos.');
+      fetchContacts();
+    }
+  };
 
   const fetchContacts = async () => {
     try {
@@ -103,8 +122,27 @@ export default function ContactsScreen() {
     setModalVisible(true);
   };
 
-  const renderItem = ({ item }: { item: EmergencyContact }) => (
+  const renderItem = ({ item, index }: { item: EmergencyContact; index: number }) => (
     <View style={styles.contactCard}>
+      {contacts.length > 1 && (
+        <View style={styles.orderButtons}>
+          <TouchableOpacity 
+            onPress={() => handleMoveContact(index, 'up')} 
+            disabled={index === 0}
+            style={[styles.orderButton, index === 0 && { opacity: 0.2 }]}
+          >
+            <ArrowUp size={16} color="#6b7280" />
+          </TouchableOpacity>
+          <Text style={styles.priorityText}>{index + 1}°</Text>
+          <TouchableOpacity 
+            onPress={() => handleMoveContact(index, 'down')} 
+            disabled={index === contacts.length - 1}
+            style={[styles.orderButton, index === contacts.length - 1 && { opacity: 0.2 }]}
+          >
+            <ArrowDown size={16} color="#6b7280" />
+          </TouchableOpacity>
+        </View>
+      )}
       <View style={styles.contactInfo}>
         <Text style={styles.contactName}>{item.name}</Text>
         <Text style={styles.contactRelation}>{item.relationship || 'Sin relación especificada'}</Text>
@@ -144,7 +182,7 @@ export default function ContactsScreen() {
         <FlatList
           data={contacts}
           keyExtractor={(item) => item.id!.toString()}
-          renderItem={renderItem}
+          renderItem={({ item, index }) => renderItem({ item, index })}
           contentContainerStyle={styles.list}
           ListEmptyComponent={
             <View style={styles.empty}>
@@ -263,4 +301,24 @@ const styles = StyleSheet.create({
   saveButton: { backgroundColor: '#dc2626' },
   cancelButtonText: { color: '#4b5563', fontWeight: '700' },
   saveButtonText: { color: '#fff', fontWeight: '700' },
+  orderButtons: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 15,
+    backgroundColor: '#f9fafb',
+    padding: 6,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#e5e7eb',
+    width: 38,
+  },
+  orderButton: {
+    padding: 2,
+  },
+  priorityText: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#374151',
+    marginVertical: 2,
+  },
 });

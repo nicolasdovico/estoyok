@@ -16,10 +16,12 @@ class EmergencyContact extends Model
         'email',
         'relationship',
         'is_active',
+        'priority',
     ];
 
     protected $casts = [
         'is_active' => 'boolean',
+        'priority' => 'integer',
     ];
 
     public function user()

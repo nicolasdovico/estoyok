@@ -166,4 +166,50 @@ class SettingsController extends Controller
             'allow_sms_whatsapp_checkin' => $user->allow_sms_whatsapp_checkin,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/escalation',
+        summary: 'Actualizar configuración de escalamiento secuencial',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['escalation_enabled', 'escalation_interval_minutes'],
+                properties: [
+                    new OA\Property(property: 'escalation_enabled', type: 'boolean', example: true),
+                    new OA\Property(property: 'escalation_interval_minutes', type: 'integer', example: 15, minimum: 1, maximum: 1440),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración actualizada',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Escalation settings updated successfully'),
+                        new OA\Property(property: 'escalation_enabled', type: 'boolean', example: true),
+                        new OA\Property(property: 'escalation_interval_minutes', type: 'integer', example: 15),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function updateEscalation(Request $request)
+    {
+        $validated = $request->validate([
+            'escalation_enabled' => 'required|boolean',
+            'escalation_interval_minutes' => 'required|integer|min:1|max:1440',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Escalation settings updated successfully',
+            'escalation_enabled' => $user->escalation_enabled,
+            'escalation_interval_minutes' => $user->escalation_interval_minutes,
+        ]);
+    }
 }

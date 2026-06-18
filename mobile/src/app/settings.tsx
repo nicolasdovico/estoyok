@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator, ScrollView, Switch, TextInput, KeyboardAvoidingView, Platform } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import { settingsService } from '@/services/settings';
@@ -20,6 +20,7 @@ const DEV_OPTIONS = [
 
 export default function SettingsScreen() {
   const { user } = useAuth();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [currentInterval, setCurrentInterval] = useState(user?.checkin_interval_hours || 24);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(false);
   const [startHours, setStartHours] = useState('23');
@@ -27,6 +28,8 @@ export default function SettingsScreen() {
   const [endHours, setEndHours] = useState('07');
   const [endMinutes, setEndMinutes] = useState('00');
   const [allowSmsWhatsappCheckin, setAllowSmsWhatsappCheckin] = useState(false);
+  const [escalationEnabled, setEscalationEnabled] = useState(false);
+  const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState('15');
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -51,6 +54,8 @@ export default function SettingsScreen() {
         setEndMinutes(parts[1] || '00');
       }
       setAllowSmsWhatsappCheckin(data.allow_sms_whatsapp_checkin || false);
+      setEscalationEnabled(data.escalation_enabled || false);
+      setEscalationIntervalMinutes((data.escalation_interval_minutes || 15).toString());
     } catch (e) {
       console.error('Error fetching settings', e);
     } finally {
@@ -107,6 +112,39 @@ export default function SettingsScreen() {
     }
   };
 
+  const handleToggleEscalation = async (enabled: boolean) => {
+    setEscalationEnabled(enabled);
+    setIsUpdating(true);
+    try {
+      const minutes = parseInt(escalationIntervalMinutes, 10) || 15;
+      await settingsService.updateEscalation(enabled, minutes);
+      Alert.alert('Éxito', `Notificación Escalonada ${enabled ? 'activada' : 'desactivada'}.`);
+    } catch (error) {
+      setEscalationEnabled(!enabled); // revert
+      Alert.alert('Error', 'No se pudo actualizar la configuración.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSaveEscalationInterval = async () => {
+    const minutes = parseInt(escalationIntervalMinutes, 10);
+    if (isNaN(minutes) || minutes < 1 || minutes > 1440) {
+      Alert.alert('Error', 'Por favor ingresa un intervalo válido (entre 1 y 1440 minutos).');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await settingsService.updateEscalation(escalationEnabled, minutes);
+      Alert.alert('Éxito', 'Intervalo de escalado guardado.');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar la configuración.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   const handleSaveQuietHours = async () => {
     const hStart = parseInt(startHours, 10);
     const mStart = parseInt(startMinutes, 10);
@@ -152,10 +190,10 @@ export default function SettingsScreen() {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
     >
-      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
+      <ScrollView ref={scrollViewRef} style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.header}>
           <Clock size={32} color="#dc2626" />
           <Text style={styles.title}>Configuración de Seguridad</Text>
@@ -255,6 +293,11 @@ export default function SettingsScreen() {
                       const cleaned = text.replace(/\D/g, '');
                       setStartHours(cleaned);
                     }}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 350);
+                    }}
                     placeholder="23"
                     maxLength={2}
                     keyboardType="number-pad"
@@ -266,6 +309,11 @@ export default function SettingsScreen() {
                     onChangeText={(text) => {
                       const cleaned = text.replace(/\D/g, '');
                       setStartMinutes(cleaned);
+                    }}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 350);
                     }}
                     placeholder="00"
                     maxLength={2}
@@ -285,6 +333,11 @@ export default function SettingsScreen() {
                       const cleaned = text.replace(/\D/g, '');
                       setEndHours(cleaned);
                     }}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 350);
+                    }}
                     placeholder="07"
                     maxLength={2}
                     keyboardType="number-pad"
@@ -296,6 +349,11 @@ export default function SettingsScreen() {
                     onChangeText={(text) => {
                       const cleaned = text.replace(/\D/g, '');
                       setEndMinutes(cleaned);
+                    }}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 350);
                     }}
                     placeholder="00"
                     maxLength={2}
@@ -336,6 +394,56 @@ export default function SettingsScreen() {
               disabled={isUpdating}
             />
           </View>
+        </View>
+
+        {/* SECCION ALERTAS ESCALONADAS */}
+        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={styles.sectionTitle}>Notificación Escalonada</Text>
+              <Text style={styles.description}>
+                Notifica secuencialmente a tus contactos de emergencia con un retraso, en lugar de alertar a todos a la vez.
+              </Text>
+            </View>
+            <Switch
+              value={escalationEnabled}
+              onValueChange={handleToggleEscalation}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={escalationEnabled ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
+
+          {escalationEnabled && (
+            <View style={{ marginTop: 15 }}>
+              <Text style={styles.timeInputLabel}>Intervalo de escalado (minutos)</Text>
+              <View style={styles.row}>
+                <TextInput
+                  style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, fontSize: 16, fontWeight: '700', color: '#374151', flex: 1, marginRight: 10 }}
+                  value={escalationIntervalMinutes}
+                  onChangeText={setEscalationIntervalMinutes}
+                  keyboardType="numeric"
+                  placeholder="15"
+                  onFocus={() => {
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 350);
+                  }}
+                />
+                <TouchableOpacity 
+                  style={[styles.saveButton, { marginTop: 0, paddingVertical: 12, paddingHorizontal: 20 }]} 
+                  onPress={handleSaveEscalationInterval}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Guardar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
         </View>
 
         <View style={styles.infoCard}>

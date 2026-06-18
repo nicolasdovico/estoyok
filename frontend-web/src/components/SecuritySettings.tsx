@@ -16,6 +16,8 @@ interface SecuritySettingsProps {
   initialQuietHoursStart: string;
   initialQuietHoursEnd: string;
   initialAllowSmsWhatsappCheckin: boolean;
+  initialEscalationEnabled: boolean;
+  initialEscalationIntervalMinutes: number;
 }
 
 export default function SecuritySettings({
@@ -24,14 +26,38 @@ export default function SecuritySettings({
   initialQuietHoursStart,
   initialQuietHoursEnd,
   initialAllowSmsWhatsappCheckin,
+  initialEscalationEnabled,
+  initialEscalationIntervalMinutes,
 }: SecuritySettingsProps) {
   const [interval, setIntervalValue] = useState(initialInterval);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(initialQuietHoursEnabled);
   const [quietHoursStart, setQuietHoursStart] = useState(initialQuietHoursStart ? initialQuietHoursStart.substring(0, 5) : '23:00');
   const [quietHoursEnd, setQuietHoursEnd] = useState(initialQuietHoursEnd ? initialQuietHoursEnd.substring(0, 5) : '07:00');
   const [allowSmsWhatsappCheckin, setAllowSmsWhatsappCheckin] = useState(initialAllowSmsWhatsappCheckin);
+  const [escalationEnabled, setEscalationEnabled] = useState(initialEscalationEnabled);
+  const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState(initialEscalationIntervalMinutes);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
+  const [isInputFocused, setIsInputFocused] = useState(false);
+
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    setIsInputFocused(true);
+    const target = e.target;
+    setTimeout(() => {
+      const rect = target.getBoundingClientRect();
+      const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+      window.scrollTo({
+        top: rect.top + scrollTop - 120,
+        behavior: 'smooth'
+      });
+    }, 300);
+  };
+
+  const handleBlur = () => {
+    setTimeout(() => {
+      setIsInputFocused(false);
+    }, 100);
+  };
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -61,6 +87,16 @@ export default function SecuritySettings({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setAllowSmsWhatsappCheckin(initialAllowSmsWhatsappCheckin);
   }, [initialAllowSmsWhatsappCheckin]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEscalationEnabled(initialEscalationEnabled);
+  }, [initialEscalationEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setEscalationIntervalMinutes(initialEscalationIntervalMinutes);
+  }, [initialEscalationIntervalMinutes]);
 
   const handleUpdate = async (value: number) => {
     setIsUpdating(true);
@@ -164,6 +200,42 @@ export default function SecuritySettings({
     }
   };
 
+  const handleUpdateEscalation = async (enabled: boolean, minutes: number) => {
+    setIsUpdating(true);
+    setMessage('');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/escalation`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          escalation_enabled: enabled,
+          escalation_interval_minutes: minutes,
+        }),
+      });
+
+      if (response.ok) {
+        setEscalationEnabled(enabled);
+        setEscalationIntervalMinutes(minutes);
+        setMessage('Configuración de Alertas Escalonadas actualizada');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Validation errors:', errorData);
+        setMessage('Error al actualizar: ' + JSON.stringify(errorData.errors || errorData.message));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Error de conexión');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
   return (
     <div className="bg-white rounded-3xl shadow-sm border border-gray-100 p-8 flex flex-col justify-between">
       <div>
@@ -225,7 +297,10 @@ export default function SecuritySettings({
                     setQuietHoursStart(e.target.value);
                     handleUpdateQuietHours(quietHoursEnabled, e.target.value, quietHoursEnd);
                   }}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
                   disabled={isUpdating}
+                  style={{ scrollMarginBottom: '250px', scrollMarginTop: '150px' }}
                   className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
                 />
               </div>
@@ -238,7 +313,10 @@ export default function SecuritySettings({
                     setQuietHoursEnd(e.target.value);
                     handleUpdateQuietHours(quietHoursEnabled, quietHoursStart, e.target.value);
                   }}
+                  onFocus={handleFocus}
+                  onBlur={handleBlur}
                   disabled={isUpdating}
+                  style={{ scrollMarginBottom: '250px', scrollMarginTop: '150px' }}
                   className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
                 />
               </div>
@@ -268,6 +346,51 @@ export default function SecuritySettings({
             </button>
           </div>
         </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Notificación Escalonada</label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Notifica secuencialmente a tus contactos con un intervalo de retraso en lugar de alertar a todos a la vez.
+              </p>
+            </div>
+            <button
+              onClick={() => handleUpdateEscalation(!escalationEnabled, escalationIntervalMinutes)}
+              disabled={isUpdating}
+              className={`
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                ${escalationEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+              `}
+            >
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+
+          {escalationEnabled && (
+            <div className="pt-2">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Intervalo de escalado (minutos)</label>
+              <input
+                type="number"
+                min="1"
+                max="1440"
+                value={escalationIntervalMinutes}
+                onChange={(e) => {
+                  const val = parseInt(e.target.value, 10) || 15;
+                  setEscalationIntervalMinutes(val);
+                  handleUpdateEscalation(escalationEnabled, val);
+                }}
+                onFocus={handleFocus}
+                onBlur={handleBlur}
+                disabled={isUpdating}
+                style={{ scrollMarginBottom: '250px', scrollMarginTop: '150px' }}
+                className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+              />
+            </div>
+          )}
+        </div>
       </div>
 
       <div>
@@ -283,6 +406,7 @@ export default function SecuritySettings({
           </p>
         </div>
       </div>
+      {isInputFocused && <div className="h-[350px] md:hidden" />}
     </div>
   );
 }

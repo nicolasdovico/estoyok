@@ -21,7 +21,7 @@ class EmergencyContactController extends Controller
     )]
     public function index()
     {
-        return response()->json(Auth::user()->emergencyContacts);
+        return response()->json(Auth::user()->emergencyContacts()->orderBy('priority', 'asc')->get());
     }
 
     #[OA\Post(
@@ -147,5 +147,54 @@ class EmergencyContactController extends Controller
         $emergencyContact->delete();
 
         return response()->json(null, 204);
+    }
+
+    #[OA\Post(
+        path: '/emergency-contacts/reorder',
+        summary: 'Reordenar contactos de emergencia',
+        tags: ['Contactos de Emergencia'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['ids'],
+                properties: [
+                    new OA\Property(property: 'ids', type: 'array', items: new OA\Items(type: 'integer'), example: [3, 1, 2]),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200, 
+                description: 'Contactos reordenados',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Priorities updated successfully'),
+                        new OA\Property(property: 'contacts', type: 'array', items: new OA\Items(type: 'object')),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function reorder(Request $request)
+    {
+        $validated = $request->validate([
+            'ids' => 'required|array',
+            'ids.*' => 'integer|exists:emergency_contacts,id',
+        ]);
+
+        $ids = $validated['ids'];
+        $userId = Auth::id();
+
+        foreach ($ids as $index => $id) {
+            EmergencyContact::where('id', $id)
+                ->where('user_id', $userId)
+                ->update(['priority' => $index + 1]);
+        }
+
+        return response()->json([
+            'message' => 'Priorities updated successfully',
+            'contacts' => Auth::user()->emergencyContacts()->orderBy('priority', 'asc')->get()
+        ]);
     }
 }

@@ -27,5 +27,10 @@ export const emergencyContactsService = {
   
   delete: async (id: number) => {
     await api.delete(`/emergency-contacts/${id}`);
+  },
+
+  reorder: async (ids: number[]) => {
+    const response = await api.post('/emergency-contacts/reorder', { ids });
+    return response.data;
   }
 };

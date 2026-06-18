@@ -38,12 +38,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/locations/update', [LocationController::class, 'update']);
 
     // Emergency Contacts
+    Route::post('/emergency-contacts/reorder', [EmergencyContactController::class, 'reorder']);
     Route::apiResource('emergency-contacts', EmergencyContactController::class);
 
     // Settings
     Route::put('/settings/checkin-interval', [SettingsController::class, 'updateCheckinInterval']);
     Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
     Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
+    Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

@@ -38,6 +38,7 @@ class VerifyInactivity extends Command
         }
 
         // Buscamos usuarios que han superado su umbral personalizado de check-in
+        // y que no tengan ya una alerta de emergencia activa (para evitar duplicar notificaciones)
         $inactiveUsers = User::where(function ($query) use ($unit) {
             // El usuario es inactivo si su último check-in fue hace más de X unidades (horas o minutos)
             // O si nunca hizo uno y su cuenta tiene más de X unidades
@@ -47,6 +48,9 @@ class VerifyInactivity extends Command
                         ->whereRaw("created_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval");
                 });
         })
+            ->whereDoesntHave('emergencyAlerts', function ($query) {
+                $query->where('status', 'active');
+            })
             ->get();
 
         $count = 0;

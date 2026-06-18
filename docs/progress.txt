@@ -167,3 +167,25 @@
 - Integrated settings toggle in Web Dashboard settings (`SecuritySettings.tsx`, `Dashboard.tsx`).
 - Integrated settings toggle in Mobile application Settings screen (`settings.tsx`, `settings.ts`).
 - Verified zero compilation and type-check errors across Web and Mobile frontends.
+
+## [2026-06-17] Sequential Escalation of Inactivity Alerts & Reordering of Contacts
+- Added database migration defining `priority` column in `emergency_contacts`, and `escalation_enabled` / `escalation_interval_minutes` columns in `users`.
+- Updated `User` and `EmergencyContact` models with mass assignment fillable arrays and casts.
+- Implemented `PUT /api/settings/escalation` to update user escalation preferences.
+- Implemented `POST /api/emergency-contacts/reorder` to bulk-update contact priorities using ordered ID lists.
+- Refactored `SendInactivityAlerts` job to implement sequential delayed queueing:
+  - If escalation is enabled, alerts the contact at the current index.
+  - If a subsequent contact exists, dispatches another instance of itself with a delayed schedule matching `escalation_interval_minutes` minutes.
+  - Automatically aborts sequential alerts if the `EmergencyAlert` is resolved via check-in before the next job executes.
+- Created robust feature integration tests in `InactivityEscalationTest.php` verifying configuration, bulk reordering, sequential dispatching, and conditional cancellation.
+- Integrated escalation configuration switch and numeric delay inputs in Web Dashboard (`SecuritySettings.tsx`, `Dashboard.tsx`).
+- Integrated reordering controls (drag-and-drop handles and priority arrow buttons) in Web emergency contacts list (`EmergencyContacts.tsx`).
+- Integrated escalation configuration switch and numeric delay inputs in Mobile Settings screen (`settings.tsx`, `settings.ts`).
+- Integrated priority arrows and list reordering actions in Mobile emergency contacts list (`contacts.tsx`, `emergencyContacts.ts`).
+
+## [2026-06-18] UX Improvement: Auto-scroll on Focus in Web & Mobile settings
+- Implemented automatic viewport scrolling (`window.scrollTo`) when text/time/number inputs are focused in `SecuritySettings.tsx` (Hora Inicio, Hora Fin, and Intervalo de escalado) on mobile web browsers, ensuring the input stays 120px from the top of the viewport.
+- Integrated a dynamic responsive layout spacer (`h-[350px] md:hidden`) that automatically extends the bottom of the card only when an input is focused on mobile screens, providing ample scrollable space.
+- Added bottom padding `pb-32` to the main element in the Web Dashboard (`Dashboard.tsx`).
+- Configured `KeyboardAvoidingView` behavior on Android to `'height'` to ensure the screen resizes properly when the keyboard is open in the mobile app.
+- Added an `onFocus` handler with a 350ms delay to all numeric inputs on the mobile settings screen (`settings.tsx`) to scroll the `ScrollView` to the end after the keyboard finishes rising.

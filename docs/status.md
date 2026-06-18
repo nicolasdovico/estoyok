@@ -67,6 +67,7 @@
   - [x] Sección de "Historial de Reportes" en el Dashboard Web (Bienestar) y en la App Móvil (Bienestar).
   - [x] Modo Sueño (Horas Silenciosas) configurable con soporte para cruce de medianoche y pausa de avisos/recordatorios (Web, App & Backend).
   - [x] Webhook de Twilio para Check-in por SMS / WhatsApp y toggle de configuración en Web y Mobile.
+  - [x] Alertas de inactividad escalonadas secuencialmente, reordenación de contactos y toggle de configuración en Web y Mobile.
   - [ ] Interfaz de gestión de miembros del círculo.
   - [ ] Visualización de miembros en el mapa del Dashboard.
   - [ ] Alertas personalizadas por miembro.
