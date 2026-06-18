@@ -63,6 +63,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
     Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
     Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
+    Route::put('/settings/automation', [SettingsController::class, 'updateAutomation']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

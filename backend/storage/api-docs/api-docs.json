@@ -268,6 +268,29 @@
                 ],
                 "summary": "Realizar check-in diario",
                 "operationId": "ee57a7431caf3c03bc54120991be471c",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "source": {
+                                        "type": "string",
+                                        "example": "manual",
+                                        "enum": [
+                                            "manual",
+                                            "wifi",
+                                            "movement",
+                                            "sms",
+                                            "whatsapp"
+                                        ]
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
                 "responses": {
                     "200": {
                         "description": "Check-in realizado exitosamente",
@@ -316,6 +339,10 @@
                                             "id": {
                                                 "type": "integer",
                                                 "example": 1
+                                            },
+                                            "source": {
+                                                "type": "string",
+                                                "example": "manual"
                                             },
                                             "created_at": {
                                                 "type": "string",
@@ -1229,6 +1256,80 @@
                                         "share_contact_responses": {
                                             "type": "boolean",
                                             "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/settings/automation": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar configuración de automatización de check-in (Wi-Fi y Podómetro)",
+                "operationId": "ecccbbe39a376604275931a922cc7508",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "wifi_checkin_enabled",
+                                    "sensor_checkin_enabled"
+                                ],
+                                "properties": {
+                                    "wifi_checkin_enabled": {
+                                        "type": "boolean",
+                                        "example": false
+                                    },
+                                    "safe_wifi_ssid": {
+                                        "type": "string",
+                                        "example": "MiWifiDeCasa",
+                                        "nullable": true
+                                    },
+                                    "sensor_checkin_enabled": {
+                                        "type": "boolean",
+                                        "example": false
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuración de automatización actualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Automation settings updated successfully"
+                                        },
+                                        "wifi_checkin_enabled": {
+                                            "type": "boolean",
+                                            "example": false
+                                        },
+                                        "safe_wifi_ssid": {
+                                            "type": "string",
+                                            "example": "MiWifiDeCasa",
+                                            "nullable": true
+                                        },
+                                        "sensor_checkin_enabled": {
+                                            "type": "boolean",
+                                            "example": false
                                         }
                                     },
                                     "type": "object"

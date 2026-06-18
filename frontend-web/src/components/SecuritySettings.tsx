@@ -19,6 +19,9 @@ interface SecuritySettingsProps {
   initialEscalationEnabled: boolean;
   initialEscalationIntervalMinutes: number;
   initialShareContactResponses: boolean;
+  initialWifiCheckinEnabled: boolean;
+  initialSafeWifiSsid: string;
+  initialSensorCheckinEnabled: boolean;
 }
 
 export default function SecuritySettings({
@@ -30,6 +33,9 @@ export default function SecuritySettings({
   initialEscalationEnabled,
   initialEscalationIntervalMinutes,
   initialShareContactResponses,
+  initialWifiCheckinEnabled,
+  initialSafeWifiSsid,
+  initialSensorCheckinEnabled,
 }: SecuritySettingsProps) {
   const [interval, setIntervalValue] = useState(initialInterval);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(initialQuietHoursEnabled);
@@ -39,6 +45,9 @@ export default function SecuritySettings({
   const [escalationEnabled, setEscalationEnabled] = useState(initialEscalationEnabled);
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState(initialEscalationIntervalMinutes);
   const [shareContactResponses, setShareContactResponses] = useState(initialShareContactResponses);
+  const [wifiCheckinEnabled, setWifiCheckinEnabled] = useState(initialWifiCheckinEnabled);
+  const [safeWifiSsid, setSafeWifiSsid] = useState(initialSafeWifiSsid);
+  const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(initialSensorCheckinEnabled);
   const [isUpdating, setIsUpdating] = useState(false);
   const [message, setMessage] = useState('');
   const [isInputFocused, setIsInputFocused] = useState(false);
@@ -105,6 +114,21 @@ export default function SecuritySettings({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setShareContactResponses(initialShareContactResponses);
   }, [initialShareContactResponses]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setWifiCheckinEnabled(initialWifiCheckinEnabled);
+  }, [initialWifiCheckinEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSafeWifiSsid(initialSafeWifiSsid);
+  }, [initialSafeWifiSsid]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setSensorCheckinEnabled(initialSensorCheckinEnabled);
+  }, [initialSensorCheckinEnabled]);
 
   const handleUpdate = async (value: number) => {
     setIsUpdating(true);
@@ -269,6 +293,44 @@ export default function SecuritySettings({
         const errorData = await response.json();
         console.error('Validation errors:', errorData);
         setMessage('Error al actualizar privacidad: ' + JSON.stringify(errorData.errors || errorData.message));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Error de conexión');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleUpdateAutomation = async (wifiEnabled: boolean, ssid: string, sensorEnabled: boolean) => {
+    setIsUpdating(true);
+    setMessage('');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/automation`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          wifi_checkin_enabled: wifiEnabled,
+          safe_wifi_ssid: ssid || null,
+          sensor_checkin_enabled: sensorEnabled,
+        }),
+      });
+
+      if (response.ok) {
+        setWifiCheckinEnabled(wifiEnabled);
+        setSafeWifiSsid(ssid);
+        setSensorCheckinEnabled(sensorEnabled);
+        setMessage('Configuración de auto-check-in actualizada');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Validation errors:', errorData);
+        setMessage('Error al actualizar auto-check-in: ' + JSON.stringify(errorData.errors || errorData.message));
       }
     } catch (err) {
       console.error(err);
@@ -450,6 +512,74 @@ export default function SecuritySettings({
               className={`
                 w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
                 ${shareContactResponses ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+              `}
+            >
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+        </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Auto-check-in por Wi-Fi</label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Confirma tu bienestar automáticamente cuando te conectas al Wi-Fi de tu casa.
+              </p>
+            </div>
+            <button
+              onClick={() => handleUpdateAutomation(!wifiCheckinEnabled, safeWifiSsid, sensorCheckinEnabled)}
+              disabled={isUpdating}
+              className={`
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                ${wifiCheckinEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+              `}
+            >
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+
+          {wifiCheckinEnabled && (
+            <div className="pt-2">
+              <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">SSID de Wi-Fi Seguro</label>
+              <input
+                type="text"
+                placeholder="Ej: MiWifiDeCasa"
+                value={safeWifiSsid}
+                onChange={(e) => {
+                  setSafeWifiSsid(e.target.value);
+                }}
+                onBlur={() => {
+                  handleBlur();
+                  handleUpdateAutomation(wifiCheckinEnabled, safeWifiSsid, sensorCheckinEnabled);
+                }}
+                onFocus={handleFocus}
+                disabled={isUpdating}
+                style={{ scrollMarginBottom: '250px', scrollMarginTop: '150px' }}
+                className="w-full bg-gray-50 text-gray-800 text-sm font-bold p-3.5 rounded-2xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+              />
+            </div>
+          )}
+        </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Auto-check-in por Actividad Física</label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Confirma tu bienestar automáticamente cuando detectamos más de 100 pasos en tu dispositivo.
+              </p>
+            </div>
+            <button
+              onClick={() => handleUpdateAutomation(wifiCheckinEnabled, safeWifiSsid, !sensorCheckinEnabled)}
+              disabled={isUpdating}
+              className={`
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                ${sensorCheckinEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
               `}
             >
               <div className="w-5 h-5 rounded-full bg-white shadow-sm" />

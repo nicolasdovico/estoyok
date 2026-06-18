@@ -50,9 +50,13 @@ class CheckInHistoryTest extends TestCase
     {
         $user = User::factory()->create();
 
-        // Create 25 check-ins
+        // Create 25 check-ins with distinct timestamps
         for ($i = 0; $i < 25; $i++) {
-            $user->checkIns()->create(['created_at' => now()->subMinutes(25 - $i)]);
+            $checkIn = new CheckIn();
+            $checkIn->user_id = $user->id;
+            $checkIn->created_at = now()->subMinutes(25 - $i);
+            $checkIn->timestamps = false;
+            $checkIn->save();
         }
 
         $response = $this->actingAs($user)->getJson('/api/check-ins');

@@ -14,6 +14,14 @@ class CheckInController extends Controller
         summary: 'Realizar check-in diario',
         tags: ['Check-in'],
         security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: false,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'source', type: 'string', enum: ['manual', 'wifi', 'movement', 'sms', 'whatsapp'], example: 'manual'),
+                ]
+            )
+        ),
         responses: [
             new OA\Response(
                 response: 200,
@@ -29,14 +37,21 @@ class CheckInController extends Controller
     )]
     public function store(Request $request)
     {
+        $validated = $request->validate([
+            'source' => 'nullable|string|in:manual,wifi,movement,sms,whatsapp',
+        ]);
+
+        $source = $validated['source'] ?? 'manual';
         $user = $request->user();
 
         $user->update([
             'last_check_in_at' => Carbon::now(),
         ]);
 
-        // Create a historical log record
-        $user->checkIns()->create();
+        // Create a historical log record with source
+        $user->checkIns()->create([
+            'source' => $source,
+        ]);
 
         // Resolve any active emergency alerts for the user
         $user->emergencyAlerts()->where('status', 'active')->update([
@@ -63,6 +78,7 @@ class CheckInController extends Controller
                     items: new OA\Items(
                         properties: [
                             new OA\Property(property: 'id', type: 'integer', example: 1),
+                            new OA\Property(property: 'source', type: 'string', example: 'manual'),
                             new OA\Property(property: 'created_at', type: 'string', format: 'date-time'),
                         ]
                     )

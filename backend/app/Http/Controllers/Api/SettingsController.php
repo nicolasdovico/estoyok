@@ -254,4 +254,54 @@ class SettingsController extends Controller
             'share_contact_responses' => $user->share_contact_responses,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/automation',
+        summary: 'Actualizar configuración de automatización de check-in (Wi-Fi y Podómetro)',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['wifi_checkin_enabled', 'sensor_checkin_enabled'],
+                properties: [
+                    new OA\Property(property: 'wifi_checkin_enabled', type: 'boolean', example: false),
+                    new OA\Property(property: 'safe_wifi_ssid', type: 'string', example: 'MiWifiDeCasa', nullable: true),
+                    new OA\Property(property: 'sensor_checkin_enabled', type: 'boolean', example: false),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración de automatización actualizada',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Automation settings updated successfully'),
+                        new OA\Property(property: 'wifi_checkin_enabled', type: 'boolean', example: false),
+                        new OA\Property(property: 'safe_wifi_ssid', type: 'string', example: 'MiWifiDeCasa', nullable: true),
+                        new OA\Property(property: 'sensor_checkin_enabled', type: 'boolean', example: false),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function updateAutomation(Request $request)
+    {
+        $validated = $request->validate([
+            'wifi_checkin_enabled' => 'required|boolean',
+            'safe_wifi_ssid' => 'nullable|string|max:255',
+            'sensor_checkin_enabled' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Automation settings updated successfully',
+            'wifi_checkin_enabled' => $user->wifi_checkin_enabled,
+            'safe_wifi_ssid' => $user->safe_wifi_ssid,
+            'sensor_checkin_enabled' => $user->sensor_checkin_enabled,
+        ]);
+    }
 }

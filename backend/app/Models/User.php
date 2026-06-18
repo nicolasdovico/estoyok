@@ -42,6 +42,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'escalation_enabled',
         'escalation_interval_minutes',
         'share_contact_responses',
+        'wifi_checkin_enabled',
+        'safe_wifi_ssid',
+        'sensor_checkin_enabled',
     ];
 
     /**
@@ -73,6 +76,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'escalation_enabled' => 'boolean',
             'escalation_interval_minutes' => 'integer',
             'share_contact_responses' => 'boolean',
+            'wifi_checkin_enabled' => 'boolean',
+            'sensor_checkin_enabled' => 'boolean',
         ];
     }
 

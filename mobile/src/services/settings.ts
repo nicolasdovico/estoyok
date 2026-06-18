@@ -35,6 +35,14 @@ export const settingsService = {
     });
     return response.data;
   },
+  updateAutomation: async (wifiEnabled: boolean, ssid: string, sensorEnabled: boolean) => {
+    const response = await api.put('/settings/automation', {
+      wifi_checkin_enabled: wifiEnabled,
+      safe_wifi_ssid: ssid || null,
+      sensor_checkin_enabled: sensorEnabled
+    });
+    return response.data;
+  },
   fetchUserSettings: async () => {
     const response = await api.get('/user');
     return response.data;

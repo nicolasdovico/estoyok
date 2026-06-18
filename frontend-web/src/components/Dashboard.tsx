@@ -25,6 +25,9 @@ interface UserData {
   escalation_enabled?: boolean;
   escalation_interval_minutes?: number;
   share_contact_responses?: boolean;
+  wifi_checkin_enabled?: boolean;
+  safe_wifi_ssid?: string | null;
+  sensor_checkin_enabled?: boolean;
   current_location?: {
     latitude: number;
     longitude: number;
@@ -82,7 +85,7 @@ export default function Dashboard() {
   const [activeTab, setActiveTab] = useState<'wellbeing' | 'tracking'>('wellbeing');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
-  const [checkIns, setCheckIns] = useState<Array<{ id: number; created_at: string }>>([]);
+  const [checkIns, setCheckIns] = useState<Array<{ id: number; source?: string; created_at: string }>>([]);
   const [isLoadingCheckIns, setIsLoadingCheckIns] = useState(false);
 
   // Estados para Círculos y Geocercas
@@ -620,6 +623,9 @@ export default function Dashboard() {
                     initialEscalationEnabled={userData?.escalation_enabled || false}
                     initialEscalationIntervalMinutes={userData?.escalation_interval_minutes || 15}
                     initialShareContactResponses={userData?.share_contact_responses ?? true}
+                    initialWifiCheckinEnabled={userData?.wifi_checkin_enabled || false}
+                    initialSafeWifiSsid={userData?.safe_wifi_ssid || ''}
+                    initialSensorCheckinEnabled={userData?.sensor_checkin_enabled || false}
                   />
                 </div>
 
@@ -652,7 +658,19 @@ export default function Dashboard() {
                             <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center text-emerald-600 text-xs font-bold">
                               ✓
                             </div>
-                            <span className="text-sm font-semibold text-gray-700">Reporte de Bienestar Confirmado</span>
+                            <div>
+                              <span className="text-sm font-semibold text-gray-700">Reporte de Bienestar Confirmado</span>
+                              {checkIn.source && (
+                                <p className="text-[10px] text-gray-400 mt-0.5 font-bold">
+                                  Vía {
+                                    checkIn.source === 'wifi' ? 'Wi-Fi seguro' :
+                                    checkIn.source === 'movement' ? 'Sensor de movimiento' :
+                                    checkIn.source === 'sms' ? 'SMS' :
+                                    checkIn.source === 'whatsapp' ? 'WhatsApp' : 'Manual'
+                                  }
+                                </p>
+                              )}
+                            </div>
                           </div>
                           <span className="text-xs font-bold text-gray-500">
                             {new Date(checkIn.created_at).toLocaleString()}

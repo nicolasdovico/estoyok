@@ -8,6 +8,7 @@ class CheckIn extends Model
 {
     protected $fillable = [
         'user_id',
+        'source',
     ];
 
     public function user()

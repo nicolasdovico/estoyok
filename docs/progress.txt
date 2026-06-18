@@ -223,3 +223,23 @@
 - **Stabilization:**
     - Fixed React/Next ESLint errors (unused variables and explicit `any` types in catch blocks).
     - Verified all typechecks pass successfully (`npx tsc --noEmit` exits 0) on both frontends.
+
+## [2026-06-18] Passive Auto-Check-in (Wi-Fi & Pedometer)
+- **Backend (Laravel):**
+    - Created database migration adding `wifi_checkin_enabled`, `safe_wifi_ssid`, and `sensor_checkin_enabled` to `users` table, and `source` to `check_ins` table.
+    - Updated `User` and `CheckIn` models fillable arrays and casts.
+    - Implemented API route `PUT /api/settings/automation` to update configurations.
+    - Modified `POST /api/check-in` to accept and log check-in sources (`manual`, `wifi`, `movement`, `sms`, `whatsapp`).
+    - Added comprehensive test suite `AutomationSettingsTest.php` and fixed test unstable sorting in `CheckInHistoryTest.php`.
+    - Regenerated Swagger API documentation.
+- **Web Frontend (Next.js):**
+    - Integrated "Auto-check-in por Wi-Fi" and "Auto-check-in por Actividad Física" configuration options in `SecuritySettings.tsx` (centralized settings panel).
+    - Updated `Dashboard.tsx` to display the check-in verification source (e.g. "Vía Wi-Fi seguro", "Vía Sensor de movimiento", etc.) in the wellbeing history log list.
+- **Mobile Frontend (Expo React Native):**
+    - Installed `expo-sensors` and `@react-native-community/netinfo` libraries using SDK-compatible versions.
+    - Integrated settings layout in the settings screen (`settings.tsx`), allowing saving of safe Wi-Fi SSID and toggling sensor checking.
+    - Implemented automatic check-in checks inside `locationTask.ts` background task: uses `NetInfo` to match current SSID to user safe SSID and `Pedometer` to detect steps (> 100 steps in 1h), querying the check-in API silently with a 15-minute rate limit.
+    - Updated Home screen (`index.tsx`) wellbeing check-in history card to show check-in sources.
+- **Stabilization:**
+    - Fixed React Native JSX TSX parsing error with raw greater-than (`>`) character by rewriting the label.
+    - Verified 100% clean linter execution on Next.js and 0 TypeScript compilation errors in Expo React Native (`npx tsc --noEmit` exits 0).

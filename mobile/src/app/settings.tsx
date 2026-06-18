@@ -31,6 +31,9 @@ export default function SettingsScreen() {
   const [escalationEnabled, setEscalationEnabled] = useState(false);
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState('15');
   const [shareContactResponses, setShareContactResponses] = useState(true);
+  const [wifiCheckinEnabled, setWifiCheckinEnabled] = useState(false);
+  const [safeWifiSsid, setSafeWifiSsid] = useState('');
+  const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -58,6 +61,9 @@ export default function SettingsScreen() {
       setEscalationEnabled(data.escalation_enabled || false);
       setEscalationIntervalMinutes((data.escalation_interval_minutes || 15).toString());
       setShareContactResponses(data.share_contact_responses !== false);
+      setWifiCheckinEnabled(data.wifi_checkin_enabled || false);
+      setSafeWifiSsid(data.safe_wifi_ssid || '');
+      setSensorCheckinEnabled(data.sensor_checkin_enabled || false);
     } catch (e) {
       console.error('Error fetching settings', e);
     } finally {
@@ -138,6 +144,35 @@ export default function SettingsScreen() {
     } catch (error) {
       setShareContactResponses(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar la privacidad.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggleAutomation = async (wifiEnabled: boolean, ssid: string, sensorEnabled: boolean) => {
+    setWifiCheckinEnabled(wifiEnabled);
+    setSafeWifiSsid(ssid);
+    setSensorCheckinEnabled(sensorEnabled);
+    setIsUpdating(true);
+    try {
+      await settingsService.updateAutomation(wifiEnabled, ssid, sensorEnabled);
+    } catch (error) {
+      setWifiCheckinEnabled(wifiCheckinEnabled);
+      setSafeWifiSsid(safeWifiSsid);
+      setSensorCheckinEnabled(sensorCheckinEnabled);
+      Alert.alert('Error', 'No se pudo guardar la configuración de automatización.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSaveWifiSsid = async () => {
+    setIsUpdating(true);
+    try {
+      await settingsService.updateAutomation(wifiCheckinEnabled, safeWifiSsid, sensorCheckinEnabled);
+      Alert.alert('Éxito', 'SSID guardado correctamente.');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo guardar el SSID.');
     } finally {
       setIsUpdating(false);
     }
@@ -474,6 +509,73 @@ export default function SettingsScreen() {
               onValueChange={handleTogglePrivacy}
               trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
               thumbColor={shareContactResponses ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
+        </View>
+
+        {/* SECCION AUTOMATIZACIÓN DE BIENESTAR */}
+        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
+          <Text style={[styles.sectionTitle, { marginBottom: 15 }]}>Automatización de Bienestar</Text>
+
+          {/* Wi-Fi Check-in */}
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#374151' }}>Auto-check-in por Wi-Fi</Text>
+              <Text style={styles.description}>Confirma tu bienestar al conectarte a tu Wi-Fi seguro.</Text>
+            </View>
+            <Switch
+              value={wifiCheckinEnabled}
+              onValueChange={(val) => handleToggleAutomation(val, safeWifiSsid, sensorCheckinEnabled)}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={wifiCheckinEnabled ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
+
+          {wifiCheckinEnabled && (
+            <View style={{ marginTop: 10, marginBottom: 20 }}>
+              <Text style={styles.timeInputLabel}>SSID de tu Wi-Fi Seguro</Text>
+              <View style={styles.row}>
+                <TextInput
+                  style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, fontSize: 15, fontWeight: '600', color: '#374151', flex: 1, marginRight: 10 }}
+                  value={safeWifiSsid}
+                  onChangeText={setSafeWifiSsid}
+                  placeholder="Ej: MiWifiDeCasa"
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  onFocus={() => {
+                    setTimeout(() => {
+                      scrollViewRef.current?.scrollToEnd({ animated: true });
+                    }, 350);
+                  }}
+                />
+                <TouchableOpacity 
+                  style={[styles.saveButton, { marginTop: 0, paddingVertical: 12, paddingHorizontal: 20 }]} 
+                  onPress={handleSaveWifiSsid}
+                  disabled={isUpdating}
+                >
+                  {isUpdating ? (
+                    <ActivityIndicator size="small" color="#fff" />
+                  ) : (
+                    <Text style={styles.saveButtonText}>Guardar</Text>
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+
+          {/* Pedometer Check-in */}
+          <View style={[styles.row, { marginTop: 15 }]}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={{ fontSize: 15, fontWeight: '700', color: '#374151' }}>Auto-check-in por Actividad Física</Text>
+              <Text style={styles.description}>Confirma tu bienestar al registrar actividad física (más de 100 pasos por hora).</Text>
+            </View>
+            <Switch
+              value={sensorCheckinEnabled}
+              onValueChange={(val) => handleToggleAutomation(wifiCheckinEnabled, safeWifiSsid, val)}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={sensorCheckinEnabled ? '#dc2626' : '#f4f3f4'}
               disabled={isUpdating}
             />
           </View>

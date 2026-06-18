@@ -73,6 +73,10 @@
     - [x] Backend: Creada tabla `emergency_responses`, endpoints de envío de feedback y de privacidad de respuestas de contacto, con tests de integración.
     - [x] Web: Entrada de nombre, botones de feedback ("Marcar como Leído", "Recibido / Enterado", "Voy en camino"), visualización condicional según la privacidad y polling de 10 segundos.
     - [x] Configuración (Web & Mobile): Toggle de privacidad "Compartir respuestas de apoyo" persistente.
+  - [x] feat(wellbeing): Implementar auto-check-in pasivo basado en conexión a Wi-Fi segura y podómetro/sensores.
+    - [x] Backend: Migraciones para configuración de automatización en `users` y `source` en `check_ins`, endpoints de API correspondientes, y tests.
+    - [x] Web: Configuración de automatización en SecuritySettings y visualización de origen en historial.
+    - [x] Mobile: Soporte de podómetro y detección de Wi-Fi, switches en ajustes, historial de origen y lógica de fondo en `locationTask.ts`.
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.
