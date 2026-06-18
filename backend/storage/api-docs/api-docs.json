@@ -336,6 +336,180 @@
                 ]
             }
         },
+        "/circles": {
+            "get": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Listar círculos del usuario autenticado",
+                "operationId": "04ea8de722bcce5435212e6e58858f2e",
+                "responses": {
+                    "200": {
+                        "description": "Lista de círculos del usuario con sus miembros y geocercas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Crear un nuevo círculo de seguridad",
+                "operationId": "5d672ce7a1d4cf06d9bb1e8b986241e9",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Familia Perez"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Círculo creado exitosamente"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/circles/join": {
+            "post": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Unirse a un círculo existente mediante código de invitación",
+                "operationId": "d1c067ee900595aaa6dd0c7d7ff73fca",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "invite_code"
+                                ],
+                                "properties": {
+                                    "invite_code": {
+                                        "type": "string",
+                                        "example": "ABC123XYZ0"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Unido al círculo exitosamente"
+                    },
+                    "404": {
+                        "description": "Código de invitación inválido"
+                    },
+                    "400": {
+                        "description": "Ya eres miembro de este círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/circles/{circle}/members/{member}": {
+            "delete": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Eliminar un miembro del círculo o abandonar el círculo",
+                "operationId": "dcf428d1b639bdae225cdcabe40fd05a",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Miembro eliminado o abandono exitoso"
+                    },
+                    "403": {
+                        "description": "No tienes permisos para realizar esta acción"
+                    },
+                    "404": {
+                        "description": "Círculo o miembro no encontrado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/circles/{circle}": {
+            "delete": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Eliminar un círculo de seguridad completo",
+                "operationId": "8a6ca0a7ba9da4b0ac14128b79285bb3",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Círculo eliminado exitosamente"
+                    },
+                    "403": {
+                        "description": "Solo el dueño puede eliminar el círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/emergency-contacts": {
             "get": {
                 "tags": [
@@ -587,6 +761,220 @@
                 ]
             }
         },
+        "/circles/{circle}/geofences": {
+            "get": {
+                "tags": [
+                    "Geocercas"
+                ],
+                "summary": "Listar perímetros (geocercas) de un círculo",
+                "operationId": "65c3e4b7b745ee09cecac8ef071c4d54",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Lista de geocercas"
+                    },
+                    "403": {
+                        "description": "No tienes acceso a este círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "post": {
+                "tags": [
+                    "Geocercas"
+                ],
+                "summary": "Crear un perímetro (geocerca) en el círculo",
+                "operationId": "18134d327f01d7a6175e09d83b30fc1b",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "name",
+                                    "radius",
+                                    "type",
+                                    "latitude",
+                                    "longitude"
+                                ],
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Escuela"
+                                    },
+                                    "radius": {
+                                        "type": "number",
+                                        "example": 200
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "entry_exit"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "example": -34.6037
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "example": -58.3816
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "example": 2,
+                                        "nullable": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Geocerca creada exitosamente"
+                    },
+                    "403": {
+                        "description": "No tienes acceso a este círculo"
+                    },
+                    "400": {
+                        "description": "El usuario especificado no pertenece al círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/geofences/{geofence}": {
+            "put": {
+                "tags": [
+                    "Geocercas"
+                ],
+                "summary": "Actualizar un perímetro (geocerca) existente",
+                "operationId": "c0cea2f9e4f37103a282179ba503600b",
+                "parameters": [
+                    {
+                        "name": "geofence",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "example": "Casa"
+                                    },
+                                    "radius": {
+                                        "type": "number",
+                                        "example": 150
+                                    },
+                                    "type": {
+                                        "type": "string",
+                                        "example": "entry"
+                                    },
+                                    "latitude": {
+                                        "type": "number",
+                                        "example": -34.6037
+                                    },
+                                    "longitude": {
+                                        "type": "number",
+                                        "example": -58.3816
+                                    },
+                                    "user_id": {
+                                        "type": "integer",
+                                        "nullable": true
+                                    },
+                                    "is_active": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Geocerca actualizada exitosamente"
+                    },
+                    "403": {
+                        "description": "No tienes acceso a este círculo"
+                    },
+                    "400": {
+                        "description": "El usuario especificado no pertenece al círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            },
+            "delete": {
+                "tags": [
+                    "Geocercas"
+                ],
+                "summary": "Eliminar un perímetro (geocerca)",
+                "operationId": "e41bad2fdbf589d38107e66c7efd98a9",
+                "parameters": [
+                    {
+                        "name": "geofence",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Geocerca eliminada exitosamente"
+                    },
+                    "403": {
+                        "description": "No tienes acceso a este círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/settings/checkin-interval": {
             "put": {
                 "tags": [
@@ -812,8 +1200,16 @@
             "description": "Check-in"
         },
         {
+            "name": "Círculos",
+            "description": "Círculos"
+        },
+        {
             "name": "Contactos de Emergencia",
             "description": "Contactos de Emergencia"
+        },
+        {
+            "name": "Geocercas",
+            "description": "Geocercas"
         },
         {
             "name": "Configuración",

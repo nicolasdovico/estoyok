@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl, TextInput, Clipboard, Linking } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
 import { LOCATION_TASK_NAME } from '@/services/locationTask';
-import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users } from 'lucide-react-native';
+import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
@@ -17,12 +17,21 @@ export default function HomeScreen() {
   const [checkIns, setCheckIns] = useState<any[]>([]);
   const [loadingCheckIns, setLoadingCheckIns] = useState(false);
 
+  // Estados para Círculos
+  const [circles, setCircles] = useState<any[]>([]);
+  const [loadingCircles, setLoadingCircles] = useState(false);
+  const [selectedCircleId, setSelectedCircleId] = useState<number | null>(null);
+  const [newCircleName, setNewCircleName] = useState('');
+  const [inviteCodeInput, setInviteCodeInput] = useState('');
+  const [submittingCircle, setSubmittingCircle] = useState(false);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
       checkTrackingStatus(),
       fetchUserData(),
-      fetchCheckIns()
+      fetchCheckIns(),
+      fetchCircles()
     ]);
     setRefreshing(false);
   };
@@ -32,8 +41,104 @@ export default function HomeScreen() {
       checkTrackingStatus();
       fetchUserData();
       fetchCheckIns();
+      fetchCircles();
     }
   }, [user]);
+
+  const fetchCircles = async () => {
+    if (!user) return;
+    setLoadingCircles(true);
+    try {
+      const response = await api.get('/circles');
+      setCircles(response.data);
+      if (response.data.length > 0 && !selectedCircleId) {
+        setSelectedCircleId(response.data[0].id);
+      }
+    } catch (e) {
+      console.error('Error fetching circles', e);
+    } finally {
+      setLoadingCircles(false);
+    }
+  };
+
+  const handleCreateCircle = async () => {
+    if (!newCircleName.trim()) {
+      Alert.alert('Error', 'Ingresa un nombre para el círculo.');
+      return;
+    }
+    setSubmittingCircle(true);
+    try {
+      const response = await api.post('/circles', { name: newCircleName });
+      Alert.alert('Éxito', 'Círculo creado exitosamente.');
+      setNewCircleName('');
+      await fetchCircles();
+      setSelectedCircleId(response.data.id);
+    } catch (e: any) {
+      const errMsg = e.response?.data?.message || 'No se pudo crear el círculo.';
+      Alert.alert('Error', errMsg);
+    } finally {
+      setSubmittingCircle(false);
+    }
+  };
+
+  const handleJoinCircle = async () => {
+    if (!inviteCodeInput.trim() || inviteCodeInput.length !== 10) {
+      Alert.alert('Error', 'Ingresa un código válido de 10 caracteres.');
+      return;
+    }
+    setSubmittingCircle(true);
+    try {
+      const response = await api.post('/circles/join', { invite_code: inviteCodeInput });
+      Alert.alert('Éxito', 'Te has unido al círculo.');
+      setInviteCodeInput('');
+      await fetchCircles();
+      setSelectedCircleId(response.data.id);
+    } catch (e: any) {
+      const errMsg = e.response?.data?.message || 'Código inválido o ya perteneces al círculo.';
+      Alert.alert('Error', errMsg);
+    } finally {
+      setSubmittingCircle(false);
+    }
+  };
+
+  const handleRemoveMember = async (circleId: number, memberId: number) => {
+    const isSelf = memberId === user?.id;
+    Alert.alert(
+      isSelf ? 'Salir del Círculo' : 'Expulsar Miembro',
+      isSelf ? '¿Estás seguro de que deseas abandonar este círculo?' : '¿Estás seguro de que deseas expulsar a este miembro?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: isSelf ? 'Salir' : 'Expulsar',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const response = await api.delete(`/circles/${circleId}/members/${memberId}`);
+              Alert.alert('Éxito', response.data.message || 'Acción completada.');
+              if (isSelf || circles.find(c => c.id === circleId)?.owner_id === memberId) {
+                setSelectedCircleId(null);
+              }
+              await fetchCircles();
+            } catch (e: any) {
+              Alert.alert('Error', e.response?.data?.message || 'No se pudo realizar la acción.');
+            }
+          }
+        }
+      ]
+    );
+  };
+
+  const openInMaps = (latitude: number, longitude: number) => {
+    const url = `https://www.google.com/maps/search/?api=1&query=${latitude},${longitude}`;
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'No se pudo abrir el mapa.');
+    });
+  };
+
+  const copyToClipboard = (code: string) => {
+    Clipboard.setString(code);
+    Alert.alert('Copiado', 'El código de invitación se ha copiado al portapapeles.');
+  };
 
   const checkTrackingStatus = async () => {
     try {
@@ -306,6 +411,176 @@ export default function HomeScreen() {
         </View>
       </View>
 
+      {/* MODULO 3: MIS CÍRCULOS */}
+      <View style={[styles.moduleCard, { borderLeftColor: '#3b82f6', borderLeftWidth: 4 }]}>
+        <View style={styles.moduleHeader}>
+          <Users size={20} color="#3b82f6" />
+          <Text style={styles.moduleTitle}>Mis Círculos Familiares</Text>
+        </View>
+
+        {loadingCircles && circles.length === 0 ? (
+          <ActivityIndicator size="small" color="#3b82f6" style={{ marginVertical: 10 }} />
+        ) : circles.length === 0 ? (
+          // Estado sin círculos
+          <View style={styles.emptyCirclesContainer}>
+            <Text style={styles.emptyCirclesText}>No participas en ningún círculo de seguridad aún.</Text>
+            
+            <View style={styles.circleFormSection}>
+              <Text style={styles.circleFormLabel}>Crear un Nuevo Círculo</Text>
+              <View style={styles.circleInputRow}>
+                <TextInput
+                  style={styles.circleInput}
+                  placeholder="Nombre del círculo (ej: Familia)"
+                  placeholderTextColor="#9ca3af"
+                  value={newCircleName}
+                  onChangeText={setNewCircleName}
+                />
+                <TouchableOpacity 
+                  style={styles.circleAddButton} 
+                  onPress={handleCreateCircle}
+                  disabled={submittingCircle}
+                >
+                  <Plus size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            <View style={[styles.circleFormSection, { marginTop: 16 }]}>
+              <Text style={styles.circleFormLabel}>Unirse a un Círculo Existente</Text>
+              <View style={styles.circleInputRow}>
+                <TextInput
+                  style={[styles.circleInput, { fontFamily: 'monospace' }]}
+                  placeholder="Código de 10 caracteres"
+                  placeholderTextColor="#9ca3af"
+                  maxLength={10}
+                  value={inviteCodeInput}
+                  onChangeText={setInviteCodeInput}
+                  autoCapitalize="characters"
+                />
+                <TouchableOpacity 
+                  style={[styles.circleAddButton, { backgroundColor: '#10b981' }]} 
+                  onPress={handleJoinCircle}
+                  disabled={submittingCircle}
+                >
+                  <Compass size={20} color="#fff" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : (
+          // Listado y detalle del círculo seleccionado
+          <View style={styles.circlesContainer}>
+            {circles.length > 1 && (
+              <View style={styles.circleSelectorRow}>
+                <Text style={styles.circleSelectorLabel}>Círculo Activo:</Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.circlesTabList}>
+                  {circles.map((c) => (
+                    <TouchableOpacity
+                      key={c.id}
+                      style={[styles.circleTab, selectedCircleId === c.id && styles.circleTabActive]}
+                      onPress={() => setSelectedCircleId(c.id)}
+                    >
+                      <Text style={[styles.circleTabText, selectedCircleId === c.id && styles.circleTabTextActive]}>
+                        {c.name}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
+            {(() => {
+              const activeCircle = circles.find(c => c.id === selectedCircleId);
+              if (!activeCircle) return null;
+
+              return (
+                <View style={styles.circleDetail}>
+                  <Text style={styles.circleNameTitle}>{activeCircle.name}</Text>
+                  
+                  {/* Tarjeta de Código de Invitación */}
+                  <View style={styles.inviteCodeCard}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.inviteCodeLabel}>Código para invitar familiares:</Text>
+                      <Text style={styles.inviteCodeText}>{activeCircle.invite_code}</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={styles.copyButton}
+                      onPress={() => copyToClipboard(activeCircle.invite_code)}
+                    >
+                      <Copy size={16} color="#4b5563" />
+                      <Text style={styles.copyButtonText}>Copiar</Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Lista de Miembros */}
+                  <Text style={styles.membersSectionTitle}>Miembros del Círculo ({activeCircle.users.length})</Text>
+                  <View style={styles.membersList}>
+                    {activeCircle.users.map((member: any) => {
+                      const isSelf = member.id === user?.id;
+                      const isOwner = member.id === activeCircle.owner_id;
+                      const isCurrentUserAdmin = activeCircle.users.find((u: any) => u.id === user?.id)?.pivot?.role === 'admin';
+
+                      return (
+                        <View key={member.id} style={styles.memberItem}>
+                          <View style={styles.memberAvatar}>
+                            <Text style={styles.memberAvatarText}>{member.name.charAt(0).toUpperCase()}</Text>
+                          </View>
+                          
+                          <View style={styles.memberInfo}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                              <Text style={styles.memberName}>{member.name} {isSelf && '(Tú)'}</Text>
+                              {member.is_premium && <Text style={{ fontSize: 10 }}>⭐</Text>}
+                            </View>
+                            <Text style={styles.memberRole}>
+                              {isOwner ? 'Dueño' : member.pivot?.role === 'admin' ? 'Administrador' : 'Miembro'}
+                            </Text>
+                          </View>
+
+                          <View style={styles.memberActions}>
+                            {member.current_location && (
+                              <TouchableOpacity
+                                style={styles.mapIconButton}
+                                onPress={() => openInMaps(
+                                  member.current_location.latitude,
+                                  member.current_location.longitude
+                                )}
+                              >
+                                <Map size={14} color="#065f46" />
+                                <Text style={styles.mapActionText}>Ver</Text>
+                              </TouchableOpacity>
+                            )}
+
+                            {isSelf ? (
+                              activeCircle.owner_id !== user?.id && (
+                                <TouchableOpacity
+                                  style={styles.leaveMemberButton}
+                                  onPress={() => handleRemoveMember(activeCircle.id, member.id)}
+                                >
+                                  <Text style={styles.leaveMemberText}>Salir</Text>
+                                </TouchableOpacity>
+                              )
+                            ) : (
+                              (activeCircle.owner_id === user?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                <TouchableOpacity
+                                  style={styles.removeMemberButton}
+                                  onPress={() => handleRemoveMember(activeCircle.id, member.id)}
+                                >
+                                  <Trash2 size={14} color="#dc2626" />
+                                </TouchableOpacity>
+                              )
+                            )}
+                          </View>
+                        </View>
+                      );
+                    })}
+                  </View>
+                </View>
+              );
+            })()}
+          </View>
+        )}
+      </View>
+
       <View style={styles.footer}>
         <Text style={styles.footerText}>Estoy Ok v1.0 • Sistema de Protección Familiar</Text>
       </View>
@@ -464,5 +739,41 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     color: '#9ca3af',
-  }
+  },
+  emptyCirclesContainer: { padding: 4 },
+  emptyCirclesText: { fontSize: 12, color: '#6b7280', textAlign: 'center', marginBottom: 16, fontStyle: 'italic', fontWeight: '500' },
+  circleFormSection: { backgroundColor: '#f9fafb', padding: 14, borderRadius: 16, borderWidth: 1, borderColor: '#f3f4f6' },
+  circleFormLabel: { fontSize: 11, fontWeight: '800', color: '#4b5563', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
+  circleInputRow: { flexDirection: 'row', gap: 10 },
+  circleInput: { flex: 1, height: 44, backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, paddingHorizontal: 12, fontSize: 13, color: '#1f2937', fontWeight: '600' },
+  circleAddButton: { width: 44, height: 44, borderRadius: 12, backgroundColor: '#3b82f6', justifyContent: 'center', alignItems: 'center' },
+  circlesContainer: { padding: 4 },
+  circleSelectorRow: { marginBottom: 14 },
+  circleSelectorLabel: { fontSize: 11, fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 6 },
+  circlesTabList: { flexDirection: 'row' },
+  circleTab: { paddingVertical: 8, paddingHorizontal: 16, backgroundColor: '#f3f4f6', borderRadius: 20, marginRight: 8, borderWidth: 1, borderColor: 'transparent' },
+  circleTabActive: { backgroundColor: '#eff6ff', borderColor: '#3b82f6' },
+  circleTabText: { fontSize: 12, fontWeight: '700', color: '#6b7280' },
+  circleTabTextActive: { color: '#3b82f6' },
+  circleDetail: { marginTop: 4 },
+  circleNameTitle: { fontSize: 16, fontWeight: '900', color: '#111827', marginBottom: 12 },
+  inviteCodeCard: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#f3f4f6', borderRadius: 16, padding: 14, marginBottom: 16 },
+  inviteCodeLabel: { fontSize: 10, fontWeight: '800', color: '#6b7280', textTransform: 'uppercase', letterSpacing: 0.5 },
+  inviteCodeText: { fontSize: 20, fontWeight: '900', color: '#1f2937', fontFamily: 'monospace', marginTop: 2, letterSpacing: 1 },
+  copyButton: { flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: '#fff', paddingVertical: 8, paddingHorizontal: 12, borderRadius: 10, borderWidth: 1, borderColor: '#e5e7eb' },
+  copyButtonText: { fontSize: 11, fontWeight: '800', color: '#4b5563' },
+  membersSectionTitle: { fontSize: 11, fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
+  membersList: { gap: 8 },
+  memberItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#f9fafb', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#f3f4f6' },
+  memberAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fee2e2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#fecaca' },
+  memberAvatarText: { fontSize: 14, fontWeight: '800', color: '#dc2626' },
+  memberInfo: { flex: 1 },
+  memberName: { fontSize: 13, fontWeight: '700', color: '#1f2937' },
+  memberRole: { fontSize: 10, color: '#9ca3af', fontWeight: '700', marginTop: 1 },
+  memberActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  mapIconButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#d1fae5', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
+  mapActionText: { fontSize: 11, fontWeight: '800', color: '#065f46' },
+  removeMemberButton: { padding: 8, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#fee2e2' },
+  leaveMemberButton: { paddingVertical: 6, paddingHorizontal: 10, backgroundColor: '#f3f4f6', borderRadius: 10 },
+  leaveMemberText: { fontSize: 11, fontWeight: '800', color: '#ef4444' }
 });

@@ -41,7 +41,10 @@ export default function EmergencyContacts() {
   };
 
   useEffect(() => {
-    fetchContacts();
+    const timer = setTimeout(() => {
+      fetchContacts();
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   const handleDragStart = (e: React.DragEvent, index: number) => {

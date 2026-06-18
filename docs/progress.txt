@@ -189,3 +189,20 @@
 - Added bottom padding `pb-32` to the main element in the Web Dashboard (`Dashboard.tsx`).
 - Configured `KeyboardAvoidingView` behavior on Android to `'height'` to ensure the screen resizes properly when the keyboard is open in the mobile app.
 - Added an `onFocus` handler with a 350ms delay to all numeric inputs on the mobile settings screen (`settings.tsx`) to scroll the `ScrollView` to the end after the keyboard finishes rising.
+
+## [2026-06-18] FASE 8: Gestión de Círculos y Seguridad Avanzada
+- **Backend (Laravel & Base de datos):**
+  - Creado e implementado `CircleController` y `GeofenceController` con soporte Swagger/OpenAPI.
+  - Creada migración añadiendo `user_id` a la tabla `geofences` para permitir geocercas personalizadas por miembro del círculo.
+  - Modificado el modelo `Geofence` para incluir la relación `user()` y el scope de coordenadas PostGIS.
+  - Actualizado el Job `ProcessGeofencing` para evaluar geocercas específicas basadas en el `user_id` de forma aislada.
+  - Cubierta toda la funcionalidad con tests de integración automatizados en `CircleTest.php` y `GeofenceApiTest.php` (tests pasaron 100% limpios).
+- **Frontend Web (Next.js):**
+  - Diseñado y desarrollado el componente `CircleMap.tsx` usando React Leaflet para mostrar a todos los miembros y geocercas del círculo en un mapa dinámico con soporte de clic para captura de coordenadas.
+  - Rediseñada la pestaña de "Rastreo y Círculos" en `Dashboard.tsx` para gestionar completamente círculos (Crear/Unirse), listar miembros, disolver círculos y realizar CRUD de geocercas con asignación por miembro.
+- **Frontend Mobile (Expo React Native):**
+  - Desarrollado el módulo "Mis Círculos Familiares" en la pantalla de inicio móvil, con panel de creación, adhesión por código de invitación, copiado al portapapeles y visualización de miembros.
+  - Implementado soporte de redirección/deep-linking a Google Maps/Apple Maps mediante intents nativos para abrir las coordenadas del miembro seleccionado.
+- **Calidad de Código y Estabilización:**
+  - Corregidos errores de linter de React/TypeScript y Next.js (`react-hooks/set-state-in-effect` y tipos `any`) en Next.js.
+  - Confirmado tipado estático al 100% en Next.js y React Native (`npx tsc --noEmit` exits con 0).

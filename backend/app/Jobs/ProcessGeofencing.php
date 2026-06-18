@@ -40,6 +40,10 @@ class ProcessGeofencing implements ShouldQueue
 
         $allGeofences = Geofence::whereIn('circle_id', $circleIds)
             ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('user_id')
+                      ->orWhere('user_id', $this->user->id);
+            })
             ->get();
 
         $pointWkt = "POINT({$this->longitude} {$this->latitude})";

@@ -48,9 +48,7 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
-
-### In Progress:
-- [ ] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+- [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
   - [x] Implementación completa de Alertas de Inactividad ("Estoy Ok") personalizables.
   - [x] Refactorización de UI (Web/Mobile) para separar Bienestar de Rastreo.
   - [x] Modo de pruebas rápidas (minutos) para desarrollo.
@@ -68,11 +66,15 @@
   - [x] Modo Sueño (Horas Silenciosas) configurable con soporte para cruce de medianoche y pausa de avisos/recordatorios (Web, App & Backend).
   - [x] Webhook de Twilio para Check-in por SMS / WhatsApp y toggle de configuración en Web y Mobile.
   - [x] Alertas de inactividad escalonadas secuencialmente, reordenación de contactos y toggle de configuración en Web y Mobile.
-  - [ ] Interfaz de gestión de miembros del círculo.
-  - [ ] Visualización de miembros en el mapa del Dashboard.
-  - [ ] Alertas personalizadas por miembro.
+  - [x] Interfaz de gestión de miembros del círculo.
+  - [x] Visualización de miembros en el mapa del Dashboard.
+  - [x] Alertas personalizadas por miembro.
+
+### In Progress:
+- [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
+  - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.
 
 ### Next Steps:
-- Implement Circles Management UI (Create/Join/Invite).
-- Add "Circle Map" view to see other family members' locations.
-- Refine background location frequency vs battery consumption.
+- Refine background location frequency vs battery consumption in Mobile (Fase 9).
+- Prepare staging and production deployment configurations.
+- Implement advanced analytics/reports for premium users.

@@ -8,9 +8,11 @@ export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
 
   useEffect(() => {
-    // Verificar si hay un token en el localStorage
     const token = localStorage.getItem('auth_token');
-    setIsAuthenticated(!!token);
+    const timer = setTimeout(() => {
+      setIsAuthenticated(!!token);
+    }, 0);
+    return () => clearTimeout(timer);
   }, []);
 
   // Mientras verificamos la autenticación, mostramos un estado de carga simple

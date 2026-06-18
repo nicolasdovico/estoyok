@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\CheckInController;
+use App\Http\Controllers\Api\CircleController;
 use App\Http\Controllers\Api\EmergencyContactController;
+use App\Http\Controllers\Api\GeofenceController;
 use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SubscriptionController;
@@ -36,6 +38,19 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Tracking
     Route::post('/locations/update', [LocationController::class, 'update']);
+
+    // Circles
+    Route::get('/circles', [CircleController::class, 'index']);
+    Route::post('/circles', [CircleController::class, 'store']);
+    Route::post('/circles/join', [CircleController::class, 'join']);
+    Route::delete('/circles/{circle}/members/{member}', [CircleController::class, 'removeMember']);
+    Route::delete('/circles/{circle}', [CircleController::class, 'destroy']);
+
+    // Geofences
+    Route::get('/circles/{circle}/geofences', [GeofenceController::class, 'index']);
+    Route::post('/circles/{circle}/geofences', [GeofenceController::class, 'store']);
+    Route::put('/geofences/{geofence}', [GeofenceController::class, 'update']);
+    Route::delete('/geofences/{geofence}', [GeofenceController::class, 'destroy']);
 
     // Emergency Contacts
     Route::post('/emergency-contacts/reorder', [EmergencyContactController::class, 'reorder']);
