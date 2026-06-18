@@ -24,6 +24,7 @@ interface UserData {
   allow_sms_whatsapp_checkin?: boolean;
   escalation_enabled?: boolean;
   escalation_interval_minutes?: number;
+  share_contact_responses?: boolean;
   current_location?: {
     latitude: number;
     longitude: number;
@@ -618,6 +619,7 @@ export default function Dashboard() {
                     initialAllowSmsWhatsappCheckin={userData?.allow_sms_whatsapp_checkin || false}
                     initialEscalationEnabled={userData?.escalation_enabled || false}
                     initialEscalationIntervalMinutes={userData?.escalation_interval_minutes || 15}
+                    initialShareContactResponses={userData?.share_contact_responses ?? true}
                   />
                 </div>
 

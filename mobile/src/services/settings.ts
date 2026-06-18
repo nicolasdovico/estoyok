@@ -29,6 +29,12 @@ export const settingsService = {
     });
     return response.data;
   },
+  updatePrivacy: async (enabled: boolean) => {
+    const response = await api.put('/settings/privacy', {
+      share_contact_responses: enabled
+    });
+    return response.data;
+  },
   fetchUserSettings: async () => {
     const response = await api.get('/user');
     return response.data;

@@ -26,6 +26,7 @@ Route::post('/webhooks/twilio/message', [WebhookController::class, 'twilioMessag
 
 // Emergency Routes (Public)
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);
+Route::post('/emergency-alerts/{id}/respond', [EmergencyAlertController::class, 'respond']);
 
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -61,6 +62,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
     Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
     Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
+    Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

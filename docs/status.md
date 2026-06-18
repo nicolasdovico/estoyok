@@ -69,7 +69,10 @@
   - [x] Interfaz de gestión de miembros del círculo.
   - [x] Visualización de miembros en el mapa del Dashboard.
   - [x] Alertas personalizadas por miembro.
-
+  - [x] feat(crisis): Agregar feedback interactivo de contactos ("Voy en camino" / "Recibido") en mapa de emergencia.
+    - [x] Backend: Creada tabla `emergency_responses`, endpoints de envío de feedback y de privacidad de respuestas de contacto, con tests de integración.
+    - [x] Web: Entrada de nombre, botones de feedback ("Marcar como Leído", "Recibido / Enterado", "Voy en camino"), visualización condicional según la privacidad y polling de 10 segundos.
+    - [x] Configuración (Web & Mobile): Toggle de privacidad "Compartir respuestas de apoyo" persistente.
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.

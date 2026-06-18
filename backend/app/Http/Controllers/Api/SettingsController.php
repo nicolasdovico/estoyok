@@ -212,4 +212,46 @@ class SettingsController extends Controller
             'escalation_interval_minutes' => $user->escalation_interval_minutes,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/privacy',
+        summary: 'Actualizar configuración de privacidad de alertas',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['share_contact_responses'],
+                properties: [
+                    new OA\Property(property: 'share_contact_responses', type: 'boolean', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración de privacidad actualizada',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Privacy settings updated successfully'),
+                        new OA\Property(property: 'share_contact_responses', type: 'boolean', example: true),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function updatePrivacy(Request $request)
+    {
+        $validated = $request->validate([
+            'share_contact_responses' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Privacy settings updated successfully',
+            'share_contact_responses' => $user->share_contact_responses,
+        ]);
+    }
 }

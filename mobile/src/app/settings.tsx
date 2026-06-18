@@ -30,6 +30,7 @@ export default function SettingsScreen() {
   const [allowSmsWhatsappCheckin, setAllowSmsWhatsappCheckin] = useState(false);
   const [escalationEnabled, setEscalationEnabled] = useState(false);
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState('15');
+  const [shareContactResponses, setShareContactResponses] = useState(true);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
 
@@ -56,6 +57,7 @@ export default function SettingsScreen() {
       setAllowSmsWhatsappCheckin(data.allow_sms_whatsapp_checkin || false);
       setEscalationEnabled(data.escalation_enabled || false);
       setEscalationIntervalMinutes((data.escalation_interval_minutes || 15).toString());
+      setShareContactResponses(data.share_contact_responses !== false);
     } catch (e) {
       console.error('Error fetching settings', e);
     } finally {
@@ -122,6 +124,20 @@ export default function SettingsScreen() {
     } catch (error) {
       setEscalationEnabled(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar la configuración.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleTogglePrivacy = async (enabled: boolean) => {
+    setShareContactResponses(enabled);
+    setIsUpdating(true);
+    try {
+      await settingsService.updatePrivacy(enabled);
+      Alert.alert('Éxito', `Respuestas de contactos ${enabled ? 'compartidas' : 'ocultas'}.`);
+    } catch (error) {
+      setShareContactResponses(!enabled); // revert
+      Alert.alert('Error', 'No se pudo actualizar la privacidad.');
     } finally {
       setIsUpdating(false);
     }
@@ -444,6 +460,23 @@ export default function SettingsScreen() {
               </View>
             </View>
           )}
+        </View>
+
+        {/* SECCION PRIVACIDAD DE RESPUESTAS */}
+        <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
+          <View style={styles.row}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={styles.sectionTitle}>Compartir respuestas de apoyo</Text>
+              <Text style={styles.description}>Permite que otros contactos de emergencia vean quiénes ya han leído o van en camino en la pantalla pública.</Text>
+            </View>
+            <Switch
+              value={shareContactResponses}
+              onValueChange={handleTogglePrivacy}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={shareContactResponses ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
         </View>
 
         <View style={styles.infoCard}>

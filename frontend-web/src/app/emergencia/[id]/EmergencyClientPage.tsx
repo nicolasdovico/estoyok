@@ -8,11 +8,20 @@ const EmergencyMap = dynamic(() => import('@/components/EmergencyMap'), {
   loading: () => <div className="h-full w-full bg-gray-100 animate-pulse flex items-center justify-center">Cargando mapa...</div>
 });
 
+interface ResponseData {
+  id: number;
+  contact_name: string;
+  status: string;
+  created_at: string;
+}
+
 interface EmergencyData {
   user_name: string;
   status: string;
   type: string;
   last_check_in_at: string;
+  share_contact_responses: boolean;
+  responses: ResponseData[];
   location: {
     latitude: number;
     longitude: number;
@@ -24,6 +33,10 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   const [data, setData] = useState<EmergencyData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [contactName, setContactName] = useState(() => (typeof window !== 'undefined' ? localStorage.getItem('contact_name') || '' : ''));
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
+  const [submitSuccess, setSubmitSuccess] = useState(false);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -32,7 +45,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
         if (!res.ok) throw new Error();
         const json = await res.json();
         setData(json);
-      } catch (err) {
+      } catch {
         setError(true);
       } finally {
         setLoading(false);
@@ -40,6 +53,65 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     };
     fetchData();
   }, [id]);
+
+  useEffect(() => {
+    if (!data || data.status === 'resolved') return;
+
+    const interval = setInterval(async () => {
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
+        if (res.ok) {
+          const json = await res.json();
+          setData(json);
+        }
+      } catch (err) {
+        console.error('Error polling emergency status:', err);
+      }
+    }, 10000);
+
+    return () => clearInterval(interval);
+  }, [id, data]);
+
+  const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
+    if (!contactName.trim()) return;
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(false);
+
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}/respond`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contact_name: contactName,
+          status,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error('No se pudo registrar la respuesta.');
+      }
+
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('contact_name', contactName);
+      }
+      setSubmitSuccess(true);
+      setTimeout(() => setSubmitSuccess(false), 4000);
+
+      const updatedRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
+      if (updatedRes.ok) {
+        const json = await updatedRes.json();
+        setData(json);
+      }
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Error de conexión';
+      setSubmitError(errMsg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -65,7 +137,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     try {
       const date = new Date(dateStr);
       return date.toLocaleString();
-    } catch (e) {
+    } catch {
       return 'Fecha no disponible';
     }
   };
@@ -122,6 +194,127 @@ export default function EmergencyClientPage({ id }: { id: string }) {
             </div>
           </div>
         </section>
+
+        {data.status !== 'resolved' && (
+          <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
+            <div>
+              <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">🤝 Coordinar Ayuda</h3>
+              <p className="text-xs text-gray-500 mt-1">
+                Notifica al círculo familiar y a otros contactos tu estado o si te estás haciendo cargo.
+              </p>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tu Nombre</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Juan Pérez"
+                  value={contactName}
+                  onChange={(e) => {
+                    setContactName(e.target.value);
+                    if (typeof window !== 'undefined') {
+                      localStorage.setItem('contact_name', e.target.value);
+                    }
+                  }}
+                  disabled={isSubmitting}
+                  className="w-full bg-gray-50 text-gray-800 text-sm font-semibold p-3.5 rounded-xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  onClick={() => handleRespond('read')}
+                  disabled={isSubmitting || !contactName.trim()}
+                  className={`
+                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
+                    ${!contactName.trim() 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}
+                  `}
+                >
+                  👁️ Marcar como Leído
+                </button>
+                <button
+                  onClick={() => handleRespond('acknowledged')}
+                  disabled={isSubmitting || !contactName.trim()}
+                  className={`
+                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
+                    ${!contactName.trim() 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}
+                  `}
+                >
+                  💬 Recibido / Enterado
+                </button>
+                <button
+                  onClick={() => handleRespond('on_my_way')}
+                  disabled={isSubmitting || !contactName.trim()}
+                  className={`
+                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
+                    ${!contactName.trim() 
+                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
+                      : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-sm'}
+                  `}
+                >
+                  🚗 Voy en camino
+                </button>
+              </div>
+
+              {submitSuccess && (
+                <p className="text-xs font-bold text-emerald-800 bg-emerald-50 border border-emerald-100 p-3 rounded-xl text-center">
+                  ¡Respuesta registrada con éxito!
+                </p>
+              )}
+
+              {submitError && (
+                <p className="text-xs font-bold text-red-800 bg-red-50 border border-red-100 p-3 rounded-xl text-center">
+                  {submitError}
+                </p>
+              )}
+            </div>
+
+            <hr className="border-gray-100" />
+
+            {data.share_contact_responses ? (
+              data.responses && data.responses.length > 0 ? (
+                <div className="space-y-3">
+                  <h4 className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Respuestas registradas</h4>
+                  <div className="space-y-2 max-h-60 overflow-y-auto pr-1">
+                    {data.responses.map((resp) => (
+                      <div key={resp.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center text-sm bg-white border border-gray-200 shadow-sm">
+                            {resp.status === 'on_my_way' ? '🚗' : resp.status === 'acknowledged' ? '👍' : '👁️'}
+                          </div>
+                          <div>
+                            <p className="text-sm font-bold text-gray-800">{resp.contact_name}</p>
+                            <p className="text-[11px] text-gray-505">
+                              {resp.status === 'on_my_way' ? 'Voy en camino' : resp.status === 'acknowledged' ? 'Recibido / Enterado' : 'Visto / Leído'}
+                            </p>
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-semibold text-gray-400">
+                          {formatDateTime(resp.created_at)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              ) : (
+                <p className="text-[11px] text-gray-400 italic text-center">
+                  Aún no hay respuestas de otros contactos. Sé el primero en avisar.
+                </p>
+              )
+            ) : (
+              <div className="p-3.5 bg-gray-50 rounded-xl border border-gray-100 text-center">
+                <p className="text-[11px] text-gray-400 italic">
+                  🔒 Por configuración de privacidad, no se muestran las respuestas de otros contactos.
+                </p>
+              </div>
+            )}
+          </section>
+        )}
 
         <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
           <div className="p-4 border-b border-gray-100 flex items-center justify-between">

@@ -41,6 +41,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'allow_sms_whatsapp_checkin',
         'escalation_enabled',
         'escalation_interval_minutes',
+        'share_contact_responses',
     ];
 
     /**
@@ -71,6 +72,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'allow_sms_whatsapp_checkin' => 'boolean',
             'escalation_enabled' => 'boolean',
             'escalation_interval_minutes' => 'integer',
+            'share_contact_responses' => 'boolean',
         ];
     }
 

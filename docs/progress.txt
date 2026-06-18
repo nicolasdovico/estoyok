@@ -206,3 +206,20 @@
 - **Calidad de Código y Estabilización:**
   - Corregidos errores de linter de React/TypeScript y Next.js (`react-hooks/set-state-in-effect` y tipos `any`) en Next.js.
   - Confirmado tipado estático al 100% en Next.js y React Native (`npx tsc --noEmit` exits con 0).
+
+## [2026-06-18] Crisis Feedback & Emergency Responses
+- **Backend (Laravel):**
+    - Created database migration for `emergency_responses` and user-level `share_contact_responses` privacy configuration.
+    - Added model relations, endpoints (`POST /api/emergency-alerts/{id}/respond` and `PUT /api/settings/privacy`), and covered them with integration tests (`EmergencyAlertTest.php`).
+    - Regenerated Swagger API documentation.
+- **Web Frontend (Next.js):**
+    - Redesigned `/emergencia/[id]` (`EmergencyClientPage.tsx`) to implement an interactive support feedback module: entering name and submitting responses ("Marcar como Leído", "Recibido / Enterado", "Voy en camino").
+    - Implemented response visibility panel showing list of responses dynamically, conditional on the user's `share_contact_responses` privacy flag.
+    - Added a 10-second polling interval to fetch updated data and responses.
+    - Integrated a persistent privacy switch in the Wellbeing security settings tab (`SecuritySettings.tsx`, `Dashboard.tsx`).
+- **Mobile Frontend (Expo React Native):**
+    - Integrated the privacy settings API call in `settings.ts`.
+    - Added the "Compartir respuestas de apoyo" toggle in the native settings view (`settings.tsx`).
+- **Stabilization:**
+    - Fixed React/Next ESLint errors (unused variables and explicit `any` types in catch blocks).
+    - Verified all typechecks pass successfully (`npx tsc --noEmit` exits 0) on both frontends.
