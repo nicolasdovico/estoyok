@@ -3,8 +3,8 @@ import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, Scr
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
-import { LOCATION_TASK_NAME } from '@/services/locationTask';
-import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow } from 'lucide-react-native';
+import { LOCATION_TASK_NAME, flushOfflineLocations } from '@/services/locationTask';
+import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow, EyeOff, MapPinOff, WifiOff } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
@@ -31,7 +31,8 @@ export default function HomeScreen() {
       checkTrackingStatus(),
       fetchUserData(),
       fetchCheckIns(),
-      fetchCircles()
+      fetchCircles(),
+      flushOfflineLocations().catch(e => console.error(e))
     ]);
     setRefreshing(false);
   };
@@ -42,6 +43,7 @@ export default function HomeScreen() {
       fetchUserData();
       fetchCheckIns();
       fetchCircles();
+      flushOfflineLocations().catch(e => console.error(e));
     }
   }, [user]);
 
@@ -153,7 +155,57 @@ export default function HomeScreen() {
     if (!user) return;
     try {
       const response = await api.get('/user');
-      setFreshUser(response.data);
+      const data = response.data;
+      setFreshUser(data);
+
+      // Sincronizar el estado del rastreo local con el backend
+      const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+      const isTrackingActiveOnBackend = data.current_location ? data.current_location.is_tracking_active : true;
+
+      if (isTrackingActiveOnBackend && !hasStarted) {
+        const { status: foregroundStatus } = await Location.getForegroundPermissionsAsync();
+        const { status: backgroundStatus } = await Location.getBackgroundPermissionsAsync();
+        if (foregroundStatus === 'granted' && backgroundStatus === 'granted') {
+          try {
+            await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+              accuracy: Location.Accuracy.Balanced,
+              timeInterval: 60000,
+              distanceInterval: 100,
+              foregroundService: {
+                notificationTitle: 'Estoy Ok está activo',
+                notificationBody: 'Protegiendo tu ubicación en segundo plano',
+                notificationColor: '#dc2626',
+              },
+            });
+            setIsTracking(true);
+          } catch (e) {
+            console.error('Auto start tracking failed, syncing inactive status to backend', e);
+            try {
+              await api.put('/locations/sensor-status', {
+                is_tracking_active: false,
+              });
+            } catch (err) {
+              console.error('Failed to update sensor status to inactive after auto-start failure', err);
+            }
+          }
+        } else {
+          // Si no hay permisos pero el backend cree que está activo, informamos que no
+          try {
+            await api.put('/locations/sensor-status', {
+              is_tracking_active: false,
+            });
+          } catch (err) {
+            console.error('Failed to notify inactive tracking status', err);
+          }
+        }
+      } else if (!isTrackingActiveOnBackend && hasStarted) {
+        try {
+          await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+          setIsTracking(false);
+        } catch (e) {
+          console.error('Auto stop tracking failed', e);
+        }
+      }
     } catch (e) {
       console.error('Error fetching user data', e);
     }
@@ -256,8 +308,28 @@ export default function HomeScreen() {
   const toggleTracking = async () => {
     if (isTracking) {
       try {
-        await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        try {
+          await Location.stopLocationUpdatesAsync(LOCATION_TASK_NAME);
+        } catch (stopErr) {
+          console.log('Location tracking was not running or failed to stop:', stopErr);
+        }
         setIsTracking(false);
+        
+        let gpsEnabled = true;
+        try {
+          gpsEnabled = await Location.hasServicesEnabledAsync();
+        } catch (gpsErr) {
+          console.log('Failed to check GPS services status:', gpsErr);
+        }
+
+        try {
+          await api.put('/locations/sensor-status', {
+            is_tracking_active: false,
+            gps_enabled: gpsEnabled,
+          });
+        } catch (err) {
+          console.error('Failed to update sensor status to inactive', err);
+        }
         Alert.alert('Rastreo Desactivado', 'Ya no compartes tu ubicación.');
       } catch (e) {
         console.error('Error stopping tracking', e);
@@ -286,6 +358,22 @@ export default function HomeScreen() {
           },
         });
         setIsTracking(true);
+        
+        let gpsEnabled = true;
+        try {
+          gpsEnabled = await Location.hasServicesEnabledAsync();
+        } catch (gpsErr) {
+          console.log('Failed to check GPS services status:', gpsErr);
+        }
+
+        try {
+          await api.put('/locations/sensor-status', {
+            is_tracking_active: true,
+            gps_enabled: gpsEnabled,
+          });
+        } catch (err) {
+          console.error('Failed to update sensor status to active', err);
+        }
         Alert.alert('Rastreo Activado', 'Tu ubicación se actualiza para tu núcleo.');
       } catch (e) {
         Alert.alert('Error', 'No se pudo iniciar el rastreo.');
@@ -557,10 +645,42 @@ export default function HomeScreen() {
                             <Text style={styles.memberRole}>
                               {isOwner ? 'Dueño' : member.pivot?.role === 'admin' ? 'Administrador' : 'Miembro'}
                             </Text>
+
+                            {/* Detalle del estado de sensores */}
+                            {member.current_location && (
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
+                                {!member.current_location.is_tracking_active && (
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                    <EyeOff size={12} color="#9ca3af" />
+                                    <Text style={{ fontSize: 11, color: '#9ca3af' }}>Rastreo apagado</Text>
+                                  </View>
+                                )}
+
+                                {member.current_location.is_tracking_active && !member.current_location.gps_enabled && (
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                    <MapPinOff size={12} color="#f59e0b" />
+                                    <Text style={{ fontSize: 11, color: '#f59e0b', fontWeight: '500' }}>GPS desactivado</Text>
+                                  </View>
+                                )}
+
+                                {member.current_location.is_tracking_active && member.current_location.is_offline && (
+                                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>
+                                    <WifiOff size={12} color="#ef4444" />
+                                    <Text style={{ fontSize: 11, color: '#ef4444' }}>
+                                      Sin señal ({(() => {
+                                        const lastSeen = member.current_location.last_seen_at ? new Date(member.current_location.last_seen_at).getTime() : 0;
+                                        const mins = lastSeen ? Math.round((Date.now() - lastSeen) / 60000) : 0;
+                                        return mins > 0 ? `hace ${mins} min` : 'recientemente';
+                                      })()})
+                                    </Text>
+                                  </View>
+                                )}
+                              </View>
+                            )}
                           </View>
 
                           <View style={styles.memberActions}>
-                            {member.current_location && (
+                            {member.current_location && member.current_location.is_tracking_active && (
                               <TouchableOpacity
                                 style={styles.mapIconButton}
                                 onPress={() => openInMaps(

@@ -80,6 +80,12 @@
   - [x] feat(branding): Rediseño de terminología para diferenciación del producto (Círculos a Núcleos, Geocercas/Perímetros a Zonas Seguras).
   - [x] feat(ux): Implementar FAQs interactivas en la landing page y tooltips de ayuda contextuales en el dashboard web.
   - [x] feat(tracking): Implementar alertas de batería baja para miembros del núcleo (Next.js, Expo, Laravel, y tests).
+  - [x] feat(tracking): Mostrar el estado de sensores (GPS desactivado, Modo Avión, Rastreo Apagado).
+    - [x] Backend: Migración base de datos con campos `is_tracking_active`, `gps_enabled`, `last_seen_at` y accessor `is_offline`, nuevos endpoints `/sensor-status` y tests.
+    - [x] Web Dashboard: visualización de badges dinámicos ("Rastreo Apagado", "GPS Desactivado", "Sin Señal") en la lista de miembros y en los popups del mapa con menor opacidad en los marcadores inactivos.
+    - [x] App Mobile: cola local de ubicaciones offline mediante AsyncStorage con sincronización/flush automático al recuperar la red, envío de cambios de estado a la API e indicadores visuales de sensores en el listado de miembros del núcleo.
+    - [x] Landing Page: Promoción de la funcionalidad de monitoreo de sensores en la lista de características y en las respuestas de preguntas frecuentes (FAQs).
+
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.

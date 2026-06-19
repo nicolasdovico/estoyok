@@ -18,9 +18,12 @@ class CurrentLocation extends Model
         'location',
         'battery_level',
         'is_battery_low',
+        'is_tracking_active',
+        'gps_enabled',
+        'last_seen_at',
     ];
 
-    protected $appends = ['latitude', 'longitude'];
+    protected $appends = ['latitude', 'longitude', 'is_offline'];
 
     protected $hidden = ['location'];
 
@@ -32,7 +35,24 @@ class CurrentLocation extends Model
             'longitude' => 'float',
             'battery_level' => 'float',
             'is_battery_low' => 'boolean',
+            'is_tracking_active' => 'boolean',
+            'gps_enabled' => 'boolean',
+            'last_seen_at' => 'datetime',
         ];
+    }
+
+    public function getIsOfflineAttribute(): bool
+    {
+        if (!$this->is_tracking_active) {
+            return false;
+        }
+
+        $lastSeen = $this->last_seen_at ?: $this->recorded_at;
+        if (!$lastSeen) {
+            return false;
+        }
+
+        return $lastSeen->lt(now()->subMinutes(15));
     }
 
     protected static function booted()

@@ -35,6 +35,10 @@ interface UserData {
     updated_at: string;
     battery_level?: number | null;
     is_battery_low?: boolean;
+    is_tracking_active?: boolean;
+    gps_enabled?: boolean;
+    last_seen_at?: string | null;
+    is_offline?: boolean;
   } | null;
   circles: Array<{
     id: number;
@@ -63,6 +67,10 @@ interface CircleData {
       updated_at: string;
       battery_level?: number | null;
       is_battery_low?: boolean;
+      is_tracking_active?: boolean;
+      gps_enabled?: boolean;
+      last_seen_at?: string | null;
+      is_offline?: boolean;
     } | null;
     pivot: {
       role: string;
@@ -950,7 +958,7 @@ export default function Dashboard() {
                           {/* Compartir Código */}
                           <div className="bg-gradient-to-br from-red-500 to-rose-600 text-white p-6 rounded-3xl shadow-sm border border-transparent">
                             <h3 className="font-black text-lg mb-2">Invitar a un Familiar</h3>
-                            <p className="text-xs text-red-100 leading-relaxed mb-4 font-medium">
+                            <div className="text-xs text-red-100 leading-relaxed mb-4 font-medium">
                               Comparte este código para que tus familiares se unan a este núcleo.
                                 <div className="relative group inline-block ml-1.5 align-middle cursor-help">
                                   <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
@@ -959,7 +967,7 @@ export default function Dashboard() {
                                     <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
                                   </div>
                                 </div>
-                            </p>
+                            </div>
                             <div className="flex items-center gap-2 bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
                               <span className="flex-1 text-center font-mono font-black text-xl tracking-wider select-all">
                                 {circle.invite_code}
@@ -1008,10 +1016,43 @@ export default function Dashboard() {
                                           {isOwner ? 'Dueño' : member.pivot.role === 'admin' ? 'Administrador' : 'Miembro'}
                                         </p>
                                         {member.current_location && (
-                                          <div className="flex items-center gap-2 mt-0.5">
-                                            <span className="text-[9px] text-emerald-600 font-bold">
-                                              Ubicación Activa
-                                            </span>
+                                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                            {(() => {
+                                              const loc = member.current_location;
+                                              const isTrackingActive = loc.is_tracking_active !== false;
+                                              const isGpsEnabled = loc.gps_enabled !== false;
+                                              const isOffline = !!loc.is_offline;
+                                              
+                                              if (!isTrackingActive) {
+                                                return (
+                                                  <span className="text-[9px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-md font-bold" title="El usuario apagó voluntariamente el rastreo">
+                                                    📴 Rastreo Apagado
+                                                  </span>
+                                                );
+                                              }
+                                              if (!isGpsEnabled) {
+                                                return (
+                                                  <span className="text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold" title="El GPS del dispositivo está desactivado">
+                                                    ⚠️ GPS Desactivado
+                                                  </span>
+                                                );
+                                              }
+                                              if (isOffline) {
+                                                const lastSeen = loc.last_seen_at ? new Date(loc.last_seen_at).getTime() : 0;
+                                                const elapsedMins = lastSeen ? Math.round((Date.now() - lastSeen) / 60000) : 0;
+                                                const timeText = elapsedMins > 0 ? `hace ${elapsedMins} min` : 'recientemente';
+                                                return (
+                                                  <span className="text-[9px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md font-bold animate-pulse" title={`Sin conexión reportada (Visto ${timeText})`}>
+                                                    🌐 Sin Señal
+                                                  </span>
+                                                );
+                                              }
+                                              return (
+                                                <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md font-bold">
+                                                  🟢 Ubicación Activa
+                                                </span>
+                                              );
+                                            })()}
                                             {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
                                               (() => {
                                                 const lvl = member.current_location.battery_level;

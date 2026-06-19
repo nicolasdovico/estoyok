@@ -33,6 +33,10 @@ interface Member {
     updated_at: string;
     battery_level?: number | null;
     is_battery_low?: boolean;
+    is_tracking_active?: boolean;
+    gps_enabled?: boolean;
+    last_seen_at?: string | null;
+    is_offline?: boolean;
   } | null;
 }
 
@@ -131,19 +135,26 @@ export default function CircleMap({
         {/* Member Markers */}
         {members.map(member => {
           if (!member.current_location) return null;
+          const loc = member.current_location;
+          const isTrackingActive = loc.is_tracking_active !== false;
+          const isGpsEnabled = loc.gps_enabled !== false;
+          const isOffline = !!loc.is_offline;
+          const hasIssue = !isTrackingActive || !isGpsEnabled || isOffline;
+
           return (
             <Marker 
               key={member.id} 
-              position={[member.current_location.latitude, member.current_location.longitude]}
+              position={[loc.latitude, loc.longitude]}
               icon={MemberIcon}
+              opacity={hasIssue ? 0.5 : 1.0}
             >
               <Popup>
-                <div className="text-xs min-w-[150px]">
+                <div className="text-xs min-w-[180px] font-sans">
                   <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-1.5 mb-1.5">
                     <p className="font-bold text-gray-900 leading-none">{member.name}</p>
-                    {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
+                    {loc.battery_level !== undefined && loc.battery_level !== null && (
                       (() => {
-                        const lvl = member.current_location.battery_level;
+                        const lvl = loc.battery_level;
                         const pct = Math.round(lvl * 100);
                         let colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-100';
                         if (lvl < 0.15) {
@@ -152,16 +163,38 @@ export default function CircleMap({
                           colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
                         }
                         return (
-                          <span className={`text-[9px] px-1 py-0.5 rounded border ${colorClass} flex items-center gap-0.5`}>
+                          <span className={`text-[9px] px-1.5 py-0.5 rounded border ${colorClass} flex items-center gap-0.5 font-bold`}>
                             🔋 {pct}%
                           </span>
                         );
                       })()
                     )}
                   </div>
+                  
+                  {/* Alertas de Sensor en el Popup */}
+                  {hasIssue && (
+                    <div className="mb-2 space-y-1">
+                      {!isTrackingActive && (
+                        <div className="text-[9px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded font-black flex items-center gap-1">
+                          📴 Rastreo apagado por el usuario
+                        </div>
+                      )}
+                      {isTrackingActive && !isGpsEnabled && (
+                        <div className="text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded font-black flex items-center gap-1">
+                          ⚠️ GPS Desactivado en el dispositivo
+                        </div>
+                      )}
+                      {isTrackingActive && isOffline && (
+                        <div className="text-[9px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded font-black flex items-center gap-1 animate-pulse">
+                          🌐 Sin señal (Desconectado/Modo Avión)
+                        </div>
+                      )}
+                    </div>
+                  )}
+
                   <p className="text-gray-500 text-[10px]">{member.email}</p>
                   <p className="text-[10px] text-gray-400 mt-1">
-                    Última ubicación: {new Date(member.current_location.updated_at).toLocaleString()}
+                    Visto por última vez: {loc.last_seen_at ? new Date(loc.last_seen_at).toLocaleString() : new Date(loc.updated_at).toLocaleString()}
                   </p>
                 </div>
               </Popup>

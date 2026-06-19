@@ -44,6 +44,9 @@ class LocationController extends Controller
             'longitude' => 'required|numeric',
             'accuracy' => 'nullable|numeric',
             'battery_level' => 'nullable|numeric|between:0,1',
+            'is_tracking_active' => 'nullable|boolean',
+            'gps_enabled' => 'nullable|boolean',
+            'recorded_at' => 'nullable|date',
         ]);
 
         $user = $request->user();
@@ -51,7 +54,7 @@ class LocationController extends Controller
         $lng = $request->longitude;
         $accuracy = $request->accuracy;
         $batteryLevel = $request->battery_level;
-        $recordedAt = now();
+        $recordedAt = $request->has('recorded_at') ? \Carbon\Carbon::parse($request->recorded_at) : now();
 
         $previousIsBatteryLow = false;
         $currentLocation = CurrentLocation::where('user_id', $user->id)->first();
@@ -62,17 +65,25 @@ class LocationController extends Controller
         $isBatteryLow = ($batteryLevel !== null && $batteryLevel < 0.15);
 
         try {
-            DB::transaction(function () use ($user, $lat, $lng, $accuracy, $recordedAt, $batteryLevel, $isBatteryLow, $previousIsBatteryLow) {
+            DB::transaction(function () use ($user, $lat, $lng, $accuracy, $recordedAt, $batteryLevel, $isBatteryLow, $previousIsBatteryLow, $request) {
                 // 1. Update Current Location (Point PostGIS)
                 $updateData = [
                     'accuracy' => $accuracy,
                     'recorded_at' => $recordedAt,
                     'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
+                    'last_seen_at' => $recordedAt,
                 ];
 
                 if ($batteryLevel !== null) {
                     $updateData['battery_level'] = $batteryLevel;
                     $updateData['is_battery_low'] = $isBatteryLow;
+                }
+
+                if ($request->has('is_tracking_active')) {
+                    $updateData['is_tracking_active'] = (bool) $request->is_tracking_active;
+                }
+                if ($request->has('gps_enabled')) {
+                    $updateData['gps_enabled'] = (bool) $request->gps_enabled;
                 }
 
                 CurrentLocation::updateOrCreate(
@@ -107,5 +118,58 @@ class LocationController extends Controller
 
             return response()->json(['error' => 'Failed to update location'], 500);
         }
+    }
+
+    /**
+     * @OA\Put(
+     *     path="/api/locations/sensor-status",
+     *     summary="Actualizar estado de sensores (GPS, rastreo activo)",
+     *     tags={"Location"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             properties={
+     *                 @OA\Property(property="is_tracking_active", type="boolean", example=true),
+     *                 @OA\Property(property="gps_enabled", type="boolean", example=true)
+     *             }
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Estado de sensores actualizado exitosamente"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function updateSensorStatus(Request $request)
+    {
+        $validated = $request->validate([
+            'is_tracking_active' => 'sometimes|boolean',
+            'gps_enabled' => 'sometimes|boolean',
+        ]);
+
+        $user = $request->user();
+        $recordedAt = now();
+
+        $updateData = [
+            'last_seen_at' => $recordedAt,
+            'recorded_at' => $recordedAt,
+        ];
+
+        if ($request->has('is_tracking_active')) {
+            $updateData['is_tracking_active'] = (bool) $request->is_tracking_active;
+        }
+
+        if ($request->has('gps_enabled')) {
+            $updateData['gps_enabled'] = (bool) $request->gps_enabled;
+        }
+
+        $currentLocation = CurrentLocation::updateOrCreate(
+            ['user_id' => $user->id],
+            $updateData
+        );
+
+        return response()->json([
+            'message' => 'Sensor status updated successfully',
+            'current_location' => $currentLocation,
+        ]);
     }
 }

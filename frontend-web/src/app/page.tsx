@@ -283,6 +283,12 @@ export default function Home() {
                       </svg>
                       <span>**Alertas de Batería Baja:** Notifica automáticamente a tu núcleo si tu batería cae por debajo de 15% para evitar alarmas innecesarias.</span>
                     </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Monitoreo de Sensores y Señal:** El núcleo familiar podrá distinguir si apagaste el GPS, pausaste el rastreo voluntariamente o si estás temporalmente sin señal.</span>
+                    </li>
                   </ul>
                 </div>
                 <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
@@ -535,7 +541,7 @@ export default function Home() {
                 },
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
-                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y envía una notificación automática a tu núcleo familiar para que sepan que estás por quedar incomunicado. Si el celular se apaga y el plazo de check-in expira sin reporte, el servidor asume de inmediato la inactividad y despacha las alertas de crisis vía WhatsApp prioritario o SMS tradicional de respaldo."
+                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp y SMS."
                 }
               ].map((faq, index) => {
                 const isOpen = openFaqIndex === index;

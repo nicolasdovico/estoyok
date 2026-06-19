@@ -3,6 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pedometer } from 'expo-sensors';
 import NetInfo from '@react-native-community/netinfo';
 import * as Battery from 'expo-battery';
+import * as Location from 'expo-location';
 import api from '@/services/api';
 
 export const LOCATION_TASK_NAME = 'background-location-task';
@@ -11,6 +12,56 @@ export const LOCATION_TASK_NAME = 'background-location-task';
 NetInfo.configure({
   shouldFetchWiFiSSID: true,
 });
+
+async function queueOfflineLocation(payload: any) {
+  try {
+    const queueStr = await AsyncStorage.getItem('offline_location_queue');
+    const queue = queueStr ? JSON.parse(queueStr) : [];
+    queue.push(payload);
+    if (queue.length > 100) {
+      queue.shift(); // Keep at most 100 items to avoid storage bloat
+    }
+    await AsyncStorage.setItem('offline_location_queue', JSON.stringify(queue));
+    console.log('Queued location update offline. Queue size:', queue.length);
+  } catch (err) {
+    console.error('Error queueing offline location:', err);
+  }
+}
+
+export async function flushOfflineLocations() {
+  try {
+    const queueStr = await AsyncStorage.getItem('offline_location_queue');
+    if (!queueStr) return;
+    const queue = JSON.parse(queueStr);
+    if (queue.length === 0) return;
+
+    console.log(`Flushing ${queue.length} offline locations...`);
+    const netInfoState = await NetInfo.fetch();
+    if (!netInfoState.isConnected) {
+      console.log('Cannot flush offline locations, network still disconnected.');
+      return;
+    }
+
+    const failedItems = [];
+    for (const item of queue) {
+      try {
+        await api.post('/locations/update', item);
+      } catch (err) {
+        console.error('Failed to flush offline location item, keeping in queue:', err);
+        failedItems.push(item);
+      }
+    }
+
+    if (failedItems.length > 0) {
+      await AsyncStorage.setItem('offline_location_queue', JSON.stringify(failedItems));
+    } else {
+      await AsyncStorage.removeItem('offline_location_queue');
+      console.log('All offline locations flushed successfully.');
+    }
+  } catch (err) {
+    console.error('Error flushing offline locations:', err);
+  }
+}
 
 TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
   if (error) {
@@ -49,13 +100,39 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
           }
         }
 
-        await api.post('/locations/update', {
+        let gpsEnabled = true;
+        try {
+          gpsEnabled = await Location.hasServicesEnabledAsync();
+        } catch (gpsErr) {
+          console.error('Failed to check GPS status:', gpsErr);
+        }
+
+        const payload = {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           accuracy: location.coords.accuracy,
           battery_level: batteryLevel,
-        });
-        console.log('Background location updated via TaskManager');
+          gps_enabled: gpsEnabled,
+          is_tracking_active: true,
+          recorded_at: new Date(location.timestamp).toISOString(),
+        };
+
+        const netInfoState = await NetInfo.fetch();
+        const isConnected = netInfoState.isConnected ?? false;
+
+        if (!isConnected) {
+          await queueOfflineLocation(payload);
+        } else {
+          try {
+            await api.post('/locations/update', payload);
+            console.log('Background location updated via TaskManager');
+            // Try to flush any previously queued locations
+            await flushOfflineLocations();
+          } catch (apiErr) {
+            console.error('Failed to update online, queueing location offline:', apiErr);
+            await queueOfflineLocation(payload);
+          }
+        }
 
         // Trigger passive automation checks
         await performAutoCheckInChecks();

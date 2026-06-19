@@ -279,3 +279,25 @@
     - Added battery status tags inside Leaflet map markers popups (`CircleMap.tsx`).
     - Integrated low battery alert feature bullet item under "Bienestar Activo (Núcleos & Mapa)" and updated battery/signal loss question in interactive FAQ section on the commercial landing page (`page.tsx`).
     - Resolved TypeScript types compiler warnings and verified successful linter & build executions.
+
+## [2026-06-19] Sensor and Connectivity Status Tracking
+- **Database & Models (Laravel):**
+    - Created database migration to add `is_tracking_active`, `gps_enabled` and `last_seen_at` to the `current_locations` table.
+    - Updated `CurrentLocation` model with casts, fillable attributes, and a dynamic appended attribute `is_offline` (returns true if `last_seen_at` is older than 15 minutes and `is_tracking_active` is true).
+    - Created `PUT /api/locations/sensor-status` to let the mobile device report sensor updates without sending GPS coordinates.
+    - Wrote tests in `SensorStatusTest.php` verifying endpoint, status updating, and `is_offline` accessor behavior.
+- **Expo React Native App:**
+    - Updated background task in `locationTask.ts` to report `gps_enabled` (via `Location.hasServicesEnabledAsync()`), `is_tracking_active` (true when running), and correct `recorded_at` (derived from `location.timestamp`).
+    - Added offline location queuing using `AsyncStorage` when internet is disconnected (or API fails) and sequential flushing once connection is recovered.
+    - Synchronized backend/local tracking status on startup (`index.tsx` `fetchUserData` auto-starts or auto-stops the background task depending on user configuration and permissions).
+    - Added immediate `PUT /api/locations/sensor-status` updates in `toggleTracking` when toggling tracking.
+    - Integrated status indicators for members (Rastreo apagado, GPS desactivado, Sin señal) and hid the map link button for members with deactivated tracking.
+- **Next.js Web Frontend & Landing:**
+    - Updated `CircleMap.tsx` and `Dashboard.tsx` TypeScript interfaces.
+    - Added dynamic status badges in `Dashboard.tsx` sidebar ("Rastreo Apagado", "GPS Desactivado", "Sin Señal") corresponding to members' sensor states.
+    - Decreased marker opacity to `0.5` in `CircleMap.tsx` for members with sensor issues or who are offline, and added explicit status warnings in marker popups.
+    - Promoted the sensor and connectivity status tracking feature on the commercial landing page (`page.tsx`) by adding a new feature bullet list item and updating the signal loss answer in the interactive FAQs.
+    - Fixed a React hydration error in the dashboard's invite code section by changing the outer `<p>` tag wrapping nested `<div>`s to a `<div>` tag.
+- **Stabilization & Validation:**
+    - Verified all typechecks pass successfully (`npx tsc --noEmit` exits 0) on both frontends (web and mobile).
+    - Verified backend integration test suite runs 100% successfully (87 passes).
