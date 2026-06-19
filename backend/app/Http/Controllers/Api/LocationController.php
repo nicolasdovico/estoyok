@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessGeofencing;
+use App\Jobs\SendBatteryAlertJob;
 use App\Models\CurrentLocation;
 use App\Models\LocationHistory;
 use Illuminate\Http\Request;
@@ -27,7 +28,8 @@ class LocationController extends Controller
      *
      *             @OA\Property(property="latitude", type="number", format="float", example=-34.6037),
      *             @OA\Property(property="longitude", type="number", format="float", example=-58.3816),
-     *             @OA\Property(property="accuracy", type="number", format="float", example=15.5)
+     *             @OA\Property(property="accuracy", type="number", format="float", example=15.5),
+     *             @OA\Property(property="battery_level", type="number", format="float", example=0.85, nullable=true)
      *         )
      *     ),
      *
@@ -41,24 +43,41 @@ class LocationController extends Controller
             'latitude' => 'required|numeric',
             'longitude' => 'required|numeric',
             'accuracy' => 'nullable|numeric',
+            'battery_level' => 'nullable|numeric|between:0,1',
         ]);
 
         $user = $request->user();
         $lat = $request->latitude;
         $lng = $request->longitude;
         $accuracy = $request->accuracy;
+        $batteryLevel = $request->battery_level;
         $recordedAt = now();
 
+        $previousIsBatteryLow = false;
+        $currentLocation = CurrentLocation::where('user_id', $user->id)->first();
+        if ($currentLocation) {
+            $previousIsBatteryLow = (bool) $currentLocation->is_battery_low;
+        }
+
+        $isBatteryLow = ($batteryLevel !== null && $batteryLevel < 0.15);
+
         try {
-            DB::transaction(function () use ($user, $lat, $lng, $accuracy, $recordedAt) {
+            DB::transaction(function () use ($user, $lat, $lng, $accuracy, $recordedAt, $batteryLevel, $isBatteryLow, $previousIsBatteryLow) {
                 // 1. Update Current Location (Point PostGIS)
+                $updateData = [
+                    'accuracy' => $accuracy,
+                    'recorded_at' => $recordedAt,
+                    'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
+                ];
+
+                if ($batteryLevel !== null) {
+                    $updateData['battery_level'] = $batteryLevel;
+                    $updateData['is_battery_low'] = $isBatteryLow;
+                }
+
                 CurrentLocation::updateOrCreate(
                     ['user_id' => $user->id],
-                    [
-                        'accuracy' => $accuracy,
-                        'recorded_at' => $recordedAt,
-                        'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
-                    ]
+                    $updateData
                 );
 
                 // 2. Add to History
@@ -69,7 +88,16 @@ class LocationController extends Controller
                     'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
                 ]);
 
-                // 3. Dispatch Geofencing processing
+                // 3. Dispatch low battery alert if transitioning to low battery
+                if ($batteryLevel !== null && $isBatteryLow && !$previousIsBatteryLow && $user->low_battery_alerts_enabled) {
+                    $oneHourAgo = now()->subHour();
+                    if (is_null($user->last_battery_alert_sent_at) || $user->last_battery_alert_sent_at->lt($oneHourAgo)) {
+                        SendBatteryAlertJob::dispatch($user, $batteryLevel);
+                        $user->update(['last_battery_alert_sent_at' => now()]);
+                    }
+                }
+
+                // 4. Dispatch Geofencing processing
                 ProcessGeofencing::dispatch($user, $lat, $lng);
             });
 

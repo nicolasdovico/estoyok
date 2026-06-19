@@ -29,10 +29,11 @@ export const settingsService = {
     });
     return response.data;
   },
-  updatePrivacy: async (enabled: boolean) => {
-    const response = await api.put('/settings/privacy', {
-      share_contact_responses: enabled
-    });
+  updatePrivacy: async (shareContactResponses?: boolean, lowBatteryAlertsEnabled?: boolean) => {
+    const payload: any = {};
+    if (shareContactResponses !== undefined) payload.share_contact_responses = shareContactResponses;
+    if (lowBatteryAlertsEnabled !== undefined) payload.low_battery_alerts_enabled = lowBatteryAlertsEnabled;
+    const response = await api.put('/settings/privacy', payload);
     return response.data;
   },
   updateAutomation: async (wifiEnabled: boolean, ssid: string, sensorEnabled: boolean) => {

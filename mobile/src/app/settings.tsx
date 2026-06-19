@@ -31,6 +31,7 @@ export default function SettingsScreen() {
   const [escalationEnabled, setEscalationEnabled] = useState(false);
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState('15');
   const [shareContactResponses, setShareContactResponses] = useState(true);
+  const [lowBatteryAlertsEnabled, setLowBatteryAlertsEnabled] = useState(true);
   const [wifiCheckinEnabled, setWifiCheckinEnabled] = useState(false);
   const [safeWifiSsid, setSafeWifiSsid] = useState('');
   const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(false);
@@ -61,6 +62,7 @@ export default function SettingsScreen() {
       setEscalationEnabled(data.escalation_enabled || false);
       setEscalationIntervalMinutes((data.escalation_interval_minutes || 15).toString());
       setShareContactResponses(data.share_contact_responses !== false);
+      setLowBatteryAlertsEnabled(data.low_battery_alerts_enabled !== false);
       setWifiCheckinEnabled(data.wifi_checkin_enabled || false);
       setSafeWifiSsid(data.safe_wifi_ssid || '');
       setSensorCheckinEnabled(data.sensor_checkin_enabled || false);
@@ -139,11 +141,25 @@ export default function SettingsScreen() {
     setShareContactResponses(enabled);
     setIsUpdating(true);
     try {
-      await settingsService.updatePrivacy(enabled);
+      await settingsService.updatePrivacy(enabled, undefined);
       Alert.alert('Éxito', `Respuestas de contactos ${enabled ? 'compartidas' : 'ocultas'}.`);
     } catch (error) {
       setShareContactResponses(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar la privacidad.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggleLowBatteryAlerts = async (enabled: boolean) => {
+    setLowBatteryAlertsEnabled(enabled);
+    setIsUpdating(true);
+    try {
+      await settingsService.updatePrivacy(undefined, enabled);
+      Alert.alert('Éxito', `Alertas de batería baja ${enabled ? 'activadas' : 'desactivadas'}.`);
+    } catch (error) {
+      setLowBatteryAlertsEnabled(!enabled); // revert
+      Alert.alert('Error', 'No se pudo actualizar la configuración.');
     } finally {
       setIsUpdating(false);
     }
@@ -497,7 +513,7 @@ export default function SettingsScreen() {
           )}
         </View>
 
-        {/* SECCION PRIVACIDAD DE RESPUESTAS */}
+        {/* SECCION PRIVACIDAD Y ALERTAS */}
         <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 10 }}>
@@ -509,6 +525,20 @@ export default function SettingsScreen() {
               onValueChange={handleTogglePrivacy}
               trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
               thumbColor={shareContactResponses ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
+
+          <View style={[styles.row, { marginTop: 20 }]}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={styles.sectionTitle}>Alertas de batería baja</Text>
+              <Text style={styles.description}>Notifica a los miembros de tu núcleo cuando la batería de tu dispositivo baje del 15%.</Text>
+            </View>
+            <Switch
+              value={lowBatteryAlertsEnabled}
+              onValueChange={handleToggleLowBatteryAlerts}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={lowBatteryAlertsEnabled ? '#dc2626' : '#f4f3f4'}
               disabled={isUpdating}
             />
           </View>

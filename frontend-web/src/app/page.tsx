@@ -277,6 +277,12 @@ export default function Home() {
                       </svg>
                       <span>**Desactivación Voluntaria:** Pausa el envío de coordenadas desde el celular en un toque cuando decidas proteger tu intimidad.</span>
                     </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Alertas de Batería Baja:** Notifica automáticamente a tu núcleo si tu batería cae por debajo de 15% para evitar alarmas innecesarias.</span>
+                    </li>
                   </ul>
                 </div>
                 <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
@@ -529,7 +535,7 @@ export default function Home() {
                 },
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
-                  a: "Estoy Ok cuenta con un sistema de prevención y contingencia. Antes de que expire tu umbral, recibirás alertas push preventivas de cortesía. Si tu plazo vence y tu teléfono no tiene conexión a internet para reportarse, el servidor asume de inmediato la inactividad y despacha las alertas de crisis vía WhatsApp prioritario o SMS tradicional de respaldo."
+                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y envía una notificación automática a tu núcleo familiar para que sepan que estás por quedar incomunicado. Si el celular se apaga y el plazo de check-in expira sin reporte, el servidor asume de inmediato la inactividad y despacha las alertas de crisis vía WhatsApp prioritario o SMS tradicional de respaldo."
                 }
               ].map((faq, index) => {
                 const isOpen = openFaqIndex === index;

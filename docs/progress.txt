@@ -258,3 +258,24 @@
 - **Stabilization & Validation:**
     - Resolved raw double/single quote issues in JSX causing ESLint parsing errors in SecuritySettings.tsx.
     - Executed all tests and linters; Next.js frontend linter is clean and 79 Laravel integration tests passed 100%.
+
+## [2026-06-19] Low Battery Alerts for Nucleus Members
+- **Database & Models (Laravel):**
+    - Added database migration defining `battery_level` (float) and `is_battery_low` (boolean) on `current_locations` table, and `low_battery_alerts_enabled` (boolean) and `last_battery_alert_sent_at` (timestamp) on `users` table.
+    - Updated `User` and `CurrentLocation` Eloquent models with fillable and cast arrays.
+- **Backend API & Queue Alerting:**
+    - Updated `/api/locations/update` endpoint to validate `battery_level` and track transitions into low battery (< 15%).
+    - Created `SendBatteryAlertJob` to dispatch Expo Push Notifications to all nucleus members when a transition happens, protected by a 1-hour rate limit.
+    - Updated `/api/settings/privacy` endpoint to support saving the new `low_battery_alerts_enabled` privacy toggle.
+    - Wrote comprehensive feature tests in `BatteryAlertTest.php` verifying the API, database state, settings toggling, and queue rate-limiting logic.
+- **Expo React Native App:**
+    - Installed `expo-battery` dependency.
+    - Updated background `locationTask.ts` execution to query device battery level, store rate-limiting logs in AsyncStorage, and report it inside `/locations/update`.
+    - Added the "Alertas de batería baja" configuration toggle inside the native `settings.tsx` screen.
+    - Integrated dynamic battery color status indicators and percentages beside member names on the Home screen (`index.tsx`).
+- **Next.js Web Frontend & Landing:**
+    - Added the new battery alerts configuration switch to `SecuritySettings.tsx`.
+    - Created dynamic SVG battery indicators with relative fill levels and status coloring (green/yellow/red with pulsing warning animations) in the Dashboard member sidebar (`Dashboard.tsx`).
+    - Added battery status tags inside Leaflet map markers popups (`CircleMap.tsx`).
+    - Integrated low battery alert feature bullet item under "Bienestar Activo (Núcleos & Mapa)" and updated battery/signal loss question in interactive FAQ section on the commercial landing page (`page.tsx`).
+    - Resolved TypeScript types compiler warnings and verified successful linter & build executions.

@@ -215,26 +215,27 @@ class SettingsController extends Controller
 
     #[OA\Put(
         path: '/settings/privacy',
-        summary: 'Actualizar configuración de privacidad de alertas',
+        summary: 'Actualizar configuración de privacidad y alertas de batería',
         tags: ['Configuración'],
         security: [['sanctum' => []]],
         requestBody: new OA\RequestBody(
             required: true,
             content: new OA\JsonContent(
-                required: ['share_contact_responses'],
                 properties: [
                     new OA\Property(property: 'share_contact_responses', type: 'boolean', example: true),
+                    new OA\Property(property: 'low_battery_alerts_enabled', type: 'boolean', example: true),
                 ]
             )
         ),
         responses: [
             new OA\Response(
                 response: 200,
-                description: 'Configuración de privacidad actualizada',
+                description: 'Configuración de privacidad y batería actualizada',
                 content: new OA\JsonContent(
                     properties: [
                         new OA\Property(property: 'message', type: 'string', example: 'Privacy settings updated successfully'),
                         new OA\Property(property: 'share_contact_responses', type: 'boolean', example: true),
+                        new OA\Property(property: 'low_battery_alerts_enabled', type: 'boolean', example: true),
                     ]
                 )
             ),
@@ -243,7 +244,8 @@ class SettingsController extends Controller
     public function updatePrivacy(Request $request)
     {
         $validated = $request->validate([
-            'share_contact_responses' => 'required|boolean',
+            'share_contact_responses' => 'sometimes|boolean',
+            'low_battery_alerts_enabled' => 'sometimes|boolean',
         ]);
 
         $user = Auth::user();
@@ -252,6 +254,7 @@ class SettingsController extends Controller
         return response()->json([
             'message' => 'Privacy settings updated successfully',
             'share_contact_responses' => $user->share_contact_responses,
+            'low_battery_alerts_enabled' => $user->low_battery_alerts_enabled,
         ]);
     }
 

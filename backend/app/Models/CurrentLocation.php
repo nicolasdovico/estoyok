@@ -16,6 +16,8 @@ class CurrentLocation extends Model
         'accuracy',
         'recorded_at',
         'location',
+        'battery_level',
+        'is_battery_low',
     ];
 
     protected $appends = ['latitude', 'longitude'];
@@ -28,6 +30,8 @@ class CurrentLocation extends Model
             'recorded_at' => 'datetime',
             'latitude' => 'float',
             'longitude' => 'float',
+            'battery_level' => 'float',
+            'is_battery_low' => 'boolean',
         ];
     }
 

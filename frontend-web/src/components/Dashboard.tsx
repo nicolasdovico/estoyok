@@ -25,6 +25,7 @@ interface UserData {
   escalation_enabled?: boolean;
   escalation_interval_minutes?: number;
   share_contact_responses?: boolean;
+  low_battery_alerts_enabled?: boolean;
   wifi_checkin_enabled?: boolean;
   safe_wifi_ssid?: string | null;
   sensor_checkin_enabled?: boolean;
@@ -32,6 +33,8 @@ interface UserData {
     latitude: number;
     longitude: number;
     updated_at: string;
+    battery_level?: number | null;
+    is_battery_low?: boolean;
   } | null;
   circles: Array<{
     id: number;
@@ -58,6 +61,8 @@ interface CircleData {
       latitude: number;
       longitude: number;
       updated_at: string;
+      battery_level?: number | null;
+      is_battery_low?: boolean;
     } | null;
     pivot: {
       role: string;
@@ -623,6 +628,7 @@ export default function Dashboard() {
                     initialEscalationEnabled={userData?.escalation_enabled || false}
                     initialEscalationIntervalMinutes={userData?.escalation_interval_minutes || 15}
                     initialShareContactResponses={userData?.share_contact_responses ?? true}
+                    initialLowBatteryAlertsEnabled={userData?.low_battery_alerts_enabled ?? true}
                     initialWifiCheckinEnabled={userData?.wifi_checkin_enabled || false}
                     initialSafeWifiSsid={userData?.safe_wifi_ssid || ''}
                     initialSensorCheckinEnabled={userData?.sensor_checkin_enabled || false}
@@ -780,7 +786,7 @@ export default function Dashboard() {
                     // Encontrar centro inicial del mapa
                     let mapCenter: [number, number] = [-34.6037, -58.3816];
                     const membersWithLocation = circle.users.filter((u: CircleData['users'][number]) => u.current_location);
-                    if (membersWithLocation.length > 0) {
+                    if (membersWithLocation.length > 0 && membersWithLocation[0].current_location) {
                       mapCenter = [
                         membersWithLocation[0].current_location.latitude,
                         membersWithLocation[0].current_location.longitude
@@ -1002,9 +1008,34 @@ export default function Dashboard() {
                                           {isOwner ? 'Dueño' : member.pivot.role === 'admin' ? 'Administrador' : 'Miembro'}
                                         </p>
                                         {member.current_location && (
-                                          <p className="text-[9px] text-emerald-600 font-bold mt-0.5">
-                                            Ubicación Activa
-                                          </p>
+                                          <div className="flex items-center gap-2 mt-0.5">
+                                            <span className="text-[9px] text-emerald-600 font-bold">
+                                              Ubicación Activa
+                                            </span>
+                                            {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
+                                              (() => {
+                                                const lvl = member.current_location.battery_level;
+                                                const pct = Math.round(lvl * 100);
+                                                let colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-100';
+                                                if (lvl < 0.15) {
+                                                  colorClass = 'text-red-600 bg-red-50 border-red-200 animate-pulse';
+                                                } else if (lvl < 0.50) {
+                                                  colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
+                                                }
+
+                                                return (
+                                                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] font-black ${colorClass}`} title={`Batería: ${pct}%`}>
+                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                      <rect x="1" y="1" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                                                      <path d="M21 4V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                      <rect x="3" y="3" width={Math.max(1, Math.min(14, Math.round(lvl * 14)))} height="6" rx="0.5" fill="currentColor" />
+                                                    </svg>
+                                                    <span>{pct}%</span>
+                                                  </div>
+                                                );
+                                              })()
+                                            )}
+                                          </div>
                                         )}
                                       </div>
                                     </div>

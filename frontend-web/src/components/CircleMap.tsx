@@ -31,6 +31,8 @@ interface Member {
     latitude: number;
     longitude: number;
     updated_at: string;
+    battery_level?: number | null;
+    is_battery_low?: boolean;
   } | null;
 }
 
@@ -136,8 +138,27 @@ export default function CircleMap({
               icon={MemberIcon}
             >
               <Popup>
-                <div className="text-xs">
-                  <p className="font-bold text-gray-900">{member.name}</p>
+                <div className="text-xs min-w-[150px]">
+                  <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-1.5 mb-1.5">
+                    <p className="font-bold text-gray-900 leading-none">{member.name}</p>
+                    {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
+                      (() => {
+                        const lvl = member.current_location.battery_level;
+                        const pct = Math.round(lvl * 100);
+                        let colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-100';
+                        if (lvl < 0.15) {
+                          colorClass = 'text-red-600 bg-red-50 border-red-200 animate-pulse font-black';
+                        } else if (lvl < 0.50) {
+                          colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
+                        }
+                        return (
+                          <span className={`text-[9px] px-1 py-0.5 rounded border ${colorClass} flex items-center gap-0.5`}>
+                            🔋 {pct}%
+                          </span>
+                        );
+                      })()
+                    )}
+                  </div>
                   <p className="text-gray-500 text-[10px]">{member.email}</p>
                   <p className="text-[10px] text-gray-400 mt-1">
                     Última ubicación: {new Date(member.current_location.updated_at).toLocaleString()}

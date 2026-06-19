@@ -2,6 +2,7 @@ import * as TaskManager from 'expo-task-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Pedometer } from 'expo-sensors';
 import NetInfo from '@react-native-community/netinfo';
+import * as Battery from 'expo-battery';
 import api from '@/services/api';
 
 export const LOCATION_TASK_NAME = 'background-location-task';
@@ -21,10 +22,38 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
     const location = locations[0];
     if (location) {
       try {
+        let batteryLevel: number | null = null;
+        try {
+          const isBatteryAvailable = await Battery.isAvailableAsync();
+          if (isBatteryAvailable) {
+            batteryLevel = await Battery.getBatteryLevelAsync();
+          }
+        } catch (batteryErr) {
+          console.error('Failed to read battery level:', batteryErr);
+        }
+
+        // Local rate limit flag in AsyncStorage
+        if (batteryLevel !== null && batteryLevel < 0.15) {
+          const now = Date.now();
+          const lastSentStr = await AsyncStorage.getItem('last_low_battery_alert_sent');
+          let shouldAlert = true;
+          if (lastSentStr) {
+            const lastSent = parseInt(lastSentStr, 10);
+            if (now - lastSent < 60 * 60 * 1000) {
+              shouldAlert = false;
+            }
+          }
+          if (shouldAlert) {
+            await AsyncStorage.setItem('last_low_battery_alert_sent', now.toString());
+            console.log('Low battery threshold crossed (under 15%). Local alert flag stored.');
+          }
+        }
+
         await api.post('/locations/update', {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           accuracy: location.coords.accuracy,
+          battery_level: batteryLevel,
         });
         console.log('Background location updated via TaskManager');
 

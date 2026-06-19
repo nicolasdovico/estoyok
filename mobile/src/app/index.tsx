@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
 import { LOCATION_TASK_NAME } from '@/services/locationTask';
-import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map } from 'lucide-react-native';
+import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
 
 export default function HomeScreen() {
@@ -527,9 +527,32 @@ export default function HomeScreen() {
                           </View>
                           
                           <View style={styles.memberInfo}>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                               <Text style={styles.memberName}>{member.name} {isSelf && '(Tú)'}</Text>
                               {member.is_premium && <Text style={{ fontSize: 10 }}>⭐</Text>}
+                              {member.current_location && member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
+                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 2 }}>
+                                  {(() => {
+                                    const lvl = member.current_location.battery_level;
+                                    const pct = Math.round(lvl * 100);
+                                    let iconColor = '#10b981'; // Green
+                                    let IconComponent = Battery;
+                                    if (lvl < 0.15) {
+                                      iconColor = '#ef4444'; // Red
+                                      IconComponent = BatteryLow;
+                                    } else if (lvl < 0.50) {
+                                      iconColor = '#f59e0b'; // Yellow
+                                      IconComponent = BatteryMedium;
+                                    }
+                                    return (
+                                      <>
+                                        <IconComponent size={14} color={iconColor} />
+                                        <Text style={{ fontSize: 11, color: iconColor, fontWeight: '600' }}>{pct}%</Text>
+                                      </>
+                                    );
+                                  })()}
+                                </View>
+                              )}
                             </View>
                             <Text style={styles.memberRole}>
                               {isOwner ? 'Dueño' : member.pivot?.role === 'admin' ? 'Administrador' : 'Miembro'}

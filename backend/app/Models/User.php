@@ -45,6 +45,8 @@ class User extends Authenticatable implements MustVerifyEmail
         'wifi_checkin_enabled',
         'safe_wifi_ssid',
         'sensor_checkin_enabled',
+        'low_battery_alerts_enabled',
+        'last_battery_alert_sent_at',
     ];
 
     /**
@@ -78,6 +80,8 @@ class User extends Authenticatable implements MustVerifyEmail
             'share_contact_responses' => 'boolean',
             'wifi_checkin_enabled' => 'boolean',
             'sensor_checkin_enabled' => 'boolean',
+            'low_battery_alerts_enabled' => 'boolean',
+            'last_battery_alert_sent_at' => 'datetime',
         ];
     }
 
