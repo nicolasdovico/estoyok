@@ -243,3 +243,18 @@
 - **Stabilization:**
     - Fixed React Native JSX TSX parsing error with raw greater-than (`>`) character by rewriting the label.
     - Verified 100% clean linter execution on Next.js and 0 TypeScript compilation errors in Expo React Native (`npx tsc --noEmit` exits 0).
+
+## [2026-06-18] Branding Redesign (Núcleos & Zonas Seguras) and UX Improvements (FAQs & Tooltips)
+- **Naming Redesign (Núcleos & Zonas Seguras):**
+    - Refactored user-facing nomenclature across Web and Mobile to adopt unique identifiers:
+      - Replaced "Círculos" (Circles) with "Núcleos" to differentiate Estoy Ok from competitors (such as Life360 and GeoZilla).
+      - Replaced "Geocercas" (Geofences) and "Perímetros" with "Zonas Seguras" to use warmer, wellbeing-centric terminology.
+    - Updated text copy, buttons, labels, and feedback messages in EmergencyClientPage.tsx, page.tsx, Dashboard.tsx, and index.tsx.
+    - Maintained backend database tables and models (circles, geofences) unchanged for structural stability.
+- **Interactive FAQs & Contextual Tooltips:**
+    - Developed an interactive Accordion FAQ section at the bottom of the Web Landing Page (page.tsx) powered by React state (openFaqIndex) for smooth user guidance.
+    - Integrated contextual float Tooltips (using Tailwind CSS group-hover transitions) in SecuritySettings.tsx and Dashboard.tsx to guide web users on settings features.
+    - Verified mobile settings screen already adopts contextual description microcopy under switches for tactile usability.
+- **Stabilization & Validation:**
+    - Resolved raw double/single quote issues in JSX causing ESLint parsing errors in SecuritySettings.tsx.
+    - Executed all tests and linters; Next.js frontend linter is clean and 79 Laravel integration tests passed 100%.

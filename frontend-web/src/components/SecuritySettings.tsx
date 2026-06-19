@@ -347,7 +347,16 @@ export default function SecuritySettings({
         <p className="text-xs text-gray-500 mb-6">Define los parámetros de protección pasiva del sistema.</p>
         
         <div className="space-y-4">
-          <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Intervalo de &quot;Estoy Ok&quot;</label>
+          <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+            <span>Intervalo de &quot;Estoy Ok&quot;</span>
+            <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+              <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+              <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                Frecuencia con la que debes presionar el botón de bienestar. Si pasa este plazo sin reportarte, alertaremos a tus contactos.
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+              </div>
+            </div>
+          </label>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
             {INTERVAL_OPTIONS.map((option) => (
               <button
@@ -373,7 +382,16 @@ export default function SecuritySettings({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Modo Sueño (Horas Silenciosas)</label>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Modo Sueño (Horas Silenciosas)</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    Evita el envío de alarmas y recordatorios durante el horario definido (ej. mientras duermes) para no generar falsas alertas.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
               <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
                 Pausa las alertas mientras duermes o realizas otras actividades.
               </p>
@@ -433,7 +451,16 @@ export default function SecuritySettings({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Check-in por SMS / WhatsApp</label>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Check-in por SMS / WhatsApp</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    Permite contestar el mensaje automático con palabras como &quot;OK&quot; o &quot;1&quot; para hacer tu check-in sin abrir la web o la app móvil.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
               <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
                 Permite responder &quot;OK&quot;, &quot;1&quot; o &quot;BIEN&quot; directamente al mensaje preventivo para confirmar tu bienestar.
               </p>
@@ -456,7 +483,16 @@ export default function SecuritySettings({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Notificación Escalonada</label>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Notificación Escalonada</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    Alertará a tus contactos uno por uno con un margen de tiempo en lugar de a todos a la vez, permitiendo resolver alertas antes de asustar a todo el grupo.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
               <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
                 Notifica secuencialmente a tus contactos con un intervalo de retraso en lugar de alertar a todos a la vez.
               </p>
@@ -524,7 +560,16 @@ export default function SecuritySettings({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Auto-check-in por Wi-Fi</label>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Auto-check-in por Wi-Fi</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    El celular hará check-in automático y silencioso apenas se conecte a la red Wi-Fi segura configurada (ej. el Wi-Fi de tu hogar).
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
               <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
                 Confirma tu bienestar automáticamente cuando te conectas al Wi-Fi de tu casa.
               </p>
@@ -569,7 +614,16 @@ export default function SecuritySettings({
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">Auto-check-in por Actividad Física</label>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Auto-check-in por Actividad Física</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    La app móvil monitoreará tus pasos; si detecta más de 100 pasos en una hora, confirmará tu bienestar de forma automática.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
               <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
                 Confirma tu bienestar automáticamente cuando detectamos más de 100 pasos en tu dispositivo.
               </p>

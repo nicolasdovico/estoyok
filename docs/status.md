@@ -77,6 +77,8 @@
     - [x] Backend: Migraciones para configuración de automatización en `users` y `source` en `check_ins`, endpoints de API correspondientes, y tests.
     - [x] Web: Configuración de automatización en SecuritySettings y visualización de origen en historial.
     - [x] Mobile: Soporte de podómetro y detección de Wi-Fi, switches en ajustes, historial de origen y lógica de fondo en `locationTask.ts`.
+  - [x] feat(branding): Rediseño de terminología para diferenciación del producto (Círculos a Núcleos, Geocercas/Perímetros a Zonas Seguras).
+  - [x] feat(ux): Implementar FAQs interactivas en la landing page y tooltips de ayuda contextuales en el dashboard web.
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.
@@ -85,3 +87,18 @@
 - Refine background location frequency vs battery consumption in Mobile (Fase 9).
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
+
+---
+
+## 📘 Convenciones Adoptadas (UX y Nomenclatura)
+Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguientes criterios de marca e interfaz de usuario:
+
+1. **Nomenclatura (Naming):**
+   * **Círculo / Círculos $\rightarrow$ Núcleo / Núcleos:** En el frontend (Web/Mobile), evitar la palabra "círculo" para no ser un clon de Life360.
+   * **Geocercas / Perímetros $\rightarrow$ Zonas Seguras:** En la interfaz de cara al usuario final, evitar tecnicismos fríos. Utilizar "Zonas Seguras" para referirse a los radios configurados en el mapa.
+   * *Nota técnica:* El backend mantiene el naming `circles` y `geofences` en base de datos y endpoints por razones de compatibilidad y simplicidad relacional.
+
+2. **Ayuda contextual (UX):**
+   * **Landing Page:** Secciones informativas generales con una sección final de FAQs estructurada en acordeones interactivos manejados con estado de React (`openFaqIndex`).
+   * **Dashboard Web:** Uso de tooltips descriptivos flotantes (CSS puro con clases `group-hover` de Tailwind) al lado de opciones y configuraciones complejas para guiar al usuario sin sobrecargar de texto la interfaz.
+   * **App Móvil:** Mantener la explicación del funcionamiento (microcopy) integrada de forma directa y sutil en texto pequeño debajo de cada toggle o switch de configuración, garantizando legibilidad y rapidez táctil.

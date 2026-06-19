@@ -200,7 +200,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
             <div>
               <h3 className="text-lg font-black text-gray-900 flex items-center gap-2">🤝 Coordinar Ayuda</h3>
               <p className="text-xs text-gray-500 mt-1">
-                Notifica al círculo familiar y a otros contactos tu estado o si te estás haciendo cargo.
+                Notifica al núcleo familiar y a otros contactos tu estado o si te estás haciendo cargo.
               </p>
             </div>
 

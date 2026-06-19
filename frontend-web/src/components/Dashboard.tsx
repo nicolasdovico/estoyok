@@ -88,7 +88,7 @@ export default function Dashboard() {
   const [checkIns, setCheckIns] = useState<Array<{ id: number; source?: string; created_at: string }>>([]);
   const [isLoadingCheckIns, setIsLoadingCheckIns] = useState(false);
 
-  // Estados para Círculos y Geocercas
+  // Estados para Núcleos y Zonas Seguras
   const [circlesList, setCirclesList] = useState<CircleData[]>([]);
   const [selectedCircleId, setSelectedCircleId] = useState<number | null>(null);
   const [newCircleName, setNewCircleName] = useState('');
@@ -96,7 +96,7 @@ export default function Dashboard() {
   const [isCreatingCircle, setIsCreatingCircle] = useState(false);
   const [isJoiningCircle, setIsJoiningCircle] = useState(false);
 
-  // Estados para Geocercas
+  // Estados para Zonas Seguras
   const [geofenceName, setGeofenceName] = useState('');
   const [geofenceRadius, setGeofenceRadius] = useState(200);
   const [geofenceType, setGeofenceType] = useState('entry_exit');
@@ -232,16 +232,16 @@ export default function Dashboard() {
 
       if (response.ok) {
         const newCircle = await response.json();
-        showToast('Círculo creado exitosamente.', 'success');
+        showToast('Núcleo creado exitosamente.', 'success');
         setNewCircleName('');
         await fetchCircles();
         setSelectedCircleId(newCircle.id);
       } else {
         const errData = await response.json();
-        showToast(errData.message || 'Error al crear el círculo.', 'error');
+        showToast(errData.message || 'Error al crear el núcleo.', 'error');
       }
     } catch {
-      showToast('Error de red al crear el círculo.', 'error');
+      showToast('Error de red al crear el núcleo.', 'error');
     } finally {
       setIsCreatingCircle(false);
     }
@@ -266,16 +266,16 @@ export default function Dashboard() {
 
       if (response.ok) {
         const joinedCircle = await response.json();
-        showToast('Te has unido al círculo exitosamente.', 'success');
+        showToast('Te has unido al núcleo exitosamente.', 'success');
         setInviteCodeInput('');
         await fetchCircles();
         setSelectedCircleId(joinedCircle.id);
       } else {
         const errData = await response.json();
-        showToast(errData.message || 'Error al unirte al círculo.', 'error');
+        showToast(errData.message || 'Error al unirte al núcleo.', 'error');
       }
     } catch {
-      showToast('Error de red al unirte al círculo.', 'error');
+      showToast('Error de red al unirte al núcleo.', 'error');
     } finally {
       setIsJoiningCircle(false);
     }
@@ -285,7 +285,7 @@ export default function Dashboard() {
     const token = localStorage.getItem('auth_token');
     const isSelf = userData?.id === memberId;
     
-    if (!confirm(isSelf ? '¿Estás seguro de que quieres salir de este círculo?' : '¿Estás seguro de que quieres expulsar a este miembro?')) {
+    if (!confirm(isSelf ? '¿Estás seguro de que quieres salir de este núcleo?' : '¿Estás seguro de que quieres expulsar a este miembro?')) {
       return;
     }
 
@@ -299,7 +299,7 @@ export default function Dashboard() {
       });
 
       if (response.ok) {
-        showToast(isSelf ? 'Has salido del círculo.' : 'Miembro expulsado.', 'success');
+        showToast(isSelf ? 'Has salido del núcleo.' : 'Miembro expulsado.', 'success');
         if (isSelf || circlesList.find(c => c.id === circleId)?.owner_id === memberId) {
           setSelectedCircleId(null);
         }
@@ -317,11 +317,11 @@ export default function Dashboard() {
     e.preventDefault();
     if (!selectedCircleId) return;
     if (!geofenceName.trim()) {
-      showToast('Ingresa un nombre para el perímetro.', 'error');
+      showToast('Ingresa un nombre para el Zona Segura.', 'error');
       return;
     }
     if (geofenceLatitude === null || geofenceLongitude === null) {
-      showToast('Haz clic en el mapa para marcar el centro del perímetro.', 'error');
+      showToast('Haz clic en el mapa para marcar el centro del Zona Segura.', 'error');
       return;
     }
 
@@ -346,7 +346,7 @@ export default function Dashboard() {
       });
 
       if (response.ok) {
-        showToast('Perímetro creado exitosamente.', 'success');
+        showToast('Zona Segura creado exitosamente.', 'success');
         setGeofenceName('');
         setGeofenceLatitude(null);
         setGeofenceLongitude(null);
@@ -354,17 +354,17 @@ export default function Dashboard() {
         await fetchCircles();
       } else {
         const errData = await response.json();
-        showToast(errData.message || 'Error al crear el perímetro.', 'error');
+        showToast(errData.message || 'Error al crear el Zona Segura.', 'error');
       }
     } catch {
-      showToast('Error de red al crear el perímetro.', 'error');
+      showToast('Error de red al crear el Zona Segura.', 'error');
     } finally {
       setIsCreatingGeofence(false);
     }
   };
 
   const handleDeleteGeofence = async (geofenceId: number) => {
-    if (!confirm('¿Estás seguro de que quieres eliminar este perímetro?')) return;
+    if (!confirm('¿Estás seguro de que quieres eliminar este Zona Segura?')) return;
     
     const token = localStorage.getItem('auth_token');
     try {
@@ -377,11 +377,11 @@ export default function Dashboard() {
       });
 
       if (response.ok) {
-        showToast('Perímetro eliminado.', 'success');
+        showToast('Zona Segura eliminado.', 'success');
         await fetchCircles();
       } else {
         const errData = await response.json();
-        showToast(errData.message || 'Error al eliminar el perímetro.', 'error');
+        showToast(errData.message || 'Error al eliminar el Zona Segura.', 'error');
       }
     } catch {
       showToast('Error de red.', 'error');
@@ -478,7 +478,7 @@ export default function Dashboard() {
             onClick={() => setActiveTab('tracking')}
             className={`w-full text-left px-4 py-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 ${activeTab === 'tracking' ? 'bg-red-50 text-red-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
           >
-            <span className="text-xl">📍</span> Rastreo y Círculos
+            <span className="text-xl">📍</span> Rastreo y Núcleos
           </button>
 
           <div className="pt-8 px-4 border-t border-gray-50 mt-4">
@@ -685,16 +685,16 @@ export default function Dashboard() {
 
             {activeTab === 'tracking' && (
               <div className="space-y-8">
-                {/* Selector / Acciones de Círculos */}
+                {/* Selector / Acciones de Núcleos */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-6">
                   <div>
-                    <h2 className="text-2xl font-black text-gray-900">Mis Círculos de Seguridad</h2>
+                    <h2 className="text-2xl font-black text-gray-900">Mis Núcleos de Seguridad</h2>
                     <p className="text-xs text-gray-500 font-medium">Coordina la ubicación y seguridad de tu familia o amigos.</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-4">
                     {circlesList.length > 0 && (
                       <div className="flex items-center gap-2">
-                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ver Círculo:</label>
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Ver Núcleo:</label>
                         <select
                           value={selectedCircleId || ''}
                           onChange={(e) => {
@@ -721,15 +721,15 @@ export default function Dashboard() {
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[320px]">
                       <div>
                         <div className="w-12 h-12 bg-red-50 rounded-2xl flex items-center justify-center text-xl mb-6">➕</div>
-                        <h3 className="text-lg font-black text-gray-900 mb-2">Crear un Nuevo Círculo</h3>
+                        <h3 className="text-lg font-black text-gray-900 mb-2">Crear un Nuevo Núcleo</h3>
                         <p className="text-xs text-gray-500 leading-relaxed mb-6 font-medium">
-                          Crea un círculo privado de seguridad familiar. Podrás invitar a tus seres queridos y monitorear su bienestar en tiempo real.
+                          Crea un núcleo privado de seguridad familiar. Podrás invitar a tus seres queridos y monitorear su bienestar en tiempo real.
                         </p>
                       </div>
                       <form onSubmit={handleCreateCircle} className="space-y-4">
                         <input
                           type="text"
-                          placeholder="Nombre del círculo (ej: Familia Pérez)"
+                          placeholder="Nombre del núcleo (ej: Familia Pérez)"
                           value={newCircleName}
                           onChange={(e) => setNewCircleName(e.target.value)}
                           className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:border-red-500 font-semibold"
@@ -739,7 +739,7 @@ export default function Dashboard() {
                           disabled={isCreatingCircle}
                           className="w-full bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white py-3 rounded-xl text-sm font-bold shadow-md transition-colors cursor-pointer"
                         >
-                          {isCreatingCircle ? 'Creando...' : 'Crear Círculo'}
+                          {isCreatingCircle ? 'Creando...' : 'Crear Núcleo'}
                         </button>
                       </form>
                     </div>
@@ -747,9 +747,9 @@ export default function Dashboard() {
                     <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 flex flex-col justify-between min-h-[320px]">
                       <div>
                         <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-xl mb-6">🔑</div>
-                        <h3 className="text-lg font-black text-gray-900 mb-2">Unirse a un Círculo Existente</h3>
+                        <h3 className="text-lg font-black text-gray-900 mb-2">Unirse a un Núcleo Existente</h3>
                         <p className="text-xs text-gray-500 leading-relaxed mb-6 font-medium">
-                          Si un familiar ya creó un círculo, pídele su código de invitación de 10 caracteres e ingrésalo a continuación.
+                          Si un familiar ya creó un núcleo, pídele su código de invitación de 10 caracteres e ingrésalo a continuación.
                         </p>
                       </div>
                       <form onSubmit={handleJoinCircle} className="space-y-4">
@@ -766,13 +766,13 @@ export default function Dashboard() {
                           disabled={isJoiningCircle}
                           className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 text-white py-3 rounded-xl text-sm font-bold shadow-md transition-colors cursor-pointer"
                         >
-                          {isJoiningCircle ? 'Uniéndose...' : 'Unirse al Círculo'}
+                          {isJoiningCircle ? 'Uniéndose...' : 'Unirse al Núcleo'}
                         </button>
                       </form>
                     </div>
                   </div>
                 ) : (
-                  // Círculo Seleccionado: Mapa, Miembros y Geocercas
+                  // Núcleo Seleccionado: Mapa, Miembros y Zonas Seguras
                   (() => {
                     const circle = circlesList.find(c => c.id === selectedCircleId);
                     if (!circle) return null;
@@ -791,14 +791,14 @@ export default function Dashboard() {
 
                     return (
                       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                        {/* Columna Principal: Mapa y Perímetros (2/3 de ancho) */}
+                        {/* Columna Principal: Mapa y Zonas Seguras (2/3 de ancho) */}
                         <div className="lg:col-span-2 space-y-8">
                           {/* Mapa */}
                           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
                             <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-lg font-black text-gray-900">Ubicaciones del Círculo: {circle.name}</h3>
+                              <h3 className="text-lg font-black text-gray-900">Ubicaciones del Núcleo: {circle.name}</h3>
                               <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                Haz clic en el mapa para ubicar un perímetro
+                                Haz clic en el mapa para ubicar un Zona Segura
                               </span>
                             </div>
                             <div className="h-[480px] w-full relative rounded-2xl overflow-hidden border border-gray-100">
@@ -816,17 +816,17 @@ export default function Dashboard() {
                             </div>
                           </div>
 
-                          {/* Gestión de Perímetros (Geocercas) */}
+                          {/* Gestión de Zonas Seguras Familiares */}
                           <div className="bg-white p-8 rounded-3xl shadow-sm border border-gray-100 space-y-6">
                             <div>
-                              <h3 className="text-lg font-black text-gray-900">Perímetros de Seguridad (Geocercas)</h3>
+                              <h3 className="text-lg font-black text-gray-900">Zonas Seguras (Zonas Seguras)</h3>
                               <p className="text-xs text-gray-500 font-medium">Recibe alertas automáticas cuando tus familiares entren o salgan.</p>
                             </div>
 
-                            {/* Formulario de Perímetro */}
+                            {/* Formulario de Zona Segura */}
                             <form onSubmit={handleCreateGeofence} className="p-6 bg-gray-50 rounded-2xl border border-gray-100 grid grid-cols-1 md:grid-cols-2 gap-4">
                               <div className="md:col-span-2">
-                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Crear Nuevo Perímetro</h4>
+                                <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Crear Nueva Zona Segura</h4>
                               </div>
                               
                               <div>
@@ -885,7 +885,7 @@ export default function Dashboard() {
                                 <span className="text-xs font-bold text-gray-500">
                                   {geofenceLatitude && geofenceLongitude 
                                     ? `📍 Centro marcado: ${geofenceLatitude.toFixed(5)}, ${geofenceLongitude.toFixed(5)}`
-                                    : '⚠️ Haz clic en el mapa de arriba para marcar el centro del perímetro.'
+                                    : '⚠️ Haz clic en el mapa de arriba para marcar el centro del Zona Segura.'
                                   }
                                 </span>
                                 <button
@@ -893,17 +893,17 @@ export default function Dashboard() {
                                   disabled={isCreatingGeofence}
                                   className="bg-red-600 hover:bg-red-700 disabled:bg-gray-300 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-md transition-colors cursor-pointer"
                                 >
-                                  {isCreatingGeofence ? 'Creando...' : 'Guardar Perímetro'}
+                                  {isCreatingGeofence ? 'Creando...' : 'Guardar Zona Segura'}
                                 </button>
                               </div>
                             </form>
 
-                            {/* Lista de Geocercas */}
+                            {/* Lista de Zonas Seguras */}
                             <div className="space-y-3">
-                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Perímetros Configurados</h4>
+                              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-widest">Zonas Seguras Configuradas</h4>
                               {circle.geofences.length === 0 ? (
                                 <div className="py-4 text-center bg-gray-50 rounded-2xl border border-dashed border-gray-200">
-                                  <p className="text-xs text-gray-400 italic font-medium">No hay perímetros configurados en este círculo.</p>
+                                  <p className="text-xs text-gray-400 italic font-medium">No hay Zonas Seguras configuradas en este núcleo.</p>
                                 </div>
                               ) : (
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -945,7 +945,14 @@ export default function Dashboard() {
                           <div className="bg-gradient-to-br from-red-500 to-rose-600 text-white p-6 rounded-3xl shadow-sm border border-transparent">
                             <h3 className="font-black text-lg mb-2">Invitar a un Familiar</h3>
                             <p className="text-xs text-red-100 leading-relaxed mb-4 font-medium">
-                              Comparte este código para que tus familiares se unan a este círculo.
+                              Comparte este código para que tus familiares se unan a este núcleo.
+                                <div className="relative group inline-block ml-1.5 align-middle cursor-help">
+                                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                                    Tus familiares deben ingresar este código de 10 caracteres al registrarse o en su pestaña de núcleos.
+                                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                                  </div>
+                                </div>
                             </p>
                             <div className="flex items-center gap-2 bg-white/10 p-3 rounded-2xl backdrop-blur-sm">
                               <span className="flex-1 text-center font-mono font-black text-xl tracking-wider select-all">
@@ -967,7 +974,7 @@ export default function Dashboard() {
                           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
                             <div>
                               <h3 className="text-lg font-black text-gray-900">Miembros ({circle.users.length})</h3>
-                              <p className="text-xs text-gray-500 font-medium">Personas en este círculo de seguridad.</p>
+                              <p className="text-xs text-gray-500 font-medium">Personas en este núcleo de seguridad.</p>
                             </div>
 
                             <div className="space-y-4">
@@ -1025,11 +1032,11 @@ export default function Dashboard() {
                               })}
                             </div>
                             
-                            {/* Borrar círculo completo (Solo dueño) */}
+                            {/* Borrar núcleo completo (Solo dueño) */}
                             {circle.owner_id === userData?.id && (
                               <button
                                 onClick={async () => {
-                                  if (confirm('¿Estás seguro de que quieres disolver el círculo completo? Todos los miembros y geocercas se eliminarán permanentemente.')) {
+                                  if (confirm('¿Estás seguro de que quieres disolver el núcleo completo? Todos los miembros y Zonas Seguras se eliminarán permanentemente.')) {
                                     const token = localStorage.getItem('auth_token');
                                     try {
                                       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/circles/${circle.id}`, {
@@ -1040,20 +1047,20 @@ export default function Dashboard() {
                                         },
                                       });
                                       if (response.ok) {
-                                        showToast('Círculo eliminado con éxito.', 'success');
+                                        showToast('Núcleo eliminado con éxito.', 'success');
                                         setSelectedCircleId(null);
                                         await fetchCircles();
                                       } else {
-                                        showToast('Error al eliminar el círculo.', 'error');
+                                        showToast('Error al eliminar el núcleo.', 'error');
                                       }
                                     } catch {
-                                      showToast('Error de red al intentar eliminar el círculo.', 'error');
+                                      showToast('Error de red al intentar eliminar el núcleo.', 'error');
                                     }
                                   }
                                 }}
                                 className="w-full py-3 bg-red-50 hover:bg-red-100 text-red-600 text-xs font-bold rounded-2xl transition-colors mt-6 border border-dashed border-red-200 cursor-pointer text-center"
                               >
-                                Disolver Círculo de Seguridad
+                                Disolver Núcleo de Seguridad
                               </button>
                             )}
                           </div>

@@ -17,7 +17,7 @@ export default function HomeScreen() {
   const [checkIns, setCheckIns] = useState<any[]>([]);
   const [loadingCheckIns, setLoadingCheckIns] = useState(false);
 
-  // Estados para Círculos
+  // Estados para Núcleos
   const [circles, setCircles] = useState<any[]>([]);
   const [loadingCircles, setLoadingCircles] = useState(false);
   const [selectedCircleId, setSelectedCircleId] = useState<number | null>(null);
@@ -63,18 +63,18 @@ export default function HomeScreen() {
 
   const handleCreateCircle = async () => {
     if (!newCircleName.trim()) {
-      Alert.alert('Error', 'Ingresa un nombre para el círculo.');
+      Alert.alert('Error', 'Ingresa un nombre para el núcleo.');
       return;
     }
     setSubmittingCircle(true);
     try {
       const response = await api.post('/circles', { name: newCircleName });
-      Alert.alert('Éxito', 'Círculo creado exitosamente.');
+      Alert.alert('Éxito', 'Núcleo creado exitosamente.');
       setNewCircleName('');
       await fetchCircles();
       setSelectedCircleId(response.data.id);
     } catch (e: any) {
-      const errMsg = e.response?.data?.message || 'No se pudo crear el círculo.';
+      const errMsg = e.response?.data?.message || 'No se pudo crear el núcleo.';
       Alert.alert('Error', errMsg);
     } finally {
       setSubmittingCircle(false);
@@ -89,12 +89,12 @@ export default function HomeScreen() {
     setSubmittingCircle(true);
     try {
       const response = await api.post('/circles/join', { invite_code: inviteCodeInput });
-      Alert.alert('Éxito', 'Te has unido al círculo.');
+      Alert.alert('Éxito', 'Te has unido al núcleo.');
       setInviteCodeInput('');
       await fetchCircles();
       setSelectedCircleId(response.data.id);
     } catch (e: any) {
-      const errMsg = e.response?.data?.message || 'Código inválido o ya perteneces al círculo.';
+      const errMsg = e.response?.data?.message || 'Código inválido o ya perteneces al núcleo.';
       Alert.alert('Error', errMsg);
     } finally {
       setSubmittingCircle(false);
@@ -104,8 +104,8 @@ export default function HomeScreen() {
   const handleRemoveMember = async (circleId: number, memberId: number) => {
     const isSelf = memberId === user?.id;
     Alert.alert(
-      isSelf ? 'Salir del Círculo' : 'Expulsar Miembro',
-      isSelf ? '¿Estás seguro de que deseas abandonar este círculo?' : '¿Estás seguro de que deseas expulsar a este miembro?',
+      isSelf ? 'Salir del Núcleo' : 'Expulsar Miembro',
+      isSelf ? '¿Estás seguro de que deseas abandonar este núcleo?' : '¿Estás seguro de que deseas expulsar a este miembro?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -286,7 +286,7 @@ export default function HomeScreen() {
           },
         });
         setIsTracking(true);
-        Alert.alert('Rastreo Activado', 'Tu ubicación se actualiza para tu círculo.');
+        Alert.alert('Rastreo Activado', 'Tu ubicación se actualiza para tu núcleo.');
       } catch (e) {
         Alert.alert('Error', 'No se pudo iniciar el rastreo.');
       }
@@ -396,7 +396,7 @@ export default function HomeScreen() {
               {isTracking ? '✓ Compartiendo ubicación' : '✕ Rastreo desactivado'}
             </Text>
             <Text style={styles.trackingDesc}>
-              Tus círculos de confianza podrán ver tu posición en el mapa.
+              Tus núcleos de confianza podrán ver tu posición en el mapa.
             </Text>
           </View>
           
@@ -415,22 +415,22 @@ export default function HomeScreen() {
       <View style={[styles.moduleCard, { borderLeftColor: '#3b82f6', borderLeftWidth: 4 }]}>
         <View style={styles.moduleHeader}>
           <Users size={20} color="#3b82f6" />
-          <Text style={styles.moduleTitle}>Mis Círculos Familiares</Text>
+          <Text style={styles.moduleTitle}>Mis Núcleos Familiares</Text>
         </View>
 
         {loadingCircles && circles.length === 0 ? (
           <ActivityIndicator size="small" color="#3b82f6" style={{ marginVertical: 10 }} />
         ) : circles.length === 0 ? (
-          // Estado sin círculos
+          // Estado sin núcleos
           <View style={styles.emptyCirclesContainer}>
-            <Text style={styles.emptyCirclesText}>No participas en ningún círculo de seguridad aún.</Text>
+            <Text style={styles.emptyCirclesText}>No participas en ningún núcleo de seguridad aún.</Text>
             
             <View style={styles.circleFormSection}>
-              <Text style={styles.circleFormLabel}>Crear un Nuevo Círculo</Text>
+              <Text style={styles.circleFormLabel}>Crear un Nuevo Núcleo</Text>
               <View style={styles.circleInputRow}>
                 <TextInput
                   style={styles.circleInput}
-                  placeholder="Nombre del círculo (ej: Familia)"
+                  placeholder="Nombre del núcleo (ej: Familia)"
                   placeholderTextColor="#9ca3af"
                   value={newCircleName}
                   onChangeText={setNewCircleName}
@@ -446,7 +446,7 @@ export default function HomeScreen() {
             </View>
 
             <View style={[styles.circleFormSection, { marginTop: 16 }]}>
-              <Text style={styles.circleFormLabel}>Unirse a un Círculo Existente</Text>
+              <Text style={styles.circleFormLabel}>Unirse a un Núcleo Existente</Text>
               <View style={styles.circleInputRow}>
                 <TextInput
                   style={[styles.circleInput, { fontFamily: 'monospace' }]}
@@ -468,11 +468,11 @@ export default function HomeScreen() {
             </View>
           </View>
         ) : (
-          // Listado y detalle del círculo seleccionado
+          // Listado y detalle del núcleo seleccionado
           <View style={styles.circlesContainer}>
             {circles.length > 1 && (
               <View style={styles.circleSelectorRow}>
-                <Text style={styles.circleSelectorLabel}>Círculo Activo:</Text>
+                <Text style={styles.circleSelectorLabel}>Núcleo Activo:</Text>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.circlesTabList}>
                   {circles.map((c) => (
                     <TouchableOpacity
@@ -513,7 +513,7 @@ export default function HomeScreen() {
                   </View>
 
                   {/* Lista de Miembros */}
-                  <Text style={styles.membersSectionTitle}>Miembros del Círculo ({activeCircle.users.length})</Text>
+                  <Text style={styles.membersSectionTitle}>Miembros del Núcleo ({activeCircle.users.length})</Text>
                   <View style={styles.membersList}>
                     {activeCircle.users.map((member: any) => {
                       const isSelf = member.id === user?.id;
