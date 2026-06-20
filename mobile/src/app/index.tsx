@@ -44,12 +44,20 @@ export default function HomeScreen() {
       fetchCheckIns();
       fetchCircles();
       flushOfflineLocations().catch(e => console.error(e));
+
+      // Polling interval to refresh tracking status, circle members locations and sensor states
+      const interval = setInterval(() => {
+        fetchCircles(true);
+        fetchUserData();
+      }, 10000); // 10 seconds
+
+      return () => clearInterval(interval);
     }
   }, [user]);
 
-  const fetchCircles = async () => {
+  const fetchCircles = async (silent = false) => {
     if (!user) return;
-    setLoadingCircles(true);
+    if (!silent) setLoadingCircles(true);
     try {
       const response = await api.get('/circles');
       setCircles(response.data);
@@ -59,7 +67,7 @@ export default function HomeScreen() {
     } catch (e) {
       console.error('Error fetching circles', e);
     } finally {
-      setLoadingCircles(false);
+      if (!silent) setLoadingCircles(false);
     }
   };
 
@@ -683,15 +691,26 @@ export default function HomeScreen() {
                             {member.current_location && member.current_location.is_tracking_active && (
                               <TouchableOpacity
                                 style={styles.mapIconButton}
-                                onPress={() => openInMaps(
-                                  member.current_location.latitude,
-                                  member.current_location.longitude
-                                )}
+                                onPress={() => router.push({
+                                  pathname: '/history',
+                                  params: { memberId: String(member.id), circleId: String(activeCircle.id), mode: 'live' }
+                                })}
                               >
                                 <Map size={14} color="#065f46" />
                                 <Text style={styles.mapActionText}>Ver</Text>
                               </TouchableOpacity>
                             )}
+
+                            <TouchableOpacity
+                              style={styles.historyIconButton}
+                              onPress={() => router.push({
+                                pathname: '/history',
+                                params: { memberId: String(member.id), circleId: String(activeCircle.id), mode: 'history' }
+                              })}
+                            >
+                              <Compass size={14} color="#3730a3" />
+                              <Text style={styles.historyActionText}>Ruta</Text>
+                            </TouchableOpacity>
 
                             {isSelf ? (
                               activeCircle.owner_id !== user?.id && (
@@ -916,6 +935,8 @@ const styles = StyleSheet.create({
   memberActions: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   mapIconButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#d1fae5', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
   mapActionText: { fontSize: 11, fontWeight: '800', color: '#065f46' },
+  historyIconButton: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: '#e0e7ff', paddingVertical: 6, paddingHorizontal: 10, borderRadius: 10 },
+  historyActionText: { fontSize: 11, fontWeight: '800', color: '#3730a3' },
   removeMemberButton: { padding: 8, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#fee2e2' },
   leaveMemberButton: { paddingVertical: 6, paddingHorizontal: 10, backgroundColor: '#f3f4f6', borderRadius: 10 },
   leaveMemberText: { fontSize: 11, fontWeight: '800', color: '#ef4444' }

@@ -1,6 +1,6 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Circle as LeafletCircle, useMap, useMapEvents } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle as LeafletCircle, useMap, useMapEvents, Polyline } from 'react-leaflet';
 import L from 'leaflet';
 import { useEffect, useState } from 'react';
 
@@ -22,6 +22,31 @@ const MemberIcon = L.icon({
   iconAnchor: [12, 41],
   popupAnchor: [1, -34],
 });
+
+// Gold icon for historical playback marker
+const PlaybackIcon = L.icon({
+  iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-gold.png',
+  shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
+  iconSize: [25, 41],
+  iconAnchor: [12, 41],
+  popupAnchor: [1, -34],
+});
+
+// Haversine distance calculator
+export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
+  const R = 6371e3; // Earth radius in meters
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const deltaPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const deltaLambda = ((lon2 - lon1) * Math.PI) / 180;
+
+  const a =
+    Math.sin(deltaPhi / 2) * Math.sin(deltaPhi / 2) +
+    Math.cos(phi1) * Math.cos(phi2) * Math.sin(deltaLambda / 2) * Math.sin(deltaLambda / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+  return R * c; // in meters
+}
 
 interface Member {
   id: number;
@@ -60,6 +85,14 @@ interface MapProps {
   zoom?: number;
   onMapClick?: (lat: number, lng: number) => void;
   clickedCoords?: [number, number] | null;
+  historyRoute?: Array<{
+    id: number;
+    latitude: number;
+    longitude: number;
+    recorded_at: string;
+    accuracy?: number;
+  }> | null;
+  playbackIndex?: number | null;
 }
 
 function RecenterMap({ center }: { center: [number, number] }) {
@@ -87,7 +120,9 @@ export default function CircleMap({
   center, 
   zoom = 13, 
   onMapClick,
-  clickedCoords
+  clickedCoords,
+  historyRoute,
+  playbackIndex
 }: MapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -238,6 +273,72 @@ export default function CircleMap({
               <p className="text-xs font-bold text-gray-900">Ubicación seleccionada para geocerca</p>
             </Popup>
           </Marker>
+        )}
+
+        {/* Route History Rendering */}
+        {historyRoute && historyRoute.length > 0 && (
+          <>
+            <Polyline
+              positions={historyRoute.map(pt => [pt.latitude, pt.longitude])}
+              pathOptions={{
+                color: '#6366F1', // Indigo
+                weight: 4,
+                opacity: 0.8,
+                dashArray: '5, 10'
+              }}
+            />
+            {historyRoute.map((pt, idx) => (
+              <LeafletCircle
+                key={`pt-${pt.id}-${idx}`}
+                center={[pt.latitude, pt.longitude]}
+                radius={3}
+                pathOptions={{
+                  color: '#4F46E5',
+                  fillColor: '#4F46E5',
+                  fillOpacity: 1
+                }}
+              />
+            ))}
+          </>
+        )}
+
+        {/* Route History Playback Marker */}
+        {historyRoute && playbackIndex !== undefined && playbackIndex !== null && historyRoute[playbackIndex] && (
+          (() => {
+            const activePt = historyRoute[playbackIndex];
+            let speedText = 'Calculando...';
+            if (playbackIndex > 0) {
+              const prev = historyRoute[playbackIndex - 1];
+              const dist = haversineDistance(prev.latitude, prev.longitude, activePt.latitude, activePt.longitude);
+              const timeDiff = (new Date(activePt.recorded_at).getTime() - new Date(prev.recorded_at).getTime()) / 1000;
+              if (timeDiff > 0) {
+                const speedKmh = (dist / timeDiff) * 3.6;
+                speedText = `${speedKmh.toFixed(1)} km/h`;
+              } else {
+                speedText = '0.0 km/h';
+              }
+            } else {
+              speedText = 'Inicio del recorrido';
+            }
+            return (
+              <Marker
+                position={[activePt.latitude, activePt.longitude]}
+                icon={PlaybackIcon}
+              >
+                <Popup>
+                  <div className="text-xs font-sans p-1">
+                    <p className="font-bold text-indigo-700">Reproducción de Trayecto</p>
+                    <p className="text-gray-900 mt-1 font-semibold">🕒 {new Date(activePt.recorded_at).toLocaleTimeString()}</p>
+                    <p className="text-gray-600">📅 {new Date(activePt.recorded_at).toLocaleDateString()}</p>
+                    <p className="text-gray-800 font-bold mt-1">⚡ Velocidad: {speedText}</p>
+                    {activePt.accuracy && (
+                      <p className="text-gray-400 text-[10px]">Precisión: {activePt.accuracy.toFixed(1)}m</p>
+                    )}
+                  </div>
+                </Popup>
+              </Marker>
+            );
+          })()
         )}
 
         <RecenterMap center={center} />

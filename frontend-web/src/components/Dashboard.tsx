@@ -118,6 +118,81 @@ export default function Dashboard() {
   const [geofenceLongitude, setGeofenceLongitude] = useState<number | null>(null);
   const [isCreatingGeofence, setIsCreatingGeofence] = useState(false);
 
+  // Estados para Historial de Ubicaciones y Reproducción
+  const [expandedHistoryMemberId, setExpandedHistoryMemberId] = useState<number | null>(null);
+  const [historyMemberId, setHistoryMemberId] = useState<number | null>(null);
+  const [historyDate, setHistoryDate] = useState<string>(
+    (() => {
+      const d = new Date();
+      const offset = d.getTimezoneOffset();
+      const local = new Date(d.getTime() - offset * 60 * 1000);
+      return local.toISOString().split('T')[0];
+    })()
+  );
+  const [historyPoints, setHistoryPoints] = useState<Array<{ id: number; accuracy: number; recorded_at: string; latitude: number; longitude: number }>>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [playbackIndex, setPlaybackIndex] = useState<number>(0);
+  const [isPlayingHistory, setIsPlayingHistory] = useState(false);
+  const [playbackSpeed, setPlaybackSpeed] = useState<number>(1000); // ms entre pasos: 1000, 500, 200
+
+  // Playback timer effect
+  useEffect(() => {
+    if (isPlayingHistory && historyPoints.length > 0) {
+      const interval = setInterval(() => {
+        setPlaybackIndex((prevIndex) => {
+          if (prevIndex >= historyPoints.length - 1) {
+            setIsPlayingHistory(false);
+            return prevIndex;
+          }
+          return prevIndex + 1;
+        });
+      }, playbackSpeed);
+      return () => clearInterval(interval);
+    }
+  }, [isPlayingHistory, historyPoints, playbackSpeed]);
+
+  const fetchHistory = async (memberId: number) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token || !selectedCircleId) return;
+
+    setHistoryLoading(true);
+    setHistoryPoints([]);
+    setPlaybackIndex(0);
+    setIsPlayingHistory(false);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_API_URL}/circles/${selectedCircleId}/members/${memberId}/history?date=${historyDate}`,
+        {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/json',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setHistoryPoints(data);
+        setHistoryMemberId(memberId);
+        if (data.length > 0) {
+          setPlaybackIndex(data.length - 1);
+          showToast(`Se cargaron ${data.length} puntos del historial`, 'success');
+        } else {
+          // No hay puntos: se muestra el mensaje directamente en el panel del mapa sin saturar con un toast.
+        }
+      } else {
+        const errData = await response.json();
+        showToast(errData.message || 'Error al obtener el historial', 'error');
+      }
+    } catch (err) {
+      console.error(err);
+      showToast('Error al conectar con el servidor', 'error');
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   const showToast = (message: string, type: 'success' | 'error' = 'success') => {
     setNotification({ message, type });
   };
@@ -794,7 +869,12 @@ export default function Dashboard() {
                     // Encontrar centro inicial del mapa
                     let mapCenter: [number, number] = [-34.6037, -58.3816];
                     const membersWithLocation = circle.users.filter((u: CircleData['users'][number]) => u.current_location);
-                    if (membersWithLocation.length > 0 && membersWithLocation[0].current_location) {
+                    if (historyPoints.length > 0 && historyPoints[playbackIndex]) {
+                      mapCenter = [
+                        historyPoints[playbackIndex].latitude,
+                        historyPoints[playbackIndex].longitude
+                      ];
+                    } else if (membersWithLocation.length > 0 && membersWithLocation[0].current_location) {
                       mapCenter = [
                         membersWithLocation[0].current_location.latitude,
                         membersWithLocation[0].current_location.longitude
@@ -809,12 +889,97 @@ export default function Dashboard() {
                         <div className="lg:col-span-2 space-y-8">
                           {/* Mapa */}
                           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-                            <div className="flex items-center justify-between mb-4">
-                              <h3 className="text-lg font-black text-gray-900">Ubicaciones del Núcleo: {circle.name}</h3>
-                              <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">
-                                Haz clic en el mapa para ubicar un Zona Segura
-                              </span>
+                            {/* Toggle History Form Button in Map Header */}
+                            <div className="flex items-center justify-between mb-4 flex-wrap gap-4">
+                              <div>
+                                <h3 className="text-lg font-black text-gray-900">Ubicaciones del Núcleo: {circle.name}</h3>
+                                <p className="text-[11px] text-gray-400 font-medium">Haz clic en el mapa para ubicar una Zona Segura</p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    if (historyMemberId) {
+                                      // Exit history mode
+                                      setHistoryPoints([]);
+                                      setHistoryMemberId(null);
+                                      setIsPlayingHistory(false);
+                                    } else {
+                                      // Open history form: select first member by default if available
+                                      if (circle.users.length > 0) {
+                                        setExpandedHistoryMemberId(circle.users[0].id);
+                                      }
+                                    }
+                                  }}
+                                  className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                                    historyMemberId 
+                                      ? 'bg-red-50 text-red-600 border border-red-100' 
+                                      : 'bg-indigo-50 text-indigo-600 border border-indigo-100 hover:bg-indigo-100'
+                                  }`}
+                                >
+                                  {historyMemberId ? '❌ Salir del Historial' : '🕒 Consultar Historial'}
+                                </button>
+                              </div>
                             </div>
+
+                            {/* History Query Form */}
+                            {(!historyMemberId && expandedHistoryMemberId) && (
+                              <div className="mb-4 p-4 bg-gray-50 rounded-2xl border border-gray-100/80 space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-black text-gray-700">Consultar Historial de Ruta</span>
+                                  {!userData?.is_premium && (
+                                    <span className="text-[9px] bg-yellow-50 text-yellow-700 px-1.5 py-0.5 rounded font-bold border border-yellow-100 flex items-center gap-0.5 animate-pulse">
+                                      ⭐ Plan Básico: 24 horas max
+                                    </span>
+                                  )}
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">Miembro</label>
+                                    <select
+                                      value={expandedHistoryMemberId || ''}
+                                      onChange={(e) => setExpandedHistoryMemberId(Number(e.target.value))}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-indigo-500"
+                                    >
+                                      {circle.users.map(u => (
+                                        <option key={u.id} value={u.id}>{u.name} {u.id === userData?.id ? '(Tú)' : ''}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <label className="text-[10px] font-bold text-gray-400 block mb-1 uppercase tracking-wider">Fecha</label>
+                                    <input
+                                      type="date"
+                                      value={historyDate}
+                                      max={new Date().toISOString().split('T')[0]}
+                                      min={
+                                        userData?.is_premium
+                                          ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                                          : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+                                      }
+                                      onChange={(e) => setHistoryDate(e.target.value)}
+                                      className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500"
+                                    />
+                                  </div>
+                                  <div className="flex items-end">
+                                    <button
+                                      type="button"
+                                      onClick={() => fetchHistory(expandedHistoryMemberId!)}
+                                      disabled={historyLoading}
+                                      className="w-full py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1 cursor-pointer"
+                                    >
+                                      {historyLoading ? 'Cargando...' : '🔍 Cargar Historial'}
+                                    </button>
+                                  </div>
+                                </div>
+                                {!userData?.is_premium && (
+                                  <p className="text-[10px] text-gray-400 font-medium">
+                                    Pásate a Premium para acceder hasta 30 días de historial de cualquier miembro del círculo.
+                                  </p>
+                                )}
+                              </div>
+                            )}
+
                             <div className="h-[480px] w-full relative rounded-2xl overflow-hidden border border-gray-100">
                               <TrackingMap
                                 members={circle.users}
@@ -826,7 +991,95 @@ export default function Dashboard() {
                                   showToast(`Ubicación marcada: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, 'success');
                                 }}
                                 clickedCoords={geofenceLatitude && geofenceLongitude ? [geofenceLatitude, geofenceLongitude] : null}
+                                historyRoute={historyPoints}
+                                playbackIndex={playbackIndex}
                               />
+
+                              {/* Route History Playback Controls - Floating Glassmorphic Panel */}
+                              {historyMemberId !== null && (
+                                <div className="absolute bottom-4 left-4 right-4 z-[1000] p-4 bg-white/95 backdrop-blur-sm rounded-2xl border border-indigo-100 shadow-xl space-y-3">
+                                  <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2">
+                                    <div>
+                                      <h4 className="text-xs font-black text-indigo-950 flex items-center gap-1.5">
+                                        <span>📍 Historial: {circle.users.find(u => u.id === historyMemberId)?.name}</span>
+                                        <span className="text-[9px] bg-indigo-100 text-indigo-700 px-1.5 py-0.5 rounded-full font-bold uppercase tracking-wider">
+                                          Modo Historial
+                                        </span>
+                                      </h4>
+                                      {historyPoints.length > 0 && (
+                                        <p className="text-[10px] text-indigo-600/70 font-bold mt-0.5">
+                                          Punto {playbackIndex + 1} de {historyPoints.length} | {new Date(historyPoints[playbackIndex]?.recorded_at).toLocaleString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setHistoryPoints([]);
+                                          setHistoryMemberId(null);
+                                          setIsPlayingHistory(false);
+                                        }}
+                                        className="px-2.5 py-1 bg-white hover:bg-red-50 text-gray-600 hover:text-red-600 rounded-lg text-[10px] font-bold shadow-sm border border-gray-150 transition-all cursor-pointer"
+                                      >
+                                        Salir
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {historyLoading ? (
+                                    <div className="flex items-center justify-center py-4 gap-2">
+                                      <div className="w-4 h-4 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
+                                      <span className="text-[11px] font-bold text-indigo-600">Cargando ubicaciones...</span>
+                                    </div>
+                                  ) : historyPoints.length === 0 ? (
+                                    <div className="text-center py-4 bg-gray-50/50 rounded-xl border border-indigo-100/20">
+                                      <p className="text-xs font-bold text-indigo-950">No hay ubicaciones registradas para esta fecha.</p>
+                                      <p className="text-[9px] text-gray-400 mt-0.5">Intenta cambiar la fecha de consulta.</p>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-3">
+                                      <button
+                                        type="button"
+                                        onClick={() => setIsPlayingHistory(!isPlayingHistory)}
+                                        className="p-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold text-xs flex items-center justify-center shadow-md transition-colors cursor-pointer"
+                                      >
+                                        {isPlayingHistory ? '⏸️' : '▶️'}
+                                      </button>
+
+                                      <div className="flex-1">
+                                        <input
+                                          type="range"
+                                          min={0}
+                                          max={historyPoints.length - 1}
+                                          value={playbackIndex}
+                                          onChange={(e) => setPlaybackIndex(Number(e.target.value))}
+                                          className="w-full h-1.5 bg-indigo-200 rounded-lg appearance-none cursor-pointer accent-indigo-600"
+                                        />
+                                      </div>
+
+                                      <div className="flex items-center gap-1 bg-gray-100 p-0.5 rounded-lg border border-gray-200">
+                                        {[
+                                          { label: '1x', val: 1000 },
+                                          { label: '2x', val: 500 },
+                                          { label: '5x', val: 200 }
+                                        ].map(sp => (
+                                          <button
+                                            key={sp.label}
+                                            type="button"
+                                            onClick={() => setPlaybackSpeed(sp.val)}
+                                            className={`px-1.5 py-0.5 rounded text-[9px] font-black transition-all ${
+                                              playbackSpeed === sp.val ? 'bg-indigo-600 text-white' : 'text-gray-500 hover:bg-gray-200'
+                                            }`}
+                                          >
+                                            {sp.label}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              )}
                             </div>
                           </div>
 
@@ -996,111 +1249,109 @@ export default function Dashboard() {
                                 const isSelf = member.id === userData?.id;
                                 const isOwner = circle.owner_id === member.id;
                                 const isCurrentUserAdmin = circle.users.find((u: CircleData['users'][number]) => u.id === userData?.id)?.pivot?.role === 'admin';
-
                                 return (
-                                  <div key={member.id} className="flex items-center justify-between gap-4 p-3 bg-gray-50 rounded-2xl border border-transparent hover:border-red-100 transition-all">
-                                    <div className="flex items-center gap-3">
-                                      <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-600 font-bold border border-red-100">
-                                        {member.name.charAt(0)}
-                                      </div>
-                                      <div>
-                                        <div className="flex items-center gap-1.5">
-                                          <span className="text-sm font-bold text-gray-800">
-                                            {member.name} {isSelf && '(Tú)'}
-                                          </span>
-                                          {member.is_premium && (
-                                            <span className="text-[10px] text-yellow-600" title="Premium">⭐</span>
-                                          )}
+                                    <div key={member.id} className="flex items-center justify-between gap-4 p-3 bg-gray-50 rounded-2xl border border-transparent hover:border-red-100 transition-all">
+                                      <div className="flex items-center gap-3">
+                                        <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-600 font-bold border border-red-100">
+                                          {member.name.charAt(0)}
                                         </div>
-                                        <p className="text-[10px] text-gray-400 font-semibold">
-                                          {isOwner ? 'Dueño' : member.pivot.role === 'admin' ? 'Administrador' : 'Miembro'}
-                                        </p>
-                                        {member.current_location && (
-                                          <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                                            {(() => {
-                                              const loc = member.current_location;
-                                              const isTrackingActive = loc.is_tracking_active !== false;
-                                              const isGpsEnabled = loc.gps_enabled !== false;
-                                              const isOffline = !!loc.is_offline;
-                                              
-                                              if (!isTrackingActive) {
-                                                return (
-                                                  <span className="text-[9px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-md font-bold" title="El usuario apagó voluntariamente el rastreo">
-                                                    📴 Rastreo Apagado
-                                                  </span>
-                                                );
-                                              }
-                                              if (!isGpsEnabled) {
-                                                return (
-                                                  <span className="text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold" title="El GPS del dispositivo está desactivado">
-                                                    ⚠️ GPS Desactivado
-                                                  </span>
-                                                );
-                                              }
-                                              if (isOffline) {
-                                                const lastSeen = loc.last_seen_at ? new Date(loc.last_seen_at).getTime() : 0;
-                                                const elapsedMins = lastSeen ? Math.round((Date.now() - lastSeen) / 60000) : 0;
-                                                const timeText = elapsedMins > 0 ? `hace ${elapsedMins} min` : 'recientemente';
-                                                return (
-                                                  <span className="text-[9px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md font-bold animate-pulse" title={`Sin conexión reportada (Visto ${timeText})`}>
-                                                    🌐 Sin Señal
-                                                  </span>
-                                                );
-                                              }
-                                              return (
-                                                <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md font-bold">
-                                                  🟢 Ubicación Activa
-                                                </span>
-                                              );
-                                            })()}
-                                            {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
-                                              (() => {
-                                                const lvl = member.current_location.battery_level;
-                                                const pct = Math.round(lvl * 100);
-                                                let colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-100';
-                                                if (lvl < 0.15) {
-                                                  colorClass = 'text-red-600 bg-red-50 border-red-200 animate-pulse';
-                                                } else if (lvl < 0.50) {
-                                                  colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
-                                                }
-
-                                                return (
-                                                  <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] font-black ${colorClass}`} title={`Batería: ${pct}%`}>
-                                                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                      <rect x="1" y="1" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
-                                                      <path d="M21 4V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-                                                      <rect x="3" y="3" width={Math.max(1, Math.min(14, Math.round(lvl * 14)))} height="6" rx="0.5" fill="currentColor" />
-                                                    </svg>
-                                                    <span>{pct}%</span>
-                                                  </div>
-                                                );
-                                              })()
+                                        <div>
+                                          <div className="flex items-center gap-1.5">
+                                            <span className="text-sm font-bold text-gray-800">
+                                              {member.name} {isSelf && '(Tú)'}
+                                            </span>
+                                            {member.is_premium && (
+                                              <span className="text-[10px] text-yellow-600" title="Premium">⭐</span>
                                             )}
                                           </div>
-                                        )}
-                                      </div>
-                                    </div>
+                                          <p className="text-[10px] text-gray-400 font-semibold">
+                                            {isOwner ? 'Dueño' : member.pivot.role === 'admin' ? 'Administrador' : 'Miembro'}
+                                          </p>
+                                          {member.current_location && (
+                                            <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                                              {(() => {
+                                                const loc = member.current_location;
+                                                const isTrackingActive = loc.is_tracking_active !== false;
+                                                const isGpsEnabled = loc.gps_enabled !== false;
+                                                const isOffline = !!loc.is_offline;
+                                                
+                                                if (!isTrackingActive) {
+                                                  return (
+                                                    <span className="text-[9px] text-gray-500 bg-gray-100 border border-gray-200 px-1.5 py-0.5 rounded-md font-bold" title="El usuario apagó voluntariamente el rastreo">
+                                                      📴 Rastreo Apagado
+                                                    </span>
+                                                  );
+                                                }
+                                                if (!isGpsEnabled) {
+                                                  return (
+                                                    <span className="text-[9px] text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded-md font-bold" title="El GPS del dispositivo está desactivado">
+                                                      ⚠️ GPS Desactivado
+                                                    </span>
+                                                  );
+                                                }
+                                                if (isOffline) {
+                                                  const lastSeen = loc.last_seen_at ? new Date(loc.last_seen_at).getTime() : 0;
+                                                  const elapsedMins = lastSeen ? Math.round((Date.now() - lastSeen) / 60000) : 0;
+                                                  const timeText = elapsedMins > 0 ? `hace ${elapsedMins} min` : 'recientemente';
+                                                  return (
+                                                    <span className="text-[9px] text-red-600 bg-red-50 border border-red-200 px-1.5 py-0.5 rounded-md font-bold animate-pulse" title={`Sin conexión reportada (Visto ${timeText})`}>
+                                                      🌐 Sin Señal
+                                                    </span>
+                                                  );
+                                                }
+                                                return (
+                                                  <span className="text-[9px] text-emerald-600 bg-emerald-50 border border-emerald-100 px-1.5 py-0.5 rounded-md font-bold">
+                                                    🟢 Ubicación Activa
+                                                  </span>
+                                                );
+                                              })()}
+                                              {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
+                                                (() => {
+                                                  const lvl = member.current_location.battery_level;
+                                                  const pct = Math.round(lvl * 100);
+                                                  let colorClass = 'text-emerald-500 bg-emerald-50 border-emerald-100';
+                                                  if (lvl < 0.15) {
+                                                    colorClass = 'text-red-600 bg-red-50 border-red-200 animate-pulse';
+                                                  } else if (lvl < 0.50) {
+                                                    colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
+                                                  }
 
-                                    {/* Botón de Salida / Expulsión */}
-                                    {isSelf ? (
-                                      <button
-                                        onClick={() => handleRemoveMember(circle.id, member.id)}
-                                        className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
-                                      >
-                                        Salir
-                                      </button>
-                                    ) : (
-                                      (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                                  return (
+                                                    <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] font-black ${colorClass}`} title={`Batería: ${pct}%`}>
+                                                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect x="1" y="1" width="18" height="10" rx="2" stroke="currentColor" strokeWidth="2" />
+                                                        <path d="M21 4V8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                                                        <rect x="3" y="3" width={Math.max(1, Math.min(14, Math.round(lvl * 14)))} height="6" rx="0.5" fill="currentColor" />
+                                                      </svg>
+                                                      <span>{pct}%</span>
+                                                    </div>
+                                                  );
+                                                })()
+                                              )}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+
+                                      {isSelf ? (
                                         <button
                                           onClick={() => handleRemoveMember(circle.id, member.id)}
-                                          className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
+                                          className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
                                         >
-                                          Expulsar
+                                          Salir
                                         </button>
-                                      )
-                                    )}
-                                  </div>
-                                );
+                                      ) : (
+                                        (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                          <button
+                                            onClick={() => handleRemoveMember(circle.id, member.id)}
+                                            className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
+                                          >
+                                            Expulsar
+                                          </button>
+                                        )
+                                      )}
+                                    </div>
+                                  );
                               })}
                             </div>
                             

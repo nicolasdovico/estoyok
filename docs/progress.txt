@@ -301,3 +301,15 @@
 - **Stabilization & Validation:**
     - Verified all typechecks pass successfully (`npx tsc --noEmit` exits 0) on both frontends (web and mobile).
     - Verified backend integration test suite runs 100% successfully (87 passes).
+
+## [2026-06-19] Tracking History Map Centering & Markers Fix
+- **Expo React Native App:**
+    - Introduced a `mapReady` state in `history.tsx` and bound it to `<MapView onMapReady={() => setMapReady(true)} />`.
+    - Configured `<MapView>` to use `provider={PROVIDER_GOOGLE}` on iOS to match Android and the external Google Maps layout, providing a unified and consistent design system.
+    - Added navigation parameter `mode` (`'live'` from "Ver" and `'history'` from "Ruta") to dynamically switch the map screen's top header title text ("Ubicación de <Miembro>" vs "Ruta de <Miembro>").
+    - Added a floating header button labeled "Cómo llegar" (with Map icon) to let the user optionally launch the external Google Maps app for direct GPS navigation to the active location.
+    - Created a reactive `useEffect` listening to `[points, mapReady, memberInfo]` to trigger map camera animations (`animateToRegion`) only when the native map layer is fully layout-ready.
+    - Modified `fetchHistory` to map and explicitly parse coordinate response fields (`latitude` and `longitude`) to float `Number` values.
+    - Added dynamic unique React `key` props (incorporating active indexes and IDs) to map markers to force React Native Maps to re-create and correctly position markers upon state/coordinate updates.
+    - Added a fallback marker (`chinche`) showing the member's last known location and timestamp on the map when no history coordinates exist for the selected date.
+    - Verified TypeScript type safety compiles without errors (0 errors).

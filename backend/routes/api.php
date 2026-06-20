@@ -9,6 +9,7 @@ use App\Http\Controllers\Api\LocationController;
 use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
+use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\EmergencyAlertController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -47,6 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/circles/join', [CircleController::class, 'join']);
     Route::delete('/circles/{circle}/members/{member}', [CircleController::class, 'removeMember']);
     Route::delete('/circles/{circle}', [CircleController::class, 'destroy']);
+    Route::get('/circles/{circle}/members/{member}/history', [HistoryController::class, 'getHistory']);
 
     // Geofences
     Route::get('/circles/{circle}/geofences', [GeofenceController::class, 'index']);
