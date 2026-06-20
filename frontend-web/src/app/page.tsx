@@ -289,6 +289,12 @@ export default function Home() {
                       </svg>
                       <span>**Monitoreo de Sensores y Señal:** El núcleo familiar podrá distinguir si apagaste el GPS, pausaste el rastreo voluntariamente o si estás temporalmente sin señal.</span>
                     </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Historial y Reproducción de Rutas:** Revisa el camino recorrido por los integrantes de tu núcleo con controles de velocidad, barra de tiempo y estimaciones de velocidad de traslado.</span>
+                    </li>
                   </ul>
                 </div>
                 <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
@@ -421,7 +427,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Historial de ubicación (48 horas)</span>
+                      <span>Historial de ubicación (24 horas)</span>
                     </li>
                     <li className="flex items-center gap-2.5">
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -476,7 +482,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Historial de ubicación (30 días)</span>
+                      <span>Historial y reproducción de rutas (30 días)</span>
                     </li>
                     <li className="flex items-center gap-2.5">
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

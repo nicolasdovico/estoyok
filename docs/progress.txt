@@ -312,4 +312,8 @@
     - Modified `fetchHistory` to map and explicitly parse coordinate response fields (`latitude` and `longitude`) to float `Number` values.
     - Added dynamic unique React `key` props (incorporating active indexes and IDs) to map markers to force React Native Maps to re-create and correctly position markers upon state/coordinate updates.
     - Added a fallback marker (`chinche`) showing the member's last known location and timestamp on the map when no history coordinates exist for the selected date.
-    - Verified TypeScript type safety compiles without errors (0 errors).
+    - Added a background polling interval (every 10 seconds) on the home screen (`index.tsx`) to silently fetch circles (`fetchCircles(true)`) and user data to dynamically update members' active locations, battery percentages, and sensor tracking states in real-time.
+- **Next.js Web Frontend & Landing:**
+    - Added **Historial y Reproducción de Rutas** under the "Bienestar Activo (Círculos/Núcleos & Mapa)" section on the commercial landing page (`page.tsx`).
+    - Corrected pricing table copy mismatch (changed free plan history limit from 48 hours to the actual 24 hours constraint, and highlighted route playback support on the Premium plan features list).
+    - Verified TypeScript type safety compiles without errors (0 errors) on both frontends (web and mobile).
