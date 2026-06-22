@@ -353,5 +353,24 @@
     - Added a detailed S.O.S. question and answer inside the interactive Accordion FAQ section, explaining the trigger process, background recording, and notifications.
     - Ran Next.js Turbopack compiler build successfully (0 compile warnings or errors).
 
+## [2026-06-22] Detección Automática de Trayectos y Excesos de Velocidad Vehicular
+- **Backend (Laravel & Base de Datos):**
+    - Creada tabla `drive_events` con test de integración y columnas `speed_limit` en la tabla `circles`, y `speed` / `is_driving` en `current_locations` y `location_histories`.
+    - Actualizado el endpoint `POST /api/locations/update` para validar velocidad, convertirla de m/s a km/h, abrir y cerrar trayectos activos de conducción, y gatillar alertas push a través del Job `SendSpeedingAlertJob` con rate-limiting mediante caché.
+    - Añadida ruta `PUT /api/circles/{circle}/speed-limit` para actualizar el límite de velocidad por círculo.
+    - Creado comando `drive:cleanup-active` en el Scheduler para cerrar trayectos huérfanos que no actualizan hace más de 30 min.
+    - Desarrollada suite completa de pruebas unitarias y de integración en `DriveDetectionTest.php` (tests pasaron 100% limpios).
+- **Mobile Frontend (Expo / React Native):**
+    - Implementada lógica de detección de velocidad con histéresis (1 min sostenido sobre 25 km/h para iniciar `is_driving = true`, y 2 min de tolerancia para finalizar) guardando estados en AsyncStorage en `locationTask.ts`.
+    - Añadido el badge *"🚗 [Velocidad] km/h"* inline al listado de miembros del núcleo de la Home Screen.
+    - Agregado el endpoint `updateCircleSpeedLimit` al servicio de configuración y el formulario visual para que el dueño ajuste el límite de velocidad en la pantalla de Ajustes.
+    - Corregido error de importación de `react-native-maps` en la compilación web de Metro extrayendo el mapa de historial a un componente con extensiones de plataforma (`HistoryMap.tsx` y `HistoryMap.web.tsx`).
+    - Verificado tipo de tipado y compilación exitosa (`npx tsc --noEmit` exits con 0).
+- **Web Frontend (Next.js):**
+    - Actualizado `CircleMap.tsx` para soportar marcadores animados e interactivos de vehículos (`🚗`) en Leaflet con colores dinámicos (rojo pulsante para excesos de velocidad) y badges del velocímetro en popups.
+    - Añadida la insignia de velocidad vehicular *"🚗 [Velocidad] km/h"* inline al listado lateral de miembros y agregada la sección de edición del límite de velocidad en el sidebar de configuración del círculo activo.
+    - Promocionada la característica en la Landing Page comercial (`page.tsx`) agregando el bullet de velocidad vehicular en características, beneficio en el plan PRO y pregunta detallada en el acordeón de FAQs.
+    - Verificado compilación estática exitosa con TypeScript (`npx tsc --noEmit` exits con 0).
+
 
 

@@ -92,6 +92,14 @@
     - [x] Mobile: Botón destacado de SOS silencioso de emergencia, grabación de fondo de 15s de audio con `expo-av`, cambio dinámico a tracking de ubicación de alta frecuencia (5s) y canal de respaldo mediante envío de SMS local.
     - [x] Mobile: Corregida la rotura de estilos del listado de miembros al activar/desactivar S.O.S., reemplazando el componente View del badge por un Text inline, ocultando acciones redundantes para el propio usuario y sincronizando el estado `isSosActive` inmediatamente al activar.
     - [x] Web Landing Page: Promoción y explicación del S.O.S. Silencioso (agregado como tercer pilar de seguridad de crisis activa en la grilla de características, en los beneficios del plan PRO Premium y en las FAQs interactivas).
+  - [x] feat(drive): Detección automática de trayectos vehiculares y exceso de velocidad (Next.js, Expo, Laravel y tests).
+    - [x] Backend: Migraciones para la tabla `drive_events`, columna `speed_limit` en `circles` y `speed` / `is_driving` en `current_locations` y `location_histories`.
+    - [x] Backend API: Conversión de velocidad m/s a km/h, inicio/cierre automático de trayectos de conducción, y notificaciones Push (Expo) con rate-limiting mediante caché.
+    - [x] Backend Console: Comando `drive:cleanup-active` programado en el Scheduler para cerrar trayectos huérfanos sin actualizar hace más de 30 minutos.
+    - [x] Mobile: Captura de velocidad en `locationTask.ts`, histéresis mediante AsyncStorage (1 min inicio, 2 min tolerancia para detención) y envío al backend.
+    - [x] Mobile UI & Settings: Badge inline con coche y velocidad en la lista de miembros de la home, y configuración para ajustar el límite de velocidad por núcleo en ajustes.
+    - [x] Mobile Multiplatform: Corregido error de importación de `react-native-maps` en la compilación web de Metro extrayendo el mapa de historial a un componente con extensiones específicas de plataforma (`HistoryMap.tsx` y `HistoryMap.web.tsx`).
+    - [x] Web: Marcador interactivo de coche (`🚗`) animado en `CircleMap.tsx` con colores condicionales según el límite excedido, badges inline de velocidad en el sidebar, formulario de ajuste para administradores, y promoción con características y FAQs en la Landing Page comercial (`page.tsx`).
 
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**

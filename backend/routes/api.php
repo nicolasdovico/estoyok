@@ -50,6 +50,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/circles/join', [CircleController::class, 'join']);
     Route::delete('/circles/{circle}/members/{member}', [CircleController::class, 'removeMember']);
     Route::delete('/circles/{circle}', [CircleController::class, 'destroy']);
+    Route::put('/circles/{circle}/speed-limit', [CircleController::class, 'updateSpeedLimit']);
     Route::get('/circles/{circle}/members/{member}/history', [HistoryController::class, 'getHistory']);
 
     // Geofences

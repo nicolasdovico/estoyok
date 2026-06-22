@@ -21,6 +21,8 @@ class CurrentLocation extends Model
         'is_tracking_active',
         'gps_enabled',
         'last_seen_at',
+        'speed',
+        'is_driving',
     ];
 
     protected $appends = ['latitude', 'longitude', 'is_offline'];
@@ -38,6 +40,8 @@ class CurrentLocation extends Model
             'is_tracking_active' => 'boolean',
             'gps_enabled' => 'boolean',
             'last_seen_at' => 'datetime',
+            'speed' => 'float',
+            'is_driving' => 'boolean',
         ];
     }
 

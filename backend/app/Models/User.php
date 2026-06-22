@@ -125,6 +125,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(CheckIn::class);
     }
 
+    public function driveEvents()
+    {
+        return $this->hasMany(DriveEvent::class);
+    }
+
     /**
      * Determine if the user is currently in their quiet hours.
      */

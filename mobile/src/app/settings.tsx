@@ -37,6 +37,8 @@ export default function SettingsScreen() {
   const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(false);
   const [isLoadingData, setIsLoadingData] = useState(true);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [ownedCircles, setOwnedCircles] = useState<any[]>([]);
+  const [circleSpeedLimits, setCircleSpeedLimits] = useState<{[key: number]: string}>({});
 
   useEffect(() => {
     fetchCurrentSettings();
@@ -66,6 +68,15 @@ export default function SettingsScreen() {
       setWifiCheckinEnabled(data.wifi_checkin_enabled || false);
       setSafeWifiSsid(data.safe_wifi_ssid || '');
       setSensorCheckinEnabled(data.sensor_checkin_enabled || false);
+
+      const userCircles = data.circles || [];
+      const owned = userCircles.filter((c: any) => c.owner_id === data.id);
+      setOwnedCircles(owned);
+      const speedLimits: {[key: number]: string} = {};
+      owned.forEach((c: any) => {
+        speedLimits[c.id] = (c.speed_limit || 120).toString();
+      });
+      setCircleSpeedLimits(speedLimits);
     } catch (e) {
       console.error('Error fetching settings', e);
     } finally {
@@ -241,6 +252,24 @@ export default function SettingsScreen() {
       Alert.alert('Éxito', 'Horario de descanso guardado.');
     } catch (error) {
       Alert.alert('Error', 'No se pudo guardar la configuración.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleSaveCircleSpeedLimit = async (circleId: number) => {
+    const limit = parseInt(circleSpeedLimits[circleId], 10);
+    if (isNaN(limit) || limit < 10 || limit > 250) {
+      Alert.alert('Error', 'Por favor ingresa un límite válido (entre 10 y 250 km/h).');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await settingsService.updateCircleSpeedLimit(circleId, limit);
+      Alert.alert('Éxito', 'Límite de velocidad del núcleo actualizado correctamente.');
+    } catch (error) {
+      Alert.alert('Error', 'No se pudo actualizar el límite.');
     } finally {
       setIsUpdating(false);
     }
@@ -610,6 +639,51 @@ export default function SettingsScreen() {
             />
           </View>
         </View>
+
+        {/* SECCION LÍMITE DE VELOCIDAD DE NÚCLEOS */}
+        {ownedCircles.length > 0 && (
+          <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
+            <Text style={styles.sectionTitle}>Límites de Velocidad Vehicular (Núcleos)</Text>
+            <Text style={styles.description}>
+              Como creador de estos núcleos, puedes establecer el límite de velocidad a partir del cual recibirás alertas si un miembro lo supera.
+            </Text>
+
+            {ownedCircles.map((circle) => (
+              <View key={circle.id} style={{ marginBottom: 20 }}>
+                <Text style={{ fontSize: 14, fontWeight: '700', color: '#374151', marginBottom: 6 }}>{circle.name}</Text>
+                <View style={styles.row}>
+                  <TextInput
+                    style={{ backgroundColor: '#fff', borderWidth: 1, borderColor: '#e5e7eb', borderRadius: 12, padding: 12, fontSize: 15, fontWeight: '600', color: '#374151', flex: 1, marginRight: 10 }}
+                    value={circleSpeedLimits[circle.id] || '120'}
+                    onChangeText={(text) => {
+                      const cleaned = text.replace(/\D/g, '');
+                      setCircleSpeedLimits(prev => ({ ...prev, [circle.id]: cleaned }));
+                    }}
+                    placeholder="Límite (km/h)"
+                    keyboardType="number-pad"
+                    maxLength={3}
+                    onFocus={() => {
+                      setTimeout(() => {
+                        scrollViewRef.current?.scrollToEnd({ animated: true });
+                      }, 350);
+                    }}
+                  />
+                  <TouchableOpacity 
+                    style={[styles.saveButton, { marginTop: 0, paddingVertical: 12, paddingHorizontal: 20 }]} 
+                    onPress={() => handleSaveCircleSpeedLimit(circle.id)}
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? (
+                      <ActivityIndicator size="small" color="#fff" />
+                    ) : (
+                      <Text style={styles.saveButtonText}>Guardar</Text>
+                    )}
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
 
         <View style={styles.infoCard}>
           <Text style={styles.infoText}>

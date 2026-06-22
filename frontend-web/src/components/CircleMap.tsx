@@ -32,6 +32,19 @@ const PlaybackIcon = L.icon({
   popupAnchor: [1, -34],
 });
 
+// Custom icon builder for driving members
+const getCarIcon = (exceeded: boolean) => L.divIcon({
+  html: `
+    <div class="relative flex items-center justify-center w-10 h-10 ${exceeded ? 'bg-red-600 animate-pulse border-red-300' : 'bg-emerald-600 border-white'} rounded-full border-2 shadow-xl">
+      <span class="text-lg">🚗</span>
+    </div>
+  `,
+  className: 'custom-car-icon',
+  iconSize: [40, 40],
+  iconAnchor: [20, 20],
+  popupAnchor: [0, -20],
+});
+
 // Haversine distance calculator
 export function haversineDistance(lat1: number, lon1: number, lat2: number, lon2: number): number {
   const R = 6371e3; // Earth radius in meters
@@ -62,6 +75,8 @@ interface Member {
     gps_enabled?: boolean;
     last_seen_at?: string | null;
     is_offline?: boolean;
+    speed?: number | null;
+    is_driving?: boolean;
   } | null;
   active_emergency_alerts?: Array<{
     id: string;
@@ -101,6 +116,7 @@ interface MapProps {
     accuracy?: number;
   }> | null;
   playbackIndex?: number | null;
+  speedLimit?: number;
 }
 
 function RecenterMap({ center }: { center: [number, number] }) {
@@ -130,7 +146,8 @@ export default function CircleMap({
   onMapClick,
   clickedCoords,
   historyRoute,
-  playbackIndex
+  playbackIndex,
+  speedLimit
 }: MapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
@@ -187,11 +204,20 @@ export default function CircleMap({
           const hasSilentSos = !!activeSos;
           const hasIssue = (!isTrackingActive || !isGpsEnabled || isOffline) && !hasSilentSos;
 
+          const isDriving = !!loc.is_driving;
+          const speed = loc.speed ?? 0;
+          const isSpeeding = isDriving && speedLimit !== undefined && speed > speedLimit;
+
+          let iconToUse: L.Icon | L.DivIcon = MemberIcon;
+          if (isDriving) {
+            iconToUse = getCarIcon(isSpeeding);
+          }
+
           return (
             <Marker 
               key={member.id} 
               position={[loc.latitude, loc.longitude]}
-              icon={MemberIcon}
+              icon={iconToUse}
               opacity={hasSilentSos ? 1.0 : (hasIssue ? 0.5 : 1.0)}
             >
               <Popup>
@@ -204,6 +230,12 @@ export default function CircleMap({
                           <audio src={activeSos.audio_url} controls className="w-full h-8 scale-95" />
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {isDriving && (
+                    <div className={`mb-2 p-2 ${isSpeeding ? 'bg-red-600 text-white animate-pulse font-extrabold' : 'bg-emerald-600 text-white font-bold'} text-[10px] rounded text-center`}>
+                      {isSpeeding ? '⚠️ EXCESO DE VELOCIDAD DETECTADO' : '🚗 EN TRAYECTO VEHICULAR'}
                     </div>
                   )}
                   <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-1.5 mb-1.5">
@@ -227,6 +259,14 @@ export default function CircleMap({
                     )}
                   </div>
                   
+                  {isDriving && (
+                    <div className="mb-2 space-y-1">
+                      <div className={`text-[9px] ${isSpeeding ? 'text-red-600 bg-red-50 border-red-200 font-extrabold' : 'text-emerald-600 bg-emerald-50 border-emerald-200 font-bold'} px-1.5 py-0.5 rounded border flex items-center gap-1`}>
+                        ⚡ Velocidad: {Math.round(speed)} km/h {speedLimit !== undefined && `(Límite: ${speedLimit} km/h)`}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Alertas de Sensor en el Popup */}
                   {hasIssue && (
                     <div className="mb-2 space-y-1">

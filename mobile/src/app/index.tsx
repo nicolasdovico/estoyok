@@ -827,6 +827,9 @@ export default function HomeScreen() {
                               {activeSos && (
                                 <Text style={styles.sosTextInline}>🚨 S.O.S. ACTIVO</Text>
                               )}
+                              {member.current_location && member.current_location.is_driving && (
+                                <Text style={styles.drivingTextInline}>🚗 {Math.round(member.current_location.speed ?? 0)} km/h</Text>
+                              )}
                               {member.current_location && member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 2 }}>
                                   {(() => {
@@ -1209,6 +1212,17 @@ const styles = StyleSheet.create({
     fontSize: 9,
     fontWeight: '900',
     backgroundColor: '#dc2626',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginLeft: 6,
+  },
+  drivingTextInline: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '900',
+    backgroundColor: '#3b82f6',
     paddingVertical: 2,
     paddingHorizontal: 6,
     borderRadius: 4,

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, ActivityIndicator, Alert, Dimensions, Platform, Linking } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import MapView, { PROVIDER_GOOGLE, Marker, Polyline } from 'react-native-maps';
+import HistoryMap from '@/components/HistoryMap';
 import Slider from '@react-native-community/slider';
 import api from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
@@ -21,7 +21,7 @@ export default function HistoryScreen() {
   const { user } = useAuth();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const mapRef = useRef<MapView>(null);
+  const mapRef = useRef<any>(null);
 
   const openInExternalMaps = (lat: number, lng: number) => {
     const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`;
@@ -243,72 +243,16 @@ export default function HistoryScreen() {
   return (
     <View style={styles.container}>
       {/* Map View */}
-      <MapView
-        ref={mapRef}
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
+      <HistoryMap
+        mapRef={mapRef}
+        points={points}
         onMapReady={() => setMapReady(true)}
-        initialRegion={{
-          latitude: -34.6037,
-          longitude: -58.3816,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-      >
-        {points.length > 0 && (
-          <Polyline
-            coordinates={points.map((p) => ({ latitude: p.latitude, longitude: p.longitude }))}
-            strokeColor="#4f46e5"
-            strokeWidth={4}
-            lineDashPattern={[5, 5]}
-          />
-        )}
-
-        {/* Start Point Marker */}
-        {points.length > 0 && (
-          <Marker
-            key={`start-${points[0].id || 0}`}
-            coordinate={{ latitude: points[0].latitude, longitude: points[0].longitude }}
-            title="Inicio del recorrido"
-            pinColor="green"
-          />
-        )}
-
-        {/* End Point Marker */}
-        {points.length > 1 && (
-          <Marker
-            key={`end-${points[points.length - 1].id || 'end'}`}
-            coordinate={{ latitude: points[points.length - 1].latitude, longitude: points[points.length - 1].longitude }}
-            title="Fin del recorrido"
-            pinColor="red"
-          />
-        )}
-
-        {/* Playback Marker */}
-        {activePoint && (
-          <Marker
-            key={`playback-${activePoint.id || 'playback'}-${playbackIndex}`}
-            coordinate={{ latitude: activePoint.latitude, longitude: activePoint.longitude }}
-            title="Posición en reproducción"
-            description={`Velocidad: ${getSpeedText()}`}
-            pinColor="gold"
-          />
-        )}
-
-        {/* Fallback Current Location Marker when no history is loaded */}
-        {points.length === 0 && memberInfo?.current_location && (
-          <Marker
-            key={`fallback-${memberInfo.id}`}
-            coordinate={{
-              latitude: Number(memberInfo.current_location.latitude),
-              longitude: Number(memberInfo.current_location.longitude)
-            }}
-            title={`Última ubicación de ${memberInfo.name}`}
-            description={memberInfo.current_location.last_seen_at ? `Visto por última vez: ${new Date(memberInfo.current_location.last_seen_at).toLocaleTimeString()}` : 'Última ubicación registrada'}
-            pinColor="red"
-          />
-        )}
-      </MapView>
+        activePoint={activePoint}
+        playbackIndex={playbackIndex}
+        getSpeedText={getSpeedText}
+        memberInfo={memberInfo}
+        style={styles.map}
+      />
 
       {/* Floating Top Header Bar */}
       <View style={[styles.header, { paddingTop: insets.top + 10 }]}>

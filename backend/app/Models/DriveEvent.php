@@ -5,25 +5,25 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class LocationHistory extends Model
+class DriveEvent extends Model
 {
     use HasFactory;
 
     protected $fillable = [
         'user_id',
-        'accuracy',
-        'recorded_at',
-        'location',
-        'speed',
-        'is_driving',
+        'start_time',
+        'end_time',
+        'max_speed',
+        'exceeded_speed_limit',
     ];
 
     protected function casts(): array
     {
         return [
-            'recorded_at' => 'datetime',
-            'speed' => 'float',
-            'is_driving' => 'boolean',
+            'start_time' => 'datetime',
+            'end_time' => 'datetime',
+            'max_speed' => 'float',
+            'exceeded_speed_limit' => 'boolean',
         ];
     }
 

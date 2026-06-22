@@ -47,5 +47,11 @@ export const settingsService = {
   fetchUserSettings: async () => {
     const response = await api.get('/user');
     return response.data;
+  },
+  updateCircleSpeedLimit: async (circleId: number, speedLimit: number) => {
+    const response = await api.put(`/circles/${circleId}/speed-limit`, {
+      speed_limit: speedLimit
+    });
+    return response.data;
   }
 };

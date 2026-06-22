@@ -51,6 +51,7 @@ interface CircleData {
   name: string;
   invite_code: string;
   owner_id: number;
+  speed_limit?: number;
   owner: {
     id: number;
     name: string;
@@ -71,6 +72,8 @@ interface CircleData {
       gps_enabled?: boolean;
       last_seen_at?: string | null;
       is_offline?: boolean;
+      speed?: number | null;
+      is_driving?: boolean;
     } | null;
     active_emergency_alerts?: Array<{
       id: string;
@@ -1001,6 +1004,7 @@ export default function Dashboard() {
                                 clickedCoords={geofenceLatitude && geofenceLongitude ? [geofenceLatitude, geofenceLongitude] : null}
                                 historyRoute={historyPoints}
                                 playbackIndex={playbackIndex}
+                                speedLimit={circle.speed_limit || 120}
                               />
 
                               {/* Route History Playback Controls - Floating Glassmorphic Panel */}
@@ -1327,6 +1331,20 @@ export default function Dashboard() {
                                                   </span>
                                                 );
                                               })()}
+                                              {member.current_location.is_driving && (
+                                                (() => {
+                                                  const speed = member.current_location.speed ?? 0;
+                                                  const isSpeeding = circle.speed_limit !== undefined && speed > circle.speed_limit;
+                                                  const colorClass = isSpeeding 
+                                                    ? 'text-red-600 bg-red-50 border-red-200 animate-pulse font-extrabold' 
+                                                    : 'text-blue-600 bg-blue-50 border-blue-100 font-bold';
+                                                  return (
+                                                    <span className={`text-[9px] px-1.5 py-0.5 rounded-md border ${colorClass}`} title={isSpeeding ? 'Exceso de velocidad' : 'Miembro conduciendo'}>
+                                                      🚗 {Math.round(speed)} km/h
+                                                    </span>
+                                                  );
+                                                })()
+                                              )}
                                               {member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
                                                 (() => {
                                                   const lvl = member.current_location.battery_level;
@@ -1390,6 +1408,76 @@ export default function Dashboard() {
                               })}
                             </div>
                             
+                            {/* Ajustar límite de velocidad (Solo creador/admin) */}
+                            {(() => {
+                              const isCurrentUserAdmin = circle.users.find(u => u.id === userData?.id)?.pivot?.role === 'admin';
+                              if (circle.owner_id === userData?.id || isCurrentUserAdmin) {
+                                return (
+                                  <div className="mt-6 pt-6 border-t border-gray-100 space-y-3">
+                                    <div className="flex items-center justify-between">
+                                      <label className="text-xs font-black text-gray-700 flex items-center gap-1">
+                                        ⚡ Límite de Velocidad Vehicular
+                                        <span className="group relative inline-block text-[10px] text-gray-400 bg-gray-100 hover:bg-gray-200 w-4 h-4 rounded-full text-center leading-4 cursor-pointer font-bold font-mono">
+                                          ?
+                                          <span className="pointer-events-none absolute bottom-full left-1/2 -translate-x-1/2 mb-1.5 hidden group-hover:block w-48 bg-gray-950 text-white text-[9px] font-medium p-2 rounded-lg leading-normal shadow-md text-center z-10">
+                                            Si un miembro del núcleo excede esta velocidad en km/h, se registrará un incidente y recibirás una alerta push.
+                                          </span>
+                                        </span>
+                                      </label>
+                                      <span className="text-xs font-black text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded-md">
+                                        {circle.speed_limit || 120} km/h
+                                      </span>
+                                    </div>
+                                    <div className="flex gap-2">
+                                      <input
+                                        type="number"
+                                        min={10}
+                                        max={250}
+                                        placeholder="Límite (km/h)"
+                                        defaultValue={circle.speed_limit || 120}
+                                        id={`speed_limit_input_${circle.id}`}
+                                        className="flex-1 px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs font-bold text-gray-800 focus:outline-none focus:border-red-500"
+                                      />
+                                      <button
+                                        onClick={async () => {
+                                          const inputVal = (document.getElementById(`speed_limit_input_${circle.id}`) as HTMLInputElement)?.value;
+                                          const limit = parseInt(inputVal, 10);
+                                          if (isNaN(limit) || limit < 10 || limit > 250) {
+                                            showToast('Ingresa un límite válido de velocidad (10-250 km/h).', 'error');
+                                            return;
+                                          }
+                                          const token = localStorage.getItem('auth_token');
+                                          try {
+                                            const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/circles/${circle.id}/speed-limit`, {
+                                              method: 'PUT',
+                                              headers: {
+                                                'Authorization': `Bearer ${token}`,
+                                                'Content-Type': 'application/json',
+                                                'Accept': 'application/json',
+                                              },
+                                              body: JSON.stringify({ speed_limit: limit }),
+                                            });
+                                            if (response.ok) {
+                                              showToast('Límite de velocidad del núcleo actualizado con éxito.', 'success');
+                                              await fetchCircles();
+                                            } else {
+                                              showToast('Error al actualizar el límite de velocidad.', 'error');
+                                            }
+                                          } catch {
+                                            showToast('Error de red al intentar actualizar el límite de velocidad.', 'error');
+                                          }
+                                        }}
+                                        className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-md transition-colors cursor-pointer"
+                                      >
+                                        Guardar
+                                      </button>
+                                    </div>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            })()}
+
                             {/* Borrar núcleo completo (Solo dueño) */}
                             {circle.owner_id === userData?.id && (
                               <button

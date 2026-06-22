@@ -14,7 +14,15 @@ class Circle extends Model
         'name',
         'invite_code',
         'owner_id',
+        'speed_limit',
     ];
+
+    protected function casts(): array
+    {
+        return [
+            'speed_limit' => 'integer',
+        ];
+    }
 
     protected static function boot()
     {

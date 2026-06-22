@@ -281,6 +281,12 @@ export default function Home() {
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
+                      <span>**Detección de Conducción &amp; Velocidad:** Identifica automáticamente cuando un familiar viaja en auto (🚗), mostrando su velocidad en vivo y alertando si supera el límite establecido.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
                       <span>**Historial de Rutas:** Revisa el camino recorrido por los integrantes de tu núcleo con estimaciones de velocidad y barra de tiempo.</span>
                     </li>
                   </ul>
@@ -533,6 +539,12 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
+                      <span className="font-semibold text-white">Monitoreo de conducción y alertas de velocidad (🚗 PRO)</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
                       <span className="font-semibold text-white">Respuestas de crisis interactivas de familiares</span>
                     </li>
                   </ul>
@@ -587,6 +599,10 @@ export default function Home() {
                 {
                   q: "¿Qué son las Zonas Seguras y cómo nos alertan?",
                   a: "Las Zonas Seguras son áreas delimitadas que configuras en el mapa (como la casa, escuela o trabajo). Cuando el GPS del celular de un miembro del núcleo ingresa o sale de este radio de seguridad, todos los demás integrantes reciben una notificación Push instantánea en tiempo real."
+                },
+                {
+                  q: "¿Cómo funciona la detección de conducción y alertas de velocidad?",
+                  a: "La app móvil de Estoy Ok detecta de manera inteligente si te encuentras viajando en un automóvil mediante el sensor de GPS. Si la velocidad detectada supera los 25 km/h de manera sostenida por más de 1 minuto, el estado del usuario cambia automáticamente a conducción (🚗) y el núcleo puede ver un coche desplazándose en el mapa con su velocidad en vivo. Si en algún momento se supera el límite de velocidad establecido por el creador del núcleo (ej. 120 km/h), el sistema registra el incidente en el backend y envía una notificación push inmediata al creador del núcleo para prevenir posibles imprudencias."
                 },
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",

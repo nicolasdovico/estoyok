@@ -197,4 +197,50 @@ class CircleController extends Controller
 
         return response()->json(['message' => 'Círculo eliminado exitosamente.']);
     }
+
+    #[OA\Put(
+        path: '/circles/{circle}/speed-limit',
+        summary: 'Actualizar el límite de velocidad de un círculo',
+        tags: ['Círculos'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'circle', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['speed_limit'],
+                properties: [
+                    new OA\Property(property: 'speed_limit', type: 'integer', example: 120),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Límite de velocidad actualizado exitosamente'),
+            new OA\Response(response: 403, description: 'No tienes permisos para modificar este círculo'),
+        ]
+    )]
+    public function updateSpeedLimit(Request $request, Circle $circle)
+    {
+        $user = Auth::user();
+
+        // Verificar si el usuario autenticado es dueño o administrador del círculo
+        $authMember = $circle->users()->where('user_id', $user->id)->first();
+        if (!$authMember || ($authMember->pivot->role !== 'admin' && $circle->owner_id !== $user->id)) {
+            return response()->json(['message' => 'No tienes permisos para modificar el límite de velocidad de este círculo'], 403);
+        }
+
+        $validated = $request->validate([
+            'speed_limit' => 'required|integer|min:10|max:250',
+        ]);
+
+        $circle->update([
+            'speed_limit' => $validated['speed_limit'],
+        ]);
+
+        return response()->json([
+            'message' => 'Límite de velocidad actualizado exitosamente',
+            'circle' => $circle,
+        ]);
+    }
 }

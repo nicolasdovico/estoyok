@@ -5,8 +5,11 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessGeofencing;
 use App\Jobs\SendBatteryAlertJob;
+use App\Jobs\SendSpeedingAlertJob;
 use App\Models\CurrentLocation;
 use App\Models\LocationHistory;
+use App\Models\DriveEvent;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -29,7 +32,9 @@ class LocationController extends Controller
      *             @OA\Property(property="latitude", type="number", format="float", example=-34.6037),
      *             @OA\Property(property="longitude", type="number", format="float", example=-58.3816),
      *             @OA\Property(property="accuracy", type="number", format="float", example=15.5),
-     *             @OA\Property(property="battery_level", type="number", format="float", example=0.85, nullable=true)
+     *             @OA\Property(property="battery_level", type="number", format="float", example=0.85, nullable=true),
+     *             @OA\Property(property="speed", type="number", format="float", example=8.5, nullable=true),
+     *             @OA\Property(property="is_driving", type="boolean", example=false, nullable=true)
      *         )
      *     ),
      *
@@ -47,6 +52,8 @@ class LocationController extends Controller
             'is_tracking_active' => 'nullable|boolean',
             'gps_enabled' => 'nullable|boolean',
             'recorded_at' => 'nullable|date',
+            'speed' => 'nullable|numeric',
+            'is_driving' => 'nullable|boolean',
         ]);
 
         $user = $request->user();
@@ -66,12 +73,18 @@ class LocationController extends Controller
 
         try {
             DB::transaction(function () use ($user, $lat, $lng, $accuracy, $recordedAt, $batteryLevel, $isBatteryLow, $previousIsBatteryLow, $request) {
+                $speedMps = $request->speed;
+                $speedKmh = $speedMps !== null ? $speedMps * 3.6 : null;
+                $isDriving = $request->has('is_driving') ? (bool) $request->is_driving : false;
+
                 // 1. Update Current Location (Point PostGIS)
                 $updateData = [
                     'accuracy' => $accuracy,
                     'recorded_at' => $recordedAt,
                     'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
                     'last_seen_at' => $recordedAt,
+                    'speed' => $speedKmh,
+                    'is_driving' => $isDriving,
                 ];
 
                 if ($batteryLevel !== null) {
@@ -97,6 +110,8 @@ class LocationController extends Controller
                     'accuracy' => $accuracy,
                     'recorded_at' => $recordedAt,
                     'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
+                    'speed' => $speedKmh,
+                    'is_driving' => $isDriving,
                 ]);
 
                 // 3. Dispatch low battery alert if transitioning to low battery
@@ -108,7 +123,67 @@ class LocationController extends Controller
                     }
                 }
 
-                // 4. Dispatch Geofencing processing
+                // 4. Drive Event Processing
+                if ($isDriving) {
+                    $activeDriveEvent = DriveEvent::where('user_id', $user->id)
+                        ->whereNull('end_time')
+                        ->first();
+
+                    $exceeded = false;
+                    $minLimit = $user->circles()->min('speed_limit') ?? 120;
+                    if ($speedKmh !== null && $speedKmh > $minLimit) {
+                        $exceeded = true;
+
+                        // Notificar a los dueños de los círculos
+                        $user->load('circles');
+                        foreach ($user->circles as $circle) {
+                            $limit = $circle->speed_limit ?? 120;
+                            if ($speedKmh > $limit && $circle->owner_id) {
+                                $cacheKey = "speeding_alert_{$user->id}_{$circle->id}";
+                                if (!cache()->has($cacheKey)) {
+                                    $circleOwner = User::find($circle->owner_id);
+                                    if ($circleOwner && $circleOwner->id !== $user->id) {
+                                        SendSpeedingAlertJob::dispatch($circleOwner, $user, $speedKmh, $limit);
+                                    }
+                                    cache()->put($cacheKey, true, now()->addMinutes(15));
+                                }
+                            }
+                        }
+                    }
+
+                    if (!$activeDriveEvent) {
+                        DriveEvent::create([
+                            'user_id' => $user->id,
+                            'start_time' => $recordedAt,
+                            'max_speed' => $speedKmh ?? 0.0,
+                            'exceeded_speed_limit' => $exceeded,
+                        ]);
+                    } else {
+                        $updatePayload = [];
+                        if ($speedKmh !== null && $speedKmh > $activeDriveEvent->max_speed) {
+                            $updatePayload['max_speed'] = $speedKmh;
+                        }
+                        if ($exceeded) {
+                            $updatePayload['exceeded_speed_limit'] = true;
+                        }
+
+                        if (!empty($updatePayload)) {
+                            $activeDriveEvent->update($updatePayload);
+                        }
+                    }
+                } else {
+                    // Cerrar el trayecto activo si existe
+                    $activeDriveEvent = DriveEvent::where('user_id', $user->id)
+                        ->whereNull('end_time')
+                        ->first();
+                    if ($activeDriveEvent) {
+                        $activeDriveEvent->update([
+                            'end_time' => $recordedAt,
+                        ]);
+                    }
+                }
+
+                // 5. Dispatch Geofencing processing
                 ProcessGeofencing::dispatch($user, $lat, $lng);
             });
 

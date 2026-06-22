@@ -107,6 +107,51 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
           console.error('Failed to check GPS status:', gpsErr);
         }
 
+        let speed = (location.coords.speed !== null && location.coords.speed !== undefined && location.coords.speed >= 0) ? location.coords.speed : 0;
+        let isDriving = false;
+
+        try {
+          const isDrivingStr = await AsyncStorage.getItem('is_driving_state');
+          isDriving = isDrivingStr === 'true';
+
+          const now = Date.now();
+
+          if (speed > 7) {
+            // Reset drop timer
+            await AsyncStorage.removeItem('speed_dropped_below_started_at');
+
+            const speedStartedAtStr = await AsyncStorage.getItem('speed_threshold_started_at');
+            if (!speedStartedAtStr) {
+              await AsyncStorage.setItem('speed_threshold_started_at', now.toString());
+            } else {
+              const startedAt = parseInt(speedStartedAtStr, 10);
+              if (now - startedAt >= 60000) {
+                isDriving = true;
+                await AsyncStorage.setItem('is_driving_state', 'true');
+              }
+            }
+          } else {
+            if (isDriving) {
+              const speedDroppedAtStr = await AsyncStorage.getItem('speed_dropped_below_started_at');
+              if (!speedDroppedAtStr) {
+                await AsyncStorage.setItem('speed_dropped_below_started_at', now.toString());
+              } else {
+                const droppedAt = parseInt(speedDroppedAtStr, 10);
+                if (now - droppedAt >= 120000) {
+                  isDriving = false;
+                  await AsyncStorage.setItem('is_driving_state', 'false');
+                  await AsyncStorage.removeItem('speed_threshold_started_at');
+                  await AsyncStorage.removeItem('speed_dropped_below_started_at');
+                }
+              }
+            } else {
+              await AsyncStorage.removeItem('speed_threshold_started_at');
+            }
+          }
+        } catch (storageErr) {
+          console.error('AsyncStorage error in driving status calculation:', storageErr);
+        }
+
         const payload = {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
@@ -115,6 +160,8 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
           gps_enabled: gpsEnabled,
           is_tracking_active: true,
           recorded_at: new Date(location.timestamp).toISOString(),
+          speed: speed,
+          is_driving: isDriving,
         };
 
         const netInfoState = await NetInfo.fetch();
