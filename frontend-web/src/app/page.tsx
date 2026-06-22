@@ -332,6 +332,12 @@ export default function Home() {
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
+                      <span>**Detección de Accidentes por Acelerómetro:** Monitorea desaceleraciones extremas de colisión ($\ge 4.5$G) seguidas de inmovilidad física, iniciando una pre-alerta acústica de 15 segundos antes de alarmar a tus contactos.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
                       <span>**Canal de Respaldo por SMS:** Envía mensajes de texto de emergencia automáticos por red telefónica si pierdes conexión a internet.</span>
                     </li>
                   </ul>
@@ -545,6 +551,12 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
+                      <span className="font-semibold text-white">Detección de choques y auxilio automático (🚗 PRO)</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
                       <span className="font-semibold text-white">Respuestas de crisis interactivas de familiares</span>
                     </li>
                   </ul>
@@ -603,6 +615,10 @@ export default function Home() {
                 {
                   q: "¿Cómo funciona la detección de conducción y alertas de velocidad?",
                   a: "La app móvil de Estoy Ok detecta de manera inteligente si te encuentras viajando en un automóvil mediante el sensor de GPS. Si la velocidad detectada supera los 25 km/h de manera sostenida por más de 1 minuto, el estado del usuario cambia automáticamente a conducción (🚗) y el núcleo puede ver un coche desplazándose en el mapa con su velocidad en vivo. Si en algún momento se supera el límite de velocidad establecido por el creador del núcleo (ej. 120 km/h), el sistema registra el incidente en el backend y envía una notificación push inmediata al creador del núcleo para prevenir posibles imprudencias."
+                },
+                {
+                  q: "¿Cómo funciona la detección automática de accidentes vehiculares?",
+                  a: "Utiliza el sensor del acelerómetro físico en teléfonos inteligentes para registrar desaceleraciones extremas o impactos severos (umbrales superiores a 4.5G) característicos de un accidente de tránsito. Si el sistema detecta un impacto y el dispositivo permanece inmóvil por 3 segundos (indicando una colisión), se inicia una pre-alerta de 15 segundos con un sonido fuerte de sirena. Si no se cancela pulsando 'Estoy bien', se activa de inmediato el protocolo de crisis máxima: se envía la ubicación GPS exacta y una grabación ambiental de audio a los familiares vía WhatsApp, SMS y notificaciones Push críticas."
                 },
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",

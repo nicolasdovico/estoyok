@@ -100,6 +100,7 @@
     - [x] Mobile UI & Settings: Badge inline con coche y velocidad en la lista de miembros de la home, y configuración para ajustar el límite de velocidad por núcleo en ajustes.
     - [x] Mobile Multiplatform: Corregido error de importación de `react-native-maps` en la compilación web de Metro extrayendo el mapa de historial a un componente con extensiones específicas de plataforma (`HistoryMap.tsx` y `HistoryMap.web.tsx`).
     - [x] Web: Marcador interactivo de coche (`🚗`) animado en `CircleMap.tsx` con colores condicionales según el límite excedido, badges inline de velocidad en el sidebar, formulario de ajuste para administradores, y promoción con características y FAQs en la Landing Page comercial (`page.tsx`).
+  - [x] feat(drive): Detección automática de accidentes vehiculares mediante acelerómetro (Next.js, Expo, Laravel y tests).
 
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**

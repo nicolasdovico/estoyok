@@ -23,6 +23,11 @@ interface EmergencyData {
   share_contact_responses: boolean;
   responses: ResponseData[];
   audio_url?: string | null;
+  crash_info?: {
+    g_force: number | null;
+    speed_at_impact: number | null;
+    status: string;
+  } | null;
   location: {
     latitude: number;
     longitude: number;
@@ -58,7 +63,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   useEffect(() => {
     if (!data || data.status === 'resolved') return;
 
-    const pollInterval = data.type === 'silent_sos' ? 5000 : 10000;
+    const pollInterval = (data.type === 'silent_sos' || data.type === 'crash') ? 5000 : 10000;
 
     const interval = setInterval(async () => {
       try {
@@ -150,7 +155,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
       <header className={`${
         data.status === 'resolved' 
           ? 'bg-emerald-600' 
-          : data.type === 'silent_sos' 
+          : (data.type === 'silent_sos' || data.type === 'crash') 
             ? 'bg-red-700 animate-pulse border-b-4 border-red-900 shadow-red-500/50 shadow-md' 
             : 'bg-red-600'
       } text-white p-4 shadow-lg sticky top-0 z-50 transition-all`}>
@@ -161,24 +166,28 @@ export default function EmergencyClientPage({ id }: { id: string }) {
                 ? 'ESTADO ACTUALIZADO' 
                 : data.type === 'silent_sos' 
                   ? '🚨 SOS SILENCIOSO ACTIVO' 
-                  : 'ALERTA DE SEGURIDAD'}
+                  : data.type === 'crash'
+                    ? '⚠️ IMPACTO VEHICULAR DETECTADO'
+                    : 'ALERTA DE SEGURIDAD'}
             </h1>
             <p className="text-sm opacity-90 font-medium">
               {data.status === 'resolved' 
                 ? 'El usuario se encuentra a salvo' 
                 : data.type === 'silent_sos' 
                   ? '¡EMERGENCIA CRÍTICA EN TIEMPO REAL!' 
-                  : 'Protocolo de Emergencia Activado'}
+                  : data.type === 'crash'
+                    ? '¡COLISIÓN VEHICULAR DETECTADA CON IMPACTO FUERTE!'
+                    : 'Protocolo de Emergencia Activado'}
             </p>
           </div>
           <div className={`bg-white ${
             data.status === 'resolved' 
               ? 'text-emerald-600' 
-              : data.type === 'silent_sos'
+              : (data.type === 'silent_sos' || data.type === 'crash')
                 ? 'text-red-700 font-black'
                 : 'text-red-600'
           } px-3 py-1 rounded-full text-xs font-bold ${data.status === 'resolved' ? '' : 'animate-pulse'}`}>
-            {data.status === 'resolved' ? 'RESUELTA' : data.type === 'silent_sos' ? 'EMERGENCIA' : 'VIVO'}
+            {data.status === 'resolved' ? 'RESUELTA' : (data.type === 'silent_sos' || data.type === 'crash') ? 'EMERGENCIA' : 'VIVO'}
           </div>
         </div>
       </header>
@@ -218,13 +227,42 @@ export default function EmergencyClientPage({ id }: { id: string }) {
           </div>
         </section>
 
+        {data.type === 'crash' && data.crash_info && (
+          <section className="bg-red-900 text-white rounded-2xl shadow-md border-t-4 border-red-950 p-6 space-y-4">
+            <h3 className="text-xl font-extrabold flex items-center gap-2">🚨 DETALLES DEL IMPACTO</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+              <div className="bg-red-955/40 p-4 rounded-xl border border-red-500/20">
+                <p className="text-red-200 text-xs font-bold uppercase tracking-wider mb-1">Fuerza G Estimada</p>
+                <p className="text-3xl font-black">{data.crash_info.g_force ? `${data.crash_info.g_force.toFixed(1)} G` : 'N/D'}</p>
+              </div>
+              <div className="bg-red-955/40 p-4 rounded-xl border border-red-500/20">
+                <p className="text-red-200 text-xs font-bold uppercase tracking-wider mb-1">Velocidad del Vehículo</p>
+                <p className="text-3xl font-black">{data.crash_info.speed_at_impact ? `${Math.round(data.crash_info.speed_at_impact)} km/h` : 'N/D'}</p>
+              </div>
+              <div className="bg-red-955/40 p-4 rounded-xl border border-red-500/20">
+                <p className="text-red-200 text-xs font-bold uppercase tracking-wider mb-1">Estado Posterior</p>
+                <p className="text-3xl font-black uppercase">
+                  {data.crash_info.status === 'false_alarm' ? 'Falsa Alarma' : 'Inmóvil'}
+                </p>
+              </div>
+            </div>
+            {data.crash_info.status === 'false_alarm' && (
+              <p className="text-xs font-semibold text-center text-red-200 mt-2">
+                * El usuario reportó posteriormente que este impacto fue una falsa alarma.
+              </p>
+            )}
+          </section>
+        )}
+
         {data.audio_url && (
-          <section className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6 space-y-3 animate-pulse">
+          <section className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6 space-y-3">
             <h3 className="text-lg font-black text-red-950 flex items-center gap-2">
               🎙️ Grabación de Audio Ambiental
             </h3>
             <p className="text-xs text-red-700 leading-relaxed font-semibold">
-              Esta es una grabación de 15 segundos capturada de forma silenciosa por el micrófono del dispositivo al activarse la alerta.
+              {data.type === 'crash'
+                ? 'Esta es una grabación de 15 segundos capturada automáticamente por el micrófono del dispositivo tras detectarse el impacto vehicular.'
+                : 'Esta es una grabación de 15 segundos capturada de forma silenciosa por el micrófono del dispositivo al activarse la alerta.'}
             </p>
             <div className="pt-2">
               <audio src={data.audio_url} controls className="w-full focus:outline-none rounded-lg" />
@@ -367,7 +405,11 @@ export default function EmergencyClientPage({ id }: { id: string }) {
                 </p>
               </div>
             ) : data.location ? (
-              <EmergencyMap center={[data.location.latitude, data.location.longitude]} />
+              <EmergencyMap 
+                center={[data.location.latitude, data.location.longitude]} 
+                isCrash={data.type === 'crash'}
+                gForce={data.crash_info?.g_force}
+              />
             ) : (
               <div className="absolute inset-0 bg-gray-100 flex items-center justify-center text-gray-500">Ubicación no disponible</div>
             )}

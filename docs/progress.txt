@@ -370,7 +370,25 @@
     - Actualizado `CircleMap.tsx` para soportar marcadores animados e interactivos de vehículos (`🚗`) en Leaflet con colores dinámicos (rojo pulsante para excesos de velocidad) y badges del velocímetro en popups.
     - Añadida la insignia de velocidad vehicular *"🚗 [Velocidad] km/h"* inline al listado lateral de miembros y agregada la sección de edición del límite de velocidad en el sidebar de configuración del círculo activo.
     - Promocionada la característica en la Landing Page comercial (`page.tsx`) agregando el bullet de velocidad vehicular en características, beneficio en el plan PRO y pregunta detallada en el acordeón de FAQs.
-    - Verificado compilación estática exitosa con TypeScript (`npx tsc --noEmit` exits con 0).
+  ## [2026-06-22] Detección Automática de Accidentes Vehiculares mediante Acelerómetro
+- **Backend (Laravel & Base de Datos):**
+    - Creada tabla `crash_events` y modelo `CrashEvent` con relaciones y casts de datos espaciales.
+    - Creado endpoint `POST /api/alerts/crash` para registrar impactos de colisión, iniciar la alerta de emergencia y despachar de forma síncrona/inmediata el Job `SendCrashAlertJob`.
+    - Creado endpoint `POST /api/alerts/crash/{id}/false-alarm` para que el usuario pueda desactivar la alerta en cualquier momento indicando que fue una falsa alarma, lo cual actualiza el estado del impacto y resuelve la alerta en base de datos.
+    - Creado Job síncrono `SendCrashAlertJob` para enviar notificaciones Push (Expo) de alta prioridad con sonido crítico a los miembros del núcleo y alertas SMS/WhatsApp (Twilio) de forma inmediata a los contactos de emergencia.
+    - Actualizado el endpoint de consulta de alertas `GET /api/emergency-alerts/{id}` para inyectar detalles del impacto (`crash_info`) si el tipo de la alerta es `crash`.
+    - Desarrollada suite completa de pruebas de integración en `CrashAlertTest.php` y verificada la cobertura libre de regresiones (106 tests pasados con éxito).
+    - Regenerada documentación de la API en OpenAPI/Swagger.
+- **Mobile Frontend (Expo / React Native):**
+    - Implementada lógica de suscripción al sensor `Accelerometer` en segundo plano en `locationTask.ts` únicamente cuando el estado de conducción (`is_driving`) está activo, optimizando la batería.
+    - Añadido algoritmo de análisis de aceleración vectorial $a_{neta} = \sqrt{x^2+y^2+z^2} \ge 4.5$G seguido de 3 segundos de inmovilidad total (varianza respecto a 1G $< 0.15$G) para detectar patrones físicos reales de colisión.
+    - Desarrollado el componente global `CrashPreAlertOverlay.tsx` para mostrar una pantalla crítica de cuenta regresiva de 15 segundos con reproducción de sirena en bucle (`expo-av`), permitiendo al usuario cancelar la pre-alerta pulsando "Estoy bien".
+    - Configurado el disparo automático del protocolo de emergencia máxima si la cuenta regresiva expira (petición a la API de colisión, inicio de tracking GPS crítico cada 5s, grabación de audio ambiental SOS y fallback de SMS local nativo).
+    - Adaptada la Home Screen móvil (`index.tsx`) para soportar la visualización del estado de emergencia de colisión y resolver/cancelar la alerta directamente como falsa alarma.
+- **Web Frontend (Next.js):**
+    - Rediseñada la visualización pública de crisis `/emergencia/[id]` (`EmergencyClientPage.tsx`) con un tema rojo parpadeante de colisión y una grilla dedicada con los detalles del impacto (Fuerza G, Velocidad de impacto, y Estado del vehículo).
+    - Actualizado el mapa de Leaflet (`EmergencyMap.tsx`) para renderizar un marcador interactivo de vehículo (`🚗`) con una animación pulsante de ondas de choque de Leaflet, velocímetro a 0 km/h y una ventana emergente detallada indicando la fuerza G.
+    - Configurado el polling de ubicación acelerado a 5 segundos si el tipo de alerta activa es `crash`.
 
 
 

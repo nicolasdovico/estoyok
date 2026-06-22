@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl, TextInput, Clipboard, Linking, Platform } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl, TextInput, Clipboard, Linking, Platform, DeviceEventEmitter } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
@@ -8,6 +8,7 @@ import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, 
 import { useRouter } from 'expo-router';
 import { Audio } from 'expo-av';
 import { startSos, uploadSosAudio } from '@/services/sosService';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -105,14 +106,21 @@ export default function HomeScreen() {
     if (isSosActive) {
       setCheckingIn(true);
       try {
-        await api.post('/check-in'); // Checkin resuelve alertas activas en backend
+        const crashEventId = await AsyncStorage.getItem('active_crash_event_id');
+        if (crashEventId) {
+          await api.post(`/alerts/crash/${crashEventId}/false-alarm`);
+          await AsyncStorage.removeItem('active_crash_event_id');
+          Alert.alert('Alerta Cancelada', 'La alerta de accidente ha sido cancelada como falsa alarma y el rastreo volvió a la normalidad.');
+        } else {
+          await api.post('/check-in'); // Checkin resuelve alertas activas en backend
+          Alert.alert('SOS Desactivado', 'El SOS ha sido cancelado y el rastreo volvió a la normalidad.');
+        }
         await restoreNormalTracking();
         setIsSosActive(false);
-        Alert.alert('SOS Desactivado', 'El SOS ha sido cancelado y el rastreo volvió a la normalidad.');
         await onRefresh();
       } catch (err) {
-        console.error('Failed to resolve SOS', err);
-        Alert.alert('Error', 'No se pudo desactivar el SOS. Intenta de nuevo.');
+        console.error('Failed to resolve SOS/Crash Alert', err);
+        Alert.alert('Error', 'No se pudo desactivar el estado de emergencia. Intenta de nuevo.');
       } finally {
         setCheckingIn(false);
       }
@@ -220,7 +228,7 @@ export default function HomeScreen() {
         .find((u: any) => u.id === user.id);
       
       const hasActiveSos = selfMember?.active_emergency_alerts?.some(
-        (alert: any) => alert.type === 'silent_sos' && alert.status === 'active'
+        (alert: any) => (alert.type === 'silent_sos' || alert.type === 'crash') && alert.status === 'active'
       );
       
       if (hasActiveSos !== undefined) {
@@ -228,6 +236,19 @@ export default function HomeScreen() {
       }
     }
   }, [circles, user]);
+
+  // Listener para eventos de activación de emergencia por choque (desde overlay)
+  useEffect(() => {
+    const sub = DeviceEventEmitter.addListener('crash_emergency_active', (data) => {
+      if (data.active) {
+        setIsSosActive(true);
+        onRefresh();
+      }
+    });
+    return () => {
+      sub.remove();
+    };
+  }, []);
 
   const fetchCircles = async (silent = false) => {
     if (!user) return;
@@ -810,7 +831,7 @@ export default function HomeScreen() {
                       const isSelf = member.id === user?.id;
                       const isOwner = member.id === activeCircle.owner_id;
                       const isCurrentUserAdmin = activeCircle.users.find((u: any) => u.id === user?.id)?.pivot?.role === 'admin';
-                      const activeSos = member.active_emergency_alerts?.find((alert: any) => alert.type === 'silent_sos' && alert.status === 'active');
+                      const activeSos = member.active_emergency_alerts?.find((alert: any) => (alert.type === 'silent_sos' || alert.type === 'crash') && alert.status === 'active');
 
                       return (
                         <View key={member.id} style={[styles.memberItem, activeSos ? styles.memberItemSosActive : null]}>
@@ -825,7 +846,9 @@ export default function HomeScreen() {
                               <Text style={styles.memberName}>{member.name} {isSelf && '(Tú)'}</Text>
                               {member.is_premium && <Text style={{ fontSize: 10 }}>⭐</Text>}
                               {activeSos && (
-                                <Text style={styles.sosTextInline}>🚨 S.O.S. ACTIVO</Text>
+                                <Text style={styles.sosTextInline}>
+                                  {activeSos.type === 'crash' ? '🚨 IMPACTO DETECTADO' : '🚨 S.O.S. ACTIVO'}
+                                </Text>
                               )}
                               {member.current_location && member.current_location.is_driving && (
                                 <Text style={styles.drivingTextInline}>🚗 {Math.round(member.current_location.speed ?? 0)} km/h</Text>

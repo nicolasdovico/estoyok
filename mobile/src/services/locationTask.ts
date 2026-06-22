@@ -1,12 +1,24 @@
 import * as TaskManager from 'expo-task-manager';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Pedometer } from 'expo-sensors';
+import { Pedometer, Accelerometer } from 'expo-sensors';
 import NetInfo from '@react-native-community/netinfo';
 import * as Battery from 'expo-battery';
 import * as Location from 'expo-location';
 import api from '@/services/api';
+import { DeviceEventEmitter, Platform } from 'react-native';
+import * as Notifications from 'expo-notifications';
 
 export const LOCATION_TASK_NAME = 'background-location-task';
+
+if (Platform.OS !== 'web') {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+    }),
+  });
+}
 
 // Configure NetInfo to fetch SSID (required for iOS)
 NetInfo.configure({
@@ -181,6 +193,9 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
           }
         }
 
+        // Manage accelerometer subscription based on driving state
+        manageAccelerometerSubscription(isDriving);
+
         // Trigger passive automation checks
         await performAutoCheckInChecks();
       } catch (err) {
@@ -189,6 +204,104 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
     }
   }
 });
+
+let accelerometerSubscription: any = null;
+let isCollectingImmobility = false;
+let immobilitySamples: number[] = [];
+
+async function triggerCrashAlert(gForce: number) {
+  try {
+    const timestamp = Date.now();
+    const data = { gForce, timestamp, status: 'pre_alert', timeRemaining: 15 };
+    await AsyncStorage.setItem('active_crash_pre_alert', JSON.stringify(data));
+    
+    // Emit event for foreground listener
+    DeviceEventEmitter.emit('crash_pre_alert', data);
+
+    // Present notification
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: '🚨 ¡ALERTA DE ACCIDENTE DETECTADA!',
+        body: `Se detectó un impacto de ${gForce.toFixed(1)}G. Toca para confirmar que estás bien.`,
+        data: { type: 'crash_pre_alert', gForce },
+        sound: true,
+        priority: Notifications.AndroidNotificationPriority.MAX,
+      },
+      trigger: null,
+    });
+  } catch (err) {
+    console.error('Error triggering crash alert:', err);
+  }
+}
+
+export function manageAccelerometerSubscription(isDriving: boolean) {
+  if (Platform.OS === 'web') return;
+
+  if (isDriving) {
+    if (!accelerometerSubscription) {
+      console.log('Starting Accelerometer monitoring (is_driving = true)...');
+      Accelerometer.setUpdateInterval(50); // 50ms interval (20Hz)
+      accelerometerSubscription = Accelerometer.addListener(async (data) => {
+        const { x, y, z } = data;
+        const aNeta = Math.sqrt(x * x + y * y + z * z);
+
+        if (!isCollectingImmobility) {
+          // If we detect a peak of G force >= 4.5G
+          if (aNeta >= 4.5) {
+            console.log(`Peak G-force detected: ${aNeta.toFixed(2)}G. Starting 3s immobility verification...`);
+            isCollectingImmobility = true;
+            immobilitySamples = [];
+
+            // Start a 3-second timer to collect immobility samples
+            setTimeout(async () => {
+              const samples = [...immobilitySamples];
+              isCollectingImmobility = false;
+              immobilitySamples = [];
+
+              if (samples.length > 0) {
+                // Calculate variance relative to 1G: Mean of (a_i - 1)^2
+                let sumSquaredDiff = 0;
+                for (const sample of samples) {
+                  const diff = sample - 1.0;
+                  sumSquaredDiff += diff * diff;
+                }
+                const variance = sumSquaredDiff / samples.length;
+                console.log(`Immobility check completed. Samples: ${samples.length}, Variance from 1G: ${variance.toFixed(4)}G`);
+
+                if (variance < 0.15) {
+                  console.log('Crash pattern confirmed! Variance is low (device is still). Triggering alert...');
+                  await triggerCrashAlert(aNeta);
+                } else {
+                  console.log(`Device is not still (variance = ${variance.toFixed(4)}G >= 0.15G). False trigger.`);
+                }
+              }
+            }, 3000);
+          }
+        } else {
+          // Collect samples
+          immobilitySamples.push(aNeta);
+        }
+      });
+    }
+  } else {
+    if (accelerometerSubscription) {
+      console.log('Stopping Accelerometer monitoring (is_driving = false)...');
+      accelerometerSubscription.remove();
+      accelerometerSubscription = null;
+      isCollectingImmobility = false;
+      immobilitySamples = [];
+    }
+  }
+}
+
+// On module load, check if the device is currently driving and start/stop accelerometer accordingly
+if (Platform.OS !== 'web') {
+  AsyncStorage.getItem('is_driving_state').then((val) => {
+    if (val === 'true') {
+      manageAccelerometerSubscription(true);
+    }
+  }).catch((err) => console.error('Error initializing accelerometer subscription:', err));
+}
 
 async function performAutoCheckInChecks() {
   try {

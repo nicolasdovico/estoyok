@@ -17,7 +17,21 @@ L.Marker.prototype.options.icon = DefaultIcon;
 interface MapProps {
   center: [number, number];
   zoom?: number;
+  isCrash?: boolean;
+  gForce?: number | null;
 }
+
+const crashIcon = typeof window !== 'undefined' ? L.divIcon({
+  html: `<div class="relative flex items-center justify-center">
+    <div class="absolute w-12 h-12 bg-red-500 rounded-full opacity-60 animate-ping"></div>
+    <div class="relative bg-red-600 text-white p-2.5 rounded-full border-2 border-white shadow-lg text-lg flex items-center justify-center">
+      🚗
+    </div>
+  </div>`,
+  className: 'custom-crash-icon',
+  iconSize: [48, 48],
+  iconAnchor: [24, 24],
+}) : undefined;
 
 function RecenterMap({ center }: { center: [number, number] }) {
   const map = useMap();
@@ -27,7 +41,7 @@ function RecenterMap({ center }: { center: [number, number] }) {
   return null;
 }
 
-export default function EmergencyMap({ center, zoom = 15 }: MapProps) {
+export default function EmergencyMap({ center, zoom = 15, isCrash = false, gForce = null }: MapProps) {
   const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
@@ -57,9 +71,20 @@ export default function EmergencyMap({ center, zoom = 15 }: MapProps) {
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
-        <Marker position={center}>
+        <Marker 
+          position={center} 
+          icon={isCrash && crashIcon ? crashIcon : DefaultIcon}
+        >
           <Popup>
-            Última ubicación conocida
+            {isCrash ? (
+              <div className="text-center p-1 font-sans">
+                <p className="font-extrabold text-red-600 m-0">🚨 IMPACTO DETECTADO</p>
+                {gForce !== null && <p className="text-xs font-bold text-gray-700 mt-1 m-0">Fuerza: {gForce.toFixed(1)} G</p>}
+                <p className="text-xs text-gray-500 mt-1 m-0">Velocidad: 0 km/h (Inmóvil)</p>
+              </div>
+            ) : (
+              'Última ubicación conocida'
+            )}
           </Popup>
         </Marker>
         <RecenterMap center={center} />

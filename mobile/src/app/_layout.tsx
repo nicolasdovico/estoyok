@@ -5,6 +5,7 @@ import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import '@/services/locationTask'; // Registro de tarea de fondo
+import CrashPreAlertOverlay from '@/components/CrashPreAlertOverlay';
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();
@@ -42,6 +43,7 @@ function RootLayoutNav() {
         <Stack.Screen name="contacts" options={{ title: 'Contactos', headerShown: true }} />
         <Stack.Screen name="settings" options={{ title: 'Configuración', headerShown: true }} />
       </Stack>
+      <CrashPreAlertOverlay />
     </ThemeProvider>
   );
 }

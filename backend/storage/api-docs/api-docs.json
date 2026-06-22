@@ -537,6 +537,57 @@
                 ]
             }
         },
+        "/circles/{circle}/speed-limit": {
+            "put": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Actualizar el límite de velocidad de un círculo",
+                "operationId": "add5f33d7d518de7c5d6ec736aa70f34",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "speed_limit"
+                                ],
+                                "properties": {
+                                    "speed_limit": {
+                                        "type": "integer",
+                                        "example": 120
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Límite de velocidad actualizado exitosamente"
+                    },
+                    "403": {
+                        "description": "No tienes permisos para modificar este círculo"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/emergency-contacts": {
             "get": {
                 "tags": [

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\CurrentLocation;
 use App\Models\EmergencyAlert;
+use App\Models\CrashEvent;
+use App\Jobs\SendCrashAlertJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -75,6 +77,18 @@ class EmergencyAlertController extends Controller
             ? $alert->responses()->orderBy('created_at', 'desc')->get() 
             : [];
 
+        $crashInfo = null;
+        if ($alert->type === 'crash') {
+            $latestCrash = $user->crashEvents()->latest()->first();
+            if ($latestCrash) {
+                $crashInfo = [
+                    'g_force' => $latestCrash->g_force,
+                    'speed_at_impact' => $latestCrash->speed_at_impact,
+                    'status' => $latestCrash->status,
+                ];
+            }
+        }
+
         return response()->json([
             'user_name' => $user->name,
             'status' => $alert->status,
@@ -84,6 +98,7 @@ class EmergencyAlertController extends Controller
             'responses' => $responses,
             'location' => $location,
             'audio_url' => $alert->audio_url,
+            'crash_info' => $crashInfo,
         ]);
     }
 
@@ -304,5 +319,115 @@ class EmergencyAlertController extends Controller
         }
 
         return response()->json(['message' => 'Audio file is required'], 400);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/alerts/crash",
+     *     summary="Create a new crash emergency alert",
+     *     tags={"Emergency"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"latitude", "longitude"},
+     *             @OA\Property(property="latitude", type="number", format="double", example=-34.6037),
+     *             @OA\Property(property="longitude", type="number", format="double", example=-58.3816),
+     *             @OA\Property(property="speed", type="number", format="float", example=55.4),
+     *             @OA\Property(property="g_force", type="number", format="float", example=4.8)
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=201,
+     *         description="Crash alert created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="crash_event", type="object"),
+     *             @OA\Property(property="emergency_alert", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function storeCrash(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $validated = $request->validate([
+            'latitude' => 'required|numeric',
+            'longitude' => 'required|numeric',
+            'speed' => 'nullable|numeric',
+            'g_force' => 'nullable|numeric',
+        ]);
+
+        $crashEvent = $user->crashEvents()->create([
+            'latitude' => $validated['latitude'],
+            'longitude' => $validated['longitude'],
+            'speed_at_impact' => $validated['speed'] ?? null,
+            'g_force' => $validated['g_force'] ?? null,
+            'status' => 'confirmed',
+        ]);
+
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'crash',
+            'status' => 'active',
+            'expires_at' => now()->addHours(48),
+        ]);
+
+        SendCrashAlertJob::dispatchSync($crashEvent, $alert);
+
+        return response()->json([
+            'message' => 'Crash alert created and dispatched successfully',
+            'crash_event' => $crashEvent,
+            'emergency_alert' => $alert,
+        ], 201);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/alerts/crash/{id}/false-alarm",
+     *     summary="Mark a crash event as false alarm and resolve alert",
+     *     tags={"Emergency"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Crash Event ID",
+     *         @OA\Schema(type="integer")
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Crash event marked as false alarm",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="crash_event", type="object")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Crash event not found"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function falseAlarm(Request $request, int $id): JsonResponse
+    {
+        $user = $request->user();
+        
+        $crashEvent = $user->crashEvents()->findOrFail($id);
+        $crashEvent->update([
+            'status' => 'false_alarm',
+        ]);
+
+        $user->emergencyAlerts()
+            ->where('type', 'crash')
+            ->where('status', 'active')
+            ->update([
+                'status' => 'resolved',
+            ]);
+
+        return response()->json([
+            'message' => 'Crash event marked as false alarm and alert resolved.',
+            'crash_event' => $crashEvent,
+        ]);
     }
 }
