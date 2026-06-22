@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl, TextInput, Clipboard, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Alert, ActivityIndicator, ScrollView, RefreshControl, TextInput, Clipboard, Linking, Platform } from 'react-native';
 import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
 import { LOCATION_TASK_NAME, flushOfflineLocations } from '@/services/locationTask';
 import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow, EyeOff, MapPinOff, WifiOff } from 'lucide-react-native';
 import { useRouter } from 'expo-router';
+import { Audio } from 'expo-av';
+import { startSos, uploadSosAudio } from '@/services/sosService';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
@@ -25,6 +27,11 @@ export default function HomeScreen() {
   const [inviteCodeInput, setInviteCodeInput] = useState('');
   const [submittingCircle, setSubmittingCircle] = useState(false);
 
+  // Estados para SOS
+  const [recording, setRecording] = useState<any>(null);
+  const [isSosActive, setIsSosActive] = useState(false);
+  const [isRecordingAudio, setIsRecordingAudio] = useState(false);
+
   const onRefresh = async () => {
     setRefreshing(true);
     await Promise.all([
@@ -35,6 +42,156 @@ export default function HomeScreen() {
       flushOfflineLocations().catch(e => console.error(e))
     ]);
     setRefreshing(false);
+  };
+
+  const startHighFrequencyTracking = async () => {
+    try {
+      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 5000,
+        distanceInterval: 1,
+        foregroundService: {
+          notificationTitle: '🚨 S.O.S. SILENCIOSO ACTIVO 🚨',
+          notificationBody: 'Transmitiendo ubicación en tiempo real crítico',
+          notificationColor: '#dc2626',
+        },
+      });
+      setIsTracking(true);
+    } catch (e) {
+      console.error('Failed to start high frequency tracking', e);
+    }
+  };
+
+  const restoreNormalTracking = async () => {
+    try {
+      const hasStarted = await Location.hasStartedLocationUpdatesAsync(LOCATION_TASK_NAME);
+      if (hasStarted) {
+        await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 60000,
+          distanceInterval: 100,
+          foregroundService: {
+            notificationTitle: 'Estoy Ok está activo',
+            notificationBody: 'Protegiendo tu ubicación en segundo plano',
+            notificationColor: '#dc2626',
+          },
+        });
+        setIsTracking(true);
+      }
+    } catch (e) {
+      console.error('Failed to restore normal tracking', e);
+    }
+  };
+
+  const sendFallbackSms = async () => {
+    try {
+      const activeContacts = freshUser?.emergency_contacts?.filter((c: any) => c.is_active) || [];
+      const phones = activeContacts.map((c: any) => c.phone).filter(Boolean);
+      
+      if (phones.length > 0) {
+        const message = `🚨 ¡SOS CRÍTICO! Estoy en peligro. Por favor, ayuda.`;
+        const separator = Platform.OS === 'ios' ? '&' : '?';
+        const url = `sms:${phones.join(',')}${separator}body=${encodeURIComponent(message)}`;
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Sin Contactos', 'No tienes contactos de emergencia activos para enviar el SMS.');
+      }
+    } catch (err) {
+      console.error('Failed to send fallback SMS', err);
+    }
+  };
+
+  const handleSilentSos = async () => {
+    if (isSosActive) {
+      setCheckingIn(true);
+      try {
+        await api.post('/check-in'); // Checkin resuelve alertas activas en backend
+        await restoreNormalTracking();
+        setIsSosActive(false);
+        Alert.alert('SOS Desactivado', 'El SOS ha sido cancelado y el rastreo volvió a la normalidad.');
+        await onRefresh();
+      } catch (err) {
+        console.error('Failed to resolve SOS', err);
+        Alert.alert('Error', 'No se pudo desactivar el SOS. Intenta de nuevo.');
+      } finally {
+        setCheckingIn(false);
+      }
+      return;
+    }
+
+    setIsSosActive(true);
+    let alertId: string | null = null;
+
+    try {
+      await startHighFrequencyTracking();
+      const alertData = await startSos();
+      alertId = alertData.id;
+      // Actualizar núcleos inmediatamente para que se refleje el S.O.S. en la lista
+      await fetchCircles(true);
+    } catch (err: any) {
+      console.error('SOS Activation error, attempting fallback SMS', err);
+      Alert.alert(
+        'Error de Conectividad',
+        'No se pudo conectar con el servidor. ¿Deseas enviar un SMS de emergencia a tus contactos?',
+        [
+          { text: 'Cancelar', style: 'cancel', onPress: () => setIsSosActive(false) },
+          {
+            text: 'Enviar SMS',
+            onPress: async () => {
+              await sendFallbackSms();
+              setIsSosActive(false);
+            },
+          },
+        ]
+      );
+      return;
+    }
+
+    try {
+      setIsRecordingAudio(true);
+      const { status } = await Audio.requestPermissionsAsync();
+      if (status !== 'granted') {
+        console.warn('Microphone permission not granted for SOS recording');
+        setIsRecordingAudio(false);
+        return;
+      }
+
+      await Audio.setAudioModeAsync({
+        allowsRecordingIOS: true,
+        playsInSilentModeIOS: true,
+      });
+
+      const { recording: newRecording } = await Audio.Recording.createAsync(
+        Audio.RecordingOptionsPresets.HIGH_QUALITY
+      );
+      
+      setRecording(newRecording);
+      console.log('SOS silent recording started');
+
+      setTimeout(async () => {
+        try {
+          console.log('Stopping SOS recording...');
+          await newRecording.stopAndUnloadAsync();
+          const uri = newRecording.getURI();
+          setIsRecordingAudio(false);
+          setRecording(null);
+
+          if (uri && alertId) {
+            console.log('Uploading SOS audio:', uri);
+            await uploadSosAudio(alertId, uri);
+            console.log('SOS audio uploaded successfully');
+          }
+        } catch (recErr) {
+          console.error('Error stopping or uploading SOS recording', recErr);
+          setIsRecordingAudio(false);
+          setRecording(null);
+        }
+      }, 15000);
+
+    } catch (err) {
+      console.error('Failed to record SOS audio', err);
+      setIsRecordingAudio(false);
+    }
   };
 
   useEffect(() => {
@@ -54,6 +211,23 @@ export default function HomeScreen() {
       return () => clearInterval(interval);
     }
   }, [user]);
+
+  // Sincronizar isSosActive con el estado del servidor (a través de la lista de círculos)
+  useEffect(() => {
+    if (user && circles.length > 0) {
+      const selfMember = circles
+        .flatMap(c => c.users || [])
+        .find((u: any) => u.id === user.id);
+      
+      const hasActiveSos = selfMember?.active_emergency_alerts?.some(
+        (alert: any) => alert.type === 'silent_sos' && alert.status === 'active'
+      );
+      
+      if (hasActiveSos !== undefined) {
+        setIsSosActive(!!hasActiveSos);
+      }
+    }
+  }, [circles, user]);
 
   const fetchCircles = async (silent = false) => {
     if (!user) return;
@@ -408,6 +582,27 @@ export default function HomeScreen() {
         </TouchableOpacity>
       </View>
 
+      {/* Botón de SOS Destacado */}
+      <TouchableOpacity 
+        style={[
+          styles.sosButton, 
+          isSosActive ? styles.sosButtonActive : null
+        ]}
+        onPress={handleSilentSos}
+        disabled={checkingIn}
+      >
+        {isSosActive ? (
+          <View style={styles.sosButtonContent}>
+            <ActivityIndicator size="small" color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.sosButtonTextActive}>🚨 S.O.S. ACTIVO (PULSA PARA CANCELAR)</Text>
+          </View>
+        ) : (
+          <View style={styles.sosButtonContent}>
+            <Text style={styles.sosButtonText}>🚨 S.O.S. SILENCIOSO DE EMERGENCIA</Text>
+          </View>
+        )}
+      </TouchableOpacity>
+
       {/* MODULO 1: BIENESTAR */}
       <View style={styles.moduleCard}>
         <View style={styles.moduleHeader}>
@@ -615,17 +810,23 @@ export default function HomeScreen() {
                       const isSelf = member.id === user?.id;
                       const isOwner = member.id === activeCircle.owner_id;
                       const isCurrentUserAdmin = activeCircle.users.find((u: any) => u.id === user?.id)?.pivot?.role === 'admin';
+                      const activeSos = member.active_emergency_alerts?.find((alert: any) => alert.type === 'silent_sos' && alert.status === 'active');
 
                       return (
-                        <View key={member.id} style={styles.memberItem}>
-                          <View style={styles.memberAvatar}>
-                            <Text style={styles.memberAvatarText}>{member.name.charAt(0).toUpperCase()}</Text>
+                        <View key={member.id} style={[styles.memberItem, activeSos ? styles.memberItemSosActive : null]}>
+                          <View style={[styles.memberAvatar, activeSos ? styles.memberAvatarSosActive : null]}>
+                            <Text style={[styles.memberAvatarText, activeSos ? styles.memberAvatarTextSosActive : null]}>
+                              {member.name.charAt(0).toUpperCase()}
+                            </Text>
                           </View>
                           
                           <View style={styles.memberInfo}>
                             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
                               <Text style={styles.memberName}>{member.name} {isSelf && '(Tú)'}</Text>
                               {member.is_premium && <Text style={{ fontSize: 10 }}>⭐</Text>}
+                              {activeSos && (
+                                <Text style={styles.sosTextInline}>🚨 S.O.S. ACTIVO</Text>
+                              )}
                               {member.current_location && member.current_location.battery_level !== undefined && member.current_location.battery_level !== null && (
                                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2, marginLeft: 2 }}>
                                   {(() => {
@@ -688,7 +889,20 @@ export default function HomeScreen() {
                           </View>
 
                           <View style={styles.memberActions}>
-                            {member.current_location && member.current_location.is_tracking_active && (
+                             {activeSos && !isSelf && (
+                               <TouchableOpacity
+                                 style={styles.sosAlertButton}
+                                 onPress={() => {
+                                   const frontendUrl = 'http://localhost:3000';
+                                   const url = `${frontendUrl}/emergencia/${activeSos.id}`;
+                                   Linking.openURL(url);
+                                 }}
+                               >
+                                 <Text style={styles.sosAlertActionText}>Alerta</Text>
+                               </TouchableOpacity>
+                             )}
+
+                            {member.current_location && member.current_location.is_tracking_active && !isSelf && (
                               <TouchableOpacity
                                 style={styles.mapIconButton}
                                 onPress={() => router.push({
@@ -701,16 +915,18 @@ export default function HomeScreen() {
                               </TouchableOpacity>
                             )}
 
-                            <TouchableOpacity
-                              style={styles.historyIconButton}
-                              onPress={() => router.push({
-                                pathname: '/history',
-                                params: { memberId: String(member.id), circleId: String(activeCircle.id), mode: 'history' }
-                              })}
-                            >
-                              <Compass size={14} color="#3730a3" />
-                              <Text style={styles.historyActionText}>Ruta</Text>
-                            </TouchableOpacity>
+                            {!isSelf && (
+                              <TouchableOpacity
+                                style={styles.historyIconButton}
+                                onPress={() => router.push({
+                                  pathname: '/history',
+                                  params: { memberId: String(member.id), circleId: String(activeCircle.id), mode: 'history' }
+                                })}
+                              >
+                                <Compass size={14} color="#3730a3" />
+                                <Text style={styles.historyActionText}>Ruta</Text>
+                              </TouchableOpacity>
+                            )}
 
                             {isSelf ? (
                               activeCircle.owner_id !== user?.id && (
@@ -926,7 +1142,7 @@ const styles = StyleSheet.create({
   copyButtonText: { fontSize: 11, fontWeight: '800', color: '#4b5563' },
   membersSectionTitle: { fontSize: 11, fontWeight: '800', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 10 },
   membersList: { gap: 8 },
-  memberItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#f9fafb', borderRadius: 16, padding: 12, borderWidth: 1, borderColor: '#f3f4f6' },
+  memberItem: { flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: '#f9fafb', borderRadius: 16, padding: 12, borderWidth: 1.5, borderColor: '#f3f4f6' },
   memberAvatar: { width: 36, height: 36, borderRadius: 18, backgroundColor: '#fee2e2', justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#fecaca' },
   memberAvatarText: { fontSize: 14, fontWeight: '800', color: '#dc2626' },
   memberInfo: { flex: 1 },
@@ -939,5 +1155,75 @@ const styles = StyleSheet.create({
   historyActionText: { fontSize: 11, fontWeight: '800', color: '#3730a3' },
   removeMemberButton: { padding: 8, backgroundColor: '#fff', borderRadius: 10, borderWidth: 1, borderColor: '#fee2e2' },
   leaveMemberButton: { paddingVertical: 6, paddingHorizontal: 10, backgroundColor: '#f3f4f6', borderRadius: 10 },
-  leaveMemberText: { fontSize: 11, fontWeight: '800', color: '#ef4444' }
+  leaveMemberText: { fontSize: 11, fontWeight: '800', color: '#ef4444' },
+  sosButton: {
+    backgroundColor: '#dc2626',
+    marginHorizontal: 16,
+    marginTop: 8,
+    marginBottom: 16,
+    paddingVertical: 14,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#dc2626',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  sosButtonActive: {
+    backgroundColor: '#b91c1c',
+    borderWidth: 2,
+    borderColor: '#fca5a5',
+  },
+  sosButtonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  sosButtonText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  sosButtonTextActive: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: '900',
+    letterSpacing: 0.5,
+  },
+  memberItemSosActive: {
+    backgroundColor: '#fef2f2',
+    borderColor: '#fca5a5',
+    borderWidth: 1.5,
+  },
+  memberAvatarSosActive: {
+    backgroundColor: '#dc2626',
+    borderColor: '#b91c1c',
+  },
+  memberAvatarTextSosActive: {
+    color: '#ffffff',
+  },
+  sosTextInline: {
+    color: '#ffffff',
+    fontSize: 9,
+    fontWeight: '900',
+    backgroundColor: '#dc2626',
+    paddingVertical: 2,
+    paddingHorizontal: 6,
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginLeft: 6,
+  },
+  sosAlertButton: {
+    backgroundColor: '#dc2626',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+  },
+  sosAlertActionText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffffff',
+  }
 });

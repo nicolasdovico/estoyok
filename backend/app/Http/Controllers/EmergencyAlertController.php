@@ -35,6 +35,7 @@ class EmergencyAlertController extends Controller
      *             @OA\Property(property="type", type="string"),
      *             @OA\Property(property="last_check_in_at", type="string", format="date-time"),
      *             @OA\Property(property="share_contact_responses", type="boolean"),
+     *             @OA\Property(property="audio_url", type="string", nullable=true),
      *             @OA\Property(property="responses", type="array", @OA\Items(type="object")),
      *             @OA\Property(property="location", type="object",
      *                 @OA\Property(property="latitude", type="number"),
@@ -82,6 +83,7 @@ class EmergencyAlertController extends Controller
             'share_contact_responses' => $shareResponses,
             'responses' => $responses,
             'location' => $location,
+            'audio_url' => $alert->audio_url,
         ]);
     }
 
@@ -142,5 +144,165 @@ class EmergencyAlertController extends Controller
         ]);
 
         return response()->json($response, 201);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/emergency-alerts/sos",
+     *     summary="Create a new silent SOS emergency alert",
+     *     tags={"Emergency"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(
+     *         response=201,
+     *         description="Silent SOS alert created successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="id", type="string", format="uuid"),
+     *             @OA\Property(property="user_id", type="integer"),
+     *             @OA\Property(property="type", type="string"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="expires_at", type="string", format="date-time")
+     *         )
+     *     ),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function storeSos(Request $request): JsonResponse
+    {
+        $user = $request->user();
+
+        // Create the silent SOS alert
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'active',
+            'expires_at' => now()->addHours(48),
+        ]);
+
+        $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'))."/emergencia/{$alert->id}";
+
+        // Notify nucleus members
+        $user->load('circles.users');
+        $members = [];
+        foreach ($user->circles as $circle) {
+            foreach ($circle->users as $member) {
+                if ($member->id !== $user->id) {
+                    $members[$member->id] = $member;
+                }
+            }
+        }
+
+        foreach ($members as $member) {
+            if ($member->expo_push_token) {
+                \Illuminate\Support\Facades\Http::post('https://exp.host/--/api/v2/push/send', [
+                    'to' => $member->expo_push_token,
+                    'title' => '🚨 ¡SOS CRÍTICO!',
+                    'body' => "{$user->name} ha activado un SOS silencioso. Revisa su ubicación inmediatamente.",
+                    'sound' => 'default',
+                    'priority' => 'high',
+                    'channelId' => 'emergency',
+                    'data' => [
+                        'type' => 'silent_sos',
+                        'alert_id' => $alert->id,
+                        'user_id' => $user->id,
+                        'user_name' => $user->name,
+                    ],
+                ]);
+            }
+        }
+
+        // Notify emergency contacts via SMS
+        $contacts = $user->emergencyContacts()->where('is_active', true)->get();
+        $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
+        $smsBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$emergencyUrl}";
+
+        foreach ($contacts as $contact) {
+            if ($contact->phone) {
+                $whatsAppService->sendSMS($contact->phone, $smsBody);
+                // Si el usuario es premium, también le mandamos WhatsApp por si acaso
+                if ($user->is_premium) {
+                    $whatsAppService->sendWhatsApp($contact->phone, $smsBody);
+                }
+            }
+        }
+
+        return response()->json($alert, 201);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/emergency-alerts/{id}/audio",
+     *     summary="Upload recording of silent SOS alert",
+     *     tags={"Emergency"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Parameter(
+     *         name="id",
+     *         in="path",
+     *         required=true,
+     *         description="Alert UUID",
+     *         @OA\Schema(type="string", format="uuid")
+     *     ),
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\MediaType(
+     *             mediaType="multipart/form-data",
+     *             @OA\Schema(
+     *                 @OA\Property(
+     *                     property="audio",
+     *                     description="Audio recording file",
+     *                     type="string",
+     *                     format="binary"
+     *                 )
+     *             )
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Audio uploaded successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="audio_url", type="string")
+     *         )
+     *     ),
+     *     @OA\Response(response=404, description="Alert not found"),
+     *     @OA\Response(response=400, description="Invalid audio file or alert resolved"),
+     *     @OA\Response(response=401, description="Unauthenticated")
+     * )
+     */
+    public function uploadAudio(Request $request, string $id): JsonResponse
+    {
+        $alert = EmergencyAlert::where('id', $id)->firstOrFail();
+
+        if ($alert->status === 'resolved') {
+            return response()->json(['message' => 'Alert is already resolved'], 400);
+        }
+
+        if ($alert->user_id !== $request->user()->id) {
+            return response()->json(['message' => 'Unauthorized to upload audio for this alert'], 403);
+        }
+
+        $request->validate([
+            'audio' => 'required|file|max:5120',
+        ]);
+
+        if ($request->file('audio')) {
+            $file = $request->file('audio');
+            $extension = $file->getClientOriginalExtension() ?: 'm4a';
+            if ($extension === 'mp4') {
+                $extension = 'm4a';
+            }
+            $filename = \Illuminate\Support\Str::random(40) . '.' . $extension;
+            $path = $file->storeAs('audio_alerts', $filename, 'public');
+            
+            $alert->update([
+                'audio_path' => $path,
+            ]);
+
+            return response()->json([
+                'message' => 'Audio uploaded successfully',
+                'audio_url' => $alert->audio_url,
+            ], 200);
+        }
+
+        return response()->json(['message' => 'Audio file is required'], 400);
     }
 }

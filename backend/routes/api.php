@@ -33,6 +33,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/check-in', [CheckInController::class, 'store']);
     Route::get('/check-ins', [CheckInController::class, 'index']);
+    Route::post('/emergency-alerts/sos', [EmergencyAlertController::class, 'storeSos']);
+    Route::post('/emergency-alerts/{id}/audio', [EmergencyAlertController::class, 'uploadAudio']);
 
     // Subscriptions
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);

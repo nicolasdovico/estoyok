@@ -72,6 +72,14 @@ interface CircleData {
       last_seen_at?: string | null;
       is_offline?: boolean;
     } | null;
+    active_emergency_alerts?: Array<{
+      id: string;
+      user_id: number;
+      type: string;
+      status: string;
+      audio_url?: string | null;
+      expires_at: string;
+    }>;
     pivot: {
       role: string;
     };
@@ -1249,19 +1257,33 @@ export default function Dashboard() {
                                 const isSelf = member.id === userData?.id;
                                 const isOwner = circle.owner_id === member.id;
                                 const isCurrentUserAdmin = circle.users.find((u: CircleData['users'][number]) => u.id === userData?.id)?.pivot?.role === 'admin';
+                                const activeSos = member.active_emergency_alerts?.find(alert => alert.type === 'silent_sos' && alert.status === 'active');
                                 return (
-                                    <div key={member.id} className="flex items-center justify-between gap-4 p-3 bg-gray-50 rounded-2xl border border-transparent hover:border-red-100 transition-all">
+                                    <div key={member.id} className={`flex items-center justify-between gap-4 p-3 rounded-2xl border transition-all ${
+                                      activeSos 
+                                        ? 'bg-red-50 border-red-300 animate-pulse shadow-md shadow-red-200/50' 
+                                        : 'bg-gray-50 border-transparent hover:border-red-100'
+                                    }`}>
                                       <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 bg-red-50 rounded-full flex items-center justify-center text-red-600 font-bold border border-red-100">
+                                        <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold border ${
+                                          activeSos 
+                                            ? 'bg-red-600 text-white border-red-700 animate-bounce' 
+                                            : 'bg-red-50 text-red-600 border-red-100'
+                                        }`}>
                                           {member.name.charAt(0)}
                                         </div>
                                         <div>
-                                          <div className="flex items-center gap-1.5">
+                                          <div className="flex items-center gap-1.5 flex-wrap">
                                             <span className="text-sm font-bold text-gray-800">
                                               {member.name} {isSelf && '(Tú)'}
                                             </span>
                                             {member.is_premium && (
                                               <span className="text-[10px] text-yellow-600" title="Premium">⭐</span>
+                                            )}
+                                            {activeSos && (
+                                              <span className="text-[9px] bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded-md animate-pulse">
+                                                🚨 SOS ACTIVO
+                                              </span>
                                             )}
                                           </div>
                                           <p className="text-[10px] text-gray-400 font-semibold">
@@ -1333,23 +1355,36 @@ export default function Dashboard() {
                                         </div>
                                       </div>
 
-                                      {isSelf ? (
-                                        <button
-                                          onClick={() => handleRemoveMember(circle.id, member.id)}
-                                          className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
-                                        >
-                                          Salir
-                                        </button>
-                                      ) : (
-                                        (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        {activeSos && (
+                                          <a
+                                            href={`/emergencia/${activeSos.id}`}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="text-[10px] bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer animate-bounce flex items-center justify-center gap-1"
+                                          >
+                                            Ver Alerta
+                                          </a>
+                                        )}
+
+                                        {isSelf ? (
                                           <button
                                             onClick={() => handleRemoveMember(circle.id, member.id)}
-                                            className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
+                                            className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
                                           >
-                                            Expulsar
+                                            Salir
                                           </button>
-                                        )
-                                      )}
+                                        ) : (
+                                          (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                            <button
+                                              onClick={() => handleRemoveMember(circle.id, member.id)}
+                                              className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
+                                            >
+                                              Expulsar
+                                            </button>
+                                          )
+                                        )}
+                                      </div>
                                     </div>
                                   );
                               })}

@@ -8,6 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+use Illuminate\Support\Facades\Storage;
+
 class EmergencyAlert extends Model
 {
     use HasFactory, HasUuids;
@@ -16,12 +18,22 @@ class EmergencyAlert extends Model
         'user_id',
         'type',
         'status',
+        'audio_path',
         'expires_at',
     ];
 
     protected $casts = [
         'expires_at' => 'datetime',
     ];
+
+    protected $appends = [
+        'audio_url',
+    ];
+
+    public function getAudioUrlAttribute(): ?string
+    {
+        return $this->audio_path ? url(Storage::url($this->audio_path)) : null;
+    }
 
     public function user(): BelongsTo
     {

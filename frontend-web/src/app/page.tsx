@@ -198,13 +198,13 @@ export default function Home() {
         <section id="features" className="py-24 px-6 bg-neutral-950 border-t border-neutral-900">
           <div className="container px-4 mx-auto max-w-6xl">
             <div className="text-center max-w-3xl mx-auto mb-20">
-              <h2 className="text-3xl font-extrabold sm:text-5xl">El Poder de la Protección Dual</h2>
+              <h2 className="text-3xl font-extrabold sm:text-5xl">Tres Niveles de Seguridad Familiar</h2>
               <p className="text-neutral-400 mt-4 md:text-lg">
-                No elijas entre no saber nada o vigilar a tu familia invasivamente por GPS. Estoy Ok ofrece un equilibrio ideal entre libertad y tranquilidad.
+                Desde el monitoreo pasivo diario para respetar la intimidad, hasta el rastreo activo por zonas y la respuesta inmediata ante crisis extremas.
               </p>
             </div>
 
-            <div className="grid md:grid-cols-2 gap-8 items-stretch">
+            <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 items-stretch">
               {/* Pillar 1: Passive Wellbeing */}
               <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-red-500/20 transition-all duration-300 group">
                 <div>
@@ -263,42 +263,75 @@ export default function Home() {
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Mapa Familiar Compartido:** Visualización en vivo en mapas interactivos y seguros de los integrantes autorizados de tu núcleo.</span>
+                      <span>**Mapa Familiar Compartido:** Visualización en vivo de los integrantes autorizados de tu núcleo.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Zonas Seguras (Zonas Seguras):** Configura radios de alerta y recibe notificaciones push cuando entren o salgan del colegio, oficina o club.</span>
+                      <span>**Zonas Seguras:** Configura radios de alerta y recibe notificaciones push cuando entren o salgan de casa, colegio o trabajo.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Desactivación Voluntaria:** Pausa el envío de coordenadas desde el celular en un toque cuando decidas proteger tu intimidad.</span>
+                      <span>**Alertas de Batería Baja &amp; Sensores:** Revisa el porcentaje de carga y si tienen el GPS desactivado o están sin señal.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Alertas de Batería Baja:** Notifica automáticamente a tu núcleo si tu batería cae por debajo de 15% para evitar alarmas innecesarias.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>**Monitoreo de Sensores y Señal:** El núcleo familiar podrá distinguir si apagaste el GPS, pausaste el rastreo voluntariamente o si estás temporalmente sin señal.</span>
-                    </li>
-                    <li className="flex items-start gap-2.5">
-                      <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span>**Historial y Reproducción de Rutas:** Revisa el camino recorrido por los integrantes de tu núcleo con controles de velocidad, barra de tiempo y estimaciones de velocidad de traslado.</span>
+                      <span>**Historial de Rutas:** Revisa el camino recorrido por los integrantes de tu núcleo con estimaciones de velocidad y barra de tiempo.</span>
                     </li>
                   </ul>
                 </div>
                 <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
                   Ideal para coordinar traslados y verificar rutas en tiempo real.
+                </div>
+              </div>
+
+              {/* Pillar 3: Silent S.O.S */}
+              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-amber-500/20 transition-all duration-300 group">
+                <div>
+                  <div className="w-12 h-12 rounded-2xl bg-amber-950/40 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-6 group-hover:bg-amber-900/20 transition-all">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                  </div>
+                  <h3 className="text-2xl font-bold text-white">3. S.O.S. de Emergencia (Crisis Activa)</h3>
+                  <p className="text-neutral-400 mt-3 leading-relaxed">
+                    Un botón de auxilio instantáneo para situaciones de peligro inminente. Activa alertas críticas inmediatas y un rastreo continuo de alta fidelidad.
+                  </p>
+                  
+                  <ul className="space-y-3.5 mt-6 text-sm text-neutral-300">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**S.O.S. Silencioso de Emergencia:** Dispara alarmas prioritarias de forma imperceptible y discreta desde tu teléfono móvil.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Rastreo Crítico de Alta Frecuencia:** Al activarse, la tasa de actualización del GPS se acelera a cada 5 segundos para un seguimiento preciso.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Grabación Ambiental Automática:** Captura 15 segundos de audio de fondo de manera silenciosa para que tu familia escuche qué está sucediendo.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Canal de Respaldo por SMS:** Envía mensajes de texto de emergencia automáticos por red telefónica si pierdes conexión a internet.</span>
+                    </li>
+                  </ul>
+                </div>
+                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
+                  Ideal para situaciones imprevistas, seguridad urbana y emergencias reales.
                 </div>
               </div>
             </div>
@@ -470,6 +503,12 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
+                      <span className="font-semibold text-white">S.O.S. Silencioso con Grabación de Audio y Rastro Crítico (5s)</span>
+                    </li>
+                    <li className="flex items-center gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
                       <span>Frecuencia de check-in configurable (1h a 48h)</span>
                     </li>
                     <li className="flex items-center gap-2.5">
@@ -488,7 +527,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Zonas Seguras (Zonas Seguras) ilimitados</span>
+                      <span>Zonas Seguras ilimitadas</span>
                     </li>
                     <li className="flex items-center gap-2.5">
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -536,6 +575,10 @@ export default function Home() {
                 {
                   q: "¿Cómo funciona el Auto-Check-in inteligente?",
                   a: "Es una característica exclusiva del Plan PRO. En lugar de presionar el botón manualmente, la app móvil de Estoy Ok utiliza sensores en segundo plano de manera silenciosa: detecta si tu celular se conecta a la red Wi-Fi segura de tu hogar o si registras más de 100 pasos en una hora mediante el podómetro integrado para confirmar tu bienestar de forma automática."
+                },
+                {
+                  q: "¿Cómo funciona el S.O.S. Silencioso de Emergencia?",
+                  a: "Es un botón de auxilio instantáneo para situaciones de peligro inmediato. Al presionarlo en la app móvil, se dispara de forma discreta una alerta crítica: la tasa de actualización de tu ubicación aumenta a cada 5 segundos y se graban 15 segundos de audio ambiente de fondo de forma imperceptible. Tu núcleo familiar recibe notificaciones prioritarias, SMS y WhatsApp (según el plan) con un enlace para ver tu ubicación y escuchar el audio."
                 },
                 {
                   q: "¿Cómo invito a mis familiares a unirse a mi Núcleo?",

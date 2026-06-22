@@ -26,7 +26,7 @@ class CircleController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $circles = $user->circles()->with(['users.currentLocation', 'owner', 'geofences.user'])->get();
+        $circles = $user->circles()->with(['users.currentLocation', 'users.activeEmergencyAlerts', 'owner', 'geofences.user'])->get();
         return response()->json($circles);
     }
 

@@ -63,6 +63,14 @@ interface Member {
     last_seen_at?: string | null;
     is_offline?: boolean;
   } | null;
+  active_emergency_alerts?: Array<{
+    id: string;
+    user_id: number;
+    type: string;
+    status: string;
+    audio_url?: string | null;
+    expires_at: string;
+  }>;
 }
 
 interface Geofence {
@@ -171,20 +179,33 @@ export default function CircleMap({
         {members.map(member => {
           if (!member.current_location) return null;
           const loc = member.current_location;
+          if (loc.latitude === null || loc.latitude === undefined || loc.longitude === null || loc.longitude === undefined) return null;
           const isTrackingActive = loc.is_tracking_active !== false;
           const isGpsEnabled = loc.gps_enabled !== false;
           const isOffline = !!loc.is_offline;
-          const hasIssue = !isTrackingActive || !isGpsEnabled || isOffline;
+          const activeSos = member.active_emergency_alerts?.find(alert => alert.type === 'silent_sos' && alert.status === 'active');
+          const hasSilentSos = !!activeSos;
+          const hasIssue = (!isTrackingActive || !isGpsEnabled || isOffline) && !hasSilentSos;
 
           return (
             <Marker 
               key={member.id} 
               position={[loc.latitude, loc.longitude]}
               icon={MemberIcon}
-              opacity={hasIssue ? 0.5 : 1.0}
+              opacity={hasSilentSos ? 1.0 : (hasIssue ? 0.5 : 1.0)}
             >
               <Popup>
                 <div className="text-xs min-w-[180px] font-sans">
+                  {hasSilentSos && activeSos && (
+                    <div className="mb-2 p-2 bg-red-600 text-white font-extrabold text-[10px] rounded text-center animate-pulse">
+                      🚨 SOS SILENCIOSO ACTIVO 🚨
+                      {activeSos.audio_url && (
+                        <div className="mt-1 pb-1">
+                          <audio src={activeSos.audio_url} controls className="w-full h-8 scale-95" />
+                        </div>
+                      )}
+                    </div>
+                  )}
                   <div className="flex items-center justify-between gap-2 border-b border-gray-100 pb-1.5 mb-1.5">
                     <p className="font-bold text-gray-900 leading-none">{member.name}</p>
                     {loc.battery_level !== undefined && loc.battery_level !== null && (

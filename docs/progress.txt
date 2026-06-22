@@ -317,3 +317,41 @@
     - Added **Historial y Reproducción de Rutas** under the "Bienestar Activo (Círculos/Núcleos & Mapa)" section on the commercial landing page (`page.tsx`).
     - Corrected pricing table copy mismatch (changed free plan history limit from 48 hours to the actual 24 hours constraint, and highlighted route playback support on the Premium plan features list).
     - Verified TypeScript type safety compiles without errors (0 errors) on both frontends (web and mobile).
+
+## [2026-06-21] SOS Silencioso con Ubicación en Alta Frecuencia y Grabación Ambiental
+- **Backend (Laravel):**
+    - Creada migración para agregar el campo `audio_path` a la tabla `emergency_alerts`.
+    - Actualizado el modelo `EmergencyAlert` con accessor dinámico `audio_url` y propiedad fillable.
+    - Creado endpoint `POST /api/emergency-alerts/sos` para disparar SOS Silencioso, notificar por Push prioritario a miembros del núcleo y despachar SMS de urgencia vía Twilio.
+    - Creado endpoint `POST /api/emergency-alerts/{id}/audio` para subir grabaciones ambientales multipart/form-data.
+    - Agregada documentación OpenAPI/Swagger para los nuevos endpoints.
+    - Escrita suite completa de tests automatizados (15 tests exitosos en total).
+- **Web Frontend (Next.js):**
+    - Rediseñada cabecera de `EmergencyClientPage.tsx` con animación pulsante roja para alertas de tipo `silent_sos`.
+    - Integrado un reproductor de audio ambiental condicional si la alerta posee una grabación de audio disponible (`audio_url`).
+    - Modificado el intervalo de polling de ubicación en vivo en la pantalla de crisis a cada 5 segundos si el SOS está activo.
+    - Añadidas insignias visuales parpadeantes y botón "Ver Alerta" en el sidebar del Dashboard para destacar miembros con SOS activo.
+    - Soportado el renderizado en tiempo real de SOS y el reproductor de audio dentro del popup del marcador en el mapa.
+- **Mobile Frontend (Expo / React Native):**
+    - Instalada la librería `expo-av` para gestión de audio y grabación sin fricción.
+    - Creado servicio de API `sosService.ts` para manejar peticiones de inicio de SOS y subida de audio.
+    - Implementada lógica de SOS en `index.tsx` que inicia un rastreo GPS de máxima frecuencia (5s) y graba 15s de audio en segundo plano al pulsar el botón SOS.
+    - Agregado canal de soporte offline mediante `Linking` para disparar un SMS nativo a los contactos de emergencia si falla la red.
+    - Diseñado botón SOS prominente en el Dashboard y estilos correspondientes, logrando un 100% de type safety en TypeScript.
+
+## [2026-06-22] S.O.S. Mobile Layout Styling and State Sync Correction & Landing Page Promotion
+- **Mobile Frontend (Expo / React Native):**
+    - Removed nested `<View>` badge from the circular member name list inside `index.tsx` and replaced it with a custom-styled `<Text style={styles.sosTextInline}>` badge to avoid layout calculations overflow and wrapping glitches.
+    - Modified `memberActions` display inside the circles member list to hide redundant tracking buttons ("Ver", "Ruta") and crisis buttons ("Alerta") for the current logged-in user (`isSelf === true`). This ensures the user's card remains clean, fitting perfectly on smaller mobile displays.
+    - Modified S.O.S. activation flow inside `handleSilentSos` to trigger `await fetchCircles(true)` immediately after successful API activation, allowing the member list to reflect the active S.O.S. status without waiting for the 10-second polling ticks.
+    - Synchronized `isSosActive` local state reactively via a new `useEffect` that listens to `circles` changes and maps whether the user's member object has active S.O.S. alerts. This allows S.O.S. states to sync properly across mounts, logins, and remote updates.
+    - Aligned the `borderWidth` parameter to a constant `1.5` on both `memberItem` and `memberItemSosActive` stylesheet definitions, ensuring that toggling border colors does not trigger layout recalculation bugs on native layout engines.
+    - Verified compile success with `npx tsc --noEmit` and run success.
+- **Web Frontend (Next.js):**
+    - Added **S.O.S. de Emergencia (Crisis Activa)** as the third core security pillar inside `page.tsx` features grid section, detailing the silent trigger, high-frequency (5s) GPS updates, environmental audio recording, and SMS backup features.
+    - Cleaned up naming copy in the premium features list from "Zonas Seguras (Zonas Seguras)" to "Zonas Seguras" and added "S.O.S. Silencioso con Grabación de Audio y Rastro Crítico (5s)" as a key PRO benefit.
+    - Added a detailed S.O.S. question and answer inside the interactive Accordion FAQ section, explaining the trigger process, background recording, and notifications.
+    - Ran Next.js Turbopack compiler build successfully (0 compile warnings or errors).
+
+
+

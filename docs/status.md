@@ -86,6 +86,12 @@
     - [x] App Mobile: cola local de ubicaciones offline mediante AsyncStorage con sincronización/flush automático al recuperar la red, envío de cambios de estado a la API e indicadores visuales de sensores en el listado de miembros del núcleo.
     - [x] Landing Page: Promoción de la funcionalidad de monitoreo de sensores en la lista de características y en las respuestas de preguntas frecuentes (FAQs).
   - [x] feat(tracking): Corrección del centrado del mapa de historial, visualización de marcador de posición en la App Móvil, unificación de proveedor visual (Google Maps), cabeceras dinámicas ("Ubicación de..." vs "Ruta de..."), botón directo "Cómo llegar" para redirigir opcionalmente al GPS externo, y promoción/corrección de la funcionalidad de historial en la Landing Page comercial.
+  - [x] feat(crisis): SOS silencioso con envío de ubicación en alta frecuencia y streaming de audio.
+    - [x] Backend: Migración para añadir `audio_path` a la base de datos, nuevos endpoints `POST /api/emergency-alerts/sos` y `POST /api/emergency-alerts/{id}/audio` con almacenamiento en disco, generación de OpenAPI/Swagger y suite completa de tests de integración.
+    - [x] Web: Cabecera parpadeante roja de alerta de SOS activo en la pantalla de crisis, renderizado de reproductor de audio ambiental para la grabación de 15s, marcas visuales parpadeantes en miembros y polling de ubicación acelerado a 5s.
+    - [x] Mobile: Botón destacado de SOS silencioso de emergencia, grabación de fondo de 15s de audio con `expo-av`, cambio dinámico a tracking de ubicación de alta frecuencia (5s) y canal de respaldo mediante envío de SMS local.
+    - [x] Mobile: Corregida la rotura de estilos del listado de miembros al activar/desactivar S.O.S., reemplazando el componente View del badge por un Text inline, ocultando acciones redundantes para el propio usuario y sincronizando el estado `isSosActive` inmediatamente al activar.
+    - [x] Web Landing Page: Promoción y explicación del S.O.S. Silencioso (agregado como tercer pilar de seguridad de crisis activa en la grilla de características, en los beneficios del plan PRO Premium y en las FAQs interactivas).
 
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**

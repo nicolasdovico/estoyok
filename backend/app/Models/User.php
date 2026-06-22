@@ -115,6 +115,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(EmergencyAlert::class);
     }
 
+    public function activeEmergencyAlerts()
+    {
+        return $this->hasMany(EmergencyAlert::class)->where('status', 'active');
+    }
+
     public function checkIns()
     {
         return $this->hasMany(CheckIn::class);

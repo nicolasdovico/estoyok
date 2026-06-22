@@ -260,4 +260,100 @@ class EmergencyAlertTest extends TestCase
 
         $this->assertFalse((bool) $user->fresh()->share_contact_responses);
     }
+
+    public function test_user_can_create_silent_sos_alert()
+    {
+        $user = User::factory()->create();
+
+        // Creamos algunos contactos de emergencia activos para el usuario
+        $user->emergencyContacts()->create([
+            'name' => 'Emergency Contact 1',
+            'phone' => '+5491122334455',
+            'is_active' => true,
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson('/api/emergency-alerts/sos');
+
+        $response->assertStatus(201)
+            ->assertJson([
+                'user_id' => $user->id,
+                'type' => 'silent_sos',
+                'status' => 'active',
+            ]);
+
+        $this->assertDatabaseHas('emergency_alerts', [
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'active',
+        ]);
+    }
+
+    public function test_user_can_upload_recording_for_sos_alert()
+    {
+        \Illuminate\Support\Facades\Storage::fake('public');
+
+        $user = User::factory()->create();
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'active',
+        ]);
+
+        $audioFile = \Illuminate\Http\UploadedFile::fake()->create('recording.mp3', 100, 'audio/mpeg');
+
+        $response = $this->actingAs($user)
+            ->postJson("/api/emergency-alerts/{$alert->id}/audio", [
+                'audio' => $audioFile,
+            ]);
+
+        $response->assertStatus(200)
+            ->assertJsonStructure([
+                'message',
+                'audio_url',
+            ]);
+
+        $alert->refresh();
+        $this->assertNotNull($alert->audio_path);
+        \Illuminate\Support\Facades\Storage::disk('public')->assertExists($alert->audio_path);
+    }
+
+    public function test_upload_audio_validation()
+    {
+        $user = User::factory()->create();
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'active',
+        ]);
+
+        // missing file
+        $this->actingAs($user)
+            ->postJson("/api/emergency-alerts/{$alert->id}/audio", [])
+            ->assertStatus(422);
+
+        // file too large
+        $largeFile = \Illuminate\Http\UploadedFile::fake()->create('recording.mp3', 6000, 'audio/mpeg');
+        $this->actingAs($user)
+            ->postJson("/api/emergency-alerts/{$alert->id}/audio", [
+                'audio' => $largeFile,
+            ])->assertStatus(422);
+    }
+
+    public function test_cannot_upload_audio_for_resolved_alert()
+    {
+        $user = User::factory()->create();
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'resolved',
+        ]);
+
+        $audioFile = \Illuminate\Http\UploadedFile::fake()->create('recording.mp3', 100, 'audio/mpeg');
+
+        $this->actingAs($user)
+            ->postJson("/api/emergency-alerts/{$alert->id}/audio", [
+                'audio' => $audioFile,
+            ])->assertStatus(400);
+    }
 }

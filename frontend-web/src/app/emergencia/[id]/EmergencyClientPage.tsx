@@ -22,6 +22,7 @@ interface EmergencyData {
   last_check_in_at: string;
   share_contact_responses: boolean;
   responses: ResponseData[];
+  audio_url?: string | null;
   location: {
     latitude: number;
     longitude: number;
@@ -57,6 +58,8 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   useEffect(() => {
     if (!data || data.status === 'resolved') return;
 
+    const pollInterval = data.type === 'silent_sos' ? 5000 : 10000;
+
     const interval = setInterval(async () => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
@@ -67,7 +70,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
       } catch (err) {
         console.error('Error polling emergency status:', err);
       }
-    }, 10000);
+    }, pollInterval);
 
     return () => clearInterval(interval);
   }, [id, data]);
@@ -144,18 +147,38 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
-      <header className={`${data.status === 'resolved' ? 'bg-emerald-600' : 'bg-red-600'} text-white p-4 shadow-lg sticky top-0 z-50`}>
+      <header className={`${
+        data.status === 'resolved' 
+          ? 'bg-emerald-600' 
+          : data.type === 'silent_sos' 
+            ? 'bg-red-700 animate-pulse border-b-4 border-red-900 shadow-red-500/50 shadow-md' 
+            : 'bg-red-600'
+      } text-white p-4 shadow-lg sticky top-0 z-50 transition-all`}>
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-bold">
-              {data.status === 'resolved' ? 'ESTADO ACTUALIZADO' : 'ALERTA DE SEGURIDAD'}
+            <h1 className="text-xl font-extrabold tracking-wider">
+              {data.status === 'resolved' 
+                ? 'ESTADO ACTUALIZADO' 
+                : data.type === 'silent_sos' 
+                  ? '🚨 SOS SILENCIOSO ACTIVO' 
+                  : 'ALERTA DE SEGURIDAD'}
             </h1>
-            <p className="text-sm opacity-90">
-              {data.status === 'resolved' ? 'El usuario se encuentra a salvo' : 'Protocolo de Emergencia Activado'}
+            <p className="text-sm opacity-90 font-medium">
+              {data.status === 'resolved' 
+                ? 'El usuario se encuentra a salvo' 
+                : data.type === 'silent_sos' 
+                  ? '¡EMERGENCIA CRÍTICA EN TIEMPO REAL!' 
+                  : 'Protocolo de Emergencia Activado'}
             </p>
           </div>
-          <div className={`bg-white ${data.status === 'resolved' ? 'text-emerald-600' : 'text-red-600'} px-3 py-1 rounded-full text-xs font-bold ${data.status === 'resolved' ? '' : 'animate-pulse'}`}>
-            {data.status === 'resolved' ? 'RESUELTA' : 'VIVO'}
+          <div className={`bg-white ${
+            data.status === 'resolved' 
+              ? 'text-emerald-600' 
+              : data.type === 'silent_sos'
+                ? 'text-red-700 font-black'
+                : 'text-red-600'
+          } px-3 py-1 rounded-full text-xs font-bold ${data.status === 'resolved' ? '' : 'animate-pulse'}`}>
+            {data.status === 'resolved' ? 'RESUELTA' : data.type === 'silent_sos' ? 'EMERGENCIA' : 'VIVO'}
           </div>
         </div>
       </header>
@@ -194,6 +217,20 @@ export default function EmergencyClientPage({ id }: { id: string }) {
             </div>
           </div>
         </section>
+
+        {data.audio_url && (
+          <section className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6 space-y-3 animate-pulse">
+            <h3 className="text-lg font-black text-red-950 flex items-center gap-2">
+              🎙️ Grabación de Audio Ambiental
+            </h3>
+            <p className="text-xs text-red-700 leading-relaxed font-semibold">
+              Esta es una grabación de 15 segundos capturada de forma silenciosa por el micrófono del dispositivo al activarse la alerta.
+            </p>
+            <div className="pt-2">
+              <audio src={data.audio_url} controls className="w-full focus:outline-none rounded-lg" />
+            </div>
+          </section>
+        )}
 
         {data.status !== 'resolved' && (
           <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-6">
