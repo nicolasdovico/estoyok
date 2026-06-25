@@ -4,6 +4,6 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "preDeployCommand": "php artisan migrate --force && php artisan storage:link"
+    "preDeployCommand": "php artisan config:clear && php artisan migrate --force && php artisan storage:link"
   }
 }
