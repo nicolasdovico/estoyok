@@ -5,6 +5,7 @@ import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import EmergencyContacts from '@/components/EmergencyContacts';
 import SecuritySettings from '@/components/SecuritySettings';
+import BillingSection from '@/components/BillingSection';
 
 const TrackingMap = dynamic(() => import('@/components/CircleMap'), {
   ssr: false,
@@ -115,7 +116,7 @@ export default function Dashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isCheckingIn, setIsCheckingIn] = useState(false);
-  const [activeTab, setActiveTab] = useState<'wellbeing' | 'tracking'>('wellbeing');
+  const [activeTab, setActiveTab] = useState<'wellbeing' | 'tracking' | 'billing'>('wellbeing');
   const [notification, setNotification] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
   const [justCheckedIn, setJustCheckedIn] = useState(false);
   const [checkIns, setCheckIns] = useState<Array<{ id: number; source?: string; created_at: string }>>([]);
@@ -714,17 +715,26 @@ export default function Dashboard() {
           >
             <span className="text-xl">📍</span> Rastreo y Núcleos
           </button>
+          <button 
+            onClick={() => setActiveTab('billing')}
+            className={`w-full text-left px-4 py-4 rounded-2xl text-sm font-bold transition-all flex items-center gap-3 ${activeTab === 'billing' ? 'bg-yellow-50 text-yellow-600 shadow-sm' : 'text-gray-500 hover:bg-gray-50'}`}
+          >
+            <span className="text-xl">💳</span> Planes y Membresía
+          </button>
 
           <div className="pt-8 px-4 border-t border-gray-50 mt-4">
             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-4">Suscripción</p>
             {userData?.is_premium ? (
-              <div className="p-3 bg-yellow-50 rounded-xl border border-yellow-100">
-                <p className="text-xs font-bold text-yellow-800 uppercase">Premium Activo ⭐</p>
+              <div className="p-3 bg-yellow-50 rounded-xl border border-yellow-100 cursor-pointer" onClick={() => setActiveTab('billing')}>
+                <p className="text-xs font-bold text-yellow-800 uppercase text-center">Premium Activo ⭐</p>
               </div>
             ) : (
-              <Link href="/#premium" className="block p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 transition-colors text-center">
+              <button 
+                onClick={() => setActiveTab('billing')} 
+                className="w-full block p-4 bg-gray-50 hover:bg-gray-100 rounded-2xl border border-gray-200 transition-colors text-center cursor-pointer"
+              >
                 <p className="text-xs font-bold text-gray-700 uppercase">Mejorar a PRO →</p>
-              </Link>
+              </button>
             )}
           </div>
         </aside>
@@ -1741,6 +1751,14 @@ export default function Dashboard() {
                   })()
                 )}
               </div>
+            )}
+
+            {activeTab === 'billing' && (
+              <BillingSection 
+                userData={userData} 
+                setUserData={setUserData} 
+                showToast={showToast} 
+              />
             )}
           </div>
         </main>
