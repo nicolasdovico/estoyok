@@ -47,6 +47,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'sensor_checkin_enabled',
         'low_battery_alerts_enabled',
         'last_battery_alert_sent_at',
+        'proximity_alerts_enabled',
     ];
 
     /**
@@ -82,6 +83,7 @@ class User extends Authenticatable implements MustVerifyEmail
             'sensor_checkin_enabled' => 'boolean',
             'low_battery_alerts_enabled' => 'boolean',
             'last_battery_alert_sent_at' => 'datetime',
+            'proximity_alerts_enabled' => 'boolean',
         ];
     }
 
@@ -133,6 +135,16 @@ class User extends Authenticatable implements MustVerifyEmail
     public function crashEvents()
     {
         return $this->hasMany(CrashEvent::class);
+    }
+
+    public function initiatedDynamicGeofences()
+    {
+        return $this->hasMany(DynamicGeofence::class, 'initiator_id');
+    }
+
+    public function targetedDynamicGeofences()
+    {
+        return $this->hasMany(DynamicGeofence::class, 'target_id');
     }
 
     /**

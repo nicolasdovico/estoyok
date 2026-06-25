@@ -101,6 +101,10 @@
     - [x] Mobile Multiplatform: Corregido error de importación de `react-native-maps` en la compilación web de Metro extrayendo el mapa de historial a un componente con extensiones específicas de plataforma (`HistoryMap.tsx` y `HistoryMap.web.tsx`).
     - [x] Web: Marcador interactivo de coche (`🚗`) animado en `CircleMap.tsx` con colores condicionales según el límite excedido, badges inline de velocidad en el sidebar, formulario de ajuste para administradores, y promoción con características y FAQs en la Landing Page comercial (`page.tsx`).
   - [x] feat(drive): Detección automática de accidentes vehiculares mediante acelerómetro (Next.js, Expo, Laravel y tests).
+  - [x] feat(geofencing): Implementar geocercas móviles y alertas de proximidad relativas (Next.js, Expo, Laravel y tests).
+    - [x] Backend: Creadas tablas, modelo, job de cálculo de distancia geodésica PostGIS y endpoints de geocercas móviles con suite de tests.
+    - [x] Mobile: Alternancia automática de frecuencia de GPS a alta fidelidad (5s), toggle de privacidad en ajustes y modal/vibración de alerta de proximidad.
+    - [x] Web: Renderizado de círculo punteado, línea de trayectoria y tooltip dinámico en Leaflet.
 
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**

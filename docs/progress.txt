@@ -390,5 +390,24 @@
     - Actualizado el mapa de Leaflet (`EmergencyMap.tsx`) para renderizar un marcador interactivo de vehículo (`🚗`) con una animación pulsante de ondas de choque de Leaflet, velocímetro a 0 km/h y una ventana emergente detallada indicando la fuerza G.
     - Configurado el polling de ubicación acelerado a 5 segundos si el tipo de alerta activa es `crash`.
 
+## [2026-06-22] Geocercas Móviles y Alertas de Proximidad Relativas
+- **Backend (Laravel & Base de Datos):**
+    - Creada migración para la tabla `dynamic_geofences` y el campo `proximity_alerts_enabled` en la tabla `users` (ya ejecutada).
+    - Creados modelo `DynamicGeofence` y Job asíncrono `ProcessDynamicGeofencing` que calcula la distancia geodésica exacta en metros mediante PostGIS (`ST_Distance` con cast a `geography`).
+    - Implementado rate-limiting de 15 minutos en caché para prevenir spam de notificaciones, y notificaciones de tranquilidad al reingresar al radio seguro.
+    - Desarrollados endpoints `GET /api/dynamic-geofences/active`, `POST /api/dynamic-geofences`, `POST /api/dynamic-geofences/{id}/deactivate` y `PUT /api/settings/proximity-alerts`.
+    - Integrada respuesta con flag `active_dynamic_geofence: true/false` en el controlador de actualización de ubicación (`LocationController`).
+    - Desarrollada suite completa de pruebas en `DynamicGeofenceTest.php` (tests pasaron 100% exitosamente).
+    - Regenerada la especificación de OpenAPI/Swagger.
+- **Mobile Frontend (Expo / React Native):**
+    - Implementada lógica en `locationTask.ts` para cambiar dinámicamente el tracking de GPS de fondo a alta frecuencia (5s) si `active_dynamic_geofence` es verdadero.
+    - Añadidos listeners para notificaciones push en primer plano para activar vibración persistente nativa (`Vibration.vibrate`) y alert dialog con botón para detenerla.
+    - Agregado switch de privacidad en la pantalla de ajustes (`settings.tsx`).
+    - Agregados botones de activación radar y modales de selección de radio (30m, 50m, 100m) en el listado de miembros del núcleo de la Home Screen (`index.tsx`).
+- **Web Frontend (Next.js):**
+    - Agregado el switch de configuración de privacidad "Alertas de proximidad relativas" en `SecuritySettings.tsx` con sincronización e interfaces tipadas en `Dashboard.tsx`.
+    - Actualizado `CircleMap.tsx` de Leaflet para renderizar un círculo punteado sobre el tutor, y una línea conectora punteada entre miembros con tooltip flotante interactivo de distancia en vivo que cambia a color rojo en alerta de exceso de rango.
+    - Compilación de producción Next.js probada y finalizada con éxito (0 advertencias o errores).
+
 
 

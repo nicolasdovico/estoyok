@@ -16,6 +16,8 @@ if (Platform.OS !== 'web') {
       shouldShowAlert: true,
       shouldPlaySound: true,
       shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
     }),
   });
 }
@@ -72,6 +74,44 @@ export async function flushOfflineLocations() {
     }
   } catch (err) {
     console.error('Error flushing offline locations:', err);
+  }
+}
+
+async function handleDynamicFrequencyUpdate(activeDynamicGeofence: boolean) {
+  if (Platform.OS === 'web') return;
+  try {
+    const isHighFrequencyStr = await AsyncStorage.getItem('is_high_frequency');
+    const isCurrentlyHigh = isHighFrequencyStr === 'true';
+
+    if (activeDynamicGeofence && !isCurrentlyHigh) {
+      console.log('Transitioning to HIGH frequency GPS updates (5s) for Proximity Radar...');
+      await AsyncStorage.setItem('is_high_frequency', 'true');
+      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 5000, // 5 seconds
+        distanceInterval: 2,
+        foregroundService: {
+          notificationTitle: 'Estoy Ok - Radar de Proximidad',
+          notificationBody: 'Monitoreando radar de proximidad activo...',
+          notificationColor: '#dc2626',
+        },
+      });
+    } else if (!activeDynamicGeofence && isCurrentlyHigh) {
+      console.log('Restoring to NORMAL frequency GPS updates (60s)...');
+      await AsyncStorage.setItem('is_high_frequency', 'false');
+      await Location.startLocationUpdatesAsync(LOCATION_TASK_NAME, {
+        accuracy: Location.Accuracy.Balanced,
+        timeInterval: 60000, // 60 seconds
+        distanceInterval: 100,
+        foregroundService: {
+          notificationTitle: 'Estoy Ok está activo',
+          notificationBody: 'Protegiendo tu ubicación en segundo plano',
+          notificationColor: '#dc2626',
+        },
+      });
+    }
+  } catch (err) {
+    console.error('Failed to change location update frequency:', err);
   }
 }
 
@@ -183,8 +223,12 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
           await queueOfflineLocation(payload);
         } else {
           try {
-            await api.post('/locations/update', payload);
+            const response = await api.post('/locations/update', payload);
             console.log('Background location updated via TaskManager');
+            
+            const activeDynamicGeofence = response.data?.active_dynamic_geofence ?? false;
+            await handleDynamicFrequencyUpdate(activeDynamicGeofence);
+
             // Try to flush any previously queued locations
             await flushOfflineLocations();
           } catch (apiErr) {

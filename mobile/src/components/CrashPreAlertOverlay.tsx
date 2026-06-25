@@ -99,7 +99,7 @@ export default function CrashPreAlertOverlay() {
           lat = lastLoc.coords.latitude;
           lon = lastLoc.coords.longitude;
         }
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced, timeout: 5000 });
+        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
         if (loc) {
           lat = loc.coords.latitude;
           lon = loc.coords.longitude;

@@ -32,6 +32,7 @@ export default function SettingsScreen() {
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState('15');
   const [shareContactResponses, setShareContactResponses] = useState(true);
   const [lowBatteryAlertsEnabled, setLowBatteryAlertsEnabled] = useState(true);
+  const [proximityAlertsEnabled, setProximityAlertsEnabled] = useState(true);
   const [wifiCheckinEnabled, setWifiCheckinEnabled] = useState(false);
   const [safeWifiSsid, setSafeWifiSsid] = useState('');
   const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(false);
@@ -65,6 +66,7 @@ export default function SettingsScreen() {
       setEscalationIntervalMinutes((data.escalation_interval_minutes || 15).toString());
       setShareContactResponses(data.share_contact_responses !== false);
       setLowBatteryAlertsEnabled(data.low_battery_alerts_enabled !== false);
+      setProximityAlertsEnabled(data.proximity_alerts_enabled !== false);
       setWifiCheckinEnabled(data.wifi_checkin_enabled || false);
       setSafeWifiSsid(data.safe_wifi_ssid || '');
       setSensorCheckinEnabled(data.sensor_checkin_enabled || false);
@@ -170,6 +172,20 @@ export default function SettingsScreen() {
       Alert.alert('Éxito', `Alertas de batería baja ${enabled ? 'activadas' : 'desactivadas'}.`);
     } catch (error) {
       setLowBatteryAlertsEnabled(!enabled); // revert
+      Alert.alert('Error', 'No se pudo actualizar la configuración.');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleToggleProximityAlerts = async (enabled: boolean) => {
+    setProximityAlertsEnabled(enabled);
+    setIsUpdating(true);
+    try {
+      await settingsService.updateProximityAlerts(enabled);
+      Alert.alert('Éxito', `Alertas de proximidad relativas ${enabled ? 'habilitadas' : 'deshabilitadas'}.`);
+    } catch (error) {
+      setProximityAlertsEnabled(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar la configuración.');
     } finally {
       setIsUpdating(false);
@@ -568,6 +584,20 @@ export default function SettingsScreen() {
               onValueChange={handleToggleLowBatteryAlerts}
               trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
               thumbColor={lowBatteryAlertsEnabled ? '#dc2626' : '#f4f3f4'}
+              disabled={isUpdating}
+            />
+          </View>
+
+          <View style={[styles.row, { marginTop: 20 }]}>
+            <View style={{ flex: 1, marginRight: 10 }}>
+              <Text style={styles.sectionTitle}>Alertas de proximidad relativas</Text>
+              <Text style={styles.description}>Permite que otros miembros de tu núcleo inicien radares de distancia contigo.</Text>
+            </View>
+            <Switch
+              value={proximityAlertsEnabled}
+              onValueChange={handleToggleProximityAlerts}
+              trackColor={{ false: '#e5e7eb', true: '#fca5a5' }}
+              thumbColor={proximityAlertsEnabled ? '#dc2626' : '#f4f3f4'}
               disabled={isUpdating}
             />
           </View>

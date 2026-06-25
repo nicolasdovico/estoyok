@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SettingsController;
 use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\HistoryController;
+use App\Http\Controllers\Api\DynamicGeofenceController;
 use App\Http\Controllers\EmergencyAlertController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -61,6 +62,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/geofences/{geofence}', [GeofenceController::class, 'update']);
     Route::delete('/geofences/{geofence}', [GeofenceController::class, 'destroy']);
 
+    // Dynamic Geofences
+    Route::get('/dynamic-geofences/active', [DynamicGeofenceController::class, 'active']);
+    Route::post('/dynamic-geofences', [DynamicGeofenceController::class, 'store']);
+    Route::post('/dynamic-geofences/{id}/deactivate', [DynamicGeofenceController::class, 'deactivate']);
+
     // Emergency Contacts
     Route::post('/emergency-contacts/reorder', [EmergencyContactController::class, 'reorder']);
     Route::apiResource('emergency-contacts', EmergencyContactController::class);
@@ -72,6 +78,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
     Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
     Route::put('/settings/automation', [SettingsController::class, 'updateAutomation']);
+    Route::put('/settings/proximity-alerts', [SettingsController::class, 'updateProximityAlerts']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

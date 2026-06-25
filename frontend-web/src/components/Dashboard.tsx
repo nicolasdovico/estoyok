@@ -26,6 +26,7 @@ interface UserData {
   escalation_interval_minutes?: number;
   share_contact_responses?: boolean;
   low_battery_alerts_enabled?: boolean;
+  proximity_alerts_enabled?: boolean;
   wifi_checkin_enabled?: boolean;
   safe_wifi_ssid?: string | null;
   sensor_checkin_enabled?: boolean;
@@ -102,6 +103,14 @@ interface CircleData {
   }>;
 }
 
+interface DynamicGeofence {
+  id: number;
+  initiator_id: number;
+  target_id: number;
+  safe_radius_meters: number;
+  is_active?: boolean;
+}
+
 export default function Dashboard() {
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -129,6 +138,11 @@ export default function Dashboard() {
   const [geofenceLongitude, setGeofenceLongitude] = useState<number | null>(null);
   const [isCreatingGeofence, setIsCreatingGeofence] = useState(false);
 
+  // Estados para Radar de Proximidad Dinámico
+  const [activeGeofences, setActiveGeofences] = useState<DynamicGeofence[]>([]);
+  const [selectedRadarMemberId, setSelectedRadarMemberId] = useState<number | null>(null);
+  const [isUpdatingProximity, setIsUpdatingProximity] = useState(false);
+
   // Estados para Historial de Ubicaciones y Reproducción
   const [expandedHistoryMemberId, setExpandedHistoryMemberId] = useState<number | null>(null);
   const [historyMemberId, setHistoryMemberId] = useState<number | null>(null);
@@ -140,6 +154,8 @@ export default function Dashboard() {
       return local.toISOString().split('T')[0];
     })()
   );
+  const [minHistoryDate, setMinHistoryDate] = useState('');
+  const [maxHistoryDate, setMaxHistoryDate] = useState('');
   const [historyPoints, setHistoryPoints] = useState<Array<{ id: number; accuracy: number; recorded_at: string; latitude: number; longitude: number }>>([]);
   const [historyLoading, setHistoryLoading] = useState(false);
   const [playbackIndex, setPlaybackIndex] = useState<number>(0);
@@ -487,23 +503,142 @@ export default function Dashboard() {
     }
   };
 
+  const fetchActiveGeofences = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dynamic-geofences/active`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        }
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setActiveGeofences(data);
+      }
+    } catch (err) {
+      console.error('Error fetching active dynamic geofences:', err);
+    }
+  };
+
+  const handleStartWebRadar = async (targetId: number, radius: number) => {
+    setSelectedRadarMemberId(null);
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dynamic-geofences`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          target_id: targetId,
+          safe_radius_meters: radius,
+        })
+      });
+
+      if (response.ok) {
+        showToast(`Radar de proximidad iniciado (${radius}m).`, 'success');
+        fetchActiveGeofences();
+      } else {
+        const errData = await response.json();
+        showToast(errData.message || 'No se pudo iniciar el radar.', 'error');
+      }
+    } catch {
+      showToast('Error de red al iniciar el radar.', 'error');
+    }
+  };
+
+  const handleStopWebRadar = async (radarId: number) => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dynamic-geofences/${radarId}/deactivate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        }
+      });
+
+      if (response.ok) {
+        showToast('Radar de proximidad desactivado.', 'success');
+        fetchActiveGeofences();
+      } else {
+        showToast('No se pudo desactivar el radar.', 'error');
+      }
+    } catch {
+      showToast('Error de red al desactivar el radar.', 'error');
+    }
+  };
+
+  const handleToggleWebProximityAlerts = async () => {
+    const token = localStorage.getItem('auth_token');
+    if (!token) return;
+    setIsUpdatingProximity(true);
+    const newValue = !(userData?.proximity_alerts_enabled !== false);
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/proximity-alerts`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ proximity_alerts_enabled: newValue })
+      });
+      if (response.ok) {
+        setUserData((prev: UserData | null) => prev ? { ...prev, proximity_alerts_enabled: newValue } : null);
+        showToast(newValue ? 'Radares de proximidad permitidos.' : 'Radares de proximidad desactivados.', 'success');
+      } else {
+        showToast('No se pudo actualizar la privacidad del radar.', 'error');
+      }
+    } catch {
+      showToast('Error de conexión al actualizar privacidad.', 'error');
+    } finally {
+      setIsUpdatingProximity(false);
+    }
+  };
+
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchUserData();
       fetchCheckIns();
       fetchCircles();
+      fetchActiveGeofences();
     }, 0);
 
     const interval = setInterval(() => {
       fetchUserData();
       fetchCircles();
-    }, 30000);
+      fetchActiveGeofences();
+    }, 10000);
 
     return () => {
       clearTimeout(timer);
       clearInterval(interval);
     };
   }, [selectedCircleId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    const now = Date.now();
+    const today = new Date(now).toISOString().split('T')[0];
+    const min = userData?.is_premium
+      ? new Date(now - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
+      : new Date(now - 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
+    const timeoutId = setTimeout(() => {
+      setMaxHistoryDate(today);
+      setMinHistoryDate(min);
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [userData?.is_premium]);
 
   const handleCheckIn = async () => {
     setIsCheckingIn(true);
@@ -726,6 +861,7 @@ export default function Dashboard() {
                     initialWifiCheckinEnabled={userData?.wifi_checkin_enabled || false}
                     initialSafeWifiSsid={userData?.safe_wifi_ssid || ''}
                     initialSensorCheckinEnabled={userData?.sensor_checkin_enabled || false}
+                    initialProximityAlertsEnabled={userData?.proximity_alerts_enabled ?? true}
                   />
                 </div>
 
@@ -812,6 +948,40 @@ export default function Dashboard() {
                         </select>
                       </div>
                     )}
+                  </div>
+                </div>
+
+                {/* Radar Privacy Global Toggle on Tracking Page */}
+                <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-base font-black text-gray-900 flex items-center gap-2">
+                      <span>📡 Privacidad de Radar de Proximidad</span>
+                      <div className="relative group inline-block cursor-help font-normal">
+                        <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-4 h-4 rounded-full inline-flex items-center justify-center font-bold">?</span>
+                        <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-64 p-3 bg-gray-900 text-xs text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed">
+                          Controla si los miembros de tus núcleos autorizados pueden iniciar radares de distancia relativa contigo.
+                          <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                        </div>
+                      </div>
+                    </h3>
+                    <p className="text-xs text-gray-500 font-medium">
+                      Permite que otros familiares de tu círculo inicien radares contigo.
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-4 flex-shrink-0">
+                    <span className="text-xs font-bold text-gray-700">
+                      {userData?.proximity_alerts_enabled !== false ? '🟢 Permitir Radares' : '🔴 Bloquear Radares'}
+                    </span>
+                    <button
+                      onClick={handleToggleWebProximityAlerts}
+                      disabled={isUpdatingProximity}
+                      className={`
+                        w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                        ${(userData?.proximity_alerts_enabled !== false) ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+                      `}
+                    >
+                      <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+                    </button>
                   </div>
                 </div>
 
@@ -962,12 +1132,8 @@ export default function Dashboard() {
                                     <input
                                       type="date"
                                       value={historyDate}
-                                      max={new Date().toISOString().split('T')[0]}
-                                      min={
-                                        userData?.is_premium
-                                          ? new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                                          : new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().split('T')[0]
-                                      }
+                                      max={maxHistoryDate}
+                                      min={minHistoryDate}
                                       onChange={(e) => setHistoryDate(e.target.value)}
                                       className="w-full px-3 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold focus:outline-none focus:border-indigo-500"
                                     />
@@ -991,21 +1157,22 @@ export default function Dashboard() {
                               </div>
                             )}
 
-                            <div className="h-[480px] w-full relative rounded-2xl overflow-hidden border border-gray-100">
-                              <TrackingMap
-                                members={circle.users}
-                                geofences={circle.geofences}
-                                center={mapCenter}
-                                onMapClick={(lat, lng) => {
-                                  setGeofenceLatitude(lat);
-                                  setGeofenceLongitude(lng);
-                                  showToast(`Ubicación marcada: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, 'success');
-                                }}
-                                clickedCoords={geofenceLatitude && geofenceLongitude ? [geofenceLatitude, geofenceLongitude] : null}
-                                historyRoute={historyPoints}
-                                playbackIndex={playbackIndex}
-                                speedLimit={circle.speed_limit || 120}
-                              />
+                             <div className="h-[480px] w-full relative rounded-2xl overflow-hidden border border-gray-100">
+                               <TrackingMap
+                                 members={circle.users}
+                                 geofences={circle.geofences}
+                                 activeGeofences={activeGeofences}
+                                 center={mapCenter}
+                                 onMapClick={(lat, lng) => {
+                                   setGeofenceLatitude(lat);
+                                   setGeofenceLongitude(lng);
+                                   showToast(`Ubicación marcada: ${lat.toFixed(5)}, ${lng.toFixed(5)}`, 'success');
+                                 }}
+                                 clickedCoords={geofenceLatitude && geofenceLongitude ? [geofenceLatitude, geofenceLongitude] : null}
+                                 historyRoute={historyPoints}
+                                 playbackIndex={playbackIndex}
+                                 speedLimit={circle.speed_limit || 120}
+                               />
 
                               {/* Route History Playback Controls - Floating Glassmorphic Panel */}
                               {historyMemberId !== null && (
@@ -1249,6 +1416,7 @@ export default function Dashboard() {
                             </div>
                           </div>
 
+
                           {/* Lista de Miembros */}
                           <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 space-y-6">
                             <div>
@@ -1262,6 +1430,12 @@ export default function Dashboard() {
                                 const isOwner = circle.owner_id === member.id;
                                 const isCurrentUserAdmin = circle.users.find((u: CircleData['users'][number]) => u.id === userData?.id)?.pivot?.role === 'admin';
                                 const activeSos = member.active_emergency_alerts?.find(alert => alert.type === 'silent_sos' && alert.status === 'active');
+                                const activeRadar = activeGeofences.find(
+                                  (g: DynamicGeofence) => g.is_active && g.initiator_id === userData?.id && g.target_id === member.id
+                                );
+                                const isBeingTrackedByRadar = activeGeofences.find(
+                                  (g: DynamicGeofence) => g.is_active && g.target_id === userData?.id && g.initiator_id === member.id
+                                );
                                 return (
                                     <div key={member.id} className={`flex items-center justify-between gap-4 p-3 rounded-2xl border transition-all ${
                                       activeSos 
@@ -1287,6 +1461,16 @@ export default function Dashboard() {
                                             {activeSos && (
                                               <span className="text-[9px] bg-red-600 text-white font-extrabold px-1.5 py-0.5 rounded-md animate-pulse">
                                                 🚨 SOS ACTIVO
+                                              </span>
+                                            )}
+                                            {activeRadar && (
+                                              <span className="text-[9px] bg-red-50 text-red-600 border border-red-200 font-extrabold px-1.5 py-0.5 rounded-md animate-pulse">
+                                                📡 Radar: {activeRadar.safe_radius_meters}m
+                                              </span>
+                                            )}
+                                            {isBeingTrackedByRadar && (
+                                              <span className="text-[9px] bg-blue-50 text-blue-600 border border-blue-200 font-extrabold px-1.5 py-0.5 rounded-md animate-pulse">
+                                                📡 Radar Activo
                                               </span>
                                             )}
                                           </div>
@@ -1355,7 +1539,6 @@ export default function Dashboard() {
                                                   } else if (lvl < 0.50) {
                                                     colorClass = 'text-amber-600 bg-amber-50 border-amber-100';
                                                   }
-
                                                   return (
                                                     <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-md border text-[9px] font-black ${colorClass}`} title={`Batería: ${pct}%`}>
                                                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 12" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -1371,38 +1554,80 @@ export default function Dashboard() {
                                             </div>
                                           )}
                                         </div>
-                                      </div>
+                                       </div>
 
-                                      <div className="flex items-center gap-2 shrink-0">
-                                        {activeSos && (
-                                          <a
-                                            href={`/emergencia/${activeSos.id}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="text-[10px] bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer animate-bounce flex items-center justify-center gap-1"
-                                          >
-                                            Ver Alerta
-                                          </a>
-                                        )}
+                                       <div className="flex items-center gap-2 shrink-0">
+                                         {activeSos && (
+                                           <a
+                                             href={`/emergencia/${activeSos.id}`}
+                                             target="_blank"
+                                             rel="noopener noreferrer"
+                                             className="text-[10px] bg-red-600 hover:bg-red-700 text-white px-2.5 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer animate-bounce flex items-center justify-center gap-1"
+                                           >
+                                             Ver Alerta
+                                           </a>
+                                         )}
 
-                                        {isSelf ? (
-                                          <button
-                                            onClick={() => handleRemoveMember(circle.id, member.id)}
-                                            className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
-                                          >
-                                            Salir
-                                          </button>
-                                        ) : (
-                                          (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
-                                            <button
-                                              onClick={() => handleRemoveMember(circle.id, member.id)}
-                                              className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
-                                            >
-                                              Expulsar
-                                            </button>
-                                          )
-                                        )}
-                                      </div>
+                                         {!isSelf && (
+                                           activeRadar ? (
+                                             <button
+                                               onClick={() => handleStopWebRadar(activeRadar.id)}
+                                               className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 border border-red-200 px-2.5 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer flex items-center gap-1"
+                                               title="Detener radar de proximidad"
+                                             >
+                                               📡 Parar
+                                             </button>
+                                           ) : (
+                                             <div className="relative">
+                                               {selectedRadarMemberId === member.id ? (
+                                                 <div className="absolute right-0 bottom-full mb-1 bg-white border border-gray-200 rounded-xl shadow-xl p-2 z-[1050] flex flex-col gap-1 min-w-[120px]">
+                                                   <span className="text-[9px] font-black text-gray-400 uppercase tracking-wider text-center block pb-1 border-b border-gray-150">Radio</span>
+                                                   {[30, 50, 100].map(radius => (
+                                                     <button
+                                                       key={radius}
+                                                       onClick={() => handleStartWebRadar(member.id, radius)}
+                                                       className="text-left text-[10px] font-bold text-gray-700 hover:bg-red-50 hover:text-red-600 px-2.5 py-1.5 rounded-lg transition-colors w-full cursor-pointer"
+                                                     >
+                                                       {radius} metros
+                                                     </button>
+                                                   ))}
+                                                   <button
+                                                     onClick={() => setSelectedRadarMemberId(null)}
+                                                     className="text-center text-[9px] font-bold text-gray-405 hover:bg-gray-100 px-2.5 py-1.5 rounded-lg transition-colors mt-1 pt-1 border-t border-gray-100 w-full cursor-pointer"
+                                                   >
+                                                     Cancelar
+                                                   </button>
+                                                 </div>
+                                               ) : null}
+                                               <button
+                                                 onClick={() => setSelectedRadarMemberId(member.id)}
+                                                 className="text-[10px] bg-blue-50 text-blue-600 hover:bg-blue-100 border border-blue-255 px-2.5 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer flex items-center gap-1"
+                                                 title="Iniciar radar de proximidad"
+                                               >
+                                                 📡 Radar
+                                               </button>
+                                             </div>
+                                           )
+                                         )}
+
+                                         {isSelf ? (
+                                           <button
+                                             onClick={() => handleRemoveMember(circle.id, member.id)}
+                                             className="text-[10px] bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-xl font-extrabold transition-all cursor-pointer"
+                                           >
+                                             Salir
+                                           </button>
+                                         ) : (
+                                           (circle.owner_id === userData?.id || (isCurrentUserAdmin && !isOwner)) && (
+                                             <button
+                                               onClick={() => handleRemoveMember(circle.id, member.id)}
+                                               className="text-[10px] text-gray-400 hover:text-red-600 px-2 py-1.5 font-bold transition-all cursor-pointer"
+                                             >
+                                               Expulsar
+                                             </button>
+                                           )
+                                         )}
+                                       </div>
                                     </div>
                                   );
                               })}

@@ -1,11 +1,19 @@
+import '@/services/polyfill';
 import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
 import { Stack } from 'expo-router';
-import { useColorScheme, View, ActivityIndicator } from 'react-native';
+import { useColorScheme, View, ActivityIndicator, LogBox } from 'react-native';
 import { AuthProvider, useAuth } from '@/context/AuthContext';
 import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import '@/services/locationTask'; // Registro de tarea de fondo
 import CrashPreAlertOverlay from '@/components/CrashPreAlertOverlay';
+
+// Suppress known Expo Go dev-environment warnings/errors
+LogBox.ignoreLogs([
+  'expo-notifications: Android Push notifications',
+  '[expo-av]: Expo AV has been deprecated',
+  'Background location is limited in Expo Go',
+]);
 
 function RootLayoutNav() {
   const { user, isLoading } = useAuth();

@@ -53,5 +53,11 @@ export const settingsService = {
       speed_limit: speedLimit
     });
     return response.data;
+  },
+  updateProximityAlerts: async (enabled: boolean) => {
+    const response = await api.put('/settings/proximity-alerts', {
+      proximity_alerts_enabled: enabled
+    });
+    return response.data;
   }
 };

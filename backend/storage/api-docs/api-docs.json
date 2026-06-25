@@ -588,6 +588,103 @@
                 ]
             }
         },
+        "/dynamic-geofences/active": {
+            "get": {
+                "tags": [
+                    "Geocercas Dinámicas"
+                ],
+                "summary": "Listar geocercas móviles activas involucradas para el usuario autenticado",
+                "operationId": "c3fe430b2773d7ecc1dfc345a6150fba",
+                "responses": {
+                    "200": {
+                        "description": "Lista de geocercas móviles activas"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/dynamic-geofences": {
+            "post": {
+                "tags": [
+                    "Geocercas Dinámicas"
+                ],
+                "summary": "Crear una geocerca móvil (alerta de proximidad dinámica)",
+                "operationId": "cc8d6ae548c801bb32eb9b3a9d6bbf4b",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "target_id",
+                                    "safe_radius_meters"
+                                ],
+                                "properties": {
+                                    "target_id": {
+                                        "type": "integer",
+                                        "example": 2
+                                    },
+                                    "safe_radius_meters": {
+                                        "type": "integer",
+                                        "example": 50
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Geocerca móvil creada exitosamente"
+                    },
+                    "403": {
+                        "description": "No autorizado / Privacidad inhabilitada por el familiar"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/dynamic-geofences/{id}/deactivate": {
+            "post": {
+                "tags": [
+                    "Geocercas Dinámicas"
+                ],
+                "summary": "Desactivar una geocerca móvil activa",
+                "operationId": "99fb5b527b86643ccf20295e6f194c87",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Geocerca móvil desactivada"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/emergency-contacts": {
             "get": {
                 "tags": [
@@ -1400,6 +1497,61 @@
                     }
                 ]
             }
+        },
+        "/settings/proximity-alerts": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar configuración de alertas de proximidad relativas",
+                "operationId": "9d247b6ddf626f8ad040bac8582ad0b2",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "proximity_alerts_enabled"
+                                ],
+                                "properties": {
+                                    "proximity_alerts_enabled": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuración actualizada",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Proximity alerts settings updated successfully"
+                                        },
+                                        "proximity_alerts_enabled": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [
@@ -1414,6 +1566,10 @@
         {
             "name": "Círculos",
             "description": "Círculos"
+        },
+        {
+            "name": "Geocercas Dinámicas",
+            "description": "Geocercas Dinámicas"
         },
         {
             "name": "Contactos de Emergencia",

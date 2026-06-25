@@ -307,4 +307,47 @@ class SettingsController extends Controller
             'sensor_checkin_enabled' => $user->sensor_checkin_enabled,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/proximity-alerts',
+        summary: 'Actualizar configuración de alertas de proximidad relativas',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['proximity_alerts_enabled'],
+                properties: [
+                    new OA\Property(property: 'proximity_alerts_enabled', type: 'boolean', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración actualizada',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Proximity alerts settings updated successfully'),
+                        new OA\Property(property: 'proximity_alerts_enabled', type: 'boolean', example: true),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function updateProximityAlerts(Request $request)
+    {
+        $validated = $request->validate([
+            'proximity_alerts_enabled' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+        $user->update($validated);
+
+        return response()->json([
+            'message' => 'Proximity alerts settings updated successfully',
+            'proximity_alerts_enabled' => (bool) $user->proximity_alerts_enabled,
+        ]);
+    }
 }
+

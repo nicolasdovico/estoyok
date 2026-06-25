@@ -23,6 +23,7 @@ interface SecuritySettingsProps {
   initialWifiCheckinEnabled: boolean;
   initialSafeWifiSsid: string;
   initialSensorCheckinEnabled: boolean;
+  initialProximityAlertsEnabled?: boolean;
 }
 
 export default function SecuritySettings({
@@ -38,6 +39,7 @@ export default function SecuritySettings({
   initialWifiCheckinEnabled,
   initialSafeWifiSsid,
   initialSensorCheckinEnabled,
+  initialProximityAlertsEnabled,
 }: SecuritySettingsProps) {
   const [interval, setIntervalValue] = useState(initialInterval);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(initialQuietHoursEnabled);
@@ -48,6 +50,7 @@ export default function SecuritySettings({
   const [escalationIntervalMinutes, setEscalationIntervalMinutes] = useState(initialEscalationIntervalMinutes);
   const [shareContactResponses, setShareContactResponses] = useState(initialShareContactResponses);
   const [lowBatteryAlertsEnabled, setLowBatteryAlertsEnabled] = useState(initialLowBatteryAlertsEnabled);
+  const [proximityAlertsEnabled, setProximityAlertsEnabled] = useState(initialProximityAlertsEnabled !== false);
   const [wifiCheckinEnabled, setWifiCheckinEnabled] = useState(initialWifiCheckinEnabled);
   const [safeWifiSsid, setSafeWifiSsid] = useState(initialSafeWifiSsid);
   const [sensorCheckinEnabled, setSensorCheckinEnabled] = useState(initialSensorCheckinEnabled);
@@ -137,6 +140,11 @@ export default function SecuritySettings({
     // eslint-disable-next-line react-hooks/set-state-in-effect
     setSensorCheckinEnabled(initialSensorCheckinEnabled);
   }, [initialSensorCheckinEnabled]);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setProximityAlertsEnabled(initialProximityAlertsEnabled !== false);
+  }, [initialProximityAlertsEnabled]);
 
   const handleUpdate = async (value: number) => {
     setIsUpdating(true);
@@ -303,6 +311,40 @@ export default function SecuritySettings({
         const errorData = await response.json();
         console.error('Validation errors:', errorData);
         setMessage('Error al actualizar privacidad: ' + JSON.stringify(errorData.errors || errorData.message));
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage('Error de conexión');
+    } finally {
+      setIsUpdating(false);
+    }
+  };
+
+  const handleUpdateProximityAlerts = async (enabled: boolean) => {
+    setIsUpdating(true);
+    setMessage('');
+    const token = localStorage.getItem('auth_token');
+
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/settings/proximity-alerts`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          proximity_alerts_enabled: enabled,
+        }),
+      });
+
+      if (response.ok) {
+        setProximityAlertsEnabled(enabled);
+        setMessage('Configuración de alertas de proximidad actualizada');
+        setTimeout(() => setMessage(''), 3000);
+      } else {
+        const errorData = await response.json();
+        console.error('Validation errors:', errorData);
+        setMessage('Error al actualizar: ' + JSON.stringify(errorData.errors || errorData.message));
       }
     } catch (err) {
       console.error(err);
@@ -590,6 +632,38 @@ export default function SecuritySettings({
               className={`
                 w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
                 ${lowBatteryAlertsEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
+              `}
+            >
+              <div className="w-5 h-5 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+        </div>
+
+        <hr className="my-6 border-gray-100" />
+
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
+                <span>Alertas de proximidad relativas</span>
+                <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
+                  <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
+                  <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
+                    Permite que otros miembros de tu núcleo inicien radares de distancia contigo.
+                    <div className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 bg-gray-900 rotate-45 -mt-1"></div>
+                  </div>
+                </div>
+              </label>
+              <p className="text-[11px] text-gray-400 mt-1 ml-1 leading-relaxed">
+                Controla si otros familiares pueden iniciar alertas de distancia relativa contigo.
+              </p>
+            </div>
+            <button
+              onClick={() => handleUpdateProximityAlerts(!proximityAlertsEnabled)}
+              disabled={isUpdating}
+              className={`
+                w-12 h-6 rounded-full p-0.5 transition-all duration-200 cursor-pointer flex items-center flex-shrink-0
+                ${proximityAlertsEnabled ? 'bg-red-600 justify-end' : 'bg-gray-200 justify-start'}
               `}
             >
               <div className="w-5 h-5 rounded-full bg-white shadow-sm" />

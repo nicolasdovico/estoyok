@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Jobs\ProcessGeofencing;
+use App\Jobs\ProcessDynamicGeofencing;
 use App\Jobs\SendBatteryAlertJob;
 use App\Jobs\SendSpeedingAlertJob;
 use App\Models\CurrentLocation;
@@ -185,9 +186,20 @@ class LocationController extends Controller
 
                 // 5. Dispatch Geofencing processing
                 ProcessGeofencing::dispatch($user, $lat, $lng);
+                ProcessDynamicGeofencing::dispatch($user, $lat, $lng);
             });
 
-            return response()->json(['message' => 'Location updated']);
+            $activeGeofenceExists = \App\Models\DynamicGeofence::active()
+                ->where(function ($query) use ($user) {
+                    $query->where('initiator_id', $user->id)
+                          ->orWhere('target_id', $user->id);
+                })
+                ->exists();
+
+            return response()->json([
+                'message' => 'Location updated',
+                'active_dynamic_geofence' => $activeGeofenceExists,
+            ]);
         } catch (\Exception $e) {
             Log::error("Failed to update location for user {$user->id}: ".$e->getMessage());
 

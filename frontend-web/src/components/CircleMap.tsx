@@ -1,8 +1,8 @@
 'use client';
 
-import { MapContainer, TileLayer, Marker, Popup, Circle as LeafletCircle, useMap, useMapEvents, Polyline } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, Circle as LeafletCircle, useMap, useMapEvents, Polyline, Tooltip } from 'react-leaflet';
 import L from 'leaflet';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Fragment } from 'react';
 
 // Fix for default marker icons in Leaflet + Next.js
 const DefaultIcon = L.icon({
@@ -101,9 +101,17 @@ interface Geofence {
   } | null;
 }
 
+interface DynamicGeofence {
+  id: number;
+  initiator_id: number;
+  target_id: number;
+  safe_radius_meters: number;
+}
+
 interface MapProps {
   members: Member[];
   geofences: Geofence[];
+  activeGeofences?: DynamicGeofence[];
   center: [number, number];
   zoom?: number;
   onMapClick?: (lat: number, lng: number) => void;
@@ -141,6 +149,7 @@ function MapEventsHandler({ onMapClick }: { onMapClick?: (lat: number, lng: numb
 export default function CircleMap({ 
   members, 
   geofences, 
+  activeGeofences: propActiveGeofences,
   center, 
   zoom = 13, 
   onMapClick,
@@ -150,6 +159,8 @@ export default function CircleMap({
   speedLimit
 }: MapProps) {
   const [isMounted, setIsMounted] = useState(false);
+  const [fetchedActiveGeofences, setFetchedActiveGeofences] = useState<DynamicGeofence[]>([]);
+  const activeGeofences = propActiveGeofences || fetchedActiveGeofences;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -157,6 +168,32 @@ export default function CircleMap({
     }, 0);
     return () => clearTimeout(timer);
   }, []);
+
+  useEffect(() => {
+    if (propActiveGeofences) return;
+
+    const fetchActiveGeofences = async () => {
+      const token = localStorage.getItem('auth_token');
+      if (!token) return;
+      try {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dynamic-geofences/active`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+          }
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setFetchedActiveGeofences(data);
+        }
+      } catch (err) {
+        console.error('Failed to fetch active geofences on map:', err);
+      }
+    };
+
+    fetchActiveGeofences();
+    const interval = setInterval(fetchActiveGeofences, 10000);
+    return () => clearInterval(interval);
+  }, [propActiveGeofences]);
 
   if (!isMounted) return null;
 
@@ -326,6 +363,60 @@ export default function CircleMap({
             </Popup>
           </LeafletCircle>
         ))}
+
+        {/* Active Dynamic Geofences */}
+        {activeGeofences.map(geofence => {
+          const initiator = members.find(m => m.id === geofence.initiator_id);
+          const target = members.find(m => m.id === geofence.target_id);
+
+          if (!initiator?.current_location || !target?.current_location) return null;
+
+          const initLoc = initiator.current_location;
+          const targLoc = target.current_location;
+
+          if (initLoc.latitude === null || initLoc.latitude === undefined || initLoc.longitude === null || initLoc.longitude === undefined) return null;
+          if (targLoc.latitude === null || targLoc.latitude === undefined || targLoc.longitude === null || targLoc.longitude === undefined) return null;
+
+          const distance = haversineDistance(initLoc.latitude, initLoc.longitude, targLoc.latitude, targLoc.longitude);
+          const isBreached = distance > geofence.safe_radius_meters;
+
+          const color = isBreached ? '#ef4444' : '#3b82f6';
+
+          return (
+            <Fragment key={`dynamic-gf-${geofence.id}`}>
+              {/* Círculo de Seguridad sobre el Tutor */}
+              <LeafletCircle
+                center={[initLoc.latitude, initLoc.longitude]}
+                radius={geofence.safe_radius_meters}
+                pathOptions={{
+                  color: color,
+                  fillColor: color,
+                  fillOpacity: 0.05,
+                  weight: 1.5,
+                  dashArray: '5, 10',
+                }}
+              />
+
+              {/* Línea Conectora entre Tutor y Familiar */}
+              <Polyline
+                positions={[
+                  [initLoc.latitude, initLoc.longitude],
+                  [targLoc.latitude, targLoc.longitude]
+                ]}
+                pathOptions={{
+                  color: color,
+                  weight: 2,
+                  dashArray: '4, 4',
+                }}
+              >
+                <Tooltip permanent direction="center" className="bg-white px-2 py-1 rounded shadow-md border border-gray-100 font-sans text-[10px] font-bold text-gray-700">
+                  <span>📡 Radar: {Math.round(distance)}m</span>
+                  {isBreached && <span className="ml-1 text-red-600 block text-[8px] animate-pulse uppercase">¡Fuera de Rango!</span>}
+                </Tooltip>
+              </Polyline>
+            </Fragment>
+          );
+        })}
 
         {/* Temporary clicked location marker */}
         {clickedCoords && (
