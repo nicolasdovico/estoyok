@@ -35,6 +35,7 @@ export default function BillingSection({
 }: BillingSectionProps) {
   const [selectedProvider, setSelectedProvider] = useState<'stripe' | 'mercadopago' | 'paypal'>('stripe');
   const [loading, setLoading] = useState(false);
+  const [mockupType, setMockupType] = useState<'inactivity' | 'sos' | 'accident'>('inactivity');
 
   const handleCheckout = async (provider: 'stripe' | 'mercadopago' | 'paypal') => {
     setLoading(true);
@@ -60,7 +61,6 @@ export default function BillingSection({
         const data = await response.json();
         if (data.checkout_url) {
           showToast(`Redirigiendo de forma segura a ${provider === 'stripe' ? 'Stripe Checkout' : provider === 'mercadopago' ? 'Mercado Pago' : 'PayPal'}...`, 'success');
-          // Redirigir al checkout hosted
           window.location.href = data.checkout_url;
         } else {
           showToast('No se recibió la URL de pago.', 'error');
@@ -117,141 +117,511 @@ export default function BillingSection({
   }
 
   return (
-    <div className="space-y-8">
-      {/* Comparación de Planes */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Plan Gratis */}
-        <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm relative overflow-hidden flex flex-col justify-between">
-          <div className="space-y-4">
-            <div>
-              <span className="text-[9px] bg-gray-100 text-gray-600 font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider">
-                Plan Básico
+    <div className="space-y-10">
+      {/* Encabezado Principal de Alta Conversión */}
+      <div className="text-center max-w-2xl mx-auto space-y-3">
+        <span className="text-[10px] font-black tracking-widest uppercase bg-indigo-50 text-indigo-600 px-3 py-1 rounded-full border border-indigo-100 font-sans">
+          Membresía Premium PRO
+        </span>
+        <h2 className="text-2xl md:text-3xl font-black text-gray-900 tracking-tight leading-none font-sans">
+          Seguridad Familiar en Piloto Automático
+        </h2>
+        <p className="text-xs md:text-sm text-gray-500 font-medium max-w-lg mx-auto leading-relaxed font-sans">
+          La máxima tecnología de protección pasiva y activa, diseñada para que tu familia esté a salvo sin necesidad de que recuerden hacer check-ins manuales.
+        </p>
+      </div>
+
+      {/* Grid: Comparación de Planes & Simulador */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        
+        {/* Lado Izquierdo: Beneficios Seductores (8 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          
+          {/* Card Premium PRO Destacada con Glow */}
+          <div className="relative bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 p-6 md:p-8 rounded-3xl border border-yellow-500/30 shadow-2xl overflow-hidden text-white">
+            <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-500/5 rounded-full blur-3xl pointer-events-none"></div>
+            
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[9px] bg-yellow-500/20 text-yellow-400 font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider font-sans">
+                    Plan PRO recomendado
+                  </span>
+                  <span className="text-xs">⭐</span>
+                </div>
+                <h3 className="text-xl font-black text-white mt-2 font-sans">Premium PRO</h3>
+                <p className="text-[10px] text-gray-400 mt-1 font-sans">Suscripción mensual familiar recurrente</p>
+              </div>
+              <div className="flex items-baseline gap-1 text-white font-sans bg-neutral-850 px-4 py-2.5 rounded-2xl border border-neutral-800">
+                <span className="text-3xl font-black text-yellow-400">$4.99</span>
+                <span className="text-[10px] text-gray-400 font-medium">/ mes</span>
+              </div>
+            </div>
+
+            {/* Listado de Beneficios Clave */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 pt-6">
+              
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">💬</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">WhatsApp & SMS Ilimitados</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Tus familiares reciben alertas instantáneas por SMS y WhatsApp si algo ocurre, sin necesitar internet ni tener la app instalada.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">🛡️</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">Auto-Check-in Pasivo</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Se reporta de forma inteligente al llegar a casa (Wi-Fi seguro) o a través de sensores corporales (pasos del día).
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">🚨</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">SOS Silencioso & Audio</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Ante peligro, activa el SOS silencioso: transmite ubicación cada 5s y graba 15s de audio ambiente de inmediato.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">🚗</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">Detección de Accidentes</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Mide fuerzas G por acelerómetro y envía alertas de ayuda instantáneas si detecta colisiones de tráfico.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">📍</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">Historial de 30 Días</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Acceso completo a la reproducción detallada de rutas, sensores y velocidad de tu núcleo familiar del último mes.
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">🛰️</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">Radares de Proximidad</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Crea perímetros dinámicos entre dispositivos. Vibra y suena si tus hijos se alejan más de la distancia establecida.
+                </p>
+              </div>
+
+            </div>
+
+            {/* Microcopy de valor y ahorro */}
+            <div className="mt-8 pt-5 border-t border-neutral-800 flex items-center justify-between text-[10px] text-neutral-400">
+              <span className="flex items-center gap-1.5 text-yellow-400 font-bold">
+                🛡️ Garantía de devolución de 30 días
               </span>
-              <h3 className="text-lg font-black text-gray-900 mt-2 font-sans">Básico (Free)</h3>
+              <span>☕ Menos de $0.17 USD al día</span>
             </div>
-            <div className="flex items-baseline gap-1 text-gray-900 font-sans">
-              <span className="text-3xl font-black">$0</span>
-              <span className="text-xs text-gray-500 font-medium">/ mes</span>
-            </div>
-            <ul className="space-y-3 pt-2">
-              <li className="flex items-start gap-2.5 text-xs text-gray-600 font-medium">
-                <span className="text-emerald-500 font-bold">✓</span>
-                <span>Check-in manual una vez al día</span>
-              </li>
-              <li className="flex items-start gap-2.5 text-xs text-gray-600 font-medium">
-                <span className="text-emerald-500 font-bold">✓</span>
-                <span>Hasta 3 contactos de emergencia</span>
-              </li>
-              <li className="flex items-start gap-2.5 text-xs text-gray-600 font-medium">
-                <span className="text-emerald-500 font-bold">✓</span>
-                <span>Historial de ubicación de las últimas 24 horas</span>
-              </li>
-              <li className="flex items-start gap-2.5 text-xs text-gray-600 font-medium">
-                <span className="text-emerald-500 font-bold">✓</span>
-                <span>Alertas preventivas básicas (Email / Push)</span>
-              </li>
-            </ul>
           </div>
-          <div className="pt-6 border-t border-gray-100 mt-6">
-            <span className="block w-full py-2.5 bg-gray-100 text-gray-500 rounded-xl text-xs font-bold text-center">
-              Plan Activo
-            </span>
+
+        </div>
+
+        {/* Lado Derecho: WhatsApp Mockup Simulador Interactivo (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white p-6 rounded-3xl border border-gray-150 shadow-sm space-y-4">
+            <div>
+              <h3 className="text-xs font-black text-gray-900 font-sans">Simula la protección en tu móvil</h3>
+              <p className="text-[10px] text-gray-500 font-medium font-sans">Observa qué mensaje real recibe tu red de emergencia vía WhatsApp.</p>
+            </div>
+
+            {/* Botones selectores del Mockup */}
+            <div className="grid grid-cols-3 gap-1.5">
+              <button
+                type="button"
+                onClick={() => setMockupType('inactivity')}
+                className={`py-2 px-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                  mockupType === 'inactivity'
+                    ? 'bg-emerald-50 border-emerald-500 text-emerald-800'
+                    : 'bg-gray-50 border-gray-150 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Inactividad
+              </button>
+              <button
+                type="button"
+                onClick={() => setMockupType('sos')}
+                className={`py-2 px-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                  mockupType === 'sos'
+                    ? 'bg-red-50 border-red-500 text-red-800'
+                    : 'bg-gray-50 border-gray-150 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                S.O.S. Silencioso
+              </button>
+              <button
+                type="button"
+                onClick={() => setMockupType('accident')}
+                className={`py-2 px-1 text-[9px] font-black rounded-lg border transition-all cursor-pointer ${
+                  mockupType === 'accident'
+                    ? 'bg-amber-50 border-amber-500 text-amber-800'
+                    : 'bg-gray-50 border-gray-150 text-gray-600 hover:bg-gray-100'
+                }`}
+              >
+                Accidente 🚗
+              </button>
+            </div>
+
+            {/* Estructura del Celular WhatsApp */}
+            <div className="border-[6px] border-neutral-800 rounded-[2.5rem] p-2.5 bg-neutral-900 shadow-xl relative overflow-hidden max-w-[280px] mx-auto">
+              {/* Notch */}
+              <div className="absolute top-2.5 left-1/2 -translate-x-1/2 w-20 h-4 bg-neutral-800 rounded-full z-20 flex items-center justify-center">
+                <div className="w-1.5 h-1.5 bg-neutral-900 rounded-full"></div>
+              </div>
+
+              {/* Pantalla del Teléfono */}
+              <div className="bg-[#efeae2] rounded-[2rem] overflow-hidden flex flex-col h-[400px] text-gray-900 relative">
+                
+                {/* Header WhatsApp */}
+                <div className="bg-[#075e54] text-white px-3 pt-5 pb-2.5 flex items-center gap-2 text-[10px] font-sans shadow-md">
+                  <span className="text-xs">←</span>
+                  <div className="w-6 h-6 bg-emerald-600 rounded-full flex items-center justify-center font-bold text-[10px] text-white">
+                    OK
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="font-bold truncate flex items-center gap-0.5">
+                      Estoy Ok ✔️
+                    </p>
+                    <p className="text-[7px] text-emerald-200">En línea (Cuenta Oficial)</p>
+                  </div>
+                </div>
+
+                {/* Área de Chats */}
+                <div className="flex-1 p-3 overflow-y-auto space-y-2 flex flex-col justify-start">
+                  
+                  {/* Bubble */}
+                  <div className="bg-white p-3 rounded-2xl shadow-xs max-w-[90%] text-[9px] leading-relaxed relative border-l-4 border-emerald-500 font-sans self-start">
+                    <p className="font-extrabold text-emerald-600 text-[8px] uppercase tracking-wider mb-1">Estoy Ok - Alerta Oficial</p>
+                    
+                    {mockupType === 'inactivity' && (
+                      <div className="space-y-1.5 text-gray-700">
+                        <p>⚠️ <strong>AVISO DE INACTIVIDAD</strong></p>
+                        <p><strong>{userData?.name || 'Juan Pérez'}</strong> no ha reportado bienestar en la app en las últimas <strong>24 horas</strong>.</p>
+                        <p className="p-1 bg-gray-50 rounded border border-gray-100 font-mono text-[8px]">
+                          📍 Última posición conocida:<br />
+                          Lat: -34.6037, Lng: -58.3816
+                        </p>
+                        <p className="text-blue-600 font-semibold underline mt-1">
+                          👉 ver-mapa-en-vivo-estoyok.com
+                        </p>
+                        <p className="text-[7px] text-gray-400 flex justify-between items-center mt-1">
+                          <span>🔋 Batería: 14% | GPS: Activo</span>
+                          <span>14:32 ✔️✔️</span>
+                        </p>
+                      </div>
+                    )}
+
+                    {mockupType === 'sos' && (
+                      <div className="space-y-1.5 text-gray-700">
+                        <p className="text-red-600">🚨 <strong>EMERGENCIA: S.O.S. SILENCIOSO</strong></p>
+                        <p><strong>{userData?.name || 'Juan Pérez'}</strong> activó una alerta de máxima prioridad.</p>
+                        <p className="font-semibold bg-red-50 text-red-800 p-1 rounded text-[8px] border border-red-100">
+                          🔊 Grabación de Audio Ambiental de 15 segundos disponible en el mapa de emergencia.
+                        </p>
+                        <p className="text-blue-600 font-semibold underline mt-1">
+                          👉 ver-mapa-en-vivo-estoyok.com
+                        </p>
+                        <p className="text-[7px] text-gray-400 flex justify-between items-center mt-1">
+                          <span>🔋 Batería: 82% | Tracking: 5s</span>
+                          <span>14:34 ✔️✔️</span>
+                        </p>
+                      </div>
+                    )}
+
+                    {mockupType === 'accident' && (
+                      <div className="space-y-1.5 text-gray-700">
+                        <p className="text-amber-600">🚗 <strong>ALERTA DE ACCIDENTE VEHICULAR</strong></p>
+                        <p>El sensor detectó una desaceleración fuerte (colisión) en el móvil de <strong>{userData?.name || 'Juan Pérez'}</strong>.</p>
+                        <p className="p-1 bg-amber-50 text-amber-800 rounded border border-amber-100 text-[8px]">
+                          ⚡ Impacto G-Force: 4.2G<br />
+                          🚗 Velocidad antes del impacto: 82 km/h
+                        </p>
+                        <p className="text-blue-600 font-semibold underline mt-1">
+                          👉 ver-mapa-en-vivo-estoyok.com
+                        </p>
+                        <p className="text-[7px] text-gray-400 flex justify-between items-center mt-1">
+                          <span>🔋 Batería: 76% | GPS: Activado</span>
+                          <span>14:35 ✔️✔️</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                </div>
+
+                {/* Teclado simulado */}
+                <div className="bg-white p-2 flex items-center justify-between gap-1 border-t border-gray-200">
+                  <div className="flex-1 bg-gray-100 rounded-full px-3 py-1.5 text-[8px] text-gray-400">
+                    Solo lectura...
+                  </div>
+                  <div className="w-5 h-5 bg-emerald-500 rounded-full flex items-center justify-center text-white text-[8px] font-bold">
+                    🎤
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-[9px] text-gray-400 text-center leading-relaxed font-sans">
+              *Los mensajes se envían de forma automática por SMS o WhatsApp directo mediante nuestra API integrada.*
+            </p>
           </div>
         </div>
 
-        {/* Plan Premium PRO */}
-        <div className="bg-gradient-to-br from-neutral-900 via-neutral-950 to-neutral-900 p-6 rounded-3xl border border-yellow-500/20 shadow-xl relative overflow-hidden flex flex-col justify-between text-white">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-yellow-500/10 rounded-full blur-3xl pointer-events-none"></div>
-          
-          <div className="space-y-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <span className="text-[9px] bg-yellow-500/20 text-yellow-400 font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider">
-                  Plan PRO
-                </span>
-                <h3 className="text-lg font-black text-white mt-2 font-sans">Premium PRO</h3>
-              </div>
-              <span className="text-xl animate-pulse">⭐</span>
-            </div>
-            
-            <div className="flex items-baseline gap-1 text-white font-sans border-b border-neutral-850 pb-4">
-              <span className="text-4xl font-black">$4.99</span>
-              <span className="text-xs text-gray-400 font-medium">/ mes (débito automático)</span>
-            </div>
-            
-            <ul className="space-y-4 pt-2">
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Auto-Check-in Pasivo Inteligente</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Olvídate del check-in manual. Confirma tu seguridad automáticamente al llegar a casa (Wi-Fi seguro) o con tus pasos diarios (podómetro).</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Detección de Accidentes (Fuerza G)</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">El sensor del acelerómetro detecta impactos severos. En caso de colisión, se activa una sirena acústica local y se alerta automáticamente a tu red con tu ubicación en tiempo real.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">S.O.S. Silencioso y Grabación Ambiental</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Dispara un protocolo discreto de crisis: acelera el tracking GPS a 5 segundos y graba 15s de audio ambiente, disponible para tus contactos de emergencia.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Alertas Críticas vía WhatsApp & SMS</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Mensajería ilimitada y redundante vía WhatsApp y SMS. Tus contactos se enteran de inactividad o emergencias incluso si no tienen internet ni la app instalada.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Radares de Proximidad Relativos</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Establece distancias de seguridad dinámica con tus hijos. Ambos teléfonos vibrarán de forma persistente y mostrarán alertas si se alejan más de lo configurado.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Historial Completo de 30 Días</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Consulta y reproduce la trayectoria exacta de cualquier miembro de tu núcleo familiar del último mes con velocímetro detallado.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Monitoreo de Sensores y Batería</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Recibe avisos de batería baja (&lt;15%) de tus seres queridos y entérate si apagaron el GPS o activaron el Modo Avión.</p>
-                </div>
-              </li>
-              <li className="flex items-start gap-3 text-xs">
-                <span className="text-yellow-400 font-bold text-sm leading-none">✓</span>
-                <div className="space-y-0.5">
-                  <p className="font-bold text-neutral-100">Alertas Escalonadas Secuenciales</p>
-                  <p className="text-[10px] text-neutral-400 font-medium leading-relaxed">Evita alarmar a todos a la vez. Configura el orden de contactos y el tiempo de retraso para alertas consecutivas.</p>
-                </div>
-              </li>
-            </ul>
-          </div>
+      </div>
 
-          <div className="pt-6 border-t border-neutral-800 mt-6 text-center">
-            <span className="inline-block text-[10px] text-yellow-400 font-extrabold uppercase tracking-wide">
-              ⭐ Seguridad familiar de máxima fidelidad
-            </span>
-          </div>
+      {/* Tabla Comparativa Premium Exclusiva a Pantalla Completa */}
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-150 shadow-sm space-y-6">
+        <div className="space-y-1.5">
+          <h3 className="text-sm font-black text-gray-900 font-sans flex items-center gap-2">
+            📊 Comparativa Detallada de Características
+          </h3>
+          <p className="text-[11px] text-gray-500 font-medium font-sans">
+            Analiza por qué la membresía Premium PRO es la opción ideal para mantener protegidos a tus seres queridos las 24 horas del día.
+          </p>
+        </div>
+
+        <div className="overflow-x-auto rounded-2xl border border-gray-100">
+          <table className="w-full text-left text-xs font-sans border-collapse">
+            <thead>
+              <tr className="bg-gray-50 text-gray-500 border-b border-gray-150">
+                <th className="py-3 px-4 font-bold text-[10px] uppercase tracking-wider">Módulo / Funcionalidad</th>
+                <th className="py-3 px-4 text-center font-bold text-[10px] uppercase tracking-wider w-1/3">Básico (Free)</th>
+                <th className="py-3 px-4 text-center font-bold text-[10px] uppercase tracking-wider w-1/3 bg-indigo-50/30 text-indigo-900 border-x border-gray-150">
+                  ⚡ Premium PRO (Recomendado)
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 text-gray-600">
+              {/* Categoría: Canales de Alerta */}
+              <tr className="bg-gray-50/50">
+                <td colSpan={3} className="py-2 px-4 font-extrabold text-[9px] text-gray-400 tracking-widest uppercase">
+                  💬 CANALES DE ALERTA & EMERGENCIA
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Alertas críticas a contactos</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Cómo se enteran tus contactos si necesitas auxilio.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Solo Push / Email
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    WhatsApp & SMS Ilimitados
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Costo de mensajería</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Valor de los envíos de alerta en emergencias.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Sin costo (No disponible)
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    100% Cubierto por Estoy Ok
+                  </span>
+                </td>
+              </tr>
+
+              {/* Categoría: Bienestar Familiar */}
+              <tr className="bg-gray-50/50">
+                <td colSpan={3} className="py-2 px-4 font-extrabold text-[9px] text-gray-400 tracking-widest uppercase">
+                  🛡️ BIENESTAR DIARIO PASIVO
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Detección de Bienestar</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Método para registrar que te encuentras a salvo.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Manual (1 vez al día)
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Pasivo Automático (Wi-Fi + Pasos)
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Intervalo de Reporte</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Cada cuánto tiempo debes dar señales de bienestar.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Fijo cada 24 hs
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Configurable (1h a 48h)
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Modo Sueño y Escalado Secuencial</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Pausa de recordatorios nocturnos y orden de contactos.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Básico (Silenciado simple)
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Personalizado con Delay Inteligente
+                  </span>
+                </td>
+              </tr>
+
+              {/* Categoría: Ubicación y Ruta */}
+              <tr className="bg-gray-50/50">
+                <td colSpan={3} className="py-2 px-4 font-extrabold text-[9px] text-gray-400 tracking-widest uppercase">
+                  📍 GEOLOCALIZACIÓN Y RASTREO ACTIVO
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Historial de Ubicación</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Acceso a las trayectorias de tus familiares.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Últimas 24 horas
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    30 días completos con velocidad
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Zonas Seguras del Núcleo</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Perímetros que notifican automáticamente ingreso/salida.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full font-bold">
+                    Máximo 1 zona activa
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Zonas Seguras Ilimitadas
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Radares de Proximidad Móviles</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Alertas de distancia relativa en vivo con tus hijos.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-400 px-2 py-0.5 rounded-full font-medium">
+                    No disponible
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Vibración & Sirena dinámicas
+                  </span>
+                </td>
+              </tr>
+
+              {/* Categoría: Seguridad Activa y Sensores */}
+              <tr className="bg-gray-50/50">
+                <td colSpan={3} className="py-2 px-4 font-extrabold text-[9px] text-gray-400 tracking-widest uppercase">
+                  🚗 VEHÍCULOS, CHOQUES Y MONITOREO DE SENSORES
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Detección de Accidentes (G-Force)</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Reacción y alertas automáticas ante impactos vehiculares.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-450 px-2 py-0.5 rounded-full font-medium">
+                    No disponible
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Auxilio automático e inmediato
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Monitoreo de conducción y velocidad</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Registro de trayectos activos y alertas de excesos.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-450 px-2 py-0.5 rounded-full font-medium">
+                    No disponible
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Historial de Conducción PRO
+                  </span>
+                </td>
+              </tr>
+              <tr className="hover:bg-neutral-50/50 transition-colors">
+                <td className="py-3 px-4">
+                  <p className="font-bold text-gray-800">Monitoreo de Sensores y Batería</p>
+                  <p className="text-[10px] text-gray-400 font-medium">Avisos si un familiar apaga su GPS, Modo Avión o le queda &lt;15% de batería.</p>
+                </td>
+                <td className="py-3 px-4 text-center">
+                  <span className="inline-block text-[10px] bg-gray-100 text-gray-450 px-2 py-0.5 rounded-full font-medium">
+                    No disponible
+                  </span>
+                </td>
+                <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
+                  <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
+                    Sincronización en vivo de sensores
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
 
       {/* Pasarelas de Pago */}
-      <div className="bg-white p-6 rounded-3xl border border-gray-100 shadow-sm space-y-6">
+      <div className="bg-white p-6 md:p-8 rounded-3xl border border-gray-150 shadow-sm space-y-6">
         <div>
-          <h3 className="text-sm font-black text-gray-900 font-sans">Método de Pago Preferido</h3>
-          <p className="text-[11px] text-gray-500 font-medium font-sans">Selecciona la forma de pago para el débito automático mensual.</p>
+          <h3 className="text-sm font-black text-gray-900 font-sans">1. Elige tu Método de Pago Preferido</h3>
+          <p className="text-[11px] text-gray-500 font-medium font-sans">La membresía se debitará automáticamente cada mes. Puedes cancelar cuando quieras sin permanencia.</p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -261,7 +631,7 @@ export default function BillingSection({
             onClick={() => setSelectedProvider('stripe')}
             className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
               selectedProvider === 'stripe'
-                ? 'border-indigo-600 bg-indigo-50/20'
+                ? 'border-indigo-600 bg-indigo-50/20 shadow-sm'
                 : 'border-gray-100 hover:border-gray-200 bg-white'
             }`}
           >
@@ -269,7 +639,7 @@ export default function BillingSection({
               <span className="text-xs font-bold text-gray-800 font-sans">Tarjeta de Crédito</span>
               <span className="text-lg">💳</span>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1 font-medium font-sans">Checkout integrado Stripe</p>
+            <p className="text-[9px] text-gray-400 mt-1.5 font-medium font-sans leading-relaxed">Conexión internacional y pasarela segura integrada.</p>
           </button>
 
           {/* Opción Mercado Pago */}
@@ -278,7 +648,7 @@ export default function BillingSection({
             onClick={() => setSelectedProvider('mercadopago')}
             className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
               selectedProvider === 'mercadopago'
-                ? 'border-blue-600 bg-blue-50/20'
+                ? 'border-blue-600 bg-blue-50/20 shadow-sm'
                 : 'border-gray-100 hover:border-gray-200 bg-white'
             }`}
           >
@@ -286,7 +656,7 @@ export default function BillingSection({
               <span className="text-xs font-bold text-gray-800 font-sans">Mercado Pago</span>
               <span className="text-lg">💙</span>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1 font-medium font-sans">Suscripción local en Pesos (ARS)</p>
+            <p className="text-[9px] text-gray-400 mt-1.5 font-medium font-sans leading-relaxed">Suscripción mensual en pesos (ARS) para Argentina.</p>
           </button>
 
           {/* Opción PayPal */}
@@ -295,7 +665,7 @@ export default function BillingSection({
             onClick={() => setSelectedProvider('paypal')}
             className={`p-4 rounded-2xl border-2 text-left transition-all cursor-pointer ${
               selectedProvider === 'paypal'
-                ? 'border-yellow-600 bg-yellow-50/20'
+                ? 'border-yellow-600 bg-yellow-50/20 shadow-sm'
                 : 'border-gray-100 hover:border-gray-200 bg-white'
             }`}
           >
@@ -303,7 +673,7 @@ export default function BillingSection({
               <span className="text-xs font-bold text-gray-800 font-sans">PayPal</span>
               <span className="text-lg">💛</span>
             </div>
-            <p className="text-[10px] text-gray-400 mt-1 font-medium font-sans">Suscripción internacional en USD</p>
+            <p className="text-[9px] text-gray-400 mt-1.5 font-medium font-sans leading-relaxed">Débito automático en dólares (USD) para el resto del mundo.</p>
           </button>
         </div>
 
@@ -315,14 +685,14 @@ export default function BillingSection({
                 <span className="text-xs font-bold text-gray-800 font-sans">Suscripción Directa con Tarjeta</span>
                 <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-extrabold uppercase font-sans">PRO Elements</span>
               </div>
-              <p className="text-xs text-gray-500 font-medium font-sans leading-relaxed">
-                En el próximo issue (Issue 2) integraremos Stripe Elements seguro. Por ahora, utilizaremos el redireccionamiento seguro a Stripe Checkout para procesar la suscripción.
+              <p className="text-[11px] text-gray-500 font-medium font-sans leading-relaxed">
+                Utilizamos <strong>Stripe Elements</strong> para garantizar los máximos estándares de seguridad <strong>PCI-DSS Compliance</strong>. En el próximo issue agregaremos el formulario seguro directo. Por ahora, utilizaremos la pasarela externa de Stripe.
               </p>
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => handleCheckout('stripe')}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-750 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
+                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
               >
                 {loading ? 'Procesando...' : '🔒 Suscribirse con Tarjeta vía Stripe Checkout'}
               </button>
@@ -333,8 +703,8 @@ export default function BillingSection({
                 <span className="text-xs font-bold text-gray-800 font-sans">Suscripción Mensual vía Mercado Pago</span>
                 <span className="text-[10px] bg-blue-100 text-blue-800 px-2 py-0.5 rounded font-extrabold uppercase font-sans">Débito ARS</span>
               </div>
-              <p className="text-xs text-gray-500 font-medium font-sans leading-relaxed">
-                Al presionar el botón serás redirigido de forma segura a Mercado Pago para confirmar el débito automático mensual desde tu saldo virtual o tarjeta guardada.
+              <p className="text-[11px] text-gray-500 font-medium font-sans leading-relaxed">
+                Al continuar serás redirigido a la pasarela segura de Mercado Pago para suscribirte a nuestro plan mensual mediante tarjeta de crédito, débito o saldo virtual.
               </p>
               <button
                 type="button"
@@ -351,14 +721,14 @@ export default function BillingSection({
                 <span className="text-xs font-bold text-gray-800 font-sans">Suscripción Mensual vía PayPal</span>
                 <span className="text-[10px] bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded font-extrabold uppercase font-sans">Débito USD</span>
               </div>
-              <p className="text-xs text-gray-500 font-medium font-sans leading-relaxed">
-                Al presionar el botón se abrirá la pasarela segura de PayPal para autorizar el cargo automático mensual recurrente.
+              <p className="text-[11px] text-gray-500 font-medium font-sans leading-relaxed">
+                Serás redirigido a la pasarela de PayPal para programar tu cargo automático mensual recurrente.
               </p>
               <button
                 type="button"
                 disabled={loading}
                 onClick={() => handleCheckout('paypal')}
-                className="w-full py-3 bg-yellow-650 hover:bg-yellow-700 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
+                className="w-full py-3 bg-yellow-600 hover:bg-yellow-750 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
               >
                 {loading ? 'Generando enlace...' : '🔗 Continuar en PayPal'}
               </button>

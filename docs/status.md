@@ -107,6 +107,7 @@
     - [x] Web: Renderizado de círculo punteado, línea de trayectoria y tooltip dinámico en Leaflet.
 - [x] **FASE 10: Cobros y Membresías Premium**
   - [x] Issue 1: Diseñar la pantalla de selección de planes (Gratis vs Premium PRO) y el selector de pasarela de pago (Stripe, Mercado Pago, PayPal) en Next.js con redirección asíncrona a checkouts.
+  - [x] Mejora de Conversión: Rediseño completo de la propuesta de valor y copy de beneficios del plan Premium PRO en el Dashboard y la Landing Page, incluyendo un simulador interactivo de notificaciones de WhatsApp.
 
 ### In Progress:
 - [ ] **FASE 10: Cobros y Membresías Premium**

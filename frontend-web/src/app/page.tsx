@@ -498,66 +498,75 @@ export default function Home() {
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-bold text-red-400 mt-2">Plan Familiar PRO</h3>
-                  <div className="text-5xl font-black text-white mt-4 flex items-baseline gap-1">
-                    Premium
+                  <h3 className="text-lg font-bold text-red-400 mt-2">Premium PRO</h3>
+                  <div className="text-5xl font-black text-white mt-4 flex items-baseline gap-1 font-sans">
+                    $4.99<span className="text-xs text-neutral-400 font-medium">/ mes</span>
                   </div>
-                  <p className="text-xs text-red-500/80 mt-2 font-medium">Alertas por WhatsApp, automatizaciones y control absoluto.</p>
+                  <p className="text-xs text-red-500/80 mt-2 font-medium">La tranquilidad absoluta de tu núcleo familiar en piloto automático.</p>
 
                   <ul className="space-y-3.5 mt-8 text-sm text-neutral-300">
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="font-semibold text-white">Alertas críticas vía WhatsApp &amp; SMS</span>
+                      <div>
+                        <span className="font-bold text-white block">Alertas por WhatsApp &amp; SMS</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Alertas de inactividad o SOS enviadas de inmediato por canales de alta lectura, sin requerir que tengan internet o la app abierta.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="font-semibold text-white">S.O.S. Silencioso con Grabación de Audio y Rastro Crítico (5s)</span>
+                      <div>
+                        <span className="font-bold text-white block">Auto-Check-in Pasivo Inteligente</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Olvídate de los reportes diarios manuales. Confirma tu bienestar de forma invisible al conectar a tu Wi-Fi seguro o con tus pasos diarios.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Frecuencia de check-in configurable (1h a 48h)</span>
+                      <div>
+                        <span className="font-bold text-white block">S.O.S. Silencioso y Grabación</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Envía auxilio instantáneo en alta frecuencia (5s) y graba 15s de audio ambiente disponibles en vivo para tus contactos en situaciones de crisis.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección Pasiva Automática (Wi-Fi &amp; Movimiento)**</span>
+                      <div>
+                        <span className="font-bold text-white block">Detección de Choques (🚗 Fuerza G)</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">El acelerómetro del móvil detecta impactos automotrices graves, disparando alertas de crisis con coordenadas del siniestro.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Historial y reproducción de rutas (30 días)</span>
+                      <div>
+                        <span className="font-bold text-white block">Historial y Rutas (30 Días)</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Accede y reproduce la trayectoria exacta, velocidad e historial de sensores de tu núcleo de los últimos 30 días.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
+                    <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Zonas Seguras ilimitadas</span>
+                      <div>
+                        <span className="font-bold text-white block">Radares de Proximidad Relativos</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Crea perímetros móviles dinámicos con tus hijos. Ambos teléfonos vibrarán de forma persistente si se distancian demasiado.</span>
+                      </div>
                     </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="font-semibold text-white">Monitoreo de conducción y alertas de velocidad (🚗 PRO)</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="font-semibold text-white">Detección de choques y auxilio automático (🚗 PRO)</span>
-                    </li>
-                    <li className="flex items-center gap-2.5">
-                      <svg className="w-4 h-4 text-red-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="font-semibold text-white">Respuestas de crisis interactivas de familiares</span>
+                      <div>
+                        <span className="font-bold text-white block">Monitoreo de Sensores y Batería</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Recibe notificaciones inmediatas si un miembro apaga su GPS, activa el Modo Avión, pierde señal o le queda menos de 15% de batería.</span>
+                      </div>
                     </li>
                   </ul>
                 </div>
