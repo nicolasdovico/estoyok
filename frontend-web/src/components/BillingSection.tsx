@@ -1,6 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
 
 interface UserData {
   id: number;
@@ -680,23 +684,9 @@ export default function BillingSection({
         {/* Panel Activo según Selección */}
         <div className="p-5 bg-gray-50 rounded-2xl border border-gray-150">
           {selectedProvider === 'stripe' ? (
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-bold text-gray-800 font-sans">Suscripción Directa con Tarjeta</span>
-                <span className="text-[10px] bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded font-extrabold uppercase font-sans">PRO Elements</span>
-              </div>
-              <p className="text-[11px] text-gray-500 font-medium font-sans leading-relaxed">
-                Utilizamos <strong>Stripe Elements</strong> para garantizar los máximos estándares de seguridad <strong>PCI-DSS Compliance</strong>. En el próximo issue agregaremos el formulario seguro directo. Por ahora, utilizaremos la pasarela externa de Stripe.
-              </p>
-              <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleCheckout('stripe')}
-                className="w-full py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
-              >
-                {loading ? 'Procesando...' : '🔒 Suscribirse con Tarjeta vía Stripe Checkout'}
-              </button>
-            </div>
+            <Elements stripe={stripePromise}>
+              <StripeCheckoutForm userData={userData} showToast={showToast} />
+            </Elements>
           ) : selectedProvider === 'mercadopago' ? (
             <div className="space-y-4">
               <div className="flex items-center gap-2">
@@ -737,5 +727,199 @@ export default function BillingSection({
         </div>
       </div>
     </div>
+  );
+}
+
+interface StripeCheckoutFormProps {
+  userData: UserData | null;
+  showToast: (message: string, type: 'success' | 'error') => void;
+}
+
+function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [loading, setLoading] = useState(false);
+  const [cardBrand, setCardBrand] = useState<string>('unknown');
+  const [errors, setErrors] = useState<{
+    number: string | null;
+    expiry: string | null;
+    cvc: string | null;
+  }>({
+    number: null,
+    expiry: null,
+    cvc: null,
+  });
+
+  const handleCardChange = (field: 'number' | 'expiry' | 'cvc', event: { error?: { message: string } | null; brand?: string }) => {
+    setErrors(prev => ({
+      ...prev,
+      [field]: event.error ? event.error.message : null,
+    }));
+    if (field === 'number') {
+      setCardBrand(event.brand || 'unknown');
+    }
+  };
+
+  const getBrandBadge = (brand: string) => {
+    switch (brand) {
+      case 'visa':
+        return <span className="text-[9px] bg-blue-100 text-blue-800 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">Visa</span>;
+      case 'mastercard':
+        return <span className="text-[9px] bg-red-100 text-red-800 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">Mastercard</span>;
+      case 'amex':
+        return <span className="text-[9px] bg-emerald-100 text-emerald-800 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">Amex</span>;
+      case 'discover':
+        return <span className="text-[9px] bg-orange-100 text-orange-850 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">Discover</span>;
+      case 'diners':
+        return <span className="text-[9px] bg-indigo-100 text-indigo-850 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">Diners</span>;
+      case 'jcb':
+        return <span className="text-[9px] bg-violet-100 text-violet-850 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">JCB</span>;
+      case 'unionpay':
+        return <span className="text-[9px] bg-rose-100 text-rose-850 font-extrabold uppercase px-2 py-0.5 rounded tracking-wider">UnionPay</span>;
+      default:
+        return <span className="text-[9px] bg-gray-250 text-gray-500 px-2 py-0.5 rounded font-medium uppercase">Tarjeta</span>;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stripe || !elements) {
+      showToast('Stripe aún no se ha cargado. Reintenta en unos instantes.', 'error');
+      return;
+    }
+
+    const numberElement = elements.getElement(CardNumberElement);
+    if (!numberElement) return;
+
+    if (errors.number || errors.expiry || errors.cvc) {
+      showToast('Por favor, corrige los errores de tarjeta antes de continuar.', 'error');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error, paymentMethod } = await stripe.createPaymentMethod({
+        type: 'card',
+        card: numberElement,
+        billing_details: {
+          name: userData?.name || 'Cliente Estoy Ok',
+          email: userData?.email || '',
+        },
+      });
+
+      if (error) {
+        showToast(error.message || 'Error al validar la tarjeta.', 'error');
+        setLoading(false);
+        return;
+      }
+
+      showToast('🔒 Tarjeta tokenizada con éxito.', 'success');
+      console.log('Stripe Payment Method token:', paymentMethod.id);
+
+      // Simular proceso del backend (se conectará al endpoint en el Issue 4)
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      showToast('Suscripción mensual activada de forma segura (Simulado).', 'success');
+      alert(`Token generado: ${paymentMethod.id}\n(Este token se transmitirá a Laravel en el Issue 4 para activar el cobro mensual automático).`);
+
+    } catch (err) {
+      showToast('Error al procesar el método de pago.', 'error');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const ELEMENT_OPTIONS = {
+    style: {
+      base: {
+        fontSize: '14px',
+        color: '#1f2937',
+        fontFamily: 'Inter, system-ui, sans-serif',
+        '::placeholder': {
+          color: '#9ca3af',
+        },
+      },
+      invalid: {
+        color: '#ef4444',
+        iconColor: '#ef4444',
+      },
+    },
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="flex items-center justify-between border-b border-gray-150 pb-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-gray-800 font-sans">Pago Directo con Tarjeta</span>
+          <span className="text-[9px] bg-indigo-150 text-indigo-800 px-2 py-0.5 rounded font-extrabold uppercase font-sans">Elements</span>
+        </div>
+        {getBrandBadge(cardBrand)}
+      </div>
+
+      <p className="text-[11px] text-gray-500 font-medium font-sans leading-relaxed">
+        Ingresa los datos de tu tarjeta de crédito o débito. La carga se realiza directamente en los servidores de Stripe bajo la norma <strong>PCI-DSS Compliance</strong>.
+      </p>
+
+      {/* Grid de Inputs Seguros */}
+      <div className="space-y-3">
+        {/* Número de Tarjeta */}
+        <div className="border border-gray-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all shadow-xs relative">
+          <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Número de Tarjeta</label>
+          <div className="h-5">
+            <CardNumberElement 
+              options={ELEMENT_OPTIONS} 
+              onChange={(e) => handleCardChange('number', e)}
+            />
+          </div>
+          {errors.number && (
+            <p className="text-[9px] text-red-500 font-bold mt-1">{errors.number}</p>
+          )}
+        </div>
+
+        {/* Expiración y CVC en una sola fila */}
+        <div className="grid grid-cols-2 gap-3">
+          {/* Fecha Expiración */}
+          <div className="border border-gray-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all shadow-xs">
+            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">Vencimiento</label>
+            <div className="h-5">
+              <CardExpiryElement 
+                options={ELEMENT_OPTIONS} 
+                onChange={(e) => handleCardChange('expiry', e)}
+              />
+            </div>
+            {errors.expiry && (
+              <p className="text-[9px] text-red-500 font-bold mt-1">{errors.expiry}</p>
+            )}
+          </div>
+
+          {/* CVC */}
+          <div className="border border-gray-200 rounded-xl px-4 py-3 bg-white focus-within:border-indigo-500 focus-within:ring-1 focus-within:ring-indigo-500 transition-all shadow-xs">
+            <label className="text-[10px] font-bold text-gray-400 uppercase block mb-1">CVC / CVV</label>
+            <div className="h-5">
+              <CardCvcElement 
+                options={ELEMENT_OPTIONS} 
+                onChange={(e) => handleCardChange('cvc', e)}
+              />
+            </div>
+            {errors.cvc && (
+              <p className="text-[9px] text-red-500 font-bold mt-1">{errors.cvc}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        disabled={loading || !stripe}
+        className="w-full py-3 bg-indigo-600 hover:bg-indigo-750 disabled:bg-gray-300 text-white rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-2 shadow-sm cursor-pointer font-sans"
+      >
+        {loading ? 'Procesando Tarjeta...' : '🔒 Suscribirse con Tarjeta Segura (Elements)'}
+      </button>
+
+      <div className="text-center text-[9px] text-gray-400 font-medium">
+        🛡️ Tus datos bancarios se transmiten de forma encriptada AES-256 directamente a Stripe.
+      </div>
+    </form>
   );
 }

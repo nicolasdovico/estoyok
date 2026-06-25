@@ -422,3 +422,12 @@
     - Rediseñado por completo el copy de la propuesta de valor y los beneficios del plan Premium PRO en el [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) y en la Landing Page comercial ([page.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx)), destacando los tres pilares de seguridad familiar.
     - Implementado un simulador interactivo de notificaciones de WhatsApp y SMS en [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) que renderiza un mockup de celular en tiempo real, permitiendo a los usuarios ver los mensajes reales de emergencia (Inactividad, SOS, Accidentes).
     - Verificado con `npm run lint` logrando un 100% de éxito libre de advertencias y ejecución exitosa de los 114 tests del backend de Laravel.
+
+## [2026-06-25] Issue 2: Checkout Seguro con Stripe Elements
+- **Web Frontend (Next.js):**
+    - Instaladas las dependencias `@stripe/stripe-js` y `@stripe/react-stripe-js` en el contenedor `frontend`.
+    - Inicializado el cargador seguro con la clave pública publishable en [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx).
+    - Creado el subcomponente seguro `StripeCheckoutForm` implementando elementos divididos (`CardNumberElement`, `CardExpiryElement` y `CardCvcElement`) con estilos integrados para coincidir con la estética oscura de Estoy Ok.
+    - Implementadas validaciones de errores en tiempo real y detector dinámico de logotipo de marca (Visa, Mastercard, Amex, Discover, Diners, JCB, UnionPay) según los inputs del usuario.
+    - Implementada lógica de tokenización interactiva (`stripe.createPaymentMethod`) que genera de forma segura el `payment_method_id` sin tocar los datos de tarjeta directamente (PCI-DSS compliant), mostrando un spinner y alertando de su éxito de cara a su posterior envío a Laravel en el Issue 4.
+    - Resueltos los warnings de compilación de TypeScript para asegurar consistencia de tipos.

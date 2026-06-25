@@ -107,16 +107,14 @@
     - [x] Web: Renderizado de círculo punteado, línea de trayectoria y tooltip dinámico en Leaflet.
 - [x] **FASE 10: Cobros y Membresías Premium**
   - [x] Issue 1: Diseñar la pantalla de selección de planes (Gratis vs Premium PRO) y el selector de pasarela de pago (Stripe, Mercado Pago, PayPal) en Next.js con redirección asíncrona a checkouts.
-  - [x] Mejora de Conversión: Rediseño completo de la propuesta de valor y copy de beneficios del plan Premium PRO en el Dashboard y la Landing Page, incluyendo un simulador interactivo de notificaciones de WhatsApp.
+  - [x] Issue 2: Checkout integrado web de tarjetas de crédito con Stripe Elements.
 
 ### In Progress:
-- [ ] **FASE 10: Cobros y Membresías Premium**
-  - [ ] Issue 2: Checkout integrado web de tarjetas de crédito con Stripe Elements.
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.
 
 ### Next Steps:
-- Implement direct credit card checkout using Stripe Elements (Issue 2).
+- Integrate Stripe mobile SDK in Expo React Native (Issue 3).
 - Integrate Stripe mobile SDK in Expo React Native (Issue 3).
 - Create subscription processing endpoint in Laravel with Cashier (Issue 4).
 - Refine background location frequency vs battery consumption in Mobile (Fase 9).
