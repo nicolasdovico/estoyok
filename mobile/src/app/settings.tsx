@@ -21,6 +21,7 @@ const DEV_OPTIONS = [
 export default function SettingsScreen() {
   const { user } = useAuth();
   const scrollViewRef = useRef<ScrollView>(null);
+  
   const [currentInterval, setCurrentInterval] = useState(user?.checkin_interval_hours || 24);
   const [quietHoursEnabled, setQuietHoursEnabled] = useState(false);
   const [startHours, setStartHours] = useState('23');
@@ -311,6 +312,8 @@ export default function SettingsScreen() {
           <Text style={styles.title}>Configuración de Seguridad</Text>
           <Text style={styles.subtitle}>Define cada cuánto tiempo debes reportarte.</Text>
         </View>
+
+
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Intervalo de "Estoy Ok"</Text>

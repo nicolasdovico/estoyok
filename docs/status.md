@@ -105,17 +105,17 @@
     - [x] Backend: Creadas tablas, modelo, job de cálculo de distancia geodésica PostGIS y endpoints de geocercas móviles con suite de tests.
     - [x] Mobile: Alternancia automática de frecuencia de GPS a alta fidelidad (5s), toggle de privacidad en ajustes y modal/vibración de alerta de proximidad.
     - [x] Web: Renderizado de círculo punteado, línea de trayectoria y tooltip dinámico en Leaflet.
+  - [x] feat(ux): Rediseño y redistribución del layout móvil en 4 pestañas (Panel, Mapa, Núcleo, Ajustes) utilizando navegación basada en estados para preservar el rastreo de fondo.
 - [x] **FASE 10: Cobros y Membresías Premium**
   - [x] Issue 1: Diseñar la pantalla de selección de planes (Gratis vs Premium PRO) y el selector de pasarela de pago (Stripe, Mercado Pago, PayPal) en Next.js con redirección asíncrona a checkouts.
   - [x] Issue 2: Checkout integrado web de tarjetas de crédito con Stripe Elements.
+  - [x] Issue 3: Integración del SDK Móvil de Stripe (Expo / React Native) con soporte PaymentSheet y simulador seguro de cobro. Reorganizado el layout móvil para desacoplar completamente la membresía Premium y Stripe de la pantalla de "Configuración de Seguridad", trasladando todo el flujo de suscripción y simulación de Stripe a la pestaña principal de Ajustes (activeTab === 'more').
 
 ### In Progress:
 - [ ] **Fase de Optimización de Batería y Ajustes de Ubicación (Fase 9)**
   - [ ] Refinar frecuencia de ubicación de fondo vs consumo de batería en la App Mobile.
 
 ### Next Steps:
-- Integrate Stripe mobile SDK in Expo React Native (Issue 3).
-- Integrate Stripe mobile SDK in Expo React Native (Issue 3).
 - Create subscription processing endpoint in Laravel with Cashier (Issue 4).
 - Refine background location frequency vs battery consumption in Mobile (Fase 9).
 - Prepare staging and production deployment configurations.

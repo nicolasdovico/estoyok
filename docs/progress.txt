@@ -431,3 +431,31 @@
     - Implementadas validaciones de errores en tiempo real y detector dinámico de logotipo de marca (Visa, Mastercard, Amex, Discover, Diners, JCB, UnionPay) según los inputs del usuario.
     - Implementada lógica de tokenización interactiva (`stripe.createPaymentMethod`) que genera de forma segura el `payment_method_id` sin tocar los datos de tarjeta directamente (PCI-DSS compliant), mostrando un spinner y alertando de su éxito de cara a su posterior envío a Laravel en el Issue 4.
     - Resueltos los warnings de compilación de TypeScript para asegurar consistencia de tipos.
+
+## [2026-06-25] Issue 3: Integración del SDK Móvil de Stripe (Expo / React Native)
+- **Mobile Frontend (Expo / React Native):**
+    - Configurado el proveedor global `<StripeProvider>` en el layout raíz móvil `_layout.tsx`.
+    - Refactorizado el flujo de suscripción en la pantalla de Ajustes `settings.tsx` para utilizar la interfaz segura e integrada de Stripe **PaymentSheet** (`useStripe` hooks) en lugar de los inputs inline antiguos de `<CardField>`.
+    - Desarrollado un simulador nativo de alta fidelidad `StripeMockPaymentSheetModal` que imita con precisión el comportamiento del PaymentSheet oficial de Stripe en entornos como **Expo Go** o la compilación web.
+    - Implementadas validaciones nativas de Luhn, formato de expiración automática MM/YY, longitud de CVC dinámica por marca (Visa, Mastercard, Amex, Discover) y detección visual interactiva de marca de tarjeta.
+    - Integrado soporte nativo para flujos de autenticación bancaria **3D Secure / SCA** simulada utilizando la tarjeta de prueba de Stripe (`4000002760003184`), disparando flujos de autorización interactiva.
+    - Integrado el punto de conexión con la API de Laravel para enviar el `payment_method_id` resultante y simular la activación de Premium PRO del usuario en local de forma interactiva en la app.
+    - Ejecutado chequeo de compilación de TypeScript móvil con éxito total (`npx tsc --noEmit` exits with 0).
+
+## [2026-06-25] Mobile Layout Reorganization & Bottom Tab Navigation
+- **Mobile Frontend (Expo / React Native):**
+    - Redesigned and redistributed the mobile interface from a single scrollable dashboard screen into 4 distinct bottom navigation tabs:
+        1. `🏠 Panel`: Dedicated wellbeing check, daily check-in indicator, history of reports, and S.O.S emergency button.
+        2. `📍 Mapa`: User GPS tracking toggles, relative proximity radar alerts switches, active circles selection lists, and nucleus member locations/sensor monitoring (battery, speedometer, signal loss status) with routing map options.
+        3. `👥 Familia`: Circle admin capabilities including invitation code copying, joining/creating nuclei, and administrative member management (leave/remove circles).
+        4. `⚙️ Ajustes`: Profile summary, shortcuts navigating to `/contacts` and `/settings` stacks, and user logout button.
+    - Implemented a custom state-based bottom navigation tab bar in `index.tsx` (Option A) to preserve background tracking tasks, accelerometer/driving hysteresis context, and active websocket/polling intervals without unmounting.
+    - Handled screen safe areas and styles using high-quality aesthetics consistent with modern dark mode elements.
+    - Verified compilation success with `npx tsc --noEmit` and ran the Laravel backend integration test suite with 100% success rate (114/114 passing).
+
+## [2026-06-25] Mobile Layout Clean-up: Premium Decoupling
+- **Mobile Frontend (Expo / React Native):**
+    - Cleaned up the "Configuración de Seguridad" screen (`settings.tsx`) by removing all references, variables, helper validation functions, event handlers, and simulation modal for Stripe payments.
+    - Simplified imports, removing `@stripe/stripe-react-native`, `AsyncStorage`, `api`, and unused Lucide icons from `settings.tsx`.
+    - Resolved TypeScript compiling errors by ensuring the newly introduced `modalHeader` layout properties are defined inside the StyleSheet structure of the main `index.tsx` screen.
+    - Verified compilation safety with `npx tsc --noEmit` and confirmed zero regressions in the Laravel backend test suite (114/114 passing).

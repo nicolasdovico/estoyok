@@ -7,6 +7,7 @@ import { useEffect } from 'react';
 import { useRouter, useSegments } from 'expo-router';
 import '@/services/locationTask'; // Registro de tarea de fondo
 import CrashPreAlertOverlay from '@/components/CrashPreAlertOverlay';
+import { StripeProvider } from '@stripe/stripe-react-native';
 
 // Suppress known Expo Go dev-environment warnings/errors
 LogBox.ignoreLogs([
@@ -58,8 +59,13 @@ function RootLayoutNav() {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    <StripeProvider
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_TYooMQauvdEDq54NiTphI7jx"}
+      merchantIdentifier="merchant.estoyok.com"
+    >
+      <AuthProvider>
+        <RootLayoutNav />
+      </AuthProvider>
+    </StripeProvider>
   );
 }
