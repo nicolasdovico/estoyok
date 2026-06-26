@@ -12,7 +12,7 @@ const TrackingMap = dynamic(() => import('@/components/CircleMap'), {
   loading: () => <div className="h-full w-full bg-gray-100 flex items-center justify-center">Cargando mapa...</div>
 });
 
-interface UserData {
+export interface UserData {
   id: number;
   name: string;
   email: string;

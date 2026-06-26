@@ -6,26 +6,7 @@ import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement,
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
 
-interface UserData {
-  id: number;
-  name: string;
-  email: string;
-  is_premium: boolean;
-  checkin_interval_hours: number;
-  last_check_in_at: string | null;
-  quiet_hours_enabled?: boolean;
-  quiet_hours_start?: string | null;
-  quiet_hours_end?: string | null;
-  allow_sms_whatsapp_checkin?: boolean;
-  escalation_enabled?: boolean;
-  escalation_interval_minutes?: number;
-  share_contact_responses?: boolean;
-  low_battery_alerts_enabled?: boolean;
-  proximity_alerts_enabled?: boolean;
-  wifi_checkin_enabled?: boolean;
-  safe_wifi_ssid?: string | null;
-  sensor_checkin_enabled?: boolean;
-}
+import { UserData } from './Dashboard';
 
 interface BillingSectionProps {
   userData: UserData | null;
@@ -869,7 +850,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
           <div className="h-5">
             <CardNumberElement 
               options={ELEMENT_OPTIONS} 
-              onChange={(e) => handleCardChange('number', e)}
+              onChange={(e: any) => handleCardChange('number', e)}
             />
           </div>
           {errors.number && (
@@ -885,7 +866,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
             <div className="h-5">
               <CardExpiryElement 
                 options={ELEMENT_OPTIONS} 
-                onChange={(e) => handleCardChange('expiry', e)}
+                onChange={(e: any) => handleCardChange('expiry', e)}
               />
             </div>
             {errors.expiry && (
@@ -899,7 +880,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
             <div className="h-5">
               <CardCvcElement 
                 options={ELEMENT_OPTIONS} 
-                onChange={(e) => handleCardChange('cvc', e)}
+                onChange={(e: any) => handleCardChange('cvc', e)}
               />
             </div>
             {errors.cvc && (
