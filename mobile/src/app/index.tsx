@@ -11,12 +11,14 @@ import { startSos, uploadSosAudio } from '@/services/sosService';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { useStripe } from '@stripe/stripe-react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 export default function HomeScreen() {
   const { user, logout, login } = useAuth();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<'dashboard' | 'map' | 'family' | 'more'>('dashboard');
   const stripe = useStripe();
+  const insets = useSafeAreaInsets();
   
   // Stripe hooks & loading
   const [stripeLoading, setStripeLoading] = useState(false);
@@ -1619,7 +1621,7 @@ export default function HomeScreen() {
       </ScrollView>
 
       {/* Barra de Navegación Inferior (Bottom Tab Bar) */}
-      <View style={styles.bottomTabBar}>
+      <View style={[styles.bottomTabBar, { paddingBottom: Math.max(insets.bottom, 10), height: 54 + Math.max(insets.bottom, 10) }]}>
         <TouchableOpacity 
           style={[styles.tabButton, activeTab === 'dashboard' && styles.tabButtonActive]}
           onPress={() => setActiveTab('dashboard')}
@@ -2218,13 +2220,11 @@ const styles = StyleSheet.create({
   // Barra de navegación inferior (Bottom Tabs)
   bottomTabBar: {
     flexDirection: 'row',
-    height: 64,
     backgroundColor: '#ffffff',
     borderTopWidth: 1,
     borderTopColor: '#e5e7eb',
     justifyContent: 'space-around',
     alignItems: 'center',
-    paddingBottom: Platform.OS === 'ios' ? 12 : 4,
   },
   tabButton: {
     alignItems: 'center',

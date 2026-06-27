@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DeviceEventEmitter } from 'react-native';
 import api from '@/services/api';
 
 interface User {
@@ -25,6 +26,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadStorageData();
+
+    const subscription = DeviceEventEmitter.addListener('force_logout', async () => {
+      console.log('Force logout triggered via event listener (401 Unauthorized)');
+      await logout();
+    });
+
+    return () => {
+      subscription.remove();
+    };
   }, []);
 
   async function loadStorageData() {
