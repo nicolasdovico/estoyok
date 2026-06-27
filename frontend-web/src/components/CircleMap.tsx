@@ -494,7 +494,7 @@ export default function CircleMap({
                     <p className="text-gray-600">📅 {new Date(activePt.recorded_at).toLocaleDateString()}</p>
                     <p className="text-gray-800 font-bold mt-1">⚡ Velocidad: {speedText}</p>
                     {activePt.accuracy && (
-                      <p className="text-gray-400 text-[10px]">Precisión: {activePt.accuracy.toFixed(1)}m</p>
+                      <p className="text-gray-400 text-[10px]">Precisión: {Number(activePt.accuracy).toFixed(1)}m</p>
                     )}
                   </div>
                 </Popup>
