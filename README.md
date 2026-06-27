@@ -16,3 +16,13 @@ y ejecutar `npx expo start -c` -> escanear el QR y listo
 
 ## URL de Mailpit
 `http://localhost:8025`
+
+## URL del frontend en Railway
+`https://frontend-web-production-f4f0.up.railway.app/`
+Usuario: test@example.com
+Password: password
+
+## URL del backend en Railway
+`https://backend-api-production-aec1.up.railway.app/admin/login`
+Email:  admin@estoyok.com 
+Contraseña:  admin123 
