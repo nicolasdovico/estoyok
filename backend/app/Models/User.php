@@ -10,7 +10,10 @@ use Illuminate\Notifications\Notifiable;
 use Laravel\Cashier\Billable;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable implements MustVerifyEmail
+use Filament\Models\Contracts\FilamentUser;
+use Filament\Panel;
+
+class User extends Authenticatable implements MustVerifyEmail, FilamentUser
 {
     /** @use HasFactory<UserFactory> */
     use Billable, HasApiTokens, HasFactory, Notifiable;
@@ -189,5 +192,13 @@ class User extends Authenticatable implements MustVerifyEmail
     public function setPhoneAttribute($value)
     {
         $this->attributes['phone'] = $value ? preg_replace('/[\s\-\(\)]+/', '', $value) : null;
+    }
+
+    /**
+     * Determine if the user can access the Filament admin panel.
+     */
+    public function canAccessPanel(Panel $panel): bool
+    {
+        return str_ends_with($this->email, '@estoyok.com');
     }
 }
