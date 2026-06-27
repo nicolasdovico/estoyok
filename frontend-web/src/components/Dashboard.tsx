@@ -1062,16 +1062,16 @@ export default function Dashboard() {
                     const membersWithLocation = circle.users.filter((u: CircleData['users'][number]) => u.current_location);
                     if (historyPoints.length > 0 && historyPoints[playbackIndex]) {
                       mapCenter = [
-                        historyPoints[playbackIndex].latitude,
-                        historyPoints[playbackIndex].longitude
+                        Number(historyPoints[playbackIndex].latitude),
+                        Number(historyPoints[playbackIndex].longitude)
                       ];
                     } else if (membersWithLocation.length > 0 && membersWithLocation[0].current_location) {
                       mapCenter = [
-                        membersWithLocation[0].current_location.latitude,
-                        membersWithLocation[0].current_location.longitude
+                        Number(membersWithLocation[0].current_location.latitude),
+                        Number(membersWithLocation[0].current_location.longitude)
                       ];
                     } else if (userData?.current_location) {
-                      mapCenter = [userData.current_location.latitude, userData.current_location.longitude];
+                      mapCenter = [Number(userData.current_location.latitude), Number(userData.current_location.longitude)];
                     }
 
                     return (

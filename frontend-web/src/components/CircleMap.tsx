@@ -253,7 +253,7 @@ export default function CircleMap({
           return (
             <Marker 
               key={member.id} 
-              position={[loc.latitude, loc.longitude]}
+              position={[Number(loc.latitude), Number(loc.longitude)]}
               icon={iconToUse}
               opacity={hasSilentSos ? 1.0 : (hasIssue ? 0.5 : 1.0)}
             >
@@ -339,7 +339,7 @@ export default function CircleMap({
         {geofences.map(geofence => (
           <LeafletCircle
             key={geofence.id}
-            center={[geofence.latitude, geofence.longitude]}
+            center={[Number(geofence.latitude), Number(geofence.longitude)]}
             radius={geofence.radius}
             pathOptions={{
               color: getGeofenceColor(geofence.type),
@@ -377,7 +377,12 @@ export default function CircleMap({
           if (initLoc.latitude === null || initLoc.latitude === undefined || initLoc.longitude === null || initLoc.longitude === undefined) return null;
           if (targLoc.latitude === null || targLoc.latitude === undefined || targLoc.longitude === null || targLoc.longitude === undefined) return null;
 
-          const distance = haversineDistance(initLoc.latitude, initLoc.longitude, targLoc.latitude, targLoc.longitude);
+          const distance = haversineDistance(
+            Number(initLoc.latitude),
+            Number(initLoc.longitude),
+            Number(targLoc.latitude),
+            Number(targLoc.longitude)
+          );
           const isBreached = distance > geofence.safe_radius_meters;
 
           const color = isBreached ? '#ef4444' : '#3b82f6';
@@ -386,7 +391,7 @@ export default function CircleMap({
             <Fragment key={`dynamic-gf-${geofence.id}`}>
               {/* Círculo de Seguridad sobre el Tutor */}
               <LeafletCircle
-                center={[initLoc.latitude, initLoc.longitude]}
+                center={[Number(initLoc.latitude), Number(initLoc.longitude)]}
                 radius={geofence.safe_radius_meters}
                 pathOptions={{
                   color: color,
@@ -400,8 +405,8 @@ export default function CircleMap({
               {/* Línea Conectora entre Tutor y Familiar */}
               <Polyline
                 positions={[
-                  [initLoc.latitude, initLoc.longitude],
-                  [targLoc.latitude, targLoc.longitude]
+                  [Number(initLoc.latitude), Number(initLoc.longitude)],
+                  [Number(targLoc.latitude), Number(targLoc.longitude)]
                 ]}
                 pathOptions={{
                   color: color,
@@ -431,7 +436,7 @@ export default function CircleMap({
         {historyRoute && historyRoute.length > 0 && (
           <>
             <Polyline
-              positions={historyRoute.map(pt => [pt.latitude, pt.longitude])}
+              positions={historyRoute.map(pt => [Number(pt.latitude), Number(pt.longitude)])}
               pathOptions={{
                 color: '#6366F1', // Indigo
                 weight: 4,
@@ -442,7 +447,7 @@ export default function CircleMap({
             {historyRoute.map((pt, idx) => (
               <LeafletCircle
                 key={`pt-${pt.id}-${idx}`}
-                center={[pt.latitude, pt.longitude]}
+                center={[Number(pt.latitude), Number(pt.longitude)]}
                 radius={3}
                 pathOptions={{
                   color: '#4F46E5',
@@ -461,7 +466,12 @@ export default function CircleMap({
             let speedText = 'Calculando...';
             if (playbackIndex > 0) {
               const prev = historyRoute[playbackIndex - 1];
-              const dist = haversineDistance(prev.latitude, prev.longitude, activePt.latitude, activePt.longitude);
+              const dist = haversineDistance(
+                Number(prev.latitude),
+                Number(prev.longitude),
+                Number(activePt.latitude),
+                Number(activePt.longitude)
+              );
               const timeDiff = (new Date(activePt.recorded_at).getTime() - new Date(prev.recorded_at).getTime()) / 1000;
               if (timeDiff > 0) {
                 const speedKmh = (dist / timeDiff) * 3.6;
@@ -474,7 +484,7 @@ export default function CircleMap({
             }
             return (
               <Marker
-                position={[activePt.latitude, activePt.longitude]}
+                position={[Number(activePt.latitude), Number(activePt.longitude)]}
                 icon={PlaybackIcon}
               >
                 <Popup>
