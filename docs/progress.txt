@@ -475,5 +475,5 @@
     - Verificación exitosa de compilación de Typescript (`npx tsc --noEmit` exits with 0).
 - **Web Frontend (Next.js):**
     - Agregado el indicador "Visto por última vez: HH:MM" en la barra lateral de miembros del Dashboard.tsx para facilitar el monitoreo directo de actualizaciones.
-
-
+    - Corregido error de compilación TypeScript (`Property 'recorded_at' does not exist on type...`) al agregar la propiedad opcional `recorded_at` al tipo `current_location` en [Dashboard.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/Dashboard.tsx) y [CircleMap.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/CircleMap.tsx).
+    - Compilación de producción Next.js probada y finalizada con éxito localmente en el contenedor docker (`npm run build` exit code 0).
