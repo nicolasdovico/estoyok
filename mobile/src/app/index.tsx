@@ -1186,6 +1186,15 @@ export default function HomeScreen() {
                                   </View>
                                   
                                   {member.current_location && (
+                                    <Text style={{ fontSize: 10, color: '#9ca3af', marginTop: 4, marginLeft: 2 }}>
+                                      🕒 Visto por última vez: {(() => {
+                                        const time = member.current_location.last_seen_at || member.current_location.recorded_at || member.current_location.updated_at;
+                                        return time ? new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/D';
+                                      })()}
+                                    </Text>
+                                  )}
+
+                                  {member.current_location && (
                                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4, flexWrap: 'wrap' }}>
                                       {!member.current_location.is_tracking_active && (
                                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 2 }}>

@@ -459,3 +459,21 @@
     - Simplified imports, removing `@stripe/stripe-react-native`, `AsyncStorage`, `api`, and unused Lucide icons from `settings.tsx`.
     - Resolved TypeScript compiling errors by ensuring the newly introduced `modalHeader` layout properties are defined inside the StyleSheet structure of the main `index.tsx` screen.
     - Verified compilation safety with `npx tsc --noEmit` and confirmed zero regressions in the Laravel backend test suite (114/114 passing).
+
+## [2026-06-28] Estabilización de Túnel ngrok y Depuración de Errores de Red
+- **Configuración y Guía de ngrok:**
+    - Creado el documento [pruebas_con_tunel_ngrok.md](file:///home/usuario/aplicaciones/estoyok/docs/pruebas_con_tunel_ngrok.md) para registrar el proceso detallado del uso de túneles ngrok personales con dominio estático fijo para pruebas físicas fuera del Wi-Fi en Expo Go, evadiendo el error de saturación de la cuenta de Expo (`ERR_NGROK_108`).
+- **Mobile Frontend (Expo / React Native):**
+    - Implementada comprobación de sesión activa (`auth_token` de AsyncStorage) al inicio de la tarea en segundo plano en [locationTask.ts](file:///home/usuario/aplicaciones/estoyok/mobile/src/services/locationTask.ts). Si el usuario está deslogueado, el proceso finaliza inmediatamente para evitar llamadas de red no autorizadas y spamear errores `401`.
+    - Modificado el comportamiento de logs de error en `locationTask.ts`, rebajando `console.error` de red/sincronización a `console.log`. Esto previene que se dispare el overlay de pantalla roja (redbox) en Expo Go ante microcortes o transiciones de señal móvil.
+- **Backend & Despliegue (Railway):**
+    - Diagnosticado y corregido el error de enlace 404 en el mensaje de emergencia SOS por WhatsApp. Se actualizó la variable de entorno `FRONTEND_URL` en Railway para apuntar al subdominio del frontend activo real (`https://frontend-web-production-f4f0.up.railway.app`), permitiendo la correcta visualización de la posición del usuario en el mapa de crisis.
+    - Ejecutada la suite de pruebas del backend de Laravel con éxito (114/114 tests pasados).
+- **Mobile Frontend (Expo / React Native):**
+    - Corregido crash `TypeError: activePoint.accuracy.toFixed is not a function` en [history.tsx](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/history.tsx) asegurando que la precisión (`accuracy`) obtenida de la API del historial se castee a tipo numérico con `Number()` al procesar los puntos y al formatear su visualización.
+    - Agregado el indicador "Visto por última vez: HH:MM" en la lista de familiares del index.tsx de la aplicación.
+    - Verificación exitosa de compilación de Typescript (`npx tsc --noEmit` exits with 0).
+- **Web Frontend (Next.js):**
+    - Agregado el indicador "Visto por última vez: HH:MM" en la barra lateral de miembros del Dashboard.tsx para facilitar el monitoreo directo de actualizaciones.
+
+

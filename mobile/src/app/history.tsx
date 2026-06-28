@@ -92,6 +92,7 @@ export default function HistoryScreen() {
         ...p,
         latitude: Number(p.latitude),
         longitude: Number(p.longitude),
+        accuracy: p.accuracy !== null && p.accuracy !== undefined ? Number(p.accuracy) : null,
       }));
       setPoints(formattedPoints);
       
@@ -332,7 +333,7 @@ export default function HistoryScreen() {
                 </View>
                 <View style={styles.infoBox}>
                   <Text style={styles.infoLabel}>Precisión</Text>
-                  <Text style={styles.infoValue}>{activePoint.accuracy ? `${activePoint.accuracy.toFixed(0)}m` : 'N/D'}</Text>
+                  <Text style={styles.infoValue}>{activePoint.accuracy ? `${Number(activePoint.accuracy).toFixed(0)}m` : 'N/D'}</Text>
                 </View>
               </View>
             )}

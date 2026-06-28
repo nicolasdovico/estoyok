@@ -1488,6 +1488,14 @@ export default function Dashboard() {
                                             {isOwner ? 'Dueño' : member.pivot.role === 'admin' ? 'Administrador' : 'Miembro'}
                                           </p>
                                           {member.current_location && (
+                                            <p className="text-[10px] text-gray-500 font-semibold mt-1">
+                                              🕒 Visto por última vez: {(() => {
+                                                const time = member.current_location.last_seen_at || member.current_location.recorded_at || member.current_location.updated_at;
+                                                return time ? new Date(time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'N/D';
+                                              })()}
+                                            </p>
+                                          )}
+                                          {member.current_location && (
                                             <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                               {(() => {
                                                 const loc = member.current_location;
