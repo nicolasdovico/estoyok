@@ -61,7 +61,7 @@ export async function flushOfflineLocations() {
       try {
         await api.post('/locations/update', item);
       } catch (err) {
-        console.error('Failed to flush offline location item, keeping in queue:', err);
+        console.log('Failed to flush offline location item (offline or server unreachable), keeping in queue');
         failedItems.push(item);
       }
     }
@@ -73,7 +73,7 @@ export async function flushOfflineLocations() {
       console.log('All offline locations flushed successfully.');
     }
   } catch (err) {
-    console.error('Error flushing offline locations:', err);
+    console.log('Error flushing offline locations:', err instanceof Error ? err.message : err);
   }
 }
 
@@ -125,6 +125,11 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
     const location = locations[0];
     if (location) {
       try {
+        const token = await AsyncStorage.getItem('auth_token');
+        if (!token) {
+          return;
+        }
+
         let batteryLevel: number | null = null;
         try {
           const isBatteryAvailable = await Battery.isAvailableAsync();
@@ -232,7 +237,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
             // Try to flush any previously queued locations
             await flushOfflineLocations();
           } catch (apiErr) {
-            console.error('Failed to update online, queueing location offline:', apiErr);
+            console.log('Failed to update online (offline or server unreachable), queueing location offline');
             await queueOfflineLocation(payload);
           }
         }
@@ -243,7 +248,7 @@ TaskManager.defineTask(LOCATION_TASK_NAME, async ({ data, error }: any) => {
         // Trigger passive automation checks
         await performAutoCheckInChecks();
       } catch (err) {
-        console.error('Failed to update background location or check-in', err);
+        console.log('Failed to update background location or check-in:', err instanceof Error ? err.message : err);
       }
     }
   }
@@ -403,6 +408,6 @@ async function performAutoCheckInChecks() {
       }
     }
   } catch (err) {
-    console.error('Error during auto-checkin background processing:', err);
+    console.log('Error during auto-checkin background processing (likely network offline):', err instanceof Error ? err.message : err);
   }
 }

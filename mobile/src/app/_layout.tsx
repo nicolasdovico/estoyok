@@ -14,6 +14,7 @@ LogBox.ignoreLogs([
   'expo-notifications: Android Push notifications',
   '[expo-av]: Expo AV has been deprecated',
   'Background location is limited in Expo Go',
+  'Unable to activate keep awake',
 ]);
 
 function RootLayoutNav() {
