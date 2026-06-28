@@ -40,6 +40,7 @@ export interface UserData {
     is_tracking_active?: boolean;
     gps_enabled?: boolean;
     last_seen_at?: string | null;
+    recorded_at?: string | null;
     is_offline?: boolean;
   } | null;
   circles: Array<{
@@ -73,6 +74,7 @@ interface CircleData {
       is_tracking_active?: boolean;
       gps_enabled?: boolean;
       last_seen_at?: string | null;
+      recorded_at?: string | null;
       is_offline?: boolean;
       speed?: number | null;
       is_driving?: boolean;
