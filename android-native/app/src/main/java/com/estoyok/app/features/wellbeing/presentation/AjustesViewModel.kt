@@ -34,10 +34,8 @@ class AjustesViewModel @Inject constructor(
         private set
 
     var quietHoursStart by mutableStateOf("22:00")
-        private set
 
     var quietHoursEnd by mutableStateOf("08:00")
-        private set
 
     var allowSmsWhatsappCheckin by mutableStateOf(false)
         private set
@@ -46,7 +44,6 @@ class AjustesViewModel @Inject constructor(
         private set
 
     var safeWifiSsid by mutableStateOf("")
-        private set
 
     var sensorCheckinEnabled by mutableStateOf(false)
         private set

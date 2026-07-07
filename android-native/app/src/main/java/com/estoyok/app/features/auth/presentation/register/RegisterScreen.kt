@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -63,8 +64,10 @@ fun RegisterScreen(
                 text = "Crear Cuenta",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                brush = Brush.horizontalGradient(
-                    colors = listOf(PrimaryEmerald, PrimaryTeal)
+                style = TextStyle(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryEmerald, PrimaryTeal)
+                    )
                 )
             )
 
@@ -96,10 +99,6 @@ fun RegisterScreen(
                         },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
@@ -120,10 +119,6 @@ fun RegisterScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
@@ -146,11 +141,6 @@ fun RegisterScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f),
-                            supportingTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
@@ -186,10 +176,6 @@ fun RegisterScreen(
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
@@ -225,10 +211,6 @@ fun RegisterScreen(
                         visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 

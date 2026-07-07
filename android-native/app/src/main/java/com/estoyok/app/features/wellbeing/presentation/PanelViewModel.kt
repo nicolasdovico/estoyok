@@ -206,8 +206,8 @@ class PanelViewModel @Inject constructor(
     }
 
     private fun calculateStatus() {
-        val targetUser = user
-        if (targetUser?.lastCheckInAt == null) {
+        val targetUser = user ?: return
+        val lastCheckInAt = targetUser.lastCheckInAt ?: run {
             status = WellbeingStatus.NoReports
             return
         }
@@ -221,9 +221,9 @@ class PanelViewModel @Inject constructor(
             }
 
             val lastCheckInDate = try {
-                sdf.parse(targetUser.lastCheckInAt)
+                sdf.parse(lastCheckInAt)
             } catch (e: Exception) {
-                sdfFallback.parse(targetUser.lastCheckInAt)
+                sdfFallback.parse(lastCheckInAt)
             }
 
             if (lastCheckInDate == null) {

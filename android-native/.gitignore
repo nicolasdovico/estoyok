@@ -1,0 +1,23 @@
+# Gradle build and cache files
+.gradle/
+build/
+/*/build/
+/build/
+
+# Local configuration files (SDK paths, local configurations)
+local.properties
+
+# Android Studio / IntelliJ files and settings
+.idea/
+*.iml
+.cxx/
+captures/
+
+# Signing files (keystores)
+*.jks
+*.keystore
+
+# Temporary files
+*.log
+*.tmp
+.DS_Store

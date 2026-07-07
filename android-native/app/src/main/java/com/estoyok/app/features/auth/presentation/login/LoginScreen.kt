@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -62,8 +63,10 @@ fun LoginScreen(
                 text = "Estoy Ok",
                 fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
-                brush = Brush.horizontalGradient(
-                    colors = listOf(PrimaryEmerald, PrimaryTeal)
+                style = TextStyle(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryEmerald, PrimaryTeal)
+                    )
                 ),
                 letterSpacing = 1.sp
             )
@@ -116,10 +119,6 @@ fun LoginScreen(
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
@@ -155,10 +154,6 @@ fun LoginScreen(
                         visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                         modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 

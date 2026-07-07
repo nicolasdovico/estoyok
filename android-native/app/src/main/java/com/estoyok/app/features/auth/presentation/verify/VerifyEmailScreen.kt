@@ -52,8 +52,10 @@ fun VerifyEmailScreen(
                 text = "Verifica tu Email",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.ExtraBold,
-                brush = Brush.horizontalGradient(
-                    colors = listOf(PrimaryEmerald, PrimaryTeal)
+                style = TextStyle(
+                    brush = Brush.horizontalGradient(
+                        colors = listOf(PrimaryEmerald, PrimaryTeal)
+                    )
                 )
             )
 
@@ -125,10 +127,6 @@ fun VerifyEmailScreen(
                         modifier = Modifier
                             .width(200.dp)
                             .wrapContentHeight(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = MaterialTheme.colorScheme.primary,
-                            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                        ),
                         shape = RoundedCornerShape(12.dp)
                     )
 
