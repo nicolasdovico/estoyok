@@ -1,0 +1,10 @@
+[
+    {
+        "merged": "com.estoyok.app-merged_res-101:/xml_data_extraction_rules.xml.flat",
+        "source": "com.estoyok.app-main-103:/xml/data_extraction_rules.xml"
+    },
+    {
+        "merged": "com.estoyok.app-merged_res-101:/xml_backup_rules.xml.flat",
+        "source": "com.estoyok.app-main-103:/xml/backup_rules.xml"
+    }
+]

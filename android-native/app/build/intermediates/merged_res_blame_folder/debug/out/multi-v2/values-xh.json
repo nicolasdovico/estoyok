@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.estoyok.app-mergeDebugResources-99:/values-xh/values-xh.xml",
+            "map": [
+                {
+                    "source": "/home/usuario/.gradle/caches/transforms-3/dfbb7184b3563461d9570739c9199eea/transformed/hcaptcha-20.37.2/res/values-xh/values-xh.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "85",
+                        "endOffsets": "136"
+                    }
+                }
+            ]
+        }
+    ]
+}

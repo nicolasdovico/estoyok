@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.estoyok.app-mergeDebugResources-99:/values-in-rID/values-in-rID.xml",
+            "map": [
+                {
+                    "source": "/home/usuario/.gradle/caches/transforms-3/a64696d2590dcbb8fb2dacf347ea8697/transformed/stripe-3ds2-android-6.1.8/res/values-in-rID/values-in-rID.xml",
+                    "from": {
+                        "startLines": "2,3,4,5,6,7,8",
+                        "startColumns": "4,4,4,4,4,4,4",
+                        "startOffsets": "55,140,242,311,378,444,515",
+                        "endColumns": "84,101,68,66,65,70,66",
+                        "endOffsets": "135,237,306,373,439,510,577"
+                    }
+                }
+            ]
+        }
+    ]
+}

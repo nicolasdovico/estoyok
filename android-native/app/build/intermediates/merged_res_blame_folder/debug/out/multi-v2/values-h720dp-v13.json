@@ -1,0 +1,19 @@
+{
+    "logs": [
+        {
+            "outputFile": "com.estoyok.app-mergeDebugResources-99:/values-h720dp-v13/values-h720dp-v13.xml",
+            "map": [
+                {
+                    "source": "/home/usuario/.gradle/caches/transforms-3/9e77d1c7caca5483387dde3fce318a13/transformed/appcompat-1.6.1/res/values-h720dp-v13/values-h720dp-v13.xml",
+                    "from": {
+                        "startLines": "2",
+                        "startColumns": "4",
+                        "startOffsets": "55",
+                        "endColumns": "66",
+                        "endOffsets": "117"
+                    }
+                }
+            ]
+        }
+    ]
+}
