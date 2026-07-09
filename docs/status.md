@@ -139,6 +139,7 @@
     - [x] Desarrollado el encuadre automático e inteligente de la cámara en `MapaScreen.kt` mediante `LatLngBounds` y `CameraUpdateFactory`, que auto-enfoca y aleja (zoom out) el mapa para englobar a todos los familiares del núcleo cuando se abre la app o se cambia de núcleo. Se integró un botón flotante circular de enfoque manual rápido.
     - [x] Desactivado el botón de ubicación nativo duplicado de Google Maps (color violeta) y configurado un `contentPadding` de `120.dp` en el mapa para desplazar de forma prolija las marcas de agua de Google por encima de nuestro panel deslizable.
     - [x] Configurada la constante `BASE_URL` de la app nativa Kotlin en `NetworkModule.kt` apuntando al host local `http://127.0.0.1:8000/api/` para desarrollo y depuración local por cable USB (mediante reenvío de puertos `adb reverse`).
+    - [x] Diseñado e implementado el selector dinámico segmentado de servidores en `LoginScreen.kt` (**💻 Local (USB)** y **🌐 Railway**) persistido en DataStore, el cual permite alternar en caliente la URL base del backend sin requerir nuevas compilaciones de la app.
     - [x] Implementado el interceptor de errores `401 Unauthorized` en `AuthInterceptor.kt` para limpiar automáticamente la sesión local mediante DataStore y redirigir de inmediato al usuario a la pantalla de Login si el token expira o es revocado.
 
 ### In Progress:
