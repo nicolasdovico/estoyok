@@ -13,12 +13,31 @@ import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import com.estoyok.app.core.data.local.SessionManager
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
+
+    var currentBaseUrl by mutableStateOf("http://127.0.0.1:8000/api/")
+        private set
+
+    init {
+        viewModelScope.launch {
+            sessionManager.apiBaseUrlFlow.collect { url ->
+                currentBaseUrl = url ?: "http://127.0.0.1:8000/api/"
+            }
+        }
+    }
+
+    fun updateBaseUrl(newUrl: String) {
+        viewModelScope.launch {
+            sessionManager.saveApiBaseUrl(newUrl)
+        }
+    }
 
     var email by mutableStateOf("")
         private set

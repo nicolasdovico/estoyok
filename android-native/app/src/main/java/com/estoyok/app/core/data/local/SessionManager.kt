@@ -23,10 +23,21 @@ class SessionManager @Inject constructor(
         private val USER_EMAIL = stringPreferencesKey("user_email")
         private val USER_NAME = stringPreferencesKey("user_name")
         private val USER_PHONE = stringPreferencesKey("user_phone")
+        private val API_BASE_URL = stringPreferencesKey("api_base_url")
     }
 
     val authTokenFlow: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[AUTH_TOKEN]
+    }
+
+    val apiBaseUrlFlow: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[API_BASE_URL]
+    }
+
+    suspend fun saveApiBaseUrl(url: String) {
+        context.dataStore.edit { preferences ->
+            preferences[API_BASE_URL] = url
+        }
     }
 
     val userEmailFlow: Flow<String?> = context.dataStore.data.map { preferences ->

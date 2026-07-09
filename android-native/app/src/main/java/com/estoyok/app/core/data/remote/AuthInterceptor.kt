@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.runBlocking
 import okhttp3.Interceptor
 import okhttp3.Response
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -28,7 +29,23 @@ class AuthInterceptor @Inject constructor(
             requestBuilder.header("Authorization", "Bearer $token")
         }
 
-        val response = chain.proceed(requestBuilder.build())
+        val savedUrl = runBlocking {
+            sessionManager.apiBaseUrlFlow.firstOrNull()
+        }
+
+        val finalRequest = if (!savedUrl.isNullOrEmpty() && savedUrl != "http://127.0.0.1:8000/api/") {
+            val newHttpUrl = originalRequest.url.toString().replace("http://127.0.0.1:8000/api/", savedUrl)
+            val newUrl = newHttpUrl.toHttpUrlOrNull()
+            if (newUrl != null) {
+                requestBuilder.url(newUrl).build()
+            } else {
+                requestBuilder.build()
+            }
+        } else {
+            requestBuilder.build()
+        }
+
+        val response = chain.proceed(finalRequest)
         
         if (response.code == 401) {
             runBlocking {

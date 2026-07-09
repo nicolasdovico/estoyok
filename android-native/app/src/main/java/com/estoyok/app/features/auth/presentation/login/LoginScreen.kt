@@ -12,6 +12,9 @@ import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -200,6 +203,57 @@ fun LoginScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // Environment Selector
+                    val context = LocalContext.current
+                    Text(
+                        text = "Servidor / Entorno:",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
+                    )
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        val isLocalSelected = viewModel.currentBaseUrl == "http://127.0.0.1:8000/api/"
+                        
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.updateBaseUrl("http://127.0.0.1:8000/api/")
+                                Toast.makeText(context, "Servidor cambiado a Local (USB)", Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                                contentColor = if (isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            ),
+                            border = BorderStroke(1.dp, if (isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                        ) {
+                            Text("💻 Local (USB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                viewModel.updateBaseUrl("https://backend-api-production-aec1.up.railway.app/api/")
+                                Toast.makeText(context, "Servidor cambiado a Railway", Toast.LENGTH_SHORT).show()
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(8.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = if (!isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                                contentColor = if (!isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                            ),
+                            border = BorderStroke(1.dp, if (!isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                        ) {
+                            Text("🌐 Railway", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                         }
                     }
                 }
