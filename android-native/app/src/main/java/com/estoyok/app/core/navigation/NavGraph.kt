@@ -43,7 +43,6 @@ fun MainScreen(
         Screen.Mapa,
         Screen.Vehiculo,
         Screen.EstoyOk,
-        Screen.Familia,
         Screen.Premium
     )
 
@@ -51,7 +50,7 @@ fun MainScreen(
     val currentRoute = navBackStackEntry?.destination?.route
 
     // Check if bottom bar should be visible (only for authenticated, main tab screens)
-    val showBottomBar = isAuthenticated && (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route)
+    val showBottomBar = isAuthenticated && (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route)
 
     // Redirect logic: whenever auth state changes, enforce correct routes
     LaunchedEffect(isAuthenticated) {
@@ -159,11 +158,11 @@ fun MainScreen(
                 composable(Screen.Ajustes.route) { AjustesScreen() }
             }
 
-            if (isAuthenticated && (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route)) {
-                val isAjustes = currentRoute == Screen.Ajustes.route
+            val isSubScreen = currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route
+            if (isAuthenticated && (items.any { it.route == currentRoute } || isSubScreen)) {
                 IconButton(
                     onClick = {
-                        if (isAjustes) {
+                        if (isSubScreen) {
                             navController.navigate(Screen.Mapa.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
@@ -190,8 +189,8 @@ fun MainScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = if (isAjustes) Icons.Default.ArrowBack else Icons.Default.Settings,
-                        contentDescription = if (isAjustes) "Volver" else "Ajustes"
+                        imageVector = if (isSubScreen) Icons.Default.ArrowBack else Icons.Default.Settings,
+                        contentDescription = if (isSubScreen) "Volver" else "Ajustes"
                     )
                 }
             }

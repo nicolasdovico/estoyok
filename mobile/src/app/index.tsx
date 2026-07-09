@@ -1755,6 +1755,7 @@ export default function HomeScreen() {
           <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Estoy ok</Text>
         </TouchableOpacity>
 
+        {/* Ocultado del menú inferior (se accede desde la gestión del combo o ajustes)
         <TouchableOpacity 
           style={[styles.tabButton, activeTab === 'family' && styles.tabButtonActive]}
           onPress={() => setActiveTab('family')}
@@ -1762,6 +1763,7 @@ export default function HomeScreen() {
           <Users size={22} color={activeTab === 'family' ? '#2563eb' : '#9ca3af'} />
           <Text style={[styles.tabText, activeTab === 'family' && styles.tabTextActive]}>Núcleo</Text>
         </TouchableOpacity>
+        */}
 
         <TouchableOpacity 
           style={[styles.tabButton, activeTab === 'premium' && styles.tabButtonActive]}

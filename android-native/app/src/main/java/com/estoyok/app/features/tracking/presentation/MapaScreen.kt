@@ -168,6 +168,13 @@ fun MapaScreen(
                             navController?.navigate(Screen.Familia.route)
                         }
                     )
+                    DropdownMenuItem(
+                        text = { Text("⚙️ Administrar núcleos") },
+                        onClick = {
+                            isCircleDropdownExpanded = false
+                            navController?.navigate(Screen.Familia.route)
+                        }
+                    )
                 }
             }
         }
