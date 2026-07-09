@@ -106,7 +106,7 @@ fun MapaScreen(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(start = 72.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)
                 .align(Alignment.TopCenter),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {

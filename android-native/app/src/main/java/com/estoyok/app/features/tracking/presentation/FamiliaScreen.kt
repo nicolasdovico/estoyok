@@ -57,7 +57,7 @@ fun FamiliaScreen(
         // --- HEADER ---
         item {
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier.fillMaxWidth().padding(start = 56.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -410,129 +410,6 @@ fun FamiliaScreen(
                 }
             }
         }
-
-        // --- PREMIUM PROMOTION SECTION ---
-        item {
-            val isPremium = viewModel.user?.isPremium == true
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = if (isPremium) DarkSurfaceVariant else Color(0xFF0F1E15)), // Green hue if free
-                border = if (isPremium) null else BorderStroke(1.dp, PrimaryEmerald)
-            ) {
-                Column(
-                    modifier = Modifier.padding(18.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    if (isPremium) {
-                        Icon(
-                            imageVector = Icons.Default.Star,
-                            contentDescription = "Premium",
-                            tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(32.dp)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Plan Premium Activo 👑",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = Color(0xFFFFD700)
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Tienes acceso ilimitado a todas las características del sistema de seguridad familiar.",
-                            fontSize = 12.sp,
-                            color = TextSecondary,
-                            textAlign = TextAlign.Center
-                        )
-                    } else {
-                        Text(
-                            text = "¡Pásate a Premium! 👑",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = PrimaryEmerald
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = "Protege a tu familia con las mejores características:",
-                            fontSize = 12.sp,
-                            color = TextPrimary,
-                            fontWeight = FontWeight.Bold,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-                        ) {
-                            Text("✓ Historial de geolocalización ilimitado.", fontSize = 12.sp, color = TextSecondary)
-                            Text("✓ Detección de colisiones e impactos G.", fontSize = 12.sp, color = TextSecondary)
-                            Text("✓ Webhooks automáticos SMS/WhatsApp.", fontSize = 12.sp, color = TextSecondary)
-                            Text("✓ Alertas inteligentes de velocidad en coche.", fontSize = 12.sp, color = TextSecondary)
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Payment selector chips
-                        Text(
-                            text = "Seleccionar Medio de Pago:",
-                            fontSize = 11.sp,
-                            color = TextMuted,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(6.dp))
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            listOf("stripe" to "Stripe", "mercadopago" to "MercadoPago", "paypal" to "PayPal").forEach { (id, label) ->
-                                val selected = selectedPayProvider == id
-                                Box(
-                                    modifier = Modifier
-                                        .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (selected) MaterialTheme.colorScheme.primary else DarkSurfaceVariant)
-                                        .clickable { selectedPayProvider = id }
-                                        .padding(vertical = 8.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = label,
-                                        color = if (selected) Color.White else TextPrimary,
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold
-                                    )
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Subscribe CTA Button
-                        Button(
-                            onClick = {
-                                viewModel.checkoutSubscription(selectedPayProvider) { checkoutUrl ->
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
-                                    context.startActivity(intent)
-                                }
-                            },
-                            modifier = Modifier.fillMaxWidth(),
-                            enabled = !viewModel.checkoutLoading,
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
-                        ) {
-                            if (viewModel.checkoutLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
-                            } else {
-                                Text("Suscribirse ahora ($4.99/mes)", fontWeight = FontWeight.ExtraBold)
-                            }
-                        }
-                    }
-                }
-            }
         }
     }
 }

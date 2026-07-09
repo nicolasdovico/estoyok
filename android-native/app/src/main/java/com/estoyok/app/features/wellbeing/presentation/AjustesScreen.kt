@@ -44,7 +44,7 @@ fun AjustesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(20.dp),
+                .padding(start = 20.dp, end = 20.dp, bottom = 20.dp, top = 60.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Title

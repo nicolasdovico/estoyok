@@ -4,7 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import api from '@/services/api';
 import * as Location from 'expo-location';
 import { LOCATION_TASK_NAME, flushOfflineLocations } from '@/services/locationTask';
-import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow, EyeOff, MapPinOff, WifiOff, Star, X, Lock, CreditCard, AlertCircle, Info } from 'lucide-react-native';
+import { MapPin, CheckCircle, Power, User as UserIcon, Shield, Settings, Users, Copy, Plus, Trash2, Compass, Map, Battery, BatteryMedium, BatteryLow, EyeOff, MapPinOff, WifiOff, Star, X, Lock, CreditCard, AlertCircle, Info, ArrowLeft, Car } from 'lucide-react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Audio } from 'expo-av';
 import { startSos, uploadSosAudio } from '@/services/sosService';
@@ -12,11 +12,12 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as Notifications from 'expo-notifications';
 import { useStripe } from '@stripe/stripe-react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { settingsService } from '@/services/settings';
 
 export default function HomeScreen() {
   const { user, logout, login } = useAuth();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'map' | 'family' | 'more'>('dashboard');
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'map' | 'family' | 'more' | 'vehicle' | 'premium'>('map');
   const stripe = useStripe();
   const insets = useSafeAreaInsets();
   
@@ -929,6 +930,20 @@ export default function HomeScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: '#f3f4f6' }}>
+      {/* Botón de Ajustes Flotante en la Esquina Superior Izquierda */}
+      {user && (
+        <TouchableOpacity 
+          style={[styles.floatingSettingsButton, { top: insets.top + 10 }]}
+          onPress={() => setActiveTab(activeTab === 'more' ? 'map' : 'more')}
+        >
+          {activeTab === 'more' ? (
+            <ArrowLeft size={22} color="#4b5563" />
+          ) : (
+            <Settings size={22} color="#4b5563" />
+          )}
+        </TouchableOpacity>
+      )}
+
       <ScrollView 
         style={styles.container} 
         contentContainerStyle={styles.contentContainer}
@@ -938,7 +953,7 @@ export default function HomeScreen() {
       >
         {/* Header Compacto */}
         {activeTab !== 'more' && (
-          <View style={styles.header}>
+          <View style={[styles.header, { paddingLeft: 52 }]}>
             <View style={styles.userInfo}>
               <Text style={styles.welcomeText}>Hola, {user?.name}</Text>
               <Text style={styles.planBadge}>{user?.is_premium ? 'Socio Premium ⭐' : 'Plan Básico'}</Text>
@@ -950,7 +965,7 @@ export default function HomeScreen() {
         )}
 
         {/* Botón de SOS Destacado */}
-        {(activeTab === 'dashboard' || activeTab === 'map') && (
+        {(activeTab === 'dashboard' || activeTab === 'map' || activeTab === 'vehicle') && (
           <TouchableOpacity 
             style={[
               styles.sosButton, 
@@ -1507,7 +1522,7 @@ export default function HomeScreen() {
 
         {/* PESTAÑA 4: MÁS/AJUSTES */}
         {activeTab === 'more' && (
-          <View>
+          <View style={{ paddingTop: 48 }}>
             <View style={styles.profileHeader}>
               <View style={styles.profileAvatar}>
                 <UserIcon size={32} color="#4b5563" />
@@ -1521,6 +1536,120 @@ export default function HomeScreen() {
               </View>
             </View>
 
+            <View style={styles.menuGroup}>
+              <Text style={styles.menuGroupTitle}>Seguridad y Contactos</Text>
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/contacts')}>
+                <View style={styles.menuItemLeft}>
+                  <Users size={20} color="#2563eb" />
+                  <Text style={styles.menuItemText}>Contactos de Emergencia</Text>
+                </View>
+                <Text style={styles.menuItemArrow}>›</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings')}>
+                <View style={styles.menuItemLeft}>
+                  <Settings size={20} color="#4b5563" />
+                  <Text style={styles.menuItemText}>Configuración y Sensores</Text>
+                </View>
+                <Text style={styles.menuItemArrow}>›</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.menuGroup}>
+              <Text style={styles.menuGroupTitle}>Sesión</Text>
+              <TouchableOpacity style={[styles.menuItem, styles.logoutMenuItem]} onPress={logout}>
+                <View style={styles.menuItemLeft}>
+                  <Power size={20} color="#dc2626" />
+                  <Text style={[styles.menuItemText, { color: '#dc2626' }]}>Cerrar Sesión</Text>
+                </View>
+              </TouchableOpacity>
+            </View>
+          </View>
+        )}
+
+        {/* PESTAÑA 5: VEHÍCULO */}
+        {activeTab === 'vehicle' && (
+          <View>
+            <View style={styles.moduleCard}>
+              <View style={styles.moduleHeader}>
+                <Car size={20} color="#3b82f6" />
+                <Text style={styles.moduleTitle}>Monitoreo Vehicular</Text>
+              </View>
+
+              <View style={styles.wellbeingContent}>
+                {/* Telemetría actual */}
+                <View style={{ width: '100%', alignItems: 'center', padding: 20, backgroundColor: '#f8fafc', borderRadius: 16 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748b' }}>Tu Estado de Conducción</Text>
+                  <Text style={{ fontSize: 24, fontWeight: '900', color: '#1e293b', marginTop: 8 }}>
+                    {freshUser?.current_location?.is_driving ? '🚗 Conduciendo' : '💤 En Reposo'}
+                  </Text>
+                  {freshUser?.current_location?.is_driving && (
+                    <Text style={{ fontSize: 16, fontWeight: '800', color: '#3b82f6', marginTop: 4 }}>
+                      Velocidad: {Math.round(freshUser?.current_location?.speed ?? 0)} km/h
+                    </Text>
+                  )}
+                </View>
+
+                {/* Explicación de detección de accidentes */}
+                <View style={{ width: '100%', padding: 16, backgroundColor: '#eff6ff', borderRadius: 16, gap: 8 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '800', color: '#1e40af' }}>🚨 Detección de Accidentes</Text>
+                  <Text style={{ fontSize: 12, color: '#1e3a8a', lineHeight: 18 }}>
+                    Estoy Ok utiliza el acelerómetro del dispositivo automáticamente durante trayectos en auto para detectar desaceleraciones bruscas (impactos mayores a 4.5G). Si ocurre, se disparará una alarma y una cuenta regresiva para notificar a tu familia.
+                  </Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Ajustes de Límite de Velocidad por Círculo/Núcleo */}
+            {circles.filter(c => c.owner_id === user?.id).length > 0 && (
+              <View style={styles.moduleCard}>
+                <View style={styles.moduleHeader}>
+                  <Compass size={20} color="#2563eb" />
+                  <Text style={styles.moduleTitle}>Límites de Velocidad de tus Núcleos</Text>
+                </View>
+                <Text style={{ fontSize: 12, color: '#6b7280', marginBottom: 16 }}>
+                  Establece la velocidad máxima permitida. Recibirás alertas instantáneas si algún miembro excede este límite.
+                </Text>
+
+                {circles.filter(c => c.owner_id === user?.id).map(circle => (
+                  <View key={circle.id} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#f3f4f6' }}>
+                    <Text style={{ fontWeight: '700', fontSize: 14, color: '#374151', flex: 1 }}>{circle.name}</Text>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+                      <TextInput
+                        style={{ borderColor: '#d1d5db', borderWidth: 1, borderRadius: 8, paddingHorizontal: 12, paddingVertical: 6, width: 70, textAlign: 'center', color: '#374151', backgroundColor: '#fff' }}
+                        keyboardType="numeric"
+                        defaultValue={(circle.speed_limit || 120).toString()}
+                        onChangeText={(val) => {
+                          const cleaned = val.replace(/[^0-9]/g, '');
+                          circle.speed_limit = cleaned ? parseInt(cleaned, 10) : 120;
+                        }}
+                      />
+                      <Text style={{ fontSize: 12, color: '#6b7280' }}>km/h</Text>
+                      <TouchableOpacity
+                        style={{ backgroundColor: '#2563eb', paddingHorizontal: 12, paddingVertical: 8, borderRadius: 8 }}
+                        onPress={async () => {
+                          try {
+                            const limit = circle.speed_limit || 120;
+                            await settingsService.updateCircleSpeedLimit(circle.id, limit);
+                            Alert.alert('Éxito', `Límite de velocidad de ${circle.name} actualizado a ${limit} km/h.`);
+                          } catch (e) {
+                            Alert.alert('Error', 'No se pudo guardar el límite.');
+                          }
+                        }}
+                      >
+                        <Text style={{ color: '#fff', fontSize: 12, fontWeight: '700' }}>Guardar</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
+
+        {/* PESTAÑA 6: PREMIUM */}
+        {activeTab === 'premium' && (
+          <View style={{ paddingTop: 20 }}>
             {/* SECCIÓN DE FACTURACIÓN Y MEMBRESÍA PREMIUM */}
             {user?.is_premium ? (
               <View style={styles.activePremiumCard}>
@@ -1592,35 +1721,6 @@ export default function HomeScreen() {
                 </TouchableOpacity>
               </View>
             )}
-
-            <View style={styles.menuGroup}>
-              <Text style={styles.menuGroupTitle}>Seguridad y Contactos</Text>
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/contacts')}>
-                <View style={styles.menuItemLeft}>
-                  <Users size={20} color="#2563eb" />
-                  <Text style={styles.menuItemText}>Contactos de Emergencia</Text>
-                </View>
-                <Text style={styles.menuItemArrow}>›</Text>
-              </TouchableOpacity>
-              
-              <TouchableOpacity style={styles.menuItem} onPress={() => router.push('/settings')}>
-                <View style={styles.menuItemLeft}>
-                  <Settings size={20} color="#4b5563" />
-                  <Text style={styles.menuItemText}>Configuración y Sensores</Text>
-                </View>
-                <Text style={styles.menuItemArrow}>›</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.menuGroup}>
-              <Text style={styles.menuGroupTitle}>Sesión</Text>
-              <TouchableOpacity style={[styles.menuItem, styles.logoutMenuItem]} onPress={logout}>
-                <View style={styles.menuItemLeft}>
-                  <Power size={20} color="#dc2626" />
-                  <Text style={[styles.menuItemText, { color: '#dc2626' }]}>Cerrar Sesión</Text>
-                </View>
-              </TouchableOpacity>
-            </View>
           </View>
         )}
 
@@ -1636,7 +1736,7 @@ export default function HomeScreen() {
           onPress={() => setActiveTab('dashboard')}
         >
           <Shield size={22} color={activeTab === 'dashboard' ? '#2563eb' : '#9ca3af'} />
-          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Panel</Text>
+          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Estoy ok</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
@@ -1648,6 +1748,14 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
+          style={[styles.tabButton, activeTab === 'vehicle' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('vehicle')}
+        >
+          <Car size={22} color={activeTab === 'vehicle' ? '#2563eb' : '#9ca3af'} />
+          <Text style={[styles.tabText, activeTab === 'vehicle' && styles.tabTextActive]}>Vehículo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
           style={[styles.tabButton, activeTab === 'family' && styles.tabButtonActive]}
           onPress={() => setActiveTab('family')}
         >
@@ -1656,11 +1764,11 @@ export default function HomeScreen() {
         </TouchableOpacity>
 
         <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'more' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('more')}
+          style={[styles.tabButton, activeTab === 'premium' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('premium')}
         >
-          <Settings size={22} color={activeTab === 'more' ? '#2563eb' : '#9ca3af'} />
-          <Text style={[styles.tabText, activeTab === 'more' && styles.tabTextActive]}>Ajustes</Text>
+          <Star size={22} color={activeTab === 'premium' ? '#2563eb' : '#9ca3af'} />
+          <Text style={[styles.tabText, activeTab === 'premium' && styles.tabTextActive]}>Premium</Text>
         </TouchableOpacity>
       </View>
 
@@ -1845,6 +1953,22 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#f3f4f6' },
   contentContainer: { padding: 16, paddingBottom: 40 },
+  floatingSettingsButton: {
+    position: 'absolute',
+    left: 16,
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 999,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
+  },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, marginTop: 10 },
   userInfo: { flex: 1 },
   welcomeText: { fontSize: 22, fontWeight: '900', color: '#111827' },

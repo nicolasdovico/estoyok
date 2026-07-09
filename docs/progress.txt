@@ -570,3 +570,13 @@
   - **Botón de Destrucción:** Opción de eliminar el círculo por completo si el usuario es el dueño original.
   - **Formularios de Círculos:** Tarjetas para crear círculos nuevos o unirse a existentes ingresando un código de 10 caracteres.
   - **Panel de Facturación Premium:** Tarjeta de promoción Premium que lista beneficios, selectores para Stripe/MercadoPago/PayPal y un botón de cobro asíncrono que redirige de forma segura al navegador nativo para finalizar la transacción en la pasarela oficial.
+
+## [2026-07-09] Re-organización de Navegación y Nuevas Secciones (Expo y Android Native)
+- **Estoy ok (Re-activado):** Reactivado el panel de bienestar pasivo (ex-"Panel") en el menú inferior renombrándolo como "Estoy ok".
+- **Nueva Pestaña "Vehículo":** 
+  - **Expo:** Implementada vista en la pestaña `vehicle` mostrando telemetría en tiempo real (estado de conducción, velocidad) y formulario interactivo para guardar límites de velocidad por círculo usando `settingsService.updateCircleSpeedLimit`.
+  - **Android Native:** Creada pantalla nativa `VehiculoScreen.kt` mostrando estado de conducción del dispositivo y aclarando el funcionamiento del detector de accidentes y velocidades máximas.
+- **Nueva Pestaña "Premium":**
+  - **Expo:** Extraído el bloque de checkout de membresía de la pestaña de Ajustes hacia una nueva pestaña dedicada `premium` con la pasarela Stripe integrada.
+  - **Android Native:** Creada pantalla nativa `PremiumScreen.kt` usando `FamiliaViewModel` para ofrecer suscripción Premium mediante Stripe, MercadoPago y PayPal, removiéndola de `FamiliaScreen.kt`.
+- **Verificación:** Ejecutada con éxito la compilación TypeScript y pasada la suite de pruebas unitarias/de integración del backend (114/114 tests PASS).
