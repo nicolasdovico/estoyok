@@ -152,7 +152,7 @@ fun MainScreen(
 
                 // Main Screens
                 composable(Screen.EstoyOk.route) { PanelScreen() }
-                composable(Screen.Mapa.route) { MapaScreen() }
+                composable(Screen.Mapa.route) { MapaScreen(navController = navController) }
                 composable(Screen.Vehiculo.route) { VehiculoScreen() }
                 composable(Screen.Familia.route) { FamiliaScreen() }
                 composable(Screen.Premium.route) { PremiumScreen() }

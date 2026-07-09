@@ -13,6 +13,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.ui.draw.scale
+import androidx.navigation.NavHostController
+import com.estoyok.app.core.navigation.Screen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,6 +40,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MapaScreen(
+    navController: NavHostController? = null,
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -103,82 +108,96 @@ fun MapaScreen(
         }
 
         // 2. Floating Header: Circle Selector & Tracking Switch
-        Column(
+        // 2a. Floating Header: Circle Selector Combo (Centered Pill)
+        Card(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 72.dp, top = 16.dp, end = 16.dp, bottom = 16.dp)
+                .wrapContentWidth()
+                .padding(top = 16.dp)
                 .align(Alignment.TopCenter),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
-            // Circle selector dropdown card
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
-                shape = RoundedCornerShape(12.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            Row(
+                modifier = Modifier
+                    .clickable { isCircleDropdownExpanded = true }
+                    .padding(horizontal = 14.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.Center
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Text(
+                    text = viewModel.selectedCircle?.name ?: "Seleccionar Núcleo",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextPrimary
+                )
+                Icon(
+                    imageVector = Icons.Default.ArrowDropDown,
+                    contentDescription = "Dropdown",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp).padding(start = 2.dp)
+                )
+
+                DropdownMenu(
+                    expanded = isCircleDropdownExpanded,
+                    onDismissRequest = { isCircleDropdownExpanded = false }
                 ) {
-                    Column(
-                        modifier = Modifier.clickable { isCircleDropdownExpanded = true }
-                    ) {
-                        Text(
-                            text = "Núcleo Activo",
-                            fontSize = 11.sp,
-                            color = TextMuted,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Text(
-                                text = viewModel.selectedCircle?.name ?: "Seleccionar Núcleo",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Icon(
-                                imageVector = Icons.Default.Settings,
-                                contentDescription = "Dropdown",
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(16.dp).padding(start = 4.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = isCircleDropdownExpanded,
-                            onDismissRequest = { isCircleDropdownExpanded = false }
-                        ) {
-                            viewModel.circles.forEach { circle ->
-                                DropdownMenuItem(
-                                    text = { Text(circle.name) },
-                                    onClick = {
-                                        viewModel.selectCircle(circle)
-                                        isCircleDropdownExpanded = false
-                                    }
-                                )
+                    viewModel.circles.forEach { circle ->
+                        DropdownMenuItem(
+                            text = { Text(circle.name) },
+                            onClick = {
+                                viewModel.selectCircle(circle)
+                                isCircleDropdownExpanded = false
                             }
+                        )
+                    }
+                    if (viewModel.circles.isNotEmpty()) {
+                        Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                    }
+                    DropdownMenuItem(
+                        text = { Text("➕ Crear un núcleo") },
+                        onClick = {
+                            isCircleDropdownExpanded = false
+                            navController?.navigate(Screen.Familia.route)
                         }
-                    }
-
-                    // Foreground Tracking Service Switch
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = if (viewModel.isServiceRunning) "Rastreo On" else "Rastreo Off",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (viewModel.isServiceRunning) PrimaryEmerald else TextMuted,
-                            modifier = Modifier.padding(end = 8.dp)
-                        )
-                        Switch(
-                            checked = viewModel.isServiceRunning,
-                            onCheckedChange = { viewModel.toggleTrackingService(context) }
-                        )
-                    }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("🔗 Unirse a un núcleo") },
+                        onClick = {
+                            isCircleDropdownExpanded = false
+                            navController?.navigate(Screen.Familia.route)
+                        }
+                    )
                 }
+            }
+        }
+
+        // 2b. Floating Header: Foreground Tracking Service Switch (Aligned TopEnd)
+        Card(
+            modifier = Modifier
+                .wrapContentWidth()
+                .padding(top = 16.dp, end = 16.dp)
+                .align(Alignment.TopEnd),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+            shape = RoundedCornerShape(20.dp),
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Text(
+                    text = if (viewModel.isServiceRunning) "Rastreo On" else "Rastreo Off",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (viewModel.isServiceRunning) PrimaryEmerald else TextMuted
+                )
+                Switch(
+                    checked = viewModel.isServiceRunning,
+                    onCheckedChange = { viewModel.toggleTrackingService(context) },
+                    modifier = Modifier.scale(0.8f)
+                )
             }
         }
 
