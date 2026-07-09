@@ -132,6 +132,7 @@
     - [x] Agregada la pestaña "Vehículo" para telemetría vehicular y límites de velocidad.
     - [x] Agregada la pestaña "Premium" dedicada a los planes de suscripción Stripe/MercadoPago/PayPal.
     - [x] Mantenido el botón flotante superior izquierdo para acceder a la pantalla de Ajustes desvinculada.
+    - [x] Rediseñado el selector superior de núcleos en `MapaScreen.kt` a un formato "combo" píldora centrado, agregando opciones directas para Crear y Unirse a núcleos (Life360 style).
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

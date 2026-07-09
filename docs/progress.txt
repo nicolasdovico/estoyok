@@ -579,4 +579,5 @@
 - **Nueva Pestaña "Premium":**
   - **Expo:** Extraído el bloque de checkout de membresía de la pestaña de Ajustes hacia una nueva pestaña dedicada `premium` con la pasarela Stripe integrada.
   - **Android Native:** Creada pantalla nativa `PremiumScreen.kt` usando `FamiliaViewModel` para ofrecer suscripción Premium mediante Stripe, MercadoPago y PayPal, removiéndola de `FamiliaScreen.kt`.
+- **Rediseño del Selector de Núcleos (Android Native):** Rediseñado el selector superior de "Núcleo Activo" sobre el mapa de la pantalla nativa `MapaScreen.kt`. Se redujo de una tarjeta de ancho completo a una píldora (combo dropdown) centrada, y se agregaron las opciones directas para "Crear núcleo" y "Unirse a núcleo" con redirección al tab correspondiente. El switch de rastreo de fondo se desacopló a una píldora flotante independiente a la derecha.
 - **Verificación:** Ejecutada con éxito la compilación TypeScript y pasada la suite de pruebas unitarias/de integración del backend (114/114 tests PASS).
