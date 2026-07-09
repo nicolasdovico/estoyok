@@ -61,7 +61,10 @@ class SessionManager @Inject constructor(
 
     suspend fun clearSession() {
         context.dataStore.edit { preferences ->
-            preferences.clear()
+            preferences.remove(AUTH_TOKEN)
+            preferences.remove(USER_NAME)
+            preferences.remove(USER_EMAIL)
+            preferences.remove(USER_PHONE)
         }
     }
 }
