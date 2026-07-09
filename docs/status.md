@@ -130,6 +130,7 @@
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
+- [ ] **FASE 13: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
 - Refine background location frequency vs battery consumption in Mobile (Fase 9).

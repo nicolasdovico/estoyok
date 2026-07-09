@@ -850,7 +850,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
           <div className="h-5">
             <CardNumberElement 
               options={ELEMENT_OPTIONS} 
-              onChange={(e: any) => handleCardChange('number', e)}
+              onChange={(e) => handleCardChange('number', e)}
             />
           </div>
           {errors.number && (
@@ -866,7 +866,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
             <div className="h-5">
               <CardExpiryElement 
                 options={ELEMENT_OPTIONS} 
-                onChange={(e: any) => handleCardChange('expiry', e)}
+                onChange={(e) => handleCardChange('expiry', e)}
               />
             </div>
             {errors.expiry && (
@@ -880,7 +880,7 @@ function StripeCheckoutForm({ userData, showToast }: StripeCheckoutFormProps) {
             <div className="h-5">
               <CardCvcElement 
                 options={ELEMENT_OPTIONS} 
-                onChange={(e: any) => handleCardChange('cvc', e)}
+                onChange={(e) => handleCardChange('cvc', e)}
               />
             </div>
             {errors.cvc && (

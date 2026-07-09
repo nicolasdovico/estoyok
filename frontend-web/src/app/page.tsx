@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from "next/link";
-import Dashboard from '@/components/Dashboard';
+// import Dashboard from '@/components/Dashboard';
 
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
@@ -25,10 +25,10 @@ export default function Home() {
     );
   }
 
-  // Si está autenticado, mostrar el Dashboard
-  if (isAuthenticated) {
-    return <Dashboard />;
-  }
+  // Si está autenticado, mostrar el Dashboard (Desactivado temporalmente para enfoque móvil)
+  // if (isAuthenticated) {
+  //   return <Dashboard />;
+  // }
 
   // Si no está autenticado, mostrar la Landing Page Comercial Premium
   return (
@@ -55,26 +55,20 @@ export default function Home() {
           <Link className="text-sm font-semibold text-neutral-400 hover:text-white transition-colors" href="#pricing">
             Planes
           </Link>
-          <Link className="text-sm font-semibold text-neutral-400 hover:text-white transition-colors" href="/login">
-            Iniciar Sesión
-          </Link>
           <Link
             className="inline-flex h-11 items-center justify-center rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-6 text-sm font-bold text-white shadow-lg shadow-red-500/10 hover:shadow-red-500/30 hover:scale-[1.02] hover:from-red-500 hover:to-rose-500 active:scale-95 transition-all duration-200"
-            href="/register"
+            href="#download"
           >
-            Registrarse
+            Descargar App
           </Link>
         </nav>
         {/* Mobile quick CTA */}
         <div className="flex md:hidden items-center gap-3">
-          <Link className="text-sm font-bold text-neutral-400 hover:text-white transition-colors px-2" href="/login">
-            Ingresar
-          </Link>
           <Link
             className="inline-flex h-10 items-center justify-center rounded-xl bg-red-600 px-4 text-xs font-bold text-white shadow-md shadow-red-500/10 active:scale-95 transition-all"
-            href="/register"
+            href="#download"
           >
-            Registro
+            Descargar
           </Link>
         </div>
       </header>
@@ -108,13 +102,13 @@ export default function Home() {
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 max-w-md mx-auto sm:max-w-none">
               <Link
                 className="relative group inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-8 text-base font-bold text-white shadow-xl shadow-red-500/20 hover:shadow-red-500/40 hover:scale-[1.03] transition-all duration-300"
-                href="/register"
+                href="#download"
               >
                 <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 opacity-20 group-hover:opacity-60 blur-sm transition duration-300 pointer-events-none"></div>
                 <span className="relative z-10 flex items-center gap-2">
-                  Registrarse Gratis
-                  <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+                  Descargar Aplicación
+                  <svg className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                   </svg>
                 </span>
               </Link>
@@ -586,6 +580,73 @@ export default function Home() {
               <span>🛡️ Privacidad Garantizada</span>
               <span>•</span>
               <span>💳 Cancela cuando quieras</span>
+            </div>
+          </div>
+        </section>
+
+        {/* Download Section */}
+        <section id="download" className="py-24 px-6 bg-neutral-950 border-t border-neutral-900 relative overflow-hidden">
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 rounded-full bg-red-500/5 blur-[120px] pointer-events-none"></div>
+          <div className="container px-4 mx-auto max-w-4xl text-center relative z-10">
+            <span className="px-3 py-1 text-xs font-bold tracking-widest uppercase border border-red-500/20 text-red-400 rounded-full">Descarga Estoy Ok</span>
+            <h2 className="text-3xl font-extrabold sm:text-5xl text-white mt-4">Disponible en tu dispositivo móvil</h2>
+            <p className="text-neutral-400 mt-4 max-w-2xl mx-auto">
+              Toda la funcionalidad de geolocalización activa, check-in diario de bienestar y alertas críticas está disponible de forma exclusiva a través de nuestras aplicaciones para smartphones.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12">
+              {/* Google Play Store Simulator */}
+              <a 
+                href="/download/android" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("La aplicación para Android está disponible en la carpeta android-native. Puedes compilarla directamente en Android Studio o generar el APK.");
+                }}
+                className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-3.5 text-left hover:bg-neutral-850 hover:border-neutral-700 active:scale-95 transition-all w-full sm:w-auto justify-center"
+              >
+                <svg className="w-8 h-8 text-neutral-300" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M5.23 2.062a2.38 2.38 0 0 0-.58.375l10.98 10.98 3.5-3.5-13.9-7.855zm-1.07 1.48v16.92L14.73 12 4.16 3.542zm11.75 9.638l3.65 3.65c.29-.16.54-.39.73-.66l-4.38-2.99zm-4.93 1.28L4.65 21.79c.2.14.43.21.68.21.36 0 .7-.1 1-.27l13.68-7.73-3.67-3.67z" />
+                </svg>
+                <div>
+                  <div className="text-[10px] text-neutral-500 uppercase font-black">Consíguelo en</div>
+                  <div className="text-base font-bold text-white leading-tight">Google Play</div>
+                </div>
+              </a>
+
+              {/* Apple App Store Simulator */}
+              <a 
+                href="/download/ios" 
+                onClick={(e) => {
+                  e.preventDefault();
+                  alert("La aplicación para iOS está disponible en la carpeta mobile. Puedes ejecutarla localmente usando Expo Go o mediante npx expo run:ios.");
+                }}
+                className="flex items-center gap-3 bg-neutral-905 border border-neutral-800 rounded-2xl px-6 py-3.5 text-left hover:bg-neutral-850 hover:border-neutral-700 active:scale-95 transition-all w-full sm:w-auto justify-center"
+              >
+                <svg className="w-8 h-8 text-neutral-300" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.22.67-2.94 1.51-.64.73-1.2 1.87-1.05 2.98 1.11.09 2.24-.59 2.97-1.43z" />
+                </svg>
+                <div>
+                  <div className="text-[10px] text-neutral-500 uppercase font-black">Descargar de la</div>
+                  <div className="text-base font-bold text-white leading-tight">App Store</div>
+                </div>
+              </a>
+            </div>
+
+            {/* Direct APK Download option for Android debug/testing */}
+            <div className="mt-8">
+              <span className="text-sm text-neutral-500">¿Eres betatester o desarrollador?</span>
+              <div className="mt-2">
+                <a 
+                  href="/download/apk"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    alert("Para instalar en Android, compila el proyecto de la carpeta android-native/ en Android Studio o descarga el APK generado en tus compilaciones locales.");
+                  }}
+                  className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-800 bg-neutral-900/20 rounded-full px-4 py-2 hover:border-neutral-700 transition-all"
+                >
+                  📥 Descargar APK (Android Beta)
+                </a>
+              </div>
             </div>
           </div>
         </section>

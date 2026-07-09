@@ -1,3 +1,6 @@
+import java.util.Properties
+import java.io.FileInputStream
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -8,6 +11,13 @@ plugins {
 android {
     namespace = "com.estoyok.app"
     compileSdk = 34
+
+    val localProperties = Properties()
+    val localPropertiesFile = rootProject.file("local.properties")
+    if (localPropertiesFile.exists()) {
+        localProperties.load(FileInputStream(localPropertiesFile))
+    }
+    val mapsApiKey = localProperties.getProperty("MAPS_API_KEY") ?: System.getenv("MAPS_API_KEY") ?: "MOCK_API_KEY"
 
     defaultConfig {
         applicationId = "com.estoyok.app"
@@ -20,7 +30,7 @@ android {
         vectorDrawables {
             useSupportLibrary = true
         }
-        manifestPlaceholders["MAPS_API_KEY"] = "MOCK_API_KEY"
+        manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
     }
 
     buildTypes {

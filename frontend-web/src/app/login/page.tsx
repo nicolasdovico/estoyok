@@ -12,6 +12,46 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false);
   const router = useRouter();
 
+  // --- INICIO CORTOCIRCUITO ENFOQUE MÓVIL ---
+  const [showMobileOnlyMessage] = useState(true); // Cambiar a false si se desea restaurar el login web
+  if (showMobileOnlyMessage) {
+    return (
+      <div className="min-h-screen bg-neutral-950 text-neutral-100 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans antialiased">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center px-4">
+          <Link href="/" className="inline-flex justify-center mb-6">
+            <span className="text-3xl font-black text-red-500 tracking-tighter">ESTOY OK</span>
+          </Link>
+          <div className="bg-neutral-900 border border-neutral-800 py-10 px-6 shadow-2xl sm:rounded-3xl sm:px-10 max-w-md mx-auto">
+            <div className="w-16 h-16 bg-red-950/45 border border-red-500/20 rounded-2xl flex items-center justify-center mx-auto mb-6 text-red-500">
+              <svg className="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h2 className="text-2xl font-extrabold text-white mb-4">Acceso Exclusivo Móvil</h2>
+            <p className="text-sm text-neutral-400 leading-relaxed mb-8">
+              La funcionalidad de inicio de sesión, registro y gestión de núcleos de seguridad se ha trasladado de forma exclusiva a nuestras aplicaciones móviles para garantizar un mejor rastreo en tiempo real y redundancia de alertas.
+            </p>
+            <div className="space-y-4">
+              <Link
+                href="/#download"
+                className="w-full inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-6 text-sm font-bold text-white shadow-lg shadow-red-500/10 hover:shadow-red-500/30 hover:scale-[1.02] hover:from-red-500 hover:to-rose-500 transition-all duration-200"
+              >
+                Descargar Aplicación Móvil
+              </Link>
+              <Link
+                href="/"
+                className="w-full inline-flex h-12 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-sm font-bold text-neutral-400 hover:text-white hover:border-neutral-700 transition-all duration-200"
+              >
+                Volver al Inicio
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+  // --- FIN CORTOCIRCUITO ENFOQUE MÓVIL ---
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
