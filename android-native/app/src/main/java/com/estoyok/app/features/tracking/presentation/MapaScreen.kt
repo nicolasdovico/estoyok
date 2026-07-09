@@ -165,8 +165,9 @@ fun MapaScreen(
             ),
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
-                myLocationButtonEnabled = true
-            )
+                myLocationButtonEnabled = false
+            ),
+            contentPadding = PaddingValues(bottom = 120.dp)
         ) {
             // Render markers for all nucleus members with valid location coordinates
             viewModel.selectedCircleMembers.forEach { member ->
