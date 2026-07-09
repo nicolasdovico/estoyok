@@ -29,6 +29,10 @@ import androidx.navigation.NavHostController
 import com.estoyok.app.core.navigation.Screen
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.google.android.gms.maps.CameraUpdateFactory
+import com.google.android.gms.maps.model.LatLngBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -87,6 +91,62 @@ fun MapaScreen(
                 LatLng(loc.latitude, loc.longitude),
                 15f
             )
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    var lastFittedCircleId by remember { mutableStateOf<Long?>(null) }
+
+    val fitAllMembers: () -> Unit = {
+        val membersWithLocation = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
+        if (membersWithLocation.isNotEmpty()) {
+            scope.launch {
+                if (membersWithLocation.size == 1) {
+                    val loc = membersWithLocation.first().currentLocation!!
+                    try {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngZoom(
+                                LatLng(loc.latitude, loc.longitude),
+                                15f
+                            )
+                        )
+                    } catch (e: Exception) {
+                        // ignore if map not ready
+                    }
+                } else {
+                    val builder = LatLngBounds.builder()
+                    membersWithLocation.forEach { member ->
+                        val loc = member.currentLocation!!
+                        builder.include(LatLng(loc.latitude, loc.longitude))
+                    }
+                    val bounds = builder.build()
+                    try {
+                        cameraPositionState.animate(
+                            CameraUpdateFactory.newLatLngBounds(bounds, 150)
+                        )
+                    } catch (e: Exception) {
+                        try {
+                            cameraPositionState.move(
+                                CameraUpdateFactory.newLatLngBounds(bounds, 150)
+                            )
+                        } catch (ex: Exception) {
+                            // ignore
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Auto-fit group coordinates whenever active circle changes
+    LaunchedEffect(viewModel.selectedCircle, viewModel.selectedCircleMembers) {
+        val circleId = viewModel.selectedCircle?.id
+        if (circleId != null && circleId != lastFittedCircleId && viewModel.selectedCircleMembers.isNotEmpty()) {
+            val hasLocation = viewModel.selectedCircleMembers.any { it.currentLocation != null }
+            if (hasLocation) {
+                lastFittedCircleId = circleId
+                fitAllMembers()
+            }
         }
     }
 
@@ -257,6 +317,22 @@ fun MapaScreen(
                     modifier = Modifier.scale(0.8f)
                 )
             }
+        }
+
+        // 2c. Floating Action Button: Centrar Grupo (Fit All Members)
+        FloatingActionButton(
+            onClick = { fitAllMembers() },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(end = 16.dp, bottom = 120.dp),
+            containerColor = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = CircleShape
+        ) {
+            Icon(
+                imageVector = Icons.Default.MyLocation,
+                contentDescription = "Centrar Grupo"
+            )
         }
 
         // 3. Bottom Sliding Card: Members Monitoring Panel (Life360 style Expandable List)
