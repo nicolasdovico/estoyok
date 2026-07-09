@@ -26,3 +26,10 @@ Password: password
 `https://backend-api-production-aec1.up.railway.app/admin/login`
 Email:  admin@estoyok.com 
 Contraseña:  admin123 
+
+Usuarios de prueba en Railway
+user: nicolas@gmail.com
+pass: nicolas1234
+
+user: analia@gmail.com
+pass: analia1234
