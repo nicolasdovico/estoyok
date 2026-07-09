@@ -95,7 +95,7 @@ fun MapaScreen(
     }
 
     val scope = rememberCoroutineScope()
-    var lastFittedCircleId by remember { mutableStateOf<Long?>(null) }
+    var lastFittedCircleId by remember { mutableStateOf<Int?>(null) }
 
     val fitAllMembers: () -> Unit = {
         val membersWithLocation = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
