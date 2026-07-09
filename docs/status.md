@@ -135,6 +135,7 @@
     - [x] Rediseñado el selector superior de núcleos en `MapaScreen.kt` a un formato "combo" píldora centrado, agregando opciones directas para Crear, Unirse y Administrar núcleos (Life360 style).
     - [x] Ocultada la opción "Núcleo" de la barra de navegación inferior en ambas plataformas, re-organizando el menú inferior a 4 ítems principales (Mapa, Vehículo, Estoy ok, Premium).
     - [x] Implementada la verificación y solicitud reactiva de permisos de Geolocalización y Notificaciones en `MapaScreen.kt` antes de levantar el Foreground Service, evitando cierres inesperados (crashes) de la app por falta de permisos.
+    - [x] Desarrollado el panel deslizable inferior (BottomSheet/Expandable card) interactivo en `MapaScreen.kt` (Life360 style) que colapsa mostrando solo un miembro (o el seleccionado) y se expande mediante swipe vertical revelando la lista vertical completa (`LazyColumn`).
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
