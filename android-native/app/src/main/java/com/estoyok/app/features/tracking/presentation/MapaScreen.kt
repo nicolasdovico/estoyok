@@ -9,10 +9,13 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -68,6 +71,7 @@ fun MapaScreen(
         }
     }
     var isCircleDropdownExpanded by remember { mutableStateOf(false) }
+    var isExpanded by remember { mutableStateOf(false) }
 
     // LatLng for Argentina/Buenos Aires default center
     val defaultCenter = LatLng(-34.6037, -58.3816)
@@ -255,24 +259,65 @@ fun MapaScreen(
             }
         }
 
-        // 3. Bottom Sliding Card: Members Monitoring Panel
+        // 3. Bottom Sliding Card: Members Monitoring Panel (Life360 style Expandable List)
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
-                .padding(16.dp),
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+                .pointerInput(Unit) {
+                    detectDragGestures { change, dragAmount ->
+                        change.consume()
+                        if (dragAmount.y < -20f) {
+                            isExpanded = true
+                        } else if (dragAmount.y > 20f) {
+                            isExpanded = false
+                        }
+                    }
+                },
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f)),
-            shape = RoundedCornerShape(20.dp),
+            shape = RoundedCornerShape(topStart = 24.dp, topEnd = 24.dp, bottomStart = 16.dp, bottomEnd = 16.dp),
             elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = "Miembros en este Núcleo",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 12.dp)
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
+            ) {
+                // Drag handle indicator
+                Box(
+                    modifier = Modifier
+                        .width(40.dp)
+                        .height(4.dp)
+                        .background(Color.Gray.copy(alpha = 0.5f), RoundedCornerShape(2.dp))
+                        .align(Alignment.CenterHorizontally)
+                        .clickable { isExpanded = !isExpanded }
                 )
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { isExpanded = !isExpanded },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = if (isExpanded) "Miembros en este Núcleo" else "Toca o desliza para ver todos",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                    Text(
+                        text = if (isExpanded) "▼ Colapsar" else "▲ Expandir (${viewModel.selectedCircleMembers.size})",
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextMuted
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
 
                 if (viewModel.selectedCircleMembers.isEmpty()) {
                     Text(
@@ -283,15 +328,32 @@ fun MapaScreen(
                         modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)
                     )
                 } else {
-                    LazyRow(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(16.dp),
-                        contentPadding = PaddingValues(bottom = 4.dp)
-                    ) {
-                        items(viewModel.selectedCircleMembers) { member ->
-                            MemberMapCard(
+                    if (isExpanded) {
+                        LazyColumn(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 320.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(bottom = 8.dp)
+                        ) {
+                            items(viewModel.selectedCircleMembers) { member ->
+                                MemberRowItem(
+                                    member = member,
+                                    onClick = {
+                                        selectedMemberForMap = member
+                                        isExpanded = false
+                                    }
+                                )
+                            }
+                        }
+                    } else {
+                        val memberToShow = selectedMemberForMap ?: viewModel.selectedCircleMembers.firstOrNull()
+                        memberToShow?.let { member ->
+                            MemberRowItem(
                                 member = member,
-                                onClick = { selectedMemberForMap = member }
+                                onClick = {
+                                    selectedMemberForMap = member
+                                }
                             )
                         }
                     }
@@ -302,7 +364,8 @@ fun MapaScreen(
 }
 
 @Composable
-fun MemberMapCard(
+@Composable
+fun MemberRowItem(
     member: CircleMemberDto,
     onClick: () -> Unit
 ) {
@@ -311,14 +374,15 @@ fun MemberMapCard(
 
     Card(
         modifier = Modifier
-            .width(160.dp)
-            .clickable { onClick() },
-        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant.copy(alpha = 0.6f)),
+            .fillMaxWidth()
+            .clickable { onClick() }
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant.copy(alpha = 0.5f)),
         shape = RoundedCornerShape(12.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            verticalAlignment = Alignment.CenterVertically
         ) {
             // Avatar
             Box(
@@ -335,128 +399,65 @@ fun MemberMapCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Name
-            Text(
-                text = member.name,
-                fontWeight = FontWeight.Bold,
-                fontSize = 13.sp,
-                color = TextPrimary,
-                maxLines = 1,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            // Telemetry statuses / badges
-            if (loc == null) {
+            // Member Info
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = "Sin ubicación",
-                    fontSize = 11.sp,
-                    color = TextMuted,
-                    textAlign = TextAlign.Center
+                    text = member.name,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 14.sp,
+                    color = TextPrimary
                 )
-            } else {
-                // Check connectivity or sensor issues
-                val isOffline = loc.isOffline == true
-                val isTrackingOff = loc.isTrackingActive == false
-                val isGpsOff = loc.gpsEnabled == false
+                Spacer(modifier = Modifier.height(2.dp))
 
-                when {
-                    isTrackingOff -> {
-                        Surface(
-                            color = BorderColor,
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                "Rastreo Apagado",
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                color = TextMuted
-                            )
-                        }
-                    }
-                    isGpsOff -> {
-                        Surface(
-                            color = PrimaryRed.copy(alpha = 0.15f),
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                "GPS Desactivado",
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                color = PrimaryRed
-                            )
-                        }
-                    }
-                    isOffline -> {
-                        Surface(
-                            color = BorderColor,
-                            shape = RoundedCornerShape(6.dp)
-                        ) {
-                            Text(
-                                "Sin Señal",
-                                fontSize = 10.sp,
-                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                color = TextSecondary
-                            )
-                        }
-                    }
-                    else -> {
-                        // Show speed/driving or last seen
-                        if (loc.isDriving == true) {
-                            val speedVal = loc.speed ?: 0.0f
-                            Surface(
-                                color = if (speedVal > 120.0f) PrimaryRed.copy(alpha = 0.2f) else PrimaryTeal.copy(alpha = 0.2f),
-                                shape = RoundedCornerShape(6.dp)
-                            ) {
-                                Text(
-                                    text = "🚗 ${speedVal.toInt()} km/h",
-                                    fontSize = 10.sp,
-                                    modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                                    color = if (speedVal > 120.0f) PrimaryRed else PrimaryTeal
-                                )
+                // Telemetry status
+                if (loc == null) {
+                    Text(text = "Sin ubicación", fontSize = 11.sp, color = TextMuted)
+                } else {
+                    val isOffline = loc.isOffline == true
+                    val isTrackingOff = loc.isTrackingActive == false
+                    val isGpsOff = loc.gpsEnabled == false
+
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        when {
+                            isTrackingOff -> Text("Rastreo Apagado", fontSize = 10.sp, color = TextMuted)
+                            isGpsOff -> Text("GPS Apagado", fontSize = 10.sp, color = PrimaryRed, fontWeight = FontWeight.Bold)
+                            isOffline -> Text("Sin Señal", fontSize = 10.sp, color = TextSecondary)
+                            else -> {
+                                if (loc.isDriving == true) {
+                                    val speedVal = loc.speed ?: 0.0f
+                                    Text(
+                                        text = "🚗 ${speedVal.toInt()} km/h",
+                                        fontSize = 10.sp,
+                                        color = if (speedVal > 120.0f) PrimaryRed else PrimaryTeal,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                } else {
+                                    val timeStr = formatLastSeen(loc.lastSeenAt)
+                                    Text(text = "Visto: $timeStr", fontSize = 10.sp, color = TextSecondary)
+                                }
                             }
-                        } else {
-                            val timeStr = formatLastSeen(loc.lastSeenAt)
-                            Text(
-                                text = "Visto: $timeStr",
-                                fontSize = 10.sp,
-                                color = TextSecondary,
-                                textAlign = TextAlign.Center
-                            )
                         }
+
+                        // Battery
+                        val pct = (loc.batteryLevel ?: 1.0f) * 100
+                        val isBatteryLow = loc.isBatteryLow == true
+                        Text(
+                            text = "⚡ ${pct.toInt()}%",
+                            fontSize = 10.sp,
+                            color = if (isBatteryLow) PrimaryRed else TextSecondary,
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
+            }
 
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // Battery levels indicator
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    val pct = (loc.batteryLevel ?: 1.0f) * 100
-                    val isBatteryLow = loc.isBatteryLow == true
-                    Icon(
-                        imageVector = Icons.Default.MyLocation,
-                        contentDescription = "Battery Status",
-                        tint = if (isBatteryLow) PrimaryRed else PrimaryEmerald,
-                        modifier = Modifier.size(12.dp)
-                    )
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "${pct.toInt()}%",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isBatteryLow) PrimaryRed else TextSecondary
-                    )
-                }
-
-                Spacer(modifier = Modifier.height(8.dp))
-
-                // External Map Intents redirect button
+            // Direction Intent button
+            if (loc != null) {
                 IconButton(
                     onClick = {
                         val gmmIntentUri = Uri.parse("google.navigation:q=${loc.latitude},${loc.longitude}")
