@@ -1,5 +1,12 @@
 package com.estoyok.app.features.tracking.presentation
 
+import android.Manifest
+import android.widget.Toast
+import android.os.Build
+import androidx.core.content.ContextCompat
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.background
@@ -44,6 +51,22 @@ fun MapaScreen(
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val notificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
+        } else {
+            true
+        }
+        
+        if (fineLocationGranted && notificationGranted) {
+            viewModel.toggleTrackingService(context)
+        } else {
+            Toast.makeText(context, "Se necesitan permisos de ubicación y notificaciones para el rastreo", Toast.LENGTH_LONG).show()
+        }
+    }
     var isCircleDropdownExpanded by remember { mutableStateOf(false) }
 
     // LatLng for Argentina/Buenos Aires default center
@@ -202,7 +225,31 @@ fun MapaScreen(
                 )
                 Switch(
                     checked = viewModel.isServiceRunning,
-                    onCheckedChange = { viewModel.toggleTrackingService(context) },
+                    onCheckedChange = { checked ->
+                        val hasLocation = ContextCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) == PackageManager.PERMISSION_GRANTED
+                        
+                        val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.POST_NOTIFICATIONS
+                            ) == PackageManager.PERMISSION_GRANTED
+                        } else {
+                            true
+                        }
+
+                        if (hasLocation && hasNotifications) {
+                            viewModel.toggleTrackingService(context)
+                        } else {
+                            val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+                            }
+                            permissionsLauncher.launch(reqs.toTypedArray())
+                        }
+                    },
                     modifier = Modifier.scale(0.8f)
                 )
             }
