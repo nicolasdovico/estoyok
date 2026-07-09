@@ -1732,14 +1732,6 @@ export default function HomeScreen() {
       {/* Barra de Navegación Inferior (Bottom Tab Bar) */}
       <View style={[styles.bottomTabBar, { paddingBottom: Math.max(insets.bottom, 10), height: 54 + Math.max(insets.bottom, 10) }]}>
         <TouchableOpacity 
-          style={[styles.tabButton, activeTab === 'dashboard' && styles.tabButtonActive]}
-          onPress={() => setActiveTab('dashboard')}
-        >
-          <Shield size={22} color={activeTab === 'dashboard' ? '#2563eb' : '#9ca3af'} />
-          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Estoy ok</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity 
           style={[styles.tabButton, activeTab === 'map' && styles.tabButtonActive]}
           onPress={() => setActiveTab('map')}
         >
@@ -1753,6 +1745,14 @@ export default function HomeScreen() {
         >
           <Car size={22} color={activeTab === 'vehicle' ? '#2563eb' : '#9ca3af'} />
           <Text style={[styles.tabText, activeTab === 'vehicle' && styles.tabTextActive]}>Vehículo</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity 
+          style={[styles.tabButton, activeTab === 'dashboard' && styles.tabButtonActive]}
+          onPress={() => setActiveTab('dashboard')}
+        >
+          <Shield size={22} color={activeTab === 'dashboard' ? '#2563eb' : '#9ca3af'} />
+          <Text style={[styles.tabText, activeTab === 'dashboard' && styles.tabTextActive]}>Estoy ok</Text>
         </TouchableOpacity>
 
         <TouchableOpacity 

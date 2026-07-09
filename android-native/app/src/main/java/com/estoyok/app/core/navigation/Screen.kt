@@ -14,7 +14,7 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object EstoyOk : Screen("estoyok", "Estoy ok", Icons.Default.Shield)
     object Mapa : Screen("mapa", "Mapa", Icons.Default.LocationOn)
     object Vehiculo : Screen("vehiculo", "Vehículo", Icons.Default.Directions)
-    object Familia : Screen("familia", "Familia", Icons.Default.People)
+    object Familia : Screen("familia", "Núcleo", Icons.Default.People)
     object Premium : Screen("premium", "Premium", Icons.Default.Star)
     object Ajustes : Screen("ajustes", "Ajustes", Icons.Default.Settings)
     

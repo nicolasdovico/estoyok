@@ -40,9 +40,9 @@ fun MainScreen(
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     
     val items = listOf(
-        Screen.EstoyOk,
         Screen.Mapa,
         Screen.Vehiculo,
+        Screen.EstoyOk,
         Screen.Familia,
         Screen.Premium
     )
