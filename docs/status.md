@@ -134,6 +134,7 @@
     - [x] Mantenido el botón flotante superior izquierdo para acceder a la pantalla de Ajustes desvinculada.
     - [x] Rediseñado el selector superior de núcleos en `MapaScreen.kt` a un formato "combo" píldora centrado, agregando opciones directas para Crear, Unirse y Administrar núcleos (Life360 style).
     - [x] Ocultada la opción "Núcleo" de la barra de navegación inferior en ambas plataformas, re-organizando el menú inferior a 4 ítems principales (Mapa, Vehículo, Estoy ok, Premium).
+    - [x] Implementada la verificación y solicitud reactiva de permisos de Geolocalización y Notificaciones en `MapaScreen.kt` antes de levantar el Foreground Service, evitando cierres inesperados (crashes) de la app por falta de permisos.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
