@@ -364,7 +364,6 @@ fun MapaScreen(
 }
 
 @Composable
-@Composable
 fun MemberRowItem(
     member: CircleMemberDto,
     onClick: () -> Unit
