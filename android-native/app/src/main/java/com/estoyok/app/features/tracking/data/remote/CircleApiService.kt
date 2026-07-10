@@ -30,4 +30,11 @@ interface CircleApiService {
     suspend fun deleteCircle(
         @Path("circleId") circleId: Int
     ): Response<MessageResponse>
+
+    @GET("circles/{circleId}/members/{memberId}/history")
+    suspend fun getMemberHistory(
+        @Path("circleId") circleId: Int,
+        @Path("memberId") memberId: Int,
+        @Query("date") date: String?
+    ): Response<List<LocationHistoryDto>>
 }

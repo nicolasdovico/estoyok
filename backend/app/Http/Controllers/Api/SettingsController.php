@@ -349,5 +349,64 @@ class SettingsController extends Controller
             'proximity_alerts_enabled' => (bool) $user->proximity_alerts_enabled,
         ]);
     }
+
+    #[OA\Post(
+        path: '/settings/avatar',
+        summary: 'Subir o actualizar la foto de perfil (avatar)',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\MediaType(
+                mediaType: 'multipart/form-data',
+                schema: new OA\Schema(
+                    required: ['avatar'],
+                    properties: [
+                        new OA\Property(property: 'avatar', description: 'Imagen del avatar (jpeg, png, jpg, max 2MB)', type: 'string', format: 'binary')
+                    ]
+                )
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Avatar actualizado exitosamente',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Avatar updated successfully'),
+                        new OA\Property(property: 'avatar_url', type: 'string', example: 'http://localhost/storage/avatars/abc.jpg')
+                    ]
+                )
+            ),
+            new OA\Response(response: 400, description: 'Error en la validación')
+        ]
+    )]
+    public function updateAvatar(Request $request)
+    {
+        $request->validate([
+            'avatar' => 'required|image|mimes:jpeg,png,jpg|max:2048',
+        ]);
+
+        $user = Auth::user();
+
+        if ($request->hasFile('avatar')) {
+            // Delete old avatar if it exists
+            if ($user->avatar_path) {
+                \Storage::disk('public')->delete($user->avatar_path);
+            }
+
+            // Store new avatar in 'public' disk
+            $path = $request->file('avatar')->store('avatars', 'public');
+            
+            $user->update([
+                'avatar_path' => $path
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Avatar updated successfully',
+            'avatar_url' => $user->avatar_url,
+        ]);
+    }
 }
 

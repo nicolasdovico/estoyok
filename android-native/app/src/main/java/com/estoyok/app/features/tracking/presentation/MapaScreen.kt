@@ -55,6 +55,12 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
 import coil.compose.AsyncImage
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import com.google.android.gms.maps.model.BitmapDescriptorFactory
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.RequestBody.Companion.toRequestBody
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -63,6 +69,36 @@ fun MapaScreen(
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val imagePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri: Uri? ->
+        uri?.let { selectedUri ->
+            val contentResolver = context.contentResolver
+            try {
+                val inputStream = contentResolver.openInputStream(selectedUri)
+                val fileBytes = inputStream?.readBytes()
+                inputStream?.close()
+
+                if (fileBytes != null) {
+                    val mimeType = contentResolver.getType(selectedUri) ?: "image/jpeg"
+                    val fileExtension = when (mimeType) {
+                        "image/png" -> "png"
+                        else -> "jpg"
+                    }
+                    val requestFile = fileBytes.toRequestBody(mimeType.toMediaTypeOrNull())
+                    val avatarPart = okhttp3.MultipartBody.Part.createFormData(
+                        "avatar",
+                        "avatar_$fileExtension",
+                        requestFile
+                    )
+                    viewModel.uploadAvatar(avatarPart)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(context, "Error al leer la imagen seleccionada", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     val permissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
@@ -96,6 +132,32 @@ fun MapaScreen(
                 LatLng(loc.latitude, loc.longitude),
                 15f
             )
+        }
+    }
+
+    LaunchedEffect(viewModel.historyPoints, viewModel.selectedTripIndex) {
+        if (viewModel.historyPoints.isNotEmpty()) {
+            val segments = segmentHistoryPoints(viewModel.historyPoints)
+            val pointsToFit = if (viewModel.selectedTripIndex != null && viewModel.selectedTripIndex!! < segments.size) {
+                segments[viewModel.selectedTripIndex!!].points
+            } else {
+                viewModel.historyPoints
+            }
+
+            if (pointsToFit.isNotEmpty()) {
+                val builder = LatLngBounds.builder()
+                pointsToFit.forEach { point ->
+                    builder.include(LatLng(point.latitude, point.longitude))
+                }
+                val bounds = builder.build()
+                try {
+                    cameraPositionState.animate(
+                        CameraUpdateFactory.newLatLngBounds(bounds, 150)
+                    )
+                } catch (e: Exception) {
+                    // ignore
+                }
+            }
         }
     }
 
@@ -174,6 +236,47 @@ fun MapaScreen(
             ),
             contentPadding = PaddingValues(bottom = 120.dp)
         ) {
+            // Render location history route if loaded
+            if (viewModel.historyPoints.isNotEmpty()) {
+                val segments = remember(viewModel.historyPoints) {
+                    segmentHistoryPoints(viewModel.historyPoints)
+                }
+
+                if (viewModel.selectedTripIndex != null && viewModel.selectedTripIndex!! < segments.size) {
+                    val trip = segments[viewModel.selectedTripIndex!!]
+                    val path = trip.points.map { LatLng(it.latitude, it.longitude) }
+                    Polyline(
+                        points = path,
+                        color = MaterialTheme.colorScheme.primary,
+                        width = 10f
+                    )
+
+                    val startPoint = path.first()
+                    val endPoint = path.last()
+
+                    Marker(
+                        state = rememberMarkerState(position = startPoint),
+                        title = "Inicio de viaje",
+                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
+                    )
+
+                    Marker(
+                        state = rememberMarkerState(position = endPoint),
+                        title = "Fin de viaje",
+                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                    )
+                } else {
+                    segments.forEach { segment ->
+                        val path = segment.points.map { LatLng(it.latitude, it.longitude) }
+                        Polyline(
+                            points = path,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                            width = 6f
+                        )
+                    }
+                }
+            }
+
             // Render markers for all nucleus members with valid location coordinates
             viewModel.selectedCircleMembers.forEach { member ->
                 val loc = member.currentLocation
@@ -508,6 +611,7 @@ fun MapaScreen(
                                     member = member,
                                     onClick = {
                                         selectedMemberForMap = member
+                                        viewModel.selectedMember = member
                                         isExpanded = false
                                     }
                                 )
@@ -520,11 +624,100 @@ fun MapaScreen(
                                 member = member,
                                 onClick = {
                                     selectedMemberForMap = member
+                                    viewModel.selectedMember = member
                                 }
+                            )
+                    }
+                }
+            }
+        }
+    }
+
+        if (viewModel.historyPoints.isNotEmpty()) {
+            val segments = remember(viewModel.historyPoints) {
+                segmentHistoryPoints(viewModel.historyPoints)
+            }
+            Card(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 64.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Row(
+                    modifier = Modifier.padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (viewModel.selectedTripIndex != null && viewModel.selectedTripIndex!! < segments.size) {
+                            val trip = segments[viewModel.selectedTripIndex!!]
+                            Text(
+                                text = "Viaje ${viewModel.selectedTripIndex!! + 1}: ${viewModel.selectedMember?.name ?: ""}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "${trip.startTime} - ${trip.endTime} • ${trip.durationText} • %.1f km".format(trip.distanceKm),
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                            )
+                        } else {
+                            Text(
+                                text = "Historial: ${viewModel.selectedMember?.name ?: ""}",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer
+                            )
+                            Text(
+                                text = "Fecha: ${viewModel.historyDate ?: ""} • ${segments.size} viajes",
+                                fontSize = 12.sp,
+                                color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                             )
                         }
                     }
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        if (viewModel.selectedTripIndex != null) {
+                            Button(
+                                onClick = { viewModel.selectedTripIndex = null },
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                            ) {
+                                Text("Atrás", color = Color.White, fontSize = 12.sp)
+                            }
+                        }
+                        Button(
+                            onClick = { viewModel.clearHistory() },
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error)
+                        ) {
+                            Text("Salir", color = Color.White, fontSize = 12.sp)
+                        }
+                    }
                 }
+            }
+        }
+
+        if (viewModel.selectedMember != null && viewModel.selectedTripIndex == null) {
+            val member = viewModel.selectedMember!!
+            ModalBottomSheet(
+                onDismissRequest = {
+                    viewModel.selectedMember = null
+                    viewModel.clearHistory()
+                    viewModel.clearUploadMessages()
+                },
+                sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = false)
+            ) {
+                MemberDetailsSheetContent(
+                    member = member,
+                    viewModel = viewModel,
+                    navController = navController,
+                    imagePickerLauncher = imagePickerLauncher
+                )
             }
         }
     }
@@ -554,15 +747,30 @@ fun MemberRowItem(
             Box(
                 modifier = Modifier
                     .size(40.dp)
+                    .clip(CircleShape)
                     .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = member.name.take(2).uppercase(),
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    fontSize = 14.sp
-                )
+                if (!member.avatarUrl.isNullOrEmpty()) {
+                    AsyncImage(
+                        model = member.avatarUrl,
+                        contentDescription = "Avatar de ${member.name}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    val initials = member.name.split(" ")
+                        .mapNotNull { it.firstOrNull()?.toString() }
+                        .take(2)
+                        .joinToString("")
+                        .uppercase()
+                    Text(
+                        text = initials,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.primary,
+                        fontSize = 14.sp
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(12.dp))
@@ -666,5 +874,461 @@ private fun formatLastSeen(isoTimestamp: String?): String {
         outputFormat.format(date!!)
     } catch (e: Exception) {
         "Reciente"
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun MemberDetailsSheetContent(
+    member: CircleMemberDto,
+    viewModel: MapaViewModel,
+    navController: NavHostController?,
+    imagePickerLauncher: androidx.activity.compose.ManagedActivityResultLauncher<String, Uri?>
+) {
+    var showPremiumPromoDialog by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+
+    val isSelf = member.id == (viewModel.currentUserProfile?.id ?: -1)
+    val isPremium = viewModel.currentUserProfile?.isPremium == true
+
+    val dates = remember {
+        val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val displayFormat = SimpleDateFormat("dd MMM", Locale.getDefault())
+        (0..29).map { offset ->
+            val cal = Calendar.getInstance()
+            cal.add(Calendar.DAY_OF_YEAR, -offset)
+            Triple(
+                dateFormat.format(cal.time),
+                displayFormat.format(cal.time),
+                offset == 0
+            )
+        }
+    }
+
+    if (showPremiumPromoDialog) {
+        AlertDialog(
+            onDismissRequest = { showPremiumPromoDialog = false },
+            title = { Text("🔒 Historial Extendido") },
+            text = { Text("El acceso al historial de recorridos de los últimos 30 días es exclusivo para cuentas Premium. ¡Mejora tu plan para proteger a los tuyos!") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showPremiumPromoDialog = false
+                        viewModel.selectedMember = null
+                        navController?.navigate(Screen.Premium.route)
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                ) {
+                    Text("Ver Planes Premium", color = Color.White)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPremiumPromoDialog = false }) {
+                    Text("Cancelar")
+                }
+            }
+        )
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .navigationBarsPadding()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        // Avatar with edit option if it's self
+        Box(
+            modifier = Modifier
+                .size(100.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
+                .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!member.avatarUrl.isNullOrEmpty()) {
+                AsyncImage(
+                    model = member.avatarUrl,
+                    contentDescription = "Foto de perfil",
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                val initials = member.name.split(" ")
+                    .mapNotNull { it.firstOrNull()?.toString() }
+                    .take(2)
+                    .joinToString("")
+                    .uppercase()
+                Text(
+                    text = initials,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+
+            if (isSelf) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.4f))
+                        .clickable { imagePickerLauncher.launch("image/*") },
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (viewModel.isUploadingAvatar) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar Foto",
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
+                }
+            }
+        }
+
+        // Upload results toast / message
+        LaunchedEffect(viewModel.uploadAvatarSuccessMessage, viewModel.uploadAvatarErrorMessage) {
+            viewModel.uploadAvatarSuccessMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearUploadMessages()
+            }
+            viewModel.uploadAvatarErrorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearUploadMessages()
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        Text(
+            text = member.name,
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
+
+        Text(
+            text = member.email,
+            fontSize = 14.sp,
+            color = TextSecondary
+        )
+
+        member.phone?.let {
+            Text(
+                text = it,
+                fontSize = 14.sp,
+                color = TextSecondary
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+        HorizontalDivider(color = BorderColor)
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // History Title
+        Text(
+            text = "Historial de Recorridos",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.align(Alignment.Start)
+        )
+
+        Spacer(modifier = Modifier.height(8.dp))
+
+        // Horizontal Dates Selector
+        LazyRow(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 4.dp)
+        ) {
+            items(dates) { (dateStr, displayStr, isFreeAllowed) ->
+                val isSelectable = isPremium || isFreeAllowed
+                val isSelected = viewModel.historyDate == dateStr
+
+                Card(
+                    modifier = Modifier
+                        .width(72.dp)
+                        .height(80.dp)
+                        .clickable {
+                            if (isSelectable) {
+                                viewModel.loadMemberHistory(member.id, dateStr)
+                            } else {
+                                showPremiumPromoDialog = true
+                            }
+                        },
+                    colors = CardDefaults.cardColors(
+                        containerColor = when {
+                            isSelected -> MaterialTheme.colorScheme.primary
+                            !isSelectable -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        }
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    border = if (isSelected) null else BorderStroke(1.dp, BorderColor)
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize().padding(8.dp),
+                        verticalArrangement = Arrangement.Center,
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        if (!isSelectable) {
+                            Text("🔒", fontSize = 16.sp)
+                        } else {
+                            Text(
+                                text = if (dateStr == dates.first().first) "Hoy" else displayStr.split(" ").firstOrNull() ?: "",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color.White else TextPrimary
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = if (!isSelectable) "PRO" else displayStr.split(" ").lastOrNull() ?: "",
+                            fontSize = 11.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = if (isSelected) Color.White.copy(alpha = 0.8f) else TextMuted
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Loading or status of history points
+        if (viewModel.isHistoryLoading) {
+            CircularProgressIndicator(modifier = Modifier.size(32.dp))
+        } else if (viewModel.historyDate != null) {
+            if (viewModel.historyPoints.isEmpty()) {
+                Text(
+                    text = "No hay registros de movimiento para el ${viewModel.historyDate}",
+                    fontSize = 13.sp,
+                    color = TextMuted,
+                    textAlign = TextAlign.Center
+                )
+            } else {
+                val segments = remember(viewModel.historyPoints) {
+                    segmentHistoryPoints(viewModel.historyPoints)
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Viajes Detectados (${segments.size})",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    TextButton(onClick = { viewModel.clearHistory() }) {
+                        Text("Limpiar", color = PrimaryRed, fontSize = 12.sp)
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    segments.forEach { trip ->
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.selectedTripIndex = trip.index
+                                },
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, BorderColor)
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(36.dp)
+                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.DirectionsCar,
+                                        contentDescription = "Viaje",
+                                        tint = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(12.dp))
+
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = "Viaje ${trip.index + 1}: ${trip.startTime} - ${trip.endTime}",
+                                        fontSize = 13.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary
+                                    )
+                                    Text(
+                                        text = "Duración: ${trip.durationText} • Distancia: %.1f km".format(trip.distanceKm),
+                                        fontSize = 11.sp,
+                                        color = TextSecondary
+                                    )
+                                    if (trip.maxSpeedKmh > 0.0) {
+                                        Text(
+                                            text = "Velocidad Máx: ${trip.maxSpeedKmh.toInt()} km/h",
+                                            fontSize = 10.sp,
+                                            color = TextMuted
+                                        )
+                                    }
+                                }
+
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                    contentDescription = "Ver en mapa",
+                                    tint = TextMuted,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+data class TripSegment(
+    val index: Int,
+    val points: List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>,
+    val startTime: String,
+    val endTime: String,
+    val durationText: String,
+    val distanceKm: Double,
+    val maxSpeedKmh: Double
+)
+
+private fun parseIsoToSeconds(isoStr: String): Long {
+    return try {
+        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val date = try {
+            format.parse(isoStr)
+        } catch (e: Exception) {
+            fallback.parse(isoStr)
+        }
+        date?.time?.div(1000) ?: 0L
+    } catch (e: Exception) {
+        0L
+    }
+}
+
+private fun formatTime(isoStr: String): String {
+    return try {
+        val format = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val date = try {
+            format.parse(isoStr)
+        } catch (e: Exception) {
+            fallback.parse(isoStr)
+        }
+        val output = SimpleDateFormat("HH:mm", Locale.getDefault())
+        output.format(date!!)
+    } catch (e: Exception) {
+        "Reciente"
+    }
+}
+
+private fun haversineDistance(lat1: Double, lon1: Double, lat2: Double, lon2: Double): Double {
+    val r = 6371.0 // earth radius in km
+    val dLat = Math.toRadians(lat2 - lat1)
+    val dLon = Math.toRadians(lon2 - lon1)
+    val a = Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+            Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) *
+            Math.sin(dLon / 2) * Math.sin(dLon / 2)
+    val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
+    return r * c
+}
+
+private fun calculateDistanceKm(points: List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>): Double {
+    var total = 0.0
+    for (i in 0 until points.size - 1) {
+        val p1 = points[i]
+        val p2 = points[i + 1]
+        total += haversineDistance(p1.latitude, p1.longitude, p2.latitude, p2.longitude)
+    }
+    return total
+}
+
+fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>): List<TripSegment> {
+    if (points.isEmpty()) return emptyList()
+    val segmentsList = mutableListOf<List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>>()
+    var currentSegment = mutableListOf<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>()
+
+    val sortedPoints = points.sortedBy { it.recordedAt }
+    for (point in sortedPoints) {
+        if (currentSegment.isEmpty()) {
+            currentSegment.add(point)
+        } else {
+            val lastPoint = currentSegment.last()
+            val diffSeconds = parseIsoToSeconds(point.recordedAt) - parseIsoToSeconds(lastPoint.recordedAt)
+            val dist = haversineDistance(lastPoint.latitude, lastPoint.longitude, point.latitude, point.longitude)
+            // 10 minutes gap OR more than 1.5 km distance jump -> new segment
+            if (diffSeconds > 600 || dist > 1.5) {
+                segmentsList.add(currentSegment)
+                currentSegment = mutableListOf(point)
+            } else {
+                currentSegment.add(point)
+            }
+        }
+    }
+    if (currentSegment.isNotEmpty()) {
+        segmentsList.add(currentSegment)
+    }
+
+    return segmentsList.mapIndexed { idx, segPoints ->
+        val startSecs = parseIsoToSeconds(segPoints.first().recordedAt)
+        val endSecs = parseIsoToSeconds(segPoints.last().recordedAt)
+        val durationMins = (endSecs - startSecs) / 60
+        val durationText = if (durationMins <= 0) "1 min" else "$durationMins min"
+        val distance = calculateDistanceKm(segPoints)
+
+        var maxSpeedKmh = 0.0
+        for (i in 0 until segPoints.size - 1) {
+            val p1 = segPoints[i]
+            val p2 = segPoints[i + 1]
+            val dist = haversineDistance(p1.latitude, p1.longitude, p2.latitude, p2.longitude)
+            val timeHours = (parseIsoToSeconds(p2.recordedAt) - parseIsoToSeconds(p1.recordedAt)) / 3600.0
+            if (timeHours > 0.0) {
+                val speed = dist / timeHours
+                if (speed in 5.0..180.0 && speed > maxSpeedKmh) {
+                    maxSpeedKmh = speed
+                }
+            }
+        }
+
+        TripSegment(
+            index = idx,
+            points = segPoints,
+            startTime = formatTime(segPoints.first().recordedAt),
+            endTime = formatTime(segPoints.last().recordedAt),
+            durationText = durationText,
+            distanceKm = distance,
+            maxSpeedKmh = maxSpeedKmh.toDouble()
+        )
     }
 }

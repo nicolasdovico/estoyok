@@ -66,6 +66,10 @@ class SettingsRepositoryImpl @Inject constructor(
         apiService.updateProximityAlerts(ProximityAlertsRequest(enabled))
     }
 
+    override fun updateAvatar(avatar: okhttp3.MultipartBody.Part): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.updateAvatar(avatar)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

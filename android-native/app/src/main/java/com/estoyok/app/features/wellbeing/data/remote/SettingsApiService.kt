@@ -7,8 +7,18 @@ import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.PUT
+import retrofit2.http.POST
+import retrofit2.http.Multipart
+import retrofit2.http.Part
+import okhttp3.MultipartBody
 
 interface SettingsApiService {
+
+    @Multipart
+    @POST("settings/avatar")
+    suspend fun updateAvatar(
+        @Part avatar: MultipartBody.Part
+    ): Response<MessageResponse>
 
     @GET("user")
     suspend fun getUserProfile(): Response<UserDto>

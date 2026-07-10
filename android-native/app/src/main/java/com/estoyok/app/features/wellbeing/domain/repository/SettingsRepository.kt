@@ -14,4 +14,5 @@ interface SettingsRepository {
     fun updatePrivacy(shareContactResponses: Boolean?, lowBatteryAlertsEnabled: Boolean?): Flow<Resource<MessageResponse>>
     fun updateAutomation(wifiEnabled: Boolean, ssid: String?, sensorEnabled: Boolean): Flow<Resource<MessageResponse>>
     fun updateProximityAlerts(enabled: Boolean): Flow<Resource<MessageResponse>>
+    fun updateAvatar(avatar: okhttp3.MultipartBody.Part): Flow<Resource<MessageResponse>>
 }

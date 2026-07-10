@@ -1552,6 +1552,65 @@
                     }
                 ]
             }
+        },
+        "/settings/avatar": {
+            "post": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Subir o actualizar la foto de perfil (avatar)",
+                "operationId": "7dde949d4975684eca3fb88a87befed0",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "multipart/form-data": {
+                            "schema": {
+                                "required": [
+                                    "avatar"
+                                ],
+                                "properties": {
+                                    "avatar": {
+                                        "description": "Imagen del avatar (jpeg, png, jpg, max 2MB)",
+                                        "type": "string",
+                                        "format": "binary"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Avatar actualizado exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Avatar updated successfully"
+                                        },
+                                        "avatar_url": {
+                                            "type": "string",
+                                            "example": "http://localhost/storage/avatars/abc.jpg"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "400": {
+                        "description": "Error en la validación"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [

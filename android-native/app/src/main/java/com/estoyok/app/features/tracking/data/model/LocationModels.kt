@@ -27,3 +27,11 @@ data class SensorStatusRequest(
 data class SensorStatusResponse(
     @SerializedName("message") val message: String
 )
+
+data class LocationHistoryDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("accuracy") val accuracy: Double?,
+    @SerializedName("recorded_at") val recordedAt: String,
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double
+)

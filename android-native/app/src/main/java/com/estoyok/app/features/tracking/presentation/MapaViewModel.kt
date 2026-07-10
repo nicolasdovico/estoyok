@@ -11,7 +11,10 @@ import androidx.lifecycle.viewModelScope
 import com.estoyok.app.core.util.Resource
 import com.estoyok.app.features.tracking.data.model.CircleDto
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
+import com.estoyok.app.features.tracking.data.model.LocationHistoryDto
 import com.estoyok.app.features.tracking.domain.repository.CircleRepository
+import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+import com.estoyok.app.features.auth.data.model.UserDto
 import com.estoyok.app.services.TrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -23,7 +26,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class MapaViewModel @Inject constructor(
-    private val circleRepository: CircleRepository
+    private val circleRepository: CircleRepository,
+    private val settingsRepository: SettingsRepository
 ) : ViewModel() {
 
     var circles by mutableStateOf<List<CircleDto>>(emptyList())
@@ -44,11 +48,37 @@ class MapaViewModel @Inject constructor(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    // Logged in user profile
+    var currentUserProfile by mutableStateOf<UserDto?>(null)
+        private set
+
+    // Selected member for expanded details
+    var selectedMember by mutableStateOf<CircleMemberDto?>(null)
+
+    // History points for selected member and date
+    var historyPoints by mutableStateOf<List<LocationHistoryDto>>(emptyList())
+        private set
+
+    var isHistoryLoading by mutableStateOf(false)
+        private set
+
+    var historyDate by mutableStateOf<String?>(null)
+
+    // Selected trip index for Option A segment highlight
+    var selectedTripIndex by mutableStateOf<Int?>(null)
+
+    var isUploadingAvatar by mutableStateOf(false)
+        private set
+
+    var uploadAvatarSuccessMessage by mutableStateOf<String?>(null)
+    var uploadAvatarErrorMessage by mutableStateOf<String?>(null)
+
     private var pollingJob: Job? = null
 
     init {
         isServiceRunning = TrackingService.isRunning
         refreshCircles()
+        loadUserProfile()
         startPolling()
     }
 
@@ -119,6 +149,75 @@ class MapaViewModel @Inject constructor(
             ContextCompat.startForegroundService(context, intent)
             isServiceRunning = true
         }
+    }
+
+    fun loadUserProfile() {
+        viewModelScope.launch {
+            settingsRepository.getUserProfile().collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    currentUserProfile = resource.data
+                }
+            }
+        }
+    }
+
+    fun loadMemberHistory(memberId: Int, date: String) {
+        val circleId = selectedCircle?.id ?: return
+        historyDate = date
+        selectedTripIndex = null
+        viewModelScope.launch {
+            circleRepository.getMemberHistory(circleId, memberId, date).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isHistoryLoading = true
+                    }
+                    is Resource.Success -> {
+                        isHistoryLoading = false
+                        historyPoints = resource.data ?: emptyList()
+                    }
+                    is Resource.Error -> {
+                        isHistoryLoading = false
+                        historyPoints = emptyList()
+                        errorMessage = resource.message ?: "Error al obtener historial."
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearHistory() {
+        historyPoints = emptyList()
+        historyDate = null
+        selectedTripIndex = null
+    }
+
+    fun uploadAvatar(avatarPart: okhttp3.MultipartBody.Part) {
+        viewModelScope.launch {
+            settingsRepository.updateAvatar(avatarPart).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isUploadingAvatar = true
+                        uploadAvatarErrorMessage = null
+                        uploadAvatarSuccessMessage = null
+                    }
+                    is Resource.Success -> {
+                        isUploadingAvatar = false
+                        uploadAvatarSuccessMessage = "Foto de perfil actualizada exitosamente."
+                        loadUserProfile()
+                        refreshCircles()
+                    }
+                    is Resource.Error -> {
+                        isUploadingAvatar = false
+                        uploadAvatarErrorMessage = resource.message ?: "Error al subir la foto de perfil."
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearUploadMessages() {
+        uploadAvatarSuccessMessage = null
+        uploadAvatarErrorMessage = null
     }
 
     override fun onCleared() {

@@ -38,6 +38,14 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.deleteCircle(circleId)
     }
 
+    override fun getMemberHistory(
+        circleId: Int,
+        memberId: Int,
+        date: String?
+    ): Flow<Resource<List<LocationHistoryDto>>> = safeApiCall {
+        apiService.getMemberHistory(circleId, memberId, date)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

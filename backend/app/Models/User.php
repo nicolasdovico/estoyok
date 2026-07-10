@@ -51,6 +51,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'low_battery_alerts_enabled',
         'last_battery_alert_sent_at',
         'proximity_alerts_enabled',
+        'avatar_path',
     ];
 
     /**
@@ -61,6 +62,15 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     protected $hidden = [
         'password',
         'remember_token',
+    ];
+
+    /**
+     * The attributes that should be appended to the model's array form.
+     *
+     * @var array<int, string>
+     */
+    protected $appends = [
+        'avatar_url',
     ];
 
     /**
@@ -200,5 +210,13 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     public function canAccessPanel(Panel $panel): bool
     {
         return str_ends_with($this->email, '@estoyok.com') || $this->email === 'nicolasdovico@gmail.com';
+    }
+
+    /**
+     * Get the user's avatar URL.
+     */
+    public function getAvatarUrlAttribute(): ?string
+    {
+        return $this->avatar_path ? url(\Storage::url($this->avatar_path)) : null;
     }
 }
