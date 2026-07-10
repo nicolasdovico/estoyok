@@ -22,6 +22,7 @@ data class CircleMemberDto(
     @SerializedName("name") val name: String,
     @SerializedName("email") val email: String,
     @SerializedName("phone") val phone: String?,
+    @SerializedName("avatar_url") val avatarUrl: String? = null,
     @SerializedName("current_location") val currentLocation: MemberLocationDto?
 )
 

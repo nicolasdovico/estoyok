@@ -50,6 +50,11 @@ import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -182,15 +187,100 @@ fun MapaScreen(
                         }
                     }
 
-                    Marker(
-                        state = rememberMarkerState(position = latLng),
-                        title = titleText,
-                        snippet = snippetText,
-                        onClick = {
-                            selectedMemberForMap = member
-                            false // Return false to show standard info window popup
+                    key(member.id) {
+                        val markerState = rememberMarkerState(position = latLng)
+                        LaunchedEffect(latLng) {
+                            markerState.position = latLng
                         }
-                    )
+
+                        val isOffline = loc.isOffline == true
+                        val isTrackingOff = loc.isTrackingActive == false
+                        val isGpsOff = loc.gpsEnabled == false
+
+                        val borderColor = when {
+                            isTrackingOff || isOffline -> TextMuted
+                            isGpsOff -> PrimaryOrange
+                            else -> PrimaryEmerald
+                        }
+
+                        MarkerComposable(
+                            state = markerState,
+                            title = titleText,
+                            snippet = snippetText,
+                            onClick = {
+                                selectedMemberForMap = member
+                                false // Return false to show standard info window popup
+                            }
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.wrapContentSize()
+                            ) {
+                                // Avatar Circle Container
+                                Box(
+                                    modifier = Modifier
+                                        .size(44.dp)
+                                        .background(CardBackground, CircleShape)
+                                        .border(2.dp, borderColor, CircleShape)
+                                        .padding(2.dp),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    if (!member.avatarUrl.isNullOrEmpty()) {
+                                        AsyncImage(
+                                            model = member.avatarUrl,
+                                            contentDescription = member.name,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop
+                                        )
+                                    } else {
+                                        val initials = member.name.split(" ")
+                                            .mapNotNull { it.firstOrNull()?.toString() }
+                                            .take(2)
+                                            .joinToString("")
+                                            .uppercase()
+                                        Text(
+                                            text = initials,
+                                            color = Color.White,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            fontSize = 12.sp
+                                        )
+                                    }
+                                }
+
+                                // Pointer arrow pointing down (rotated square)
+                                Box(
+                                    modifier = Modifier
+                                        .offset(y = (-5).dp)
+                                        .size(8.dp)
+                                        .graphicsLayer(rotationZ = 45f)
+                                        .background(borderColor)
+                                )
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                // Small first name tag below
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = DarkSurface.copy(alpha = 0.9f)
+                                    ),
+                                    shape = RoundedCornerShape(6.dp),
+                                    border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                ) {
+                                    Text(
+                                        text = member.name.substringBefore(" "),
+                                        fontSize = 9.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
+                                        maxLines = 1
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -240,7 +330,7 @@ fun MapaScreen(
                         )
                     }
                     if (viewModel.circles.isNotEmpty()) {
-                        Divider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
+                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
                     }
                     DropdownMenuItem(
                         text = { Text("➕ Crear un núcleo") },
@@ -290,7 +380,7 @@ fun MapaScreen(
                 )
                 Switch(
                     checked = viewModel.isServiceRunning,
-                    onCheckedChange = { checked ->
+                    onCheckedChange = { _ ->
                         val hasLocation = ContextCompat.checkSelfPermission(
                             context,
                             Manifest.permission.ACCESS_FINE_LOCATION

@@ -8,6 +8,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -318,7 +319,7 @@ fun AjustesScreen(
                         )
                     }
 
-                    Divider(color = BorderColor.copy(alpha = 0.5f))
+                    HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
 
                     // Sensor Switch
                     Row(
@@ -381,12 +382,12 @@ fun AjustesScreen(
                                 onDelete = { contact.id?.let { viewModel.deleteContact(it) } }
                             )
                             if (index < viewModel.contacts.size - 1) {
-                                Divider(color = BorderColor.copy(alpha = 0.3f))
+                                HorizontalDivider(color = BorderColor.copy(alpha = 0.3f))
                             }
                         }
                     }
 
-                    Divider(color = BorderColor)
+                    HorizontalDivider(color = BorderColor)
 
                     // Add Contact Form
                     Text(
@@ -465,7 +466,7 @@ fun AjustesScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.ExitToApp,
+                    imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                     contentDescription = "Logout Icon",
                     modifier = Modifier.padding(end = 8.dp)
                 )
@@ -500,7 +501,7 @@ fun SettingsCard(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
-            Divider(color = BorderColor.copy(alpha = 0.5f))
+            HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
             content()
         }
     }

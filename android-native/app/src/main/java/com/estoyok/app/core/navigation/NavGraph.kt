@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -189,7 +189,7 @@ fun MainScreen(
                     )
                 ) {
                     Icon(
-                        imageVector = if (isSubScreen) Icons.Default.ArrowBack else Icons.Default.Settings,
+                        imageVector = if (isSubScreen) Icons.AutoMirrored.Filled.ArrowBack else Icons.Default.Settings,
                         contentDescription = if (isSubScreen) "Volver" else "Ajustes"
                     )
                 }

@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -43,8 +44,6 @@ fun FamiliaScreen(
     // Inputs
     var newCircleName by remember { mutableStateOf("") }
     var inviteCodeInput by remember { mutableStateOf("") }
-
-    var selectedPayProvider by remember { mutableStateOf("stripe") }
 
     LazyColumn(
         modifier = Modifier
@@ -284,7 +283,7 @@ fun FamiliaScreen(
                                         onClick = { viewModel.removeMember(activeCircle.id, member.id) }
                                     ) {
                                         Icon(
-                                            imageVector = Icons.Default.ExitToApp,
+                                            imageVector = Icons.AutoMirrored.Filled.ExitToApp,
                                             contentDescription = "Abandonar",
                                             tint = PrimaryRed
                                         )
