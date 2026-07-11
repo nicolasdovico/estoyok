@@ -46,6 +46,21 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.getMemberHistory(circleId, memberId, date)
     }
 
+    override fun createGeofence(
+        circleId: Int,
+        name: String,
+        radius: Double,
+        latitude: Double,
+        longitude: Double,
+        userId: Int?
+    ): Flow<Resource<GeofenceDto>> = safeApiCall {
+        apiService.createGeofence(circleId, CreateGeofenceRequest(name, radius, "entry_exit", latitude, longitude, userId))
+    }
+
+    override fun deleteGeofence(geofenceId: Int): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.deleteGeofence(geofenceId)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

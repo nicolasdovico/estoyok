@@ -37,4 +37,15 @@ interface CircleApiService {
         @Path("memberId") memberId: Int,
         @Query("date") date: String?
     ): Response<List<LocationHistoryDto>>
+
+    @POST("circles/{circleId}/geofences")
+    suspend fun createGeofence(
+        @Path("circleId") circleId: Int,
+        @Body request: CreateGeofenceRequest
+    ): Response<GeofenceDto>
+
+    @DELETE("geofences/{geofenceId}")
+    suspend fun deleteGeofence(
+        @Path("geofenceId") geofenceId: Int
+    ): Response<MessageResponse>
 }

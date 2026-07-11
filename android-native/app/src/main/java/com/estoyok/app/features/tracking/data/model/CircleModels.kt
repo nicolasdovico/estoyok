@@ -26,13 +26,26 @@ data class CircleMemberDto(
     @SerializedName("current_location") val currentLocation: MemberLocationDto?
 )
 
+data class GeofenceDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("circle_id") val circleId: Int,
+    @SerializedName("user_id") val userId: Int?,
+    @SerializedName("name") val name: String,
+    @SerializedName("radius") val radius: Double,
+    @SerializedName("type") val type: String,
+    @SerializedName("is_active") val isActive: Boolean,
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double
+)
+
 data class CircleDto(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
     @SerializedName("invite_code") val inviteCode: String,
     @SerializedName("owner_id") val ownerId: Int,
     @SerializedName("speed_limit") val speedLimit: Int?,
-    @SerializedName("users") val members: List<CircleMemberDto> = emptyList()
+    @SerializedName("users") val members: List<CircleMemberDto> = emptyList(),
+    @SerializedName("geofences") val geofences: List<GeofenceDto> = emptyList()
 )
 
 data class CreateCircleRequest(
@@ -41,4 +54,13 @@ data class CreateCircleRequest(
 
 data class JoinCircleRequest(
     @SerializedName("invite_code") val inviteCode: String
+)
+
+data class CreateGeofenceRequest(
+    @SerializedName("name") val name: String,
+    @SerializedName("radius") val radius: Double,
+    @SerializedName("type") val type: String = "entry_exit",
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("user_id") val userId: Int? = null
 )

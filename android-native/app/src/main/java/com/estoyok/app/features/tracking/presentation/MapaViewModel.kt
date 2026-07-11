@@ -220,6 +220,63 @@ class MapaViewModel @Inject constructor(
         uploadAvatarErrorMessage = null
     }
 
+    var isGeofenceLoading by mutableStateOf(false)
+        private set
+    var geofenceSuccessMessage by mutableStateOf<String?>(null)
+    var geofenceErrorMessage by mutableStateOf<String?>(null)
+
+    fun createGeofence(name: String, radius: Double, latitude: Double, longitude: Double, userId: Int?) {
+        val circleId = selectedCircle?.id ?: return
+        viewModelScope.launch {
+            circleRepository.createGeofence(circleId, name, radius, latitude, longitude, userId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isGeofenceLoading = true
+                        geofenceErrorMessage = null
+                        geofenceSuccessMessage = null
+                    }
+                    is Resource.Success -> {
+                        isGeofenceLoading = false
+                        geofenceSuccessMessage = "Zona Segura creada exitosamente."
+                        refreshCircles()
+                    }
+                    is Resource.Error -> {
+                        isGeofenceLoading = false
+                        geofenceErrorMessage = resource.message ?: "Error al crear la Zona Segura."
+                    }
+                }
+            }
+        }
+    }
+
+    fun deleteGeofence(geofenceId: Int) {
+        viewModelScope.launch {
+            circleRepository.deleteGeofence(geofenceId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isGeofenceLoading = true
+                        geofenceErrorMessage = null
+                        geofenceSuccessMessage = null
+                    }
+                    is Resource.Success -> {
+                        isGeofenceLoading = false
+                        geofenceSuccessMessage = "Zona Segura eliminada exitosamente."
+                        refreshCircles()
+                    }
+                    is Resource.Error -> {
+                        isGeofenceLoading = false
+                        geofenceErrorMessage = resource.message ?: "Error al eliminar la Zona Segura."
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearGeofenceMessages() {
+        geofenceSuccessMessage = null
+        geofenceErrorMessage = null
+    }
+
     override fun onCleared() {
         super.onCleared()
         pollingJob?.cancel()

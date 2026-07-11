@@ -602,3 +602,30 @@
 - **Resolución de Advertencias del Compilador (Clean Build):** Se corrigieron múltiples advertencias de compilación y elementos obsoletos (deprecados) en los archivos `NavGraph.kt`, `MapaScreen.kt`, `AjustesScreen.kt` y `FamiliaScreen.kt`, reemplazando `Divider` por `HorizontalDivider` y usando los iconos AutoMirrored correspondientes (como `ArrowBack` y `ExitToApp`), además de remover variables y parámetros lambda no utilizados.
 - **Detalles de Miembros e Historial de Recorridos (Nativo & Backend):** Se implementó la vista de detalles expandida de familiares en `MapaScreen.kt` usando `ModalBottomSheet`. Cada usuario puede subir/actualizar su propia foto de perfil (almacenamiento público local en Laravel + endpoint `POST /api/settings/avatar`). Se agregó el selector de historial de recorridos, restringiendo a usuarios gratuitos a las últimas 24 horas (con candado y promo premium) y permitiendo 30 días a cuentas Premium. El recorrido se renderiza como `Polyline` con auto-ajuste de cámara en el mapa.
 - **Segmentación de Recorridos e Historial (Opción A):** Se implementó la visualización inteligente de sub-viajes/segmentos para evitar líneas cruzadas en el mapa. Las coordenadas se agrupan en viajes separados usando criterios de tiempo (brecha > 10 min) y distancia (brecha > 1.5 km), calculando la duración, distancia (fórmula Haversine) y velocidad máxima estimada para cada tramo. Se muestra la lista de tarjetas de viajes en el `ModalBottomSheet`; al seleccionar un viaje, el panel se oculta y la cámara realiza zoom directamente sobre ese trayecto específico, con controles de navegación ("Atrás" y "Salir") en una barra flotante superior.
+
+## [2026-07-11] Mejoras en Historial de Recorridos (Android Native)
+- **Corrección de Scroll en Bottom Sheet:** Se agregó `verticalScroll(rememberScrollState())` al Column de `MemberDetailsSheetContent` para habilitar el scroll del ModalBottomSheet nativo una vez expandido, solucionando la limitación de visualización cuando hay más de 6 viajes.
+- **Inversión de Orden de Viajes:** Se cambió la renderización de viajes en el sidebar a `segments.reversed().forEach`, posicionando el viaje más reciente arriba de todo en el listado.
+- **Cálculo Exacto de Duración:**
+  - Se añadió el fallback de parseo de fechas para el formato plano de la base de datos (`yyyy-MM-dd HH:mm:ss`) en `parseIsoToSeconds` y `formatTime`. Esto resolvió el problema en donde todos los viajes se reportaban con duración de 1 minuto debido a fallos de parseo.
+  - Se modificó la duración calculada para estructurarse en formato de texto detallado (`"Menos de 1 min"`, `"X min"` o `"X h Y min"`).
+- **Visibilidad de Fechas de Historial para Cuentas Free:** Se reemplazó el candado genérico `🔒 PRO` del carrusel de fechas por la visualización del día y el mes real de cada día anterior del historial, agregando el candado de forma sutil en la solapa del mes (ej. `10 Jul 🔒`) y atenuando el color de texto del día.
+- **Verificación:** Ejecutada con éxito la compilación nativa de Gradle (`./gradlew :app:compileDebugKotlin` finalizado con éxito) y los tests de regresión del backend.
+
+## [2026-07-11] Zonas Seguras en App Mobile (Android Native)
+- **Implementación CRUD de Geofences en Kotlin:**
+  - Añadidas las firmas de método a `CircleRepository.kt` e implementadas en `CircleRepositoryImpl.kt` llamando a los endpoints de Retrofit `createGeofence` y `deleteGeofence` envueltas en `safeApiCall`.
+  - Expuestos los métodos CRUD y variables de estado de carga/éxito/error en `MapaViewModel.kt`, sincronizando el núcleo seleccionado (`refreshCircles()`) automáticamente tras el éxito de creación o eliminación.
+- **Interacción y Renderizado en MapaScreen (Nativo):**
+  - Configurado `onMapLongClick` en `GoogleMap` para capturar coordenadas lat/long interactivamente y abrir un `AlertDialog` nativo de creación de Zonas Seguras.
+  - Diseñado un diálogo modal de alta fidelidad que solicita el nombre, posee un slider numérico interactivo para regular el radio (de 50m a 1000m) y un menú dropdown para asignar la Zona Segura a un miembro particular del núcleo o a "Toda la familia".
+  - Renderizado automático de Zonas Seguras en el mapa de Google mediante círculos semitransparentes del color primario del tema y pins de marcador celestes (`HUE_AZURE`).
+  - Añadido el listado "Zonas Seguras del Núcleo" en el panel deslizable expandido de la home, permitiendo a los administradores del núcleo eliminar cualquier Zona Segura directamente mediante un botón de tacho de basura (`🗑️`).
+- **Integración de Línea de Tiempo (Timeline) en Historial:**
+  - Desarrollada la clase sellada `TimelineItem` (para `Trip` y `SafeZoneStay`) y la función utilitaria `buildHistoryTimeline(...)`.
+  - Integra de forma inteligente y cronológica las estadías del familiar dentro de las Zonas Seguras configuradas entre cada viaje del día (calculando si la última posición de un viaje y la primera del siguiente coinciden con el radio de una Zona Segura mediante la distancia Haversine).
+  - Muestra las estadías como tarjetas suaves del color primario (`TimelineItem.SafeZoneStay`) detallando la hora de llegada, salida y la duración exacta de permanencia (ej. "Casa: 10:15 - 12:30 (2 h 15 min)") en la línea de tiempo.
+- **Validación y Estabilización:**
+  - Verificado el éxito del build y compilación Kotlin (`BUILD SUCCESSFUL` mediante Gradle).
+  - Ejecutada la suite completa de pruebas unitarias/de integración del backend con éxito total de no regresión (114/114 passed).
+

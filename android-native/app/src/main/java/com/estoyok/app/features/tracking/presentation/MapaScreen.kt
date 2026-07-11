@@ -45,6 +45,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
+import com.estoyok.app.features.tracking.data.model.GeofenceDto
 import com.google.android.gms.maps.model.CameraPosition
 import com.google.android.gms.maps.model.LatLng
 import com.google.maps.android.compose.*
@@ -54,8 +55,11 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.border
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -117,6 +121,8 @@ fun MapaScreen(
     }
     var isCircleDropdownExpanded by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
+    var showCreateGeofenceDialog by remember { mutableStateOf(false) }
+    var longClickedLatLng by remember { mutableStateOf<LatLng?>(null) }
 
     // LatLng for Argentina/Buenos Aires default center
     val defaultCenter = LatLng(-34.6037, -58.3816)
@@ -234,7 +240,11 @@ fun MapaScreen(
                 zoomControlsEnabled = false,
                 myLocationButtonEnabled = false
             ),
-            contentPadding = PaddingValues(bottom = 120.dp)
+            contentPadding = PaddingValues(bottom = 120.dp),
+            onMapLongClick = { latLng ->
+                longClickedLatLng = latLng
+                showCreateGeofenceDialog = true
+            }
         ) {
             // Render location history route if loaded
             if (viewModel.historyPoints.isNotEmpty()) {
@@ -275,6 +285,24 @@ fun MapaScreen(
                         )
                     }
                 }
+            }
+
+            // Render static Zonas Seguras
+            viewModel.selectedCircle?.geofences?.forEach { geofence ->
+                val centerLatLng = LatLng(geofence.latitude, geofence.longitude)
+                Circle(
+                    center = centerLatLng,
+                    radius = geofence.radius,
+                    fillColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f),
+                    strokeColor = MaterialTheme.colorScheme.primary,
+                    strokeWidth = 3f
+                )
+                Marker(
+                    state = rememberMarkerState(position = centerLatLng),
+                    title = "Zona Segura: ${geofence.name}",
+                    snippet = "Radio: ${geofence.radius.toInt()}m",
+                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
+                )
             }
 
             // Render markers for all nucleus members with valid location coordinates
@@ -606,6 +634,15 @@ fun MapaScreen(
                             verticalArrangement = Arrangement.spacedBy(8.dp),
                             contentPadding = PaddingValues(bottom = 8.dp)
                         ) {
+                            item {
+                                Text(
+                                    text = "Familiares",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextMuted,
+                                    modifier = Modifier.padding(vertical = 4.dp)
+                                )
+                            }
                             items(viewModel.selectedCircleMembers) { member ->
                                 MemberRowItem(
                                     member = member,
@@ -615,6 +652,30 @@ fun MapaScreen(
                                         isExpanded = false
                                     }
                                 )
+                            }
+
+                            // Show static Zonas Seguras list
+                            val geofences = viewModel.selectedCircle?.geofences ?: emptyList()
+                            if (geofences.isNotEmpty()) {
+                                item {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    HorizontalDivider(color = BorderColor)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Text(
+                                        text = "Zonas Seguras del Núcleo",
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary,
+                                        modifier = Modifier.padding(bottom = 4.dp)
+                                    )
+                                }
+                                items(geofences) { geofence ->
+                                    GeofenceRowItem(
+                                        geofence = geofence,
+                                        isOwner = viewModel.selectedCircle?.ownerId == (viewModel.currentUserProfile?.id ?: -1),
+                                        onDeleteClick = { viewModel.deleteGeofence(geofence.id) }
+                                    )
+                                }
                             }
                         }
                     } else {
@@ -627,11 +688,11 @@ fun MapaScreen(
                                     viewModel.selectedMember = member
                                 }
                             )
+                        }
                     }
                 }
             }
         }
-    }
 
         if (viewModel.historyPoints.isNotEmpty()) {
             val segments = remember(viewModel.historyPoints) {
@@ -718,6 +779,148 @@ fun MapaScreen(
                     navController = navController,
                     imagePickerLauncher = imagePickerLauncher
                 )
+            }
+        }
+
+        if (showCreateGeofenceDialog && longClickedLatLng != null) {
+            var geofenceName by remember { mutableStateOf("") }
+            var geofenceRadius by remember { mutableStateOf(200.0) }
+            var selectedMemberIdForGeofence by remember { mutableStateOf<Int?>(null) }
+            var isDropdownExpanded by remember { mutableStateOf(false) }
+
+            AlertDialog(
+                onDismissRequest = {
+                    showCreateGeofenceDialog = false
+                    longClickedLatLng = null
+                },
+                title = { Text("Nueva Zona Segura", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Crearás un perímetro seguro en la ubicación seleccionada.",
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+
+                        OutlinedTextField(
+                            value = geofenceName,
+                            onValueChange = { geofenceName = it },
+                            label = { Text("Nombre (ej. Casa, Trabajo)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = BorderColor
+                            )
+                        )
+
+                        Column {
+                            Text(
+                                text = "Radio: ${geofenceRadius.toInt()} metros",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Slider(
+                                value = geofenceRadius.toFloat(),
+                                onValueChange = { geofenceRadius = it.toDouble() },
+                                valueRange = 50f..1000f,
+                                steps = 19,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(
+                                onClick = { isDropdownExpanded = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+                                border = BorderStroke(1.dp, BorderColor)
+                            ) {
+                                val memberName = selectedMemberIdForGeofence?.let { id ->
+                                    viewModel.selectedCircleMembers.find { it.id == id }?.name
+                                } ?: "Toda la familia"
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Asignar a: $memberName", fontSize = 13.sp)
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "dropdown")
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Toda la familia", color = TextPrimary) },
+                                    onClick = {
+                                        selectedMemberIdForGeofence = null
+                                        isDropdownExpanded = false
+                                    }
+                                )
+                                viewModel.selectedCircleMembers.forEach { member ->
+                                    DropdownMenuItem(
+                                        text = { Text(member.name, color = TextPrimary) },
+                                        onClick = {
+                                            selectedMemberIdForGeofence = member.id
+                                            isDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (geofenceName.isNotBlank()) {
+                                viewModel.createGeofence(
+                                    name = geofenceName,
+                                    radius = geofenceRadius,
+                                    latitude = longClickedLatLng!!.latitude,
+                                    longitude = longClickedLatLng!!.longitude,
+                                    userId = selectedMemberIdForGeofence
+                                )
+                                showCreateGeofenceDialog = false
+                                longClickedLatLng = null
+                            } else {
+                                Toast.makeText(context, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                    ) {
+                        Text("Crear", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showCreateGeofenceDialog = false
+                        longClickedLatLng = null
+                    }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+        LaunchedEffect(viewModel.geofenceSuccessMessage, viewModel.geofenceErrorMessage) {
+            viewModel.geofenceSuccessMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearGeofenceMessages()
+            }
+            viewModel.geofenceErrorMessage?.let {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+                viewModel.clearGeofenceMessages()
             }
         }
     }
@@ -934,6 +1137,7 @@ fun MemberDetailsSheetContent(
         modifier = Modifier
             .fillMaxWidth()
             .navigationBarsPadding()
+            .verticalScroll(rememberScrollState())
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -1075,19 +1279,17 @@ fun MemberDetailsSheetContent(
                         verticalArrangement = Arrangement.Center,
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        if (!isSelectable) {
-                            Text("🔒", fontSize = 16.sp)
-                        } else {
-                            Text(
-                                text = if (dateStr == dates.first().first) "Hoy" else displayStr.split(" ").firstOrNull() ?: "",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else TextPrimary
-                            )
-                        }
-                        Spacer(modifier = Modifier.height(4.dp))
+                        val dayText = if (dateStr == dates.first().first) "Hoy" else displayStr.split(" ").firstOrNull() ?: ""
                         Text(
-                            text = if (!isSelectable) "PRO" else displayStr.split(" ").lastOrNull() ?: "",
+                            text = dayText,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) Color.White else if (isSelectable) TextPrimary else TextMuted
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        val monthText = displayStr.split(" ").lastOrNull() ?: ""
+                        Text(
+                            text = if (isSelectable) monthText else "$monthText 🔒",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = if (isSelected) Color.White.copy(alpha = 0.8f) else TextMuted
@@ -1115,13 +1317,18 @@ fun MemberDetailsSheetContent(
                     segmentHistoryPoints(viewModel.historyPoints)
                 }
 
+                val geofences = viewModel.selectedCircle?.geofences ?: emptyList()
+                val timelineItems = remember(segments, geofences) {
+                    buildHistoryTimeline(segments, geofences)
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Viajes Detectados (${segments.size})",
+                        text = "Línea de Tiempo del Recorrido",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -1137,64 +1344,107 @@ fun MemberDetailsSheetContent(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    segments.forEach { trip ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable {
-                                    viewModel.selectedTripIndex = trip.index
-                                },
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
-                            shape = RoundedCornerShape(12.dp),
-                            border = BorderStroke(1.dp, BorderColor)
-                        ) {
-                            Row(
-                                modifier = Modifier.padding(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
+                    timelineItems.reversed().forEach { item ->
+                        when (item) {
+                            is TimelineItem.Trip -> {
+                                val trip = item.trip
+                                Card(
                                     modifier = Modifier
-                                        .size(36.dp)
-                                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
-                                    contentAlignment = Alignment.Center
+                                        .fillMaxWidth()
+                                        .clickable {
+                                            viewModel.selectedTripIndex = trip.index
+                                        },
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, BorderColor)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.DirectionsCar,
-                                        contentDescription = "Viaje",
-                                        tint = MaterialTheme.colorScheme.primary,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                }
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.DirectionsCar,
+                                                contentDescription = "Viaje",
+                                                tint = MaterialTheme.colorScheme.primary,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                        }
 
-                                Spacer(modifier = Modifier.width(12.dp))
+                                        Spacer(modifier = Modifier.width(12.dp))
 
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = "Viaje ${trip.index + 1}: ${trip.startTime} - ${trip.endTime}",
-                                        fontSize = 13.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimary
-                                    )
-                                    Text(
-                                        text = "Duración: ${trip.durationText} • Distancia: %.1f km".format(trip.distanceKm),
-                                        fontSize = 11.sp,
-                                        color = TextSecondary
-                                    )
-                                    if (trip.maxSpeedKmh > 0.0) {
-                                        Text(
-                                            text = "Velocidad Máx: ${trip.maxSpeedKmh.toInt()} km/h",
-                                            fontSize = 10.sp,
-                                            color = TextMuted
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Text(
+                                                text = "Viaje ${trip.index + 1}: ${trip.startTime} - ${trip.endTime}",
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            Text(
+                                                text = "Duración: ${trip.durationText} • Distancia: %.1f km".format(trip.distanceKm),
+                                                fontSize = 11.sp,
+                                                color = TextSecondary
+                                            )
+                                            if (trip.maxSpeedKmh > 0.0) {
+                                                Text(
+                                                    text = "Velocidad Máx: ${trip.maxSpeedKmh.toInt()} km/h",
+                                                    fontSize = 10.sp,
+                                                    color = TextMuted
+                                                )
+                                            }
+                                        }
+
+                                        Icon(
+                                            imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                                            contentDescription = "Ver en mapa",
+                                            tint = TextMuted,
+                                            modifier = Modifier.size(18.dp)
                                         )
                                     }
                                 }
+                            }
+                            is TimelineItem.SafeZoneStay -> {
+                                Card(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(36.dp)
+                                                .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text("📍", fontSize = 18.sp)
+                                        }
 
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                    contentDescription = "Ver en mapa",
-                                    tint = TextMuted,
-                                    modifier = Modifier.size(18.dp)
-                                )
+                                        Spacer(modifier = Modifier.width(12.dp))
+
+                                        Column {
+                                            Text(
+                                                text = "Estadía en: ${item.name}",
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            Text(
+                                                text = "Permanencia: ${item.startTime} - ${item.endTime} (${item.durationText})",
+                                                fontSize = 11.sp,
+                                                color = TextSecondary
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -1222,10 +1472,17 @@ private fun parseIsoToSeconds(isoStr: String): Long {
         val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
+        val fallbackDb = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
         val date = try {
             format.parse(isoStr)
         } catch (e: Exception) {
-            fallback.parse(isoStr)
+            try {
+                fallback.parse(isoStr)
+            } catch (e2: Exception) {
+                fallbackDb.parse(isoStr)
+            }
         }
         date?.time?.div(1000) ?: 0L
     } catch (e: Exception) {
@@ -1241,10 +1498,17 @@ private fun formatTime(isoStr: String): String {
         val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
+        val fallbackDb = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
         val date = try {
             format.parse(isoStr)
         } catch (e: Exception) {
-            fallback.parse(isoStr)
+            try {
+                fallback.parse(isoStr)
+            } catch (e2: Exception) {
+                fallbackDb.parse(isoStr)
+            }
         }
         val output = SimpleDateFormat("HH:mm", Locale.getDefault())
         output.format(date!!)
@@ -1303,8 +1567,16 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
     return segmentsList.mapIndexed { idx, segPoints ->
         val startSecs = parseIsoToSeconds(segPoints.first().recordedAt)
         val endSecs = parseIsoToSeconds(segPoints.last().recordedAt)
-        val durationMins = (endSecs - startSecs) / 60
-        val durationText = if (durationMins <= 0) "1 min" else "$durationMins min"
+        val totalSeconds = endSecs - startSecs
+        val durationText = when {
+            totalSeconds < 60 -> "Menos de 1 min"
+            totalSeconds < 3600 -> "${totalSeconds / 60} min"
+            else -> {
+                val hours = totalSeconds / 3600
+                val mins = (totalSeconds % 3600) / 60
+                if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
+            }
+        }
         val distance = calculateDistanceKm(segPoints)
 
         var maxSpeedKmh = 0.0
@@ -1331,4 +1603,159 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
             maxSpeedKmh = maxSpeedKmh.toDouble()
         )
     }
+}
+
+@Composable
+fun GeofenceRowItem(
+    geofence: GeofenceDto,
+    isOwner: Boolean,
+    onDeleteClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, BorderColor)
+    ) {
+        Row(
+            modifier = Modifier.padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("📍", fontSize = 18.sp)
+                }
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = geofence.name,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Radio: ${geofence.radius.toInt()}m" + (geofence.userId?.let { " • Personal" } ?: " • Todos"),
+                        fontSize = 11.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+            if (isOwner) {
+                IconButton(onClick = onDeleteClick) {
+                    Icon(
+                        imageVector = Icons.Default.Delete,
+                        contentDescription = "Eliminar Zona Segura",
+                        tint = PrimaryRed,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+    }
+}
+
+sealed class TimelineItem {
+    data class Trip(val trip: TripSegment) : TimelineItem()
+    data class SafeZoneStay(
+        val name: String,
+        val durationText: String,
+        val startTime: String,
+        val endTime: String
+    ) : TimelineItem()
+}
+
+fun buildHistoryTimeline(
+    trips: List<TripSegment>,
+    geofences: List<GeofenceDto>
+): List<TimelineItem> {
+    if (trips.isEmpty()) return emptyList()
+    val timeline = mutableListOf<TimelineItem>()
+
+    // Check if the user was in a safe zone before the first trip of the day
+    val firstTrip = trips.first()
+    val firstPoint = firstTrip.points.firstOrNull()
+    if (firstPoint != null) {
+        val startSafeZone = geofences.find {
+            haversineDistance(firstPoint.latitude, firstPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
+        }
+        if (startSafeZone != null) {
+            timeline.add(
+                TimelineItem.SafeZoneStay(
+                    name = startSafeZone.name,
+                    durationText = "Temprano",
+                    startTime = "00:00",
+                    endTime = firstTrip.startTime
+                )
+            )
+        }
+    }
+
+    // Intersperse trips and safe zone stays
+    for (i in trips.indices) {
+        timeline.add(TimelineItem.Trip(trips[i]))
+
+        if (i < trips.size - 1) {
+            val currentTrip = trips[i]
+            val nextTrip = trips[i + 1]
+            val lastPoint = currentTrip.points.lastOrNull()
+            val nextFirstPoint = nextTrip.points.firstOrNull()
+            if (lastPoint != null && nextFirstPoint != null) {
+                val staySafeZone = geofences.find {
+                    haversineDistance(lastPoint.latitude, lastPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
+                }
+                if (staySafeZone != null) {
+                    val startSecs = parseIsoToSeconds(lastPoint.recordedAt)
+                    val endSecs = parseIsoToSeconds(nextFirstPoint.recordedAt)
+                    val totalSeconds = endSecs - startSecs
+                    val durationText = when {
+                        totalSeconds < 60 -> "Menos de 1 min"
+                        totalSeconds < 3600 -> "${totalSeconds / 60} min"
+                        else -> {
+                            val hours = totalSeconds / 3600
+                            val mins = (totalSeconds % 3600) / 60
+                            if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
+                        }
+                    }
+                    timeline.add(
+                        TimelineItem.SafeZoneStay(
+                            name = staySafeZone.name,
+                            durationText = durationText,
+                            startTime = currentTrip.endTime,
+                            endTime = nextTrip.startTime
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    // Check if the user is in a safe zone after the last trip
+    val lastTrip = trips.last()
+    val lastPoint = lastTrip.points.lastOrNull()
+    if (lastPoint != null) {
+        val endSafeZone = geofences.find {
+            haversineDistance(lastPoint.latitude, lastPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
+        }
+        if (endSafeZone != null) {
+            timeline.add(
+                TimelineItem.SafeZoneStay(
+                    name = endSafeZone.name,
+                    durationText = "Tarde",
+                    startTime = lastTrip.endTime,
+                    endTime = "23:59"
+                )
+            )
+        }
+    }
+
+    return timeline
 }

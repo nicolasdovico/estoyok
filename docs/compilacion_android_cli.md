@@ -71,6 +71,13 @@ Para compilar la app, generar el APK de pruebas, subirlo e instalarlo directamen
 ```
 Una vez que el comando finalice con `BUILD SUCCESSFUL`, la aplicación **Estoy Ok** estará instalada y lista para abrir en tu celular.
 
+### Paso 4: Instalar un APK ya Compilado (Sin Volver a Compilar)
+Si ya has compilado la app previamente y no has realizado cambios en el código, puedes saltearte el proceso de compilación de Gradle e instalar el APK directamente para ahorrar tiempo (tarda unos 2 segundos):
+```bash
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+```
+*El parámetro `-r` reinstala la aplicación sobreescribiendo el código pero conservando intacta la sesión y los datos del teléfono.*
+
 ---
 
 ## 🛠️ Consejos y Resolución de Problemas
