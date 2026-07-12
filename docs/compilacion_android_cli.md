@@ -64,14 +64,19 @@ adb devices
 ```
 *Deberías ver una salida indicando que el dispositivo está conectado (ej. `ad34ef01 device`). Si aparece `unauthorized`, acepta la huella de depuración en la pantalla del celular.*
 
-### Paso 3: Compilar e Instalar en un Solo Comando
+### Paso 3: Compilar el codigo solamente Comando
+Compila y genera la app y lo guarda en android-native/app/build/outputs/apk/debug/app-debug.apk 
+
+./gradlew assembleDebug
+
+### Paso 4: Compilar e Instalar en un Solo Comando
 Para compilar la app, generar el APK de pruebas, subirlo e instalarlo directamente en tu teléfono móvil conectado:
 ```bash
 ./gradlew installDebug
 ```
 Una vez que el comando finalice con `BUILD SUCCESSFUL`, la aplicación **Estoy Ok** estará instalada y lista para abrir en tu celular.
 
-### Paso 4: Instalar un APK ya Compilado (Sin Volver a Compilar)
+### Paso 5: Instalar un APK ya Compilado (Sin Volver a Compilar)
 Si ya has compilado la app previamente y no has realizado cambios en el código, puedes saltearte el proceso de compilación de Gradle e instalar el APK directamente para ahorrar tiempo (tarda unos 2 segundos):
 ```bash
 adb install -r app/build/outputs/apk/debug/app-debug.apk

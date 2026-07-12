@@ -565,79 +565,6 @@ fun MapaScreen(
             }
         }
 
-        // 2c. Floating Action Button: Centrar Grupo (Fit All Members)
-        FloatingActionButton(
-            onClick = { fitAllMembers() },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 16.dp, bottom = 120.dp),
-            containerColor = MaterialTheme.colorScheme.primaryContainer,
-            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            shape = CircleShape
-        ) {
-            Icon(
-                imageVector = Icons.Default.MyLocation,
-                contentDescription = "Centrar Grupo"
-            )
-        }
-
-        // 2d. Floating Action Buttons: Estoy OK (Registro) & SOS
-        Row(
-            modifier = Modifier
-                .align(Alignment.BottomStart)
-                .padding(start = 16.dp, bottom = 120.dp),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Registro / Estoy OK Pill Button
-            Button(
-                onClick = { navController?.navigate(Screen.EstoyOk.route) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ),
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Shield,
-                        contentDescription = "Registro",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text("Estoy OK", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-
-            // SOS Pill Button
-            Button(
-                onClick = { navController?.navigate(Screen.EstoyOk.route) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryRed,
-                    contentColor = Color.White
-                ),
-                shape = RoundedCornerShape(20.dp),
-                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Warning,
-                        contentDescription = "SOS",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Text("SOS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
         // 3. Bottom Sliding Card: Members Monitoring Panel (Life360 style Expandable List)
         Card(
             modifier = Modifier
@@ -770,6 +697,81 @@ fun MapaScreen(
                                 }
                             )
                         }
+                    }
+                }
+            }
+        }
+
+        if (!isExpanded) {
+            // 2c. Floating Action Button: Centrar Grupo (Fit All Members)
+            FloatingActionButton(
+                onClick = { fitAllMembers() },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(end = 16.dp, bottom = 145.dp),
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                shape = CircleShape
+            ) {
+                Icon(
+                    imageVector = Icons.Default.MyLocation,
+                    contentDescription = "Centrar Grupo"
+                )
+            }
+
+            // 2d. Floating Action Buttons: Estoy OK (Registro) & SOS
+            Row(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .padding(start = 16.dp, bottom = 145.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Registro / Estoy OK Pill Button
+                Button(
+                    onClick = { navController?.navigate(Screen.EstoyOk.route) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = "Registro",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text("Estoy OK", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+
+                // SOS Pill Button
+                Button(
+                    onClick = { navController?.navigate(Screen.EstoyOk.route) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryRed,
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(20.dp),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = "SOS",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Text("SOS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
                     }
                 }
             }

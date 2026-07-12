@@ -646,5 +646,14 @@
 - **Verificación de Compilación:**
   - Ejecutada exitosamente la compilación del Next.js en el entorno de producción (`docker compose exec frontend npm run build` compiló sin errores en 10.4s).
 
+## [2026-07-11] Corrección de Superposición de Botones en MapaScreen (Nativo)
+- **Ajuste de Dibujado en Compose (Relocalización):**
+  - Se movieron los botones flotantes ("Estoy OK", "SOS" y "Centrar Grupo") para ser dibujados *después* del Bottom Sliding Card (`Card` de miembros) en la declaración del `Box` en [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt). Dado que el card tiene `fillMaxWidth()`, dibujarlos antes causaba que el card se renderizara encima de ellos, ocultándolos por completo.
+  - Se aumentó el padding inferior a `145.dp` para posicionar los botones flotando exactamente por encima de la cabecera del panel cuando está colapsado.
+  - Se envolvió la fila de acciones y el botón de centrado en un condicional `if (!isExpanded)`. Esto oculta de forma fluida y automática estos botones cuando el panel de miembros se desliza hacia arriba, evitando que obstruyan visualmente el listado de familiares.
+- **Verificación:**
+  - Compilación nativa completada con éxito (`BUILD SUCCESSFUL`).
+
+
 
 

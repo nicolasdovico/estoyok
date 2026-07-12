@@ -165,6 +165,7 @@
         - [x] Actualización global de colores de marca primarios y secundarios en `Color.kt` y `Theme.kt`.
         - [x] Rediseño de controles flotantes sobre el mapa en `MapaScreen.kt`: botón de Ajustes (engranaje) en la parte superior izquierda en formato circular con sombreado y bordes M3.
         - [x] Incorporación de botones rápidos estilo píldora de alta fidelidad para "Estoy OK" (icono de escudo) y "SOS" (icono de advertencia) flotando sobre el mapa al lado del BottomSheet.
+        - [x] Corregida la superposición de layouts en `MapaScreen.kt`: se reordenó la declaración de Compose para dibujar los botones flotantes ("Estoy OK", "SOS", y "Centrar Grupo") *después* del card de miembros (que al tener `fillMaxWidth` los tapaba). Se ajustó su padding inferior a `145.dp` para flotar prolijamente sobre la cabecera colapsada, y se configuró para que se oculten condicionalmente cuando la tarjeta está expandida (`!isExpanded`), garantizando visibilidad y clics 100% limpios.
       - [x] Alineación de colores en el Frontend Web (Next.js & Tailwind CSS v4):
         - [x] Configurada la directiva `@theme` en `globals.css` para sobreescribir la paleta `emerald` con los tonos del nuevo color de marca **Electric Teal** (`#00f0c0`).
         - [x] Verificada la compilación exitosa en el contenedor de producción (`next build` finalizó correctamente en 10.4s).
