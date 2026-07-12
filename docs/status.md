@@ -161,6 +161,13 @@
         - [x] Renderizado de Zonas Seguras en el mapa de Google mediante círculos semitransparentes y pins celestes (`HUE_AZURE`).
         - [x] Listado de Zonas Seguras en el panel deslizable de la home, permitiendo a los creadores/administradores eliminarlas directamente.
         - [x] Integración de Zonas Seguras en la línea de tiempo (timeline) del historial de recorridos, intercalando de forma inteligente y cronológica las permanencias/estadías del familiar entre cada viaje del día.
+      - [x] Rediseño completo de la interfaz de la aplicación nativa en base al layout de Life360 y utilizando la nueva paleta de color **Electric Teal** (`#00F0C0` / `#0D9488`):
+        - [x] Actualización global de colores de marca primarios y secundarios en `Color.kt` y `Theme.kt`.
+        - [x] Rediseño de controles flotantes sobre el mapa en `MapaScreen.kt`: botón de Ajustes (engranaje) en la parte superior izquierda en formato circular con sombreado y bordes M3.
+        - [x] Incorporación de botones rápidos estilo píldora de alta fidelidad para "Estoy OK" (icono de escudo) y "SOS" (icono de advertencia) flotando sobre el mapa al lado del BottomSheet.
+      - [x] Alineación de colores en el Frontend Web (Next.js & Tailwind CSS v4):
+        - [x] Configurada la directiva `@theme` en `globals.css` para sobreescribir la paleta `emerald` con los tonos del nuevo color de marca **Electric Teal** (`#00f0c0`).
+        - [x] Verificada la compilación exitosa en el contenedor de producción (`next build` finalizó correctamente en 10.4s).
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

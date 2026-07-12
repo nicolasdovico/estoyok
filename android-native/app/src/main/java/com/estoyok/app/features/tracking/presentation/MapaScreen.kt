@@ -60,6 +60,8 @@ import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
@@ -488,6 +490,28 @@ fun MapaScreen(
             }
         }
 
+        // 2c. Floating Header: Settings Gear Icon (Aligned TopStart)
+        Card(
+            modifier = Modifier
+                .padding(top = 16.dp, start = 16.dp)
+                .align(Alignment.TopStart),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
+            shape = CircleShape,
+            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        ) {
+            IconButton(
+                onClick = { navController?.navigate(Screen.Ajustes.route) },
+                modifier = Modifier.size(40.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Settings,
+                    contentDescription = "Ajustes",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
         // 2b. Floating Header: Foreground Tracking Service Switch (Aligned TopEnd)
         Card(
             modifier = Modifier
@@ -555,6 +579,63 @@ fun MapaScreen(
                 imageVector = Icons.Default.MyLocation,
                 contentDescription = "Centrar Grupo"
             )
+        }
+
+        // 2d. Floating Action Buttons: Estoy OK (Registro) & SOS
+        Row(
+            modifier = Modifier
+                .align(Alignment.BottomStart)
+                .padding(start = 16.dp, bottom = 120.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Registro / Estoy OK Pill Button
+            Button(
+                onClick = { navController?.navigate(Screen.EstoyOk.route) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary,
+                    contentColor = MaterialTheme.colorScheme.onPrimary
+                ),
+                shape = RoundedCornerShape(20.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = "Registro",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text("Estoy OK", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            // SOS Pill Button
+            Button(
+                onClick = { navController?.navigate(Screen.EstoyOk.route) },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryRed,
+                    contentColor = Color.White
+                ),
+                shape = RoundedCornerShape(20.dp),
+                contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Warning,
+                        contentDescription = "SOS",
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text("SOS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                }
+            }
         }
 
         // 3. Bottom Sliding Card: Members Monitoring Panel (Life360 style Expandable List)

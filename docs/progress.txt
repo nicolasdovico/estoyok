@@ -629,3 +629,22 @@
   - Verificado el éxito del build y compilación Kotlin (`BUILD SUCCESSFUL` mediante Gradle).
   - Ejecutada la suite completa de pruebas unitarias/de integración del backend con éxito total de no regresión (114/114 passed).
 
+## [2026-07-11] Rediseño de Layout (Life360 Style) e Identidad Electric Teal
+- **Esquema de Colores (Electric Teal):**
+  - Modificado [Color.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) para actualizar el color de marca principal `PrimaryEmerald` a `#00F0C0` (Electric Teal), y `PrimaryTeal` a `#0D9488` (Teal base), logrando un rediseño de marca instantáneo y seguro en todas las pantallas.
+- **Rediseño de Controles Flotantes del Mapa (Kotlin Native):**
+  - Añadido el botón de acceso rápido a Ajustes en formato de círculo oscuro sombreado con icono de engranaje en la esquina superior izquierda (`Alignment.TopStart`) de [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt).
+  - Integrados botones rápidos de acción estilo píldora para "Estoy OK" (icono de escudo) y "SOS" (icono de advertencia) flotando sobre el mapa a la izquierda del BottomSheet (`Alignment.BottomStart`).
+- **Verificación:**
+  - Compilación nativa de Gradle finalizada con éxito (`BUILD SUCCESSFUL` en 37s).
+  - Suite de pruebas de no regresión del backend de Laravel pasó con éxito (114/114 passed).
+
+## [2026-07-11] Sincronización de Identidad Cromática en Frontend Web (Next.js)
+- **Actualización de Paleta Tailwind CSS v4:**
+  - Modificado [globals.css](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/globals.css) para redefinir el bloque `@theme` de Tailwind v4, mapeando toda la escala de color `emerald` a los tonos de la nueva identidad corporativa **Electric Teal** (ej. `emerald-500` a `#00f0c0`, `emerald-600` a `#0d9488` y `emerald-700` a `#115e59`).
+  - Esto actualiza instantáneamente el color de marca en la landing page, botones del dashboard, mapas de crisis, badges y secciones de facturación del frontend web sin requerir modificaciones dispersas en múltiples archivos TSX.
+- **Verificación de Compilación:**
+  - Ejecutada exitosamente la compilación del Next.js en el entorno de producción (`docker compose exec frontend npm run build` compiló sin errores en 10.4s).
+
+
+
