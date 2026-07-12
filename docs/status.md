@@ -156,19 +156,17 @@
       - [x] Mejorada la precisión del texto de duración calculando de forma detallada la diferencia de segundos (formateando a `"Menos de 1 min"`, `"X min"` y `"X h Y min"`).
       - [x] Rediseñado el carrusel de fechas de historial para usuarios gratuitos: ahora siempre se visualiza el día calendario y mes correspondiente (ej. `"10 Jul 🔒"`), permitiendo identificar claramente la fecha en lugar de las etiquetas genéricas `"🔒 PRO"`.
       - [x] Implementado el módulo de Zonas Seguras (Geofences) en la aplicación nativa (Kotlin):
-        - [x] CRUD de Zonas Seguras en repositorio y ViewModels interactuando con la API de Laravel (`circles/{circle}/geofences` y `geofences/{geofence}`).
-        - [x] Creación interactiva en `MapaScreen.kt` mediante pulsación larga (`onMapLongClick`) que abre un `AlertDialog` para definir nombre, radio (50m a 1000m) y asignación a miembros o a toda la familia.
-        - [x] Renderizado de Zonas Seguras en el mapa de Google mediante círculos semitransparentes y pins celestes (`HUE_AZURE`).
-        - [x] Listado de Zonas Seguras en el panel deslizable de la home, permitiendo a los creadores/administradores eliminarlas directamente.
+        - [x] CRUD completo de Zonas Seguras en repositorio, ViewModels y pantallas nativas. Se implementó la edición (PUT `/api/geofences/{id}`) mediante un botón con icono de lápiz (✏️) en el listado y un diálogo modal interactivo para modificar el nombre, radio y asignación a miembros.
+        - [x] Listado de Zonas Seguras en el panel deslizable de la home, permitiendo a los creadores/administradores editarlas o eliminarlas directamente.
         - [x] Integración de Zonas Seguras en la línea de tiempo (timeline) del historial de recorridos, intercalando de forma inteligente y cronológica las permanencias/estadías del familiar entre cada viaje del día.
-      - [x] Rediseño completo de la interfaz de la aplicación nativa en base al layout de Life360 y utilizando la nueva paleta de color **Electric Teal** (`#00F0C0` / `#0D9488`):
-        - [x] Actualización global de colores de marca primarios y secundarios en `Color.kt` y `Theme.kt`.
+      - [x] Rediseño completo de la interfaz de la aplicación nativa en base al layout de Life360 y utilizando la nueva paleta de color **Electric Turquoise** (`#00E5D9` / `#0D9488`):
+        - [x] Actualización global de colores de marca primarios y secundarios en `Color.kt` y `Theme.kt`. Se ajustó la firma del color del primario original (`#00F0C0`) al turquesa eléctrico (`#00E5D9`) para asegurar su correcta percepción azulada (no verde) en pantallas físicas.
         - [x] Rediseño de controles flotantes sobre el mapa en `MapaScreen.kt`: botón de Ajustes (engranaje) en la parte superior izquierda en formato circular con sombreado y bordes M3.
-        - [x] Incorporación de botones rápidos estilo píldora de alta fidelidad para "Estoy OK" (icono de escudo) y "SOS" (icono de advertencia) flotando sobre el mapa al lado del BottomSheet.
-        - [x] Corregida la superposición de layouts en `MapaScreen.kt`: se reordenó la declaración de Compose para dibujar los botones flotantes ("Estoy OK", "SOS", y "Centrar Grupo") *después* del card de miembros (que al tener `fillMaxWidth` los tapaba). Se ajustó su padding inferior a `145.dp` para flotar prolijamente sobre la cabecera colapsada, y se configuró para que se oculten condicionalmente cuando la tarjeta está expandida (`!isExpanded`), garantizando visibilidad y clics 100% limpios.
+        - [x] Removidos los botones flotantes redundantes de "Estoy OK" y "SOS" sobre el mapa para mantener la interfaz limpia y evitar saturación visual, dejando estas acciones en la pestaña principal dedicada.
+        - [x] Ajustado el zoom inicial y centrado automático del mapa sobre los miembros en `MapaScreen.kt` de `15f` (demasiado cercano) a un nivel de zoom de **`13.5f`**, logrando una visualización más amplia y cómoda del entorno.
+        - [x] Resuelta la superposición visual en la esquina superior izquierda de `MapaScreen.kt` configurando `compassEnabled = false` y `mapToolbarEnabled = false` en las directivas de `MapUiSettings` de Google Maps, evitando que la brújula y botones por defecto del SDK se rendericen detrás de nuestro botón de Ajustes.
       - [x] Alineación de colores en el Frontend Web (Next.js & Tailwind CSS v4):
-        - [x] Configurada la directiva `@theme` en `globals.css` para sobreescribir la paleta `emerald` con los tonos del nuevo color de marca **Electric Teal** (`#00f0c0`).
-        - [x] Verificada la compilación exitosa en el contenedor de producción (`next build` finalizó correctamente en 10.4s).
+        - [x] Configurada la directiva `@theme` en `globals.css` para sobreescribir la paleta `emerald`, `red` y `rose` con los tonos del nuevo color de marca **Electric Turquoise** (`#00e5d9`).
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

@@ -7,7 +7,7 @@ val DarkBackground = Color(0xFF0F0F10)
 val DarkSurface = Color(0xFF161618)
 val DarkSurfaceVariant = Color(0xFF222226)
 
-val PrimaryEmerald = Color(0xFF00F0C0)      // Main brand color (Electric Teal)
+val PrimaryEmerald = Color(0xFF00E5D9)      // Main brand color (Electric Turquoise)
 val PrimaryTeal = Color(0xFF0D9488)         // Base teal contrast color
 val PrimaryRed = Color(0xFFEF4444)          // Alert / SOS / Urgent color
 val PrimaryOrange = Color(0xFFF59E0B)       // Warn / Pending color

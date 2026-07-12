@@ -64,3 +64,10 @@ data class CreateGeofenceRequest(
     @SerializedName("longitude") val longitude: Double,
     @SerializedName("user_id") val userId: Int? = null
 )
+
+data class UpdateGeofenceRequest(
+    @SerializedName("name") val name: String,
+    @SerializedName("radius") val radius: Double,
+    @SerializedName("type") val type: String = "entry_exit",
+    @SerializedName("user_id") val userId: Int? = null
+)

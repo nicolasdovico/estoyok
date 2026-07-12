@@ -16,4 +16,5 @@ interface CircleRepository {
     fun getMemberHistory(circleId: Int, memberId: Int, date: String?): Flow<Resource<List<LocationHistoryDto>>>
     fun createGeofence(circleId: Int, name: String, radius: Double, latitude: Double, longitude: Double, userId: Int?): Flow<Resource<GeofenceDto>>
     fun deleteGeofence(geofenceId: Int): Flow<Resource<MessageResponse>>
+    fun updateGeofence(geofenceId: Int, name: String, radius: Double, userId: Int?): Flow<Resource<GeofenceDto>>
 }

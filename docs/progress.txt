@@ -654,6 +654,18 @@
 - **Verificación:**
   - Compilación nativa completada con éxito (`BUILD SUCCESSFUL`).
 
+## [2026-07-11] Edición de Zonas Seguras y Limpieza de Superposición en Mapa (Nativo)
+- **Implementación del CRUD completo de Zonas Seguras:**
+  - Añadido el modelo `UpdateGeofenceRequest` y el endpoint `PUT /api/geofences/{geofenceId}` en `CircleApiService.kt`.
+  - Implementado `updateGeofence(...)` en el repositorio nativo (`CircleRepositoryImpl`) y el ViewModel (`MapaViewModel.kt`) para actualizar la información de la zona y refrescar los círculos en el mapa automáticamente.
+  - Agregado un botón de edición (✏️) en cada ítem de `GeofenceRowItem` en [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) al lado del botón de eliminar.
+  - Creado un diálogo de edición nativo (`showEditGeofenceDialog`) que se abre pre-completado con los datos actuales para modificar nombre, radio y asignación a miembros o grupo familiar.
+- **Limpieza de Superposición (Ajustes y Brújula):**
+  - Desactivadas las propiedades `compassEnabled = false` y `mapToolbarEnabled = false` en `MapUiSettings` del mapa de Google, previniendo que la aguja de la brújula y botones por defecto del mapa aparezcan superpuestos debajo del botón circular de Ajustes (engranaje) en la esquina superior izquierda.
+- **Verificación:**
+  - Compilación Kotlin nativa finalizada exitosamente (`BUILD SUCCESSFUL`).
+  - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
 
 
 

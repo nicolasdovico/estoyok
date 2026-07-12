@@ -125,6 +125,8 @@ fun MapaScreen(
     var isExpanded by remember { mutableStateOf(false) }
     var showCreateGeofenceDialog by remember { mutableStateOf(false) }
     var longClickedLatLng by remember { mutableStateOf<LatLng?>(null) }
+    var showEditGeofenceDialog by remember { mutableStateOf(false) }
+    var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
 
     // LatLng for Argentina/Buenos Aires default center
     val defaultCenter = LatLng(-34.6037, -58.3816)
@@ -138,7 +140,7 @@ fun MapaScreen(
         selectedMemberForMap?.currentLocation?.let { loc ->
             cameraPositionState.position = CameraPosition.fromLatLngZoom(
                 LatLng(loc.latitude, loc.longitude),
-                15f
+                13.5f
             )
         }
     }
@@ -182,7 +184,7 @@ fun MapaScreen(
                         cameraPositionState.animate(
                             CameraUpdateFactory.newLatLngZoom(
                                 LatLng(loc.latitude, loc.longitude),
-                                15f
+                                13.5f
                             )
                         )
                     } catch (e: Exception) {
@@ -240,7 +242,9 @@ fun MapaScreen(
             ),
             uiSettings = MapUiSettings(
                 zoomControlsEnabled = false,
-                myLocationButtonEnabled = false
+                myLocationButtonEnabled = false,
+                compassEnabled = false,
+                mapToolbarEnabled = false
             ),
             contentPadding = PaddingValues(bottom = 120.dp),
             onMapLongClick = { latLng ->
@@ -681,6 +685,10 @@ fun MapaScreen(
                                     GeofenceRowItem(
                                         geofence = geofence,
                                         isOwner = viewModel.selectedCircle?.ownerId == (viewModel.currentUserProfile?.id ?: -1),
+                                        onEditClick = {
+                                            geofenceToEdit = geofence
+                                            showEditGeofenceDialog = true
+                                        },
                                         onDeleteClick = { viewModel.deleteGeofence(geofence.id) }
                                     )
                                 }
@@ -717,63 +725,6 @@ fun MapaScreen(
                     imageVector = Icons.Default.MyLocation,
                     contentDescription = "Centrar Grupo"
                 )
-            }
-
-            // 2d. Floating Action Buttons: Estoy OK (Registro) & SOS
-            Row(
-                modifier = Modifier
-                    .align(Alignment.BottomStart)
-                    .padding(start = 16.dp, bottom = 145.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Registro / Estoy OK Pill Button
-                Button(
-                    onClick = { navController?.navigate(Screen.EstoyOk.route) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary
-                    ),
-                    shape = RoundedCornerShape(20.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Shield,
-                            contentDescription = "Registro",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text("Estoy OK", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
-
-                // SOS Pill Button
-                Button(
-                    onClick = { navController?.navigate(Screen.EstoyOk.route) },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryRed,
-                        contentColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(20.dp),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 6.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Warning,
-                            contentDescription = "SOS",
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text("SOS", fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                    }
-                }
             }
         }
 
@@ -989,6 +940,137 @@ fun MapaScreen(
                     TextButton(onClick = {
                         showCreateGeofenceDialog = false
                         longClickedLatLng = null
+                    }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+        if (showEditGeofenceDialog && geofenceToEdit != null) {
+            val geofence = geofenceToEdit!!
+            var geofenceName by remember { mutableStateOf(geofence.name) }
+            var geofenceRadius by remember { mutableStateOf(geofence.radius) }
+            var selectedMemberIdForGeofence by remember { mutableStateOf<Int?>(geofence.userId) }
+            var isDropdownExpanded by remember { mutableStateOf(false) }
+
+            AlertDialog(
+                onDismissRequest = {
+                    showEditGeofenceDialog = false
+                    geofenceToEdit = null
+                },
+                title = { Text("Editar Zona Segura", fontWeight = FontWeight.Bold) },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Modifica los parámetros de la zona segura.",
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+
+                        OutlinedTextField(
+                            value = geofenceName,
+                            onValueChange = { geofenceName = it },
+                            label = { Text("Nombre (ej. Casa, Trabajo)") },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                                unfocusedBorderColor = BorderColor
+                            )
+                        )
+
+                        Column {
+                            Text(
+                                text = "Radio: ${geofenceRadius.toInt()} metros",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Slider(
+                                value = geofenceRadius.toFloat(),
+                                onValueChange = { geofenceRadius = it.toDouble() },
+                                valueRange = 50f..1000f,
+                                steps = 19,
+                                colors = SliderDefaults.colors(
+                                    thumbColor = MaterialTheme.colorScheme.primary,
+                                    activeTrackColor = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                        }
+
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedButton(
+                                onClick = { isDropdownExpanded = true },
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = TextPrimary),
+                                border = BorderStroke(1.dp, BorderColor)
+                            ) {
+                                val memberName = selectedMemberIdForGeofence?.let { id ->
+                                    viewModel.selectedCircleMembers.find { it.id == id }?.name
+                                } ?: "Toda la familia"
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("Asignar a: $memberName", fontSize = 13.sp)
+                                    Icon(Icons.Default.ArrowDropDown, contentDescription = "dropdown")
+                                }
+                            }
+
+                            DropdownMenu(
+                                expanded = isDropdownExpanded,
+                                onDismissRequest = { isDropdownExpanded = false }
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("Toda la familia", color = TextPrimary) },
+                                    onClick = {
+                                        selectedMemberIdForGeofence = null
+                                        isDropdownExpanded = false
+                                    }
+                                )
+                                viewModel.selectedCircleMembers.forEach { member ->
+                                    DropdownMenuItem(
+                                        text = { Text(member.name, color = TextPrimary) },
+                                        onClick = {
+                                            selectedMemberIdForGeofence = member.id
+                                            isDropdownExpanded = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            if (geofenceName.isNotBlank()) {
+                                viewModel.updateGeofence(
+                                    geofenceId = geofence.id,
+                                    name = geofenceName,
+                                    radius = geofenceRadius,
+                                    userId = selectedMemberIdForGeofence
+                                )
+                                showEditGeofenceDialog = false
+                                geofenceToEdit = null
+                            } else {
+                                Toast.makeText(context, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
+                            }
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                    ) {
+                        Text("Guardar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showEditGeofenceDialog = false
+                        geofenceToEdit = null
                     }) {
                         Text("Cancelar")
                     }
@@ -1692,6 +1774,7 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
 fun GeofenceRowItem(
     geofence: GeofenceDto,
     isOwner: Boolean,
+    onEditClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     Card(
@@ -1733,13 +1816,26 @@ fun GeofenceRowItem(
                 }
             }
             if (isOwner) {
-                IconButton(onClick = onDeleteClick) {
-                    Icon(
-                        imageVector = Icons.Default.Delete,
-                        contentDescription = "Eliminar Zona Segura",
-                        tint = PrimaryRed,
-                        modifier = Modifier.size(20.dp)
-                    )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    IconButton(onClick = onEditClick) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar Zona Segura",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    IconButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = "Eliminar Zona Segura",
+                            tint = PrimaryRed,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
                 }
             }
         }

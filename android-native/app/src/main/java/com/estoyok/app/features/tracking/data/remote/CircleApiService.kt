@@ -48,4 +48,10 @@ interface CircleApiService {
     suspend fun deleteGeofence(
         @Path("geofenceId") geofenceId: Int
     ): Response<MessageResponse>
+
+    @PUT("geofences/{geofenceId}")
+    suspend fun updateGeofence(
+        @Path("geofenceId") geofenceId: Int,
+        @Body request: UpdateGeofenceRequest
+    ): Response<GeofenceDto>
 }

@@ -272,6 +272,29 @@ class MapaViewModel @Inject constructor(
         }
     }
 
+    fun updateGeofence(geofenceId: Int, name: String, radius: Double, userId: Int?) {
+        viewModelScope.launch {
+            circleRepository.updateGeofence(geofenceId, name, radius, userId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isGeofenceLoading = true
+                        geofenceErrorMessage = null
+                        geofenceSuccessMessage = null
+                    }
+                    is Resource.Success -> {
+                        isGeofenceLoading = false
+                        geofenceSuccessMessage = "Zona Segura actualizada exitosamente."
+                        refreshCircles()
+                    }
+                    is Resource.Error -> {
+                        isGeofenceLoading = false
+                        geofenceErrorMessage = resource.message ?: "Error al actualizar la Zona Segura."
+                    }
+                }
+            }
+        }
+    }
+
     fun clearGeofenceMessages() {
         geofenceSuccessMessage = null
         geofenceErrorMessage = null
