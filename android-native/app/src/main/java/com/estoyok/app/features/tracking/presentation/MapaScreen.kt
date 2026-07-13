@@ -146,7 +146,7 @@ fun MapaScreen(
         selectedMemberForMap?.currentLocation?.let { loc ->
             cameraPositionState.position = CameraPosition.fromLatLngZoom(
                 LatLng(loc.latitude, loc.longitude),
-                13.5f
+                15.5f
             )
         }
     }
@@ -190,7 +190,7 @@ fun MapaScreen(
                         cameraPositionState.animate(
                             CameraUpdateFactory.newLatLngZoom(
                                 LatLng(loc.latitude, loc.longitude),
-                                13.5f
+                                15.5f
                             )
                         )
                     } catch (e: Exception) {
@@ -203,10 +203,22 @@ fun MapaScreen(
                         builder.include(LatLng(loc.latitude, loc.longitude))
                     }
                     val bounds = builder.build()
+                    val center = bounds.center
+                    val distance = haversineDistance(
+                        bounds.southwest.latitude, bounds.southwest.longitude,
+                        bounds.northeast.latitude, bounds.northeast.longitude
+                    )
+
                     try {
-                        cameraPositionState.animate(
-                            CameraUpdateFactory.newLatLngBounds(bounds, 150)
-                        )
+                        if (distance < 1.0) { // If members are closer than 1 km
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngZoom(center, 15.5f)
+                            )
+                        } else {
+                            cameraPositionState.animate(
+                                CameraUpdateFactory.newLatLngBounds(bounds, 150)
+                            )
+                        }
                     } catch (e: Exception) {
                         try {
                             cameraPositionState.move(
@@ -359,36 +371,55 @@ fun MapaScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.wrapContentSize()
                             ) {
-                                // Avatar Circle Container
+                                // Avatar Circle Container wrapped with Box for movement badge overlay
                                 Box(
-                                    modifier = Modifier
-                                        .size(44.dp)
-                                        .background(CardBackground, CircleShape)
-                                        .border(2.dp, borderColor, CircleShape)
-                                        .padding(2.dp),
-                                    contentAlignment = Alignment.Center
+                                    modifier = Modifier.wrapContentSize(),
+                                    contentAlignment = Alignment.BottomEnd
                                 ) {
-                                    if (!member.avatarUrl.isNullOrEmpty()) {
-                                        AsyncImage(
-                                            model = member.avatarUrl,
-                                            contentDescription = member.name,
+                                    Box(
+                                        modifier = Modifier
+                                            .size(44.dp)
+                                            .background(CardBackground, CircleShape)
+                                            .border(2.dp, borderColor, CircleShape)
+                                            .padding(2.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        if (!member.avatarUrl.isNullOrEmpty()) {
+                                            AsyncImage(
+                                                model = member.avatarUrl,
+                                                contentDescription = member.name,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape),
+                                                contentScale = ContentScale.Crop
+                                            )
+                                        } else {
+                                            val initials = member.name.split(" ")
+                                                .mapNotNull { it.firstOrNull()?.toString() }
+                                                .take(2)
+                                                .joinToString("")
+                                                .uppercase()
+                                            Text(
+                                                text = initials,
+                                                color = Color.White,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+                                    }
+
+                                    val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
+                                    if (movementEmoji != null) {
+                                        Box(
                                             modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(CircleShape),
-                                            contentScale = ContentScale.Crop
-                                        )
-                                    } else {
-                                        val initials = member.name.split(" ")
-                                            .mapNotNull { it.firstOrNull()?.toString() }
-                                            .take(2)
-                                            .joinToString("")
-                                            .uppercase()
-                                        Text(
-                                            text = initials,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            fontSize = 12.sp
-                                        )
+                                                .size(18.dp)
+                                                .offset(x = 2.dp, y = 2.dp)
+                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                .border(1.dp, Color.White, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(text = movementEmoji, fontSize = 10.sp)
+                                        }
                                     }
                                 }
 
@@ -500,27 +531,6 @@ fun MapaScreen(
             }
         }
 
-        // 2c. Floating Header: Settings Gear Icon (Aligned TopStart)
-        Card(
-            modifier = Modifier
-                .padding(top = 16.dp, start = 16.dp)
-                .align(Alignment.TopStart),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
-            shape = CircleShape,
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            IconButton(
-                onClick = { navController?.navigate(Screen.Ajustes.route) },
-                modifier = Modifier.size(40.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Settings,
-                    contentDescription = "Ajustes",
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-        }
 
         // 2b. Floating Header: Foreground Tracking Service Switch (Aligned TopEnd)
         Card(
@@ -1125,33 +1135,54 @@ fun MemberRowItem(
             modifier = Modifier.padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Avatar
+            // Avatar wrapped with Box for movement badge overlay
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.wrapContentSize(),
+                contentAlignment = Alignment.BottomEnd
             ) {
-                if (!member.avatarUrl.isNullOrEmpty()) {
-                    AsyncImage(
-                        model = member.avatarUrl,
-                        contentDescription = "Avatar de ${member.name}",
-                        modifier = Modifier.fillMaxSize(),
-                        contentScale = ContentScale.Crop
-                    )
-                } else {
-                    val initials = member.name.split(" ")
-                        .mapNotNull { it.firstOrNull()?.toString() }
-                        .take(2)
-                        .joinToString("")
-                        .uppercase()
-                    Text(
-                        text = initials,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary,
-                        fontSize = 14.sp
-                    )
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (!member.avatarUrl.isNullOrEmpty()) {
+                        AsyncImage(
+                            model = member.avatarUrl,
+                            contentDescription = "Avatar de ${member.name}",
+                            modifier = Modifier.fillMaxSize(),
+                            contentScale = ContentScale.Crop
+                        )
+                    } else {
+                        val initials = member.name.split(" ")
+                            .mapNotNull { it.firstOrNull()?.toString() }
+                            .take(2)
+                            .joinToString("")
+                            .uppercase()
+                        Text(
+                            text = initials,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary,
+                            fontSize = 14.sp
+                        )
+                    }
+                }
+
+                if (loc != null) {
+                    val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
+                    if (movementEmoji != null) {
+                        Box(
+                            modifier = Modifier
+                                .size(16.dp)
+                                .offset(x = 2.dp, y = 2.dp)
+                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                .border(1.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(text = movementEmoji, fontSize = 9.sp)
+                        }
+                    }
                 }
             }
 
@@ -2102,6 +2133,47 @@ private fun formatDuration(totalSeconds: Long): String {
     }
 }
 
+private fun getMovementEmoji(speed: Float?, isDriving: Boolean?): String? {
+    val isD = isDriving == true
+    val s = speed ?: 0.0f
+    return when {
+        isD || s >= 15.0f -> "🚗"
+        s >= 5.0f -> "🚲"
+        s >= 1.5f -> "🚶"
+        else -> null
+    }
+}
+
+private fun isTodayLocal(isoStr: String): Boolean {
+    return try {
+        val formatInput = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", java.util.Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val fallback = java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", java.util.Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val fallbackDb = java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).apply {
+            timeZone = java.util.TimeZone.getTimeZone("UTC")
+        }
+        val date = try {
+            formatInput.parse(isoStr)
+        } catch (e: Exception) {
+            try {
+                fallback.parse(isoStr)
+            } catch (e2: Exception) {
+                fallbackDb.parse(isoStr)
+            }
+        } ?: return false
+
+        val calPoint = java.util.Calendar.getInstance().apply { time = date }
+        val calToday = java.util.Calendar.getInstance()
+        calPoint.get(java.util.Calendar.YEAR) == calToday.get(java.util.Calendar.YEAR) &&
+                calPoint.get(java.util.Calendar.DAY_OF_YEAR) == calToday.get(java.util.Calendar.DAY_OF_YEAR)
+    } catch (e: Exception) {
+        false
+    }
+}
+
 fun buildHistoryTimeline(
     trips: List<TripSegment>,
     allPoints: List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>
@@ -2109,13 +2181,14 @@ fun buildHistoryTimeline(
     if (trips.isEmpty()) {
         if (allPoints.isNotEmpty()) {
             val firstPoint = allPoints.first()
+            val isToday = isTodayLocal(firstPoint.recordedAt)
             return listOf(
                 TimelineItem.Stay(
                     latitude = firstPoint.latitude,
                     longitude = firstPoint.longitude,
-                    durationText = "Todo el día",
+                    durationText = if (isToday) "Todo el día (hasta ahora)" else "Todo el día",
                     startTime = "00:00",
-                    endTime = "23:59"
+                    endTime = if (isToday) "Ahora" else "23:59"
                 )
             )
         }
@@ -2176,16 +2249,22 @@ fun buildHistoryTimeline(
     val lastPoint = lastTrip.points.lastOrNull()
     if (lastPoint != null) {
         val lastPointSecs = parseIsoToSeconds(lastPoint.recordedAt)
-        val endOfDaySecs = getEndOfDaySeconds(lastPoint.recordedAt)
-        val gap = endOfDaySecs - lastPointSecs
+        val isToday = isTodayLocal(lastPoint.recordedAt)
+        val gap = if (isToday) {
+            val currentSecs = System.currentTimeMillis() / 1000
+            currentSecs - lastPointSecs
+        } else {
+            val endOfDaySecs = getEndOfDaySeconds(lastPoint.recordedAt)
+            endOfDaySecs - lastPointSecs
+        }
         if (gap >= 300) { // 5 minutes threshold
             timeline.add(
                 TimelineItem.Stay(
                     latitude = lastPoint.latitude,
                     longitude = lastPoint.longitude,
-                    durationText = formatDuration(gap),
+                    durationText = if (isToday) "Desde hace ${formatDuration(gap)}" else formatDuration(gap),
                     startTime = lastTrip.endTime,
-                    endTime = "23:59"
+                    endTime = if (isToday) "Ahora" else "23:59"
                 )
             )
         }

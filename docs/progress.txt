@@ -735,6 +735,47 @@
     - Compilación nativa Kotlin finalizada de forma exitosa sin warnings ni errores (`BUILD SUCCESSFUL` en 18s).
     - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
 
+## [2026-07-13] Ajuste de Zoom Barrial en Mapa (Nativo)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado el nivel de zoom por defecto al enfocar o centrar un familiar seleccionado en `MapaScreen.kt` de `13.5f` a **`15.5f`** (correspondiendo al zoom barrial de `zoom.jpg`).
+    - Modificada la función `fitAllMembers` para ajustar el zoom a `15.5f` cuando hay un solo miembro activo con ubicación.
+    - Implementada lógica de proximidad grupal: si la distancia máxima entre todos los familiares es inferior a 1 km, la cámara se centrará en el promedio del grupo a un nivel de zoom fijo de `15.5f` (evitando que `LatLngBounds` haga un acercamiento extremo e incómodo de nivel >20f).
+- **Validación:**
+    - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 15s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+## [2026-07-13] Unificación de Botón de Ajustes en Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Identificada duplicación visual del botón de Ajustes (⚙️) provocado por un renderizado global en `NavGraph.kt` (con padding superior de 8.dp) y uno local redundante en `MapaScreen.kt` (con padding superior de 16.dp).
+    - Eliminado el botón flotante local de Ajustes en `MapaScreen.kt` para mantener una única instancia del botón global de `NavGraph.kt`.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 15s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+## [2026-07-13] Estadía en Curso Activa ("Ahora") en Historial
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado helper `isTodayLocal(isoStr: String)` para determinar si una fecha UTC corresponde al día de hoy en la zona horaria del dispositivo.
+    - Modificado `buildHistoryTimeline` para que, en caso de estar en el día actual, la última estadía (`Stay`) tenga hora de finalización `"Ahora"` en lugar de `"23:59"`.
+    - Ajustado el cálculo de duración de la estadía en curso, determinándose dinámicamente hasta la hora actual del sistema (`System.currentTimeMillis()`) y mostrando la etiqueta `"Desde hace [duración]"`.
+    - Adaptado el caso sin viajes (persona en casa todo el día de hoy) para que muestre `"Todo el día (hasta ahora)"` con finalización `"Ahora"`.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 17s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+## [2026-07-13] Badges de Movimiento sobre Avatares de Miembros
+- **App Móvil Nativa (Android/Kotlin):**
+    - Añadido helper `getMovementEmoji(speed: Float?, isDriving: Boolean?): String?` en `MapaScreen.kt` para clasificar desplazamientos en Vehículo (🚗 $\ge 15\text{ km/h}$ o conduciendo), Bicicleta (🚲 $5 - 15\text{ km/h}$) y Caminando (🚶 $1.5 - 5\text{ km/h}$).
+    - Modificado el marcador de mapa del miembro (`MarkerComposable`) envolviendo el contenedor de avatar en un `Box` con alineación `Alignment.BottomEnd`.
+    - Agregado el badge flotante del emoji del transporte correspondiente sobre la esquina inferior derecha del avatar del marcador con borde blanco y fondo del color primario.
+    - Modificada la tarjeta de familiar en la lista deslizable (`MemberRowItem`) aplicando la misma lógica de superposición del badge sobre el avatar.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 16s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+
+
+
+
 
 
 
