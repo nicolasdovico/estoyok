@@ -175,6 +175,7 @@
         - [x] Filtro de micro-movimientos: Eliminación de caminatas internas a pie menores a 150m en `segmentHistoryPoints` y fusión automática de tiempos en estadías continuas.
         - [x] Estadía de día completo: Si el usuario no registra desplazamientos pero tiene coordenadas en el día, se muestra una estadía unificada de "Todo el día" (00:00 - 23:59).
         - [x] Algoritmo de unión de trayectos continuos: Rediseñado el segmentador de viajes para evitar que brechas GPS cortas (menores a 5-10 minutos) o distancias vehiculares fragmenten un viaje continuo, aplicando reglas de velocidad y parada física (estadía menor a 200m).
+        - [x] Tracking dinámico y adaptativo: Implementada la política de Life360 en `TrackingService.kt`, ajustando dinámicamente intervalos de muestreo y distancias mínimas (10s/40m en auto, 30s/15m caminando y 5m/20m en estadía) con histéresis de 2 minutos para evitar oscilaciones en semáforos, logrando alta fidelidad online y mínimo impacto de batería.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

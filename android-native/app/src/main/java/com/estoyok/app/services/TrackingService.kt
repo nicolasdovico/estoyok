@@ -53,6 +53,8 @@ class TrackingService : Service(), SensorEventListener {
     private var accelerometer: Sensor? = null
 
     private var currentIntervalMs = 30000L // Default 30s
+    private var currentMinDistance = 15f   // Default 15m
+    private var stationaryStartTime: Long = 0L
     private var isTrackingActive = false
 
     // Driving Hysteresis States
@@ -122,6 +124,8 @@ class TrackingService : Service(), SensorEventListener {
     private fun updateInterval(newInterval: Long) {
         if (currentIntervalMs == newInterval) return
         currentIntervalMs = newInterval
+        // If it's an emergency or active checking, disable distance filter. Otherwise use default 15m.
+        currentMinDistance = if (newInterval <= 5000L) 0f else 15f
         if (isTrackingActive) {
             stopLocationUpdates()
             startLocationUpdates()
@@ -154,6 +158,7 @@ class TrackingService : Service(), SensorEventListener {
             currentIntervalMs
         ).apply {
             setMinUpdateIntervalMillis(currentIntervalMs / 2)
+            setMinUpdateDistanceMeters(currentMinDistance)
             setWaitForAccurateLocation(false)
         }.build()
 
@@ -186,6 +191,7 @@ class TrackingService : Service(), SensorEventListener {
         lastSpeedMps = if (location.hasSpeed()) location.speed else 0.0f
 
         evaluateDrivingHysteresis()
+        adjustTrackingMode(lastSpeedMps)
 
         serviceScope.launch {
             val batteryStatus = getBatteryStatus()
@@ -214,6 +220,52 @@ class TrackingService : Service(), SensorEventListener {
                         updateInterval(5000L) // GPS high fidelity for relative geofencing
                     }
                 }
+            }
+        }
+    }
+
+    private fun adjustTrackingMode(speedMps: Float) {
+        val speedKmh = speedMps * 3.6f
+        val now = System.currentTimeMillis()
+
+        val (targetInterval, targetDistance) = when {
+            // Vehicle: Speed > 15 km/h
+            speedKmh > 15.0f -> {
+                stationaryStartTime = 0L
+                Pair(10000L, 40f)
+            }
+            // Walking: Speed between 1.5 and 15 km/h
+            speedKmh > 1.5f -> {
+                stationaryStartTime = 0L
+                Pair(30000L, 15f)
+            }
+            // Stationary candidate: Speed < 1.5 km/h
+            else -> {
+                if (stationaryStartTime == 0L) {
+                    stationaryStartTime = now
+                }
+                
+                // Only enter Stationary low-power mode after 2 minutes of zero activity
+                if (now - stationaryStartTime >= 120000L) {
+                    Pair(300000L, 20f)
+                } else {
+                    // Stay in the last active mode (default to Walking if unknown, or keep current)
+                    if (currentIntervalMs <= 10000L) Pair(10000L, 40f) else Pair(30000L, 15f)
+                }
+            }
+        }
+
+        // If emergency or check-in alert is active, force maximum high-frequency mode (5s updates)
+        if (currentIntervalMs <= 5000L && targetInterval > 5000L) {
+            return
+        }
+
+        if (currentIntervalMs != targetInterval || currentMinDistance != targetDistance) {
+            currentIntervalMs = targetInterval
+            currentMinDistance = targetDistance
+            if (isTrackingActive) {
+                stopLocationUpdates()
+                startLocationUpdates()
             }
         }
     }

@@ -701,4 +701,19 @@
     - Compilación nativa Kotlin completada con éxito (`BUILD SUCCESSFUL` en 19s).
     - Suite de pruebas del backend de Laravel ejecutada y completada sin regresiones (114/114 passed).
 
+## [2026-07-13] Implementación de Tracking Dinámico y Adaptativo (Estilo Life360)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado algoritmo de ajuste dinámico de intervalo de GPS en `TrackingService.kt` mediante `adjustTrackingMode(...)`.
+    - Definidos tres estados adaptativos según velocidad y comportamiento:
+        - **Vehículo (Speed > 15 km/h):** Intervalo de 10 segundos y distancia mínima de 40 metros.
+        - **Caminata (Speed 1.5 - 15 km/h):** Intervalo de 30 segundos y distancia mínima de 15 metros.
+        - **Estadía (Speed < 1.5 km/h):** Intervalo de 5 minutos y distancia mínima de 20 metros.
+    - Implementada histéresis temporal de 2 minutos para el modo de estadía, evitando caídas de precisión accidentales en semáforos o detenciones breves de tráfico.
+    - Habilitada la desconexión del filtro de distancia en actualizaciones de intervalos forzadas por emergencias o alertas activas (fiel a 5 segundos sin restricciones de distancia).
+    - Configurado `setMinUpdateDistanceMeters(...)` en `startLocationUpdates()` para aplicar el filtro de movimiento mínimo a nivel del procesador de Google Play Services.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada exitosamente sin warnings ni errores (`BUILD SUCCESSFUL` en 11s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+
 
