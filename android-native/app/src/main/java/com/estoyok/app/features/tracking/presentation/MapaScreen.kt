@@ -817,7 +817,15 @@ fun MapaScreen(
                     member = member,
                     viewModel = viewModel,
                     navController = navController,
-                    imagePickerLauncher = imagePickerLauncher
+                    imagePickerLauncher = imagePickerLauncher,
+                    onCreateGeofence = { latLng ->
+                        longClickedLatLng = latLng
+                        showCreateGeofenceDialog = true
+                    },
+                    onEditGeofence = { geofence ->
+                        geofenceToEdit = geofence
+                        showEditGeofenceDialog = true
+                    }
                 )
             }
         }
@@ -1257,7 +1265,9 @@ fun MemberDetailsSheetContent(
     member: CircleMemberDto,
     viewModel: MapaViewModel,
     navController: NavHostController?,
-    imagePickerLauncher: androidx.activity.compose.ManagedActivityResultLauncher<String, Uri?>
+    imagePickerLauncher: androidx.activity.compose.ManagedActivityResultLauncher<String, Uri?>,
+    onCreateGeofence: (LatLng) -> Unit,
+    onEditGeofence: (GeofenceDto) -> Unit
 ) {
     var showPremiumPromoDialog by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -1701,6 +1711,37 @@ fun MemberDetailsSheetContent(
                                                 fontSize = 11.sp,
                                                 color = TextSecondary
                                             )
+                                        }
+
+                                        if (matchedGeofence == null) {
+                                            IconButton(
+                                                onClick = {
+                                                    onCreateGeofence(LatLng(item.latitude, item.longitude))
+                                                }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Shield,
+                                                    contentDescription = "Definir Zona Segura",
+                                                    tint = MaterialTheme.colorScheme.primary,
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            }
+                                        } else {
+                                            val isCircleOwner = viewModel.selectedCircle?.ownerId == (viewModel.currentUserProfile?.id ?: -1)
+                                            if (isCircleOwner) {
+                                                IconButton(
+                                                    onClick = {
+                                                        onEditGeofence(matchedGeofence)
+                                                    }
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Edit,
+                                                        contentDescription = "Editar Zona Segura",
+                                                        tint = MaterialTheme.colorScheme.primary,
+                                                        modifier = Modifier.size(22.dp)
+                                                    )
+                                                }
+                                            }
                                         }
                                     }
                                 }

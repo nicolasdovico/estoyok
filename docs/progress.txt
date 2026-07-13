@@ -715,5 +715,27 @@
     - Compilación nativa Kotlin finalizada exitosamente sin warnings ni errores (`BUILD SUCCESSFUL` en 11s).
     - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
 
+## [2026-07-13] Creación de Zona Segura desde el Historial
+- **App Móvil Nativa (Android/Kotlin):**
+    - Añadido el callback `onCreateGeofence: (LatLng) -> Unit` a la firma del composable `MemberDetailsSheetContent`.
+    - Agregado el botón con icono de escudo (🛡️) en las tarjetas de estadía (`TimelineItem.Stay`) si no coinciden con ninguna zona segura configurada (`matchedGeofence == null`).
+    - Vinculada la acción del botón de escudo para disparar el callback `onCreateGeofence(...)` con las coordenadas de la estadía seleccionada.
+    - Implementada la recepción del callback en `MapaScreen` asignando las coordenadas a `longClickedLatLng` y activando el diálogo nativo `showCreateGeofenceDialog = true`.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada exitosamente sin warnings ni errores (`BUILD SUCCESSFUL` en 20s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+## [2026-07-13] Atajo de Edición de Zona Segura desde el Historial
+- **App Móvil Nativa (Android/Kotlin):**
+    - Añadido el callback `onEditGeofence: (GeofenceDto) -> Unit` a la firma del composable `MemberDetailsSheetContent`.
+    - Agregado el botón con icono de lápiz (✏️) en las tarjetas de estadía (`TimelineItem.Stay`) si coinciden con una zona segura registrada (`matchedGeofence != null`) y el usuario actual es el Administrador (Owner) del Núcleo (`isCircleOwner == true`).
+    - Vinculada la acción del botón de lápiz para disparar el callback `onEditGeofence(matchedGeofence)`.
+    - Implementada la recepción del callback en `MapaScreen` asignando el objeto a `geofenceToEdit` y activando el diálogo nativo `showEditGeofenceDialog = true`.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada de forma exitosa sin warnings ni errores (`BUILD SUCCESSFUL` en 18s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+
+
 
 

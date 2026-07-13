@@ -176,6 +176,8 @@
         - [x] Estadía de día completo: Si el usuario no registra desplazamientos pero tiene coordenadas en el día, se muestra una estadía unificada de "Todo el día" (00:00 - 23:59).
         - [x] Algoritmo de unión de trayectos continuos: Rediseñado el segmentador de viajes para evitar que brechas GPS cortas (menores a 5-10 minutos) o distancias vehiculares fragmenten un viaje continuo, aplicando reglas de velocidad y parada física (estadía menor a 200m).
         - [x] Tracking dinámico y adaptativo: Implementada la política de Life360 en `TrackingService.kt`, ajustando dinámicamente intervalos de muestreo y distancias mínimas (10s/40m en auto, 30s/15m caminando y 5m/20m en estadía) con histéresis de 2 minutos para evitar oscilaciones en semáforos, logrando alta fidelidad online y mínimo impacto de batería.
+        - [x] Creación de Zona Segura desde el Historial: Incorporado un botón de escudo (🛡️) en las tarjetas de estadía no registradas dentro de la línea de tiempo. Al pulsarlo, abre el diálogo de creación de Zona Segura pre-configurado con las coordenadas exactas de esa permanencia.
+        - [x] Atajo de Edición de Zona Segura en Historial: Se añadió un botón con icono de lápiz (✏️) en las tarjetas de estadía que ya son zonas seguras registradas, restringido mediante validación local únicamente al Administrador (Owner) del Núcleo, permitiendo su edición rápida.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
