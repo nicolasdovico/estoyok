@@ -54,4 +54,10 @@ interface CircleApiService {
         @Path("geofenceId") geofenceId: Int,
         @Body request: UpdateGeofenceRequest
     ): Response<GeofenceDto>
+
+    @GET("circles/{circleId}/members/{memberId}/drives")
+    suspend fun getMemberDrives(
+        @Path("circleId") circleId: Int,
+        @Path("memberId") memberId: Int
+    ): Response<MemberDrivesResponse>
 }

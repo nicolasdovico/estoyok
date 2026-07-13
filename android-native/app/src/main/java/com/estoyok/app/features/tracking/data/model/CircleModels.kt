@@ -71,3 +71,44 @@ data class UpdateGeofenceRequest(
     @SerializedName("type") val type: String = "entry_exit",
     @SerializedName("user_id") val userId: Int? = null
 )
+
+data class DriveTelemetryEvent(
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("timestamp") val timestamp: String,
+    @SerializedName("speed_drop") val speedDrop: Double? = null,
+    @SerializedName("speed_gain") val speedGain: Double? = null,
+    @SerializedName("speed") val speed: Double? = null,
+    @SerializedName("limit") val limit: Int? = null
+)
+
+data class DriveTelemetryEventsContainer(
+    @SerializedName("hard_brakes") val hardBrakes: List<DriveTelemetryEvent> = emptyList(),
+    @SerializedName("rapid_accelerations") val rapidAccelerations: List<DriveTelemetryEvent> = emptyList(),
+    @SerializedName("speeding") val speeding: List<DriveTelemetryEvent> = emptyList()
+)
+
+data class DriveRoutePointDto(
+    @SerializedName("latitude") val latitude: Double,
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("speed") val speed: Double,
+    @SerializedName("recorded_at") val recordedAt: String
+)
+
+data class MemberDriveEventDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("start_time") val startTime: String,
+    @SerializedName("end_time") val endTime: String,
+    @SerializedName("duration_seconds") val durationSeconds: Long,
+    @SerializedName("distance_km") val distanceKm: Double,
+    @SerializedName("max_speed") val maxSpeed: Double,
+    @SerializedName("exceeded_speed_limit") val exceededSpeedLimit: Boolean,
+    @SerializedName("safety_score") val safetyScore: Int,
+    @SerializedName("route_points") val routePoints: List<DriveRoutePointDto> = emptyList(),
+    @SerializedName("events") val events: DriveTelemetryEventsContainer = DriveTelemetryEventsContainer()
+)
+
+data class MemberDrivesResponse(
+    @SerializedName("is_premium") val isPremium: Boolean,
+    @SerializedName("drives") val drives: List<MemberDriveEventDto> = emptyList()
+)

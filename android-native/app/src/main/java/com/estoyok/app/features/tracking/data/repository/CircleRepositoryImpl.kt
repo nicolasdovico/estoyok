@@ -70,6 +70,13 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.updateGeofence(geofenceId, UpdateGeofenceRequest(name, radius, "entry_exit", userId))
     }
 
+    override fun getMemberDrives(
+        circleId: Int,
+        memberId: Int
+    ): Flow<Resource<MemberDrivesResponse>> = safeApiCall {
+        apiService.getMemberDrives(circleId, memberId)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

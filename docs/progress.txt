@@ -772,6 +772,21 @@
     - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 16s).
     - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
 
+## [2026-07-13] Reportes de Conducción Premium (Backend)
+- **Backend (Laravel):**
+    - Creado `DriveController.php` con el método `getDrives(Circle $circle, User $member)` para procesar e historizar trayectos vehiculares finalizados de un miembro.
+    - Implementada restricción Premium: usuarios en plan gratuito (Free) solo acceden al último trayecto registrado como vista previa, mientras que usuarios Premium acceden a su historial completo de hasta 30 viajes.
+    - Creado algoritmo en caliente para el cálculo de distancias (mediante fórmula Haversine entre puntos de telemetría consecutivos) y duraciones de cada trayecto.
+    - Implementado detector de eventos de conducción de riesgo analizando diferencias de telemetría temporal de GPS:
+        - **Frenada Brusca (Hard Brake):** Descenso de velocidad $\ge 15\text{ km/h}$ en $\le 3\text{ segundos}$.
+        - **Aceleración Rápida (Rapid Acceleration):** Incremento de velocidad $\ge 12\text{ km/h}$ en $\le 3\text{ segundos}$.
+        - **Exceso de Velocidad (Speeding):** Comparativa del punto con el límite de velocidad del círculo.
+    - Implementado score de seguridad (`safety_score`) de 0 a 100 con descuentos ponderados por eventos de riesgo ocurridos durante el trayecto.
+    - Creada suite de pruebas feature `DriveReportsTest.php` validando la autorización de rutas, restricción Premium, geolocalización de eventos y cálculo matemático del score de seguridad.
+- **Validación:**
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (119/119 passed).
+
+
 
 
 

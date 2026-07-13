@@ -182,6 +182,7 @@
         - [x] Unificación de Botón de Ajustes en Mapa: Eliminado el botón flotante local de Ajustes (⚙️) redundante en `MapaScreen.kt`, dejando únicamente el botón global de `NavGraph.kt` para evitar la duplicación/superposición visual y mantener un comportamiento coherente de navegación.
         - [x] Estadía en Curso Activa ("Ahora"): Implementada lógica en `buildHistoryTimeline` para detectar si el día consultado es hoy. En ese caso, la última permanencia muestra como hora de fin **"Ahora"** y la duración se calcula dinámicamente hasta el momento presente (ej: *"Desde hace 2 h 15 min"*).
         - [x] Badges de Movimiento sobre Avatares: Incorporados pequeños círculos flotantes de estado (Status Badges) en la esquina inferior derecha de las fotos/iniciales de los miembros. Clasifica en tiempo real según la telemetría: Vehículo (🚗), Bicicleta (🚲) y Caminando (🚶), tanto en el mapa (`MarkerComposable`) como en la lista de familiares (`MemberRowItem`).
+        - [x] Backend: Creado el endpoint `GET /api/circles/{circle}/members/{member}/drives` en `DriveController.php` para obtener trayectos finalizados y calcular en caliente distancia (Haversine), score de seguridad, excesos de velocidad, aceleraciones rápidas y frenadas bruscas. Limita a un trayecto preview si el usuario actual es de plan gratuito (Free), o hasta 30 si es Premium. Integrada suite de tests completa (`DriveReportsTest.php`) con cobertura total.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

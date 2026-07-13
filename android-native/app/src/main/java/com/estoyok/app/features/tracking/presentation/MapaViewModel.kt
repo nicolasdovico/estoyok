@@ -12,6 +12,8 @@ import com.estoyok.app.core.util.Resource
 import com.estoyok.app.features.tracking.data.model.CircleDto
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
 import com.estoyok.app.features.tracking.data.model.LocationHistoryDto
+import com.estoyok.app.features.tracking.data.model.MemberDriveEventDto
+import com.estoyok.app.features.tracking.data.model.MemberDrivesResponse
 import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
 import com.estoyok.app.features.auth.data.model.UserDto
@@ -66,6 +68,18 @@ class MapaViewModel @Inject constructor(
 
     // Selected trip index for Option A segment highlight
     var selectedTripIndex by mutableStateOf<Int?>(null)
+
+    // Driving/Vehiculo events and summary state
+    var memberDrives by mutableStateOf<List<MemberDriveEventDto>>(emptyList())
+        private set
+
+    var isDrivesLoading by mutableStateOf(false)
+        private set
+
+    var isPremiumDrives by mutableStateOf(false)
+        private set
+
+    var drivesErrorMessage by mutableStateOf<String?>(null)
 
     var isUploadingAvatar by mutableStateOf(false)
         private set
@@ -179,6 +193,30 @@ class MapaViewModel @Inject constructor(
                         isHistoryLoading = false
                         historyPoints = emptyList()
                         errorMessage = resource.message ?: "Error al obtener historial."
+                    }
+                }
+            }
+        }
+    }
+
+    fun loadMemberDrives(memberId: Int) {
+        val circleId = selectedCircle?.id ?: return
+        viewModelScope.launch {
+            circleRepository.getMemberDrives(circleId, memberId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isDrivesLoading = true
+                        drivesErrorMessage = null
+                    }
+                    is Resource.Success -> {
+                        isDrivesLoading = false
+                        memberDrives = resource.data?.drives ?: emptyList()
+                        isPremiumDrives = resource.data?.isPremium ?: false
+                    }
+                    is Resource.Error -> {
+                        isDrivesLoading = false
+                        memberDrives = emptyList()
+                        drivesErrorMessage = resource.message ?: "Error al obtener historial de conducción."
                     }
                 }
             }

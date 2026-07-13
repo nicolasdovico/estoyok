@@ -11,6 +11,7 @@ use App\Http\Controllers\Api\SubscriptionController;
 use App\Http\Controllers\Api\WebhookController;
 use App\Http\Controllers\Api\HistoryController;
 use App\Http\Controllers\Api\DynamicGeofenceController;
+use App\Http\Controllers\Api\DriveController;
 use App\Http\Controllers\EmergencyAlertController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -55,6 +56,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/circles/{circle}', [CircleController::class, 'destroy']);
     Route::put('/circles/{circle}/speed-limit', [CircleController::class, 'updateSpeedLimit']);
     Route::get('/circles/{circle}/members/{member}/history', [HistoryController::class, 'getHistory']);
+    Route::get('/circles/{circle}/members/{member}/drives', [DriveController::class, 'getDrives']);
 
     // Geofences
     Route::get('/circles/{circle}/geofences', [GeofenceController::class, 'index']);
