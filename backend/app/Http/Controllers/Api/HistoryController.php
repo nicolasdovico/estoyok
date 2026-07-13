@@ -85,6 +85,8 @@ class HistoryController extends Controller
                     'id',
                     'accuracy',
                     'recorded_at',
+                    'speed',
+                    'is_driving',
                     DB::raw('ST_Y(location::geometry) as latitude'),
                     DB::raw('ST_X(location::geometry) as longitude')
                 )
@@ -113,6 +115,8 @@ class HistoryController extends Controller
                     lh.id,
                     lh.accuracy,
                     lh.recorded_at,
+                    lh.speed,
+                    lh.is_driving,
                     ST_Y(lh.location::geometry) as latitude,
                     ST_X(lh.location::geometry) as longitude
                 FROM location_histories lh

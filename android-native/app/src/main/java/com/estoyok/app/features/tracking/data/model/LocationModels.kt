@@ -33,5 +33,7 @@ data class LocationHistoryDto(
     @SerializedName("accuracy") val accuracy: Double?,
     @SerializedName("recorded_at") val recordedAt: String,
     @SerializedName("latitude") val latitude: Double,
-    @SerializedName("longitude") val longitude: Double
+    @SerializedName("longitude") val longitude: Double,
+    @SerializedName("speed") val speed: Double? = null,
+    @SerializedName("is_driving") val isDriving: Boolean? = null
 )

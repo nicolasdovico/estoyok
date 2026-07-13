@@ -63,10 +63,16 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.DirectionsCar
+import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.DirectionsBike
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import com.google.android.gms.maps.model.BitmapDescriptorFactory
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.RequestBody.Companion.toRequestBody
+import android.location.Geocoder
+import android.content.Context
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -1483,8 +1489,8 @@ fun MemberDetailsSheetContent(
                 }
 
                 val geofences = viewModel.selectedCircle?.geofences ?: emptyList()
-                val timelineItems = remember(segments, geofences) {
-                    buildHistoryTimeline(segments, geofences)
+                val timelineItems = remember(segments, viewModel.historyPoints) {
+                    buildHistoryTimeline(segments, viewModel.historyPoints)
                 }
 
                 Row(
@@ -1527,40 +1533,111 @@ fun MemberDetailsSheetContent(
                                         modifier = Modifier.padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        val icon = when (trip.transportMode) {
+                                            "vehiculo" -> Icons.Default.DirectionsCar
+                                            "bicicleta" -> Icons.AutoMirrored.Filled.DirectionsBike
+                                            "caminando" -> Icons.AutoMirrored.Filled.DirectionsWalk
+                                            else -> Icons.Default.DirectionsCar
+                                        }
                                         Box(
                                             modifier = Modifier
-                                                .size(36.dp)
+                                                .size(48.dp)
                                                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Icon(
-                                                imageVector = Icons.Default.DirectionsCar,
+                                                imageVector = icon,
                                                 contentDescription = "Viaje",
                                                 tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(20.dp)
+                                                modifier = Modifier.size(24.dp)
                                             )
                                         }
 
                                         Spacer(modifier = Modifier.width(12.dp))
 
                                         Column(modifier = Modifier.weight(1f)) {
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.fillMaxWidth()
+                                            ) {
+                                                if (trip.points.isNotEmpty()) {
+                                                    val startPoint = trip.points.first()
+                                                    val endPoint = trip.points.last()
+                                                    AddressText(
+                                                        latitude = startPoint.latitude,
+                                                        longitude = startPoint.longitude,
+                                                        geofences = geofences,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = TextPrimary,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
+                                                    Text(
+                                                        text = " → ",
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = TextPrimary
+                                                    )
+                                                    AddressText(
+                                                        latitude = endPoint.latitude,
+                                                        longitude = endPoint.longitude,
+                                                        geofences = geofences,
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = TextPrimary,
+                                                        modifier = Modifier.weight(1f)
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        text = "Viaje ${trip.index + 1}",
+                                                        fontSize = 13.sp,
+                                                        fontWeight = FontWeight.Bold,
+                                                        color = TextPrimary
+                                                    )
+                                                }
+                                            }
+                                            Spacer(modifier = Modifier.height(2.dp))
                                             Text(
-                                                text = "Viaje ${trip.index + 1}: ${trip.startTime} - ${trip.endTime}",
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = TextPrimary
-                                            )
-                                            Text(
-                                                text = "Duración: ${trip.durationText} • Distancia: %.1f km".format(trip.distanceKm),
+                                                text = "${trip.startTime} - ${trip.endTime} • ${trip.durationText} • %.1f km".format(trip.distanceKm),
                                                 fontSize = 11.sp,
                                                 color = TextSecondary
                                             )
-                                            if (trip.maxSpeedKmh > 0.0) {
-                                                Text(
-                                                    text = "Velocidad Máx: ${trip.maxSpeedKmh.toInt()} km/h",
-                                                    fontSize = 10.sp,
-                                                    color = TextMuted
+                                            Row(
+                                                horizontalArrangement = Arrangement.spacedBy(6.dp),
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                modifier = Modifier.padding(top = 4.dp)
+                                            ) {
+                                                val modeLabel = when (trip.transportMode) {
+                                                    "vehiculo" -> "Vehículo"
+                                                    "bicicleta" -> "Bicicleta"
+                                                    "caminando" -> "Caminata"
+                                                    else -> "Viaje"
+                                                }
+                                                val modeColor = when (trip.transportMode) {
+                                                    "vehiculo" -> MaterialTheme.colorScheme.primary
+                                                    "bicicleta" -> PrimaryTeal
+                                                    else -> Color(0xFFEAB308) // Amber/Yellow
+                                                }
+                                                SuggestionChip(
+                                                    onClick = {},
+                                                    label = { Text(modeLabel, fontSize = 9.sp, fontWeight = FontWeight.Bold) },
+                                                    colors = SuggestionChipDefaults.suggestionChipColors(
+                                                        labelColor = modeColor,
+                                                        containerColor = modeColor.copy(alpha = 0.1f)
+                                                    ),
+                                                    border = BorderStroke(1.dp, modeColor.copy(alpha = 0.3f))
                                                 )
+                                                if (trip.maxSpeedKmh > 0.0) {
+                                                    SuggestionChip(
+                                                        onClick = {},
+                                                        label = { Text("Vel. máx: ${trip.maxSpeedKmh.toInt()} km/h", fontSize = 9.sp) },
+                                                        colors = SuggestionChipDefaults.suggestionChipColors(
+                                                            labelColor = TextMuted,
+                                                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                                                        ),
+                                                        border = BorderStroke(1.dp, BorderColor)
+                                                    )
+                                                }
                                             }
                                         }
 
@@ -1573,35 +1650,52 @@ fun MemberDetailsSheetContent(
                                     }
                                 }
                             }
-                            is TimelineItem.SafeZoneStay -> {
+                            is TimelineItem.Stay -> {
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)),
+                                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.02f)),
                                     shape = RoundedCornerShape(12.dp),
-                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+                                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.1f))
                                 ) {
                                     Row(
                                         modifier = Modifier.padding(12.dp),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
+                                        val matchedGeofence = geofences.find {
+                                            haversineDistance(item.latitude, item.longitude, it.latitude, it.longitude) * 1000 <= it.radius
+                                        }
                                         Box(
                                             modifier = Modifier
-                                                .size(36.dp)
+                                                .size(48.dp)
                                                 .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text("📍", fontSize = 18.sp)
+                                            Text(
+                                                text = if (matchedGeofence != null) "🏠" else "📍",
+                                                fontSize = 20.sp
+                                            )
                                         }
 
                                         Spacer(modifier = Modifier.width(12.dp))
 
-                                        Column {
-                                            Text(
-                                                text = "Estadía en: ${item.name}",
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = TextPrimary
-                                            )
+                                        Column(modifier = Modifier.weight(1f)) {
+                                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                                Text(
+                                                    text = "Estadía en: ",
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = TextSecondary
+                                                )
+                                                AddressText(
+                                                    latitude = item.latitude,
+                                                    longitude = item.longitude,
+                                                    geofences = geofences,
+                                                    fontSize = 13.sp,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = TextPrimary
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.height(2.dp))
                                             Text(
                                                 text = "Permanencia: ${item.startTime} - ${item.endTime} (${item.durationText})",
                                                 fontSize = 11.sp,
@@ -1626,7 +1720,8 @@ data class TripSegment(
     val endTime: String,
     val durationText: String,
     val distanceKm: Double,
-    val maxSpeedKmh: Double
+    val maxSpeedKmh: Double,
+    val transportMode: String
 )
 
 private fun parseIsoToSeconds(isoStr: String): Long {
@@ -1716,8 +1811,23 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
             val lastPoint = currentSegment.last()
             val diffSeconds = parseIsoToSeconds(point.recordedAt) - parseIsoToSeconds(lastPoint.recordedAt)
             val dist = haversineDistance(lastPoint.latitude, lastPoint.longitude, point.latitude, point.longitude)
-            // 10 minutes gap OR more than 1.5 km distance jump -> new segment
-            if (diffSeconds > 600 || dist > 1.5) {
+
+            // Speed in km/h between A and B
+            val impliedSpeed = if (diffSeconds > 0) dist / (diffSeconds / 3600.0) else 0.0
+
+            var shouldSplit = false
+            if (diffSeconds > 600) {
+                // Scenario 1: more than 10 minutes gap
+                shouldSplit = true
+            } else if (diffSeconds > 300 && dist < 0.20) {
+                // Scenario 2: more than 5 minutes gap AND less than 200m moved (stationary/stay)
+                shouldSplit = true
+            } else if (impliedSpeed > 180.0) {
+                // Scenario 3: physically impossible speed (GPS jump/teleportation glitch)
+                shouldSplit = true
+            }
+
+            if (shouldSplit) {
                 segmentsList.add(currentSegment)
                 currentSegment = mutableListOf(point)
             } else {
@@ -1729,7 +1839,7 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
         segmentsList.add(currentSegment)
     }
 
-    return segmentsList.mapIndexed { idx, segPoints ->
+    val allSegments = segmentsList.mapIndexed { idx, segPoints ->
         val startSecs = parseIsoToSeconds(segPoints.first().recordedAt)
         val endSecs = parseIsoToSeconds(segPoints.last().recordedAt)
         val totalSeconds = endSecs - startSecs
@@ -1752,10 +1862,17 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
             val timeHours = (parseIsoToSeconds(p2.recordedAt) - parseIsoToSeconds(p1.recordedAt)) / 3600.0
             if (timeHours > 0.0) {
                 val speed = dist / timeHours
-                if (speed in 5.0..180.0 && speed > maxSpeedKmh) {
+                if (speed in 1.5..180.0 && speed > maxSpeedKmh) {
                     maxSpeedKmh = speed
                 }
             }
+        }
+
+        val mode = when {
+            segPoints.any { it.isDriving == true } -> "vehiculo"
+            maxSpeedKmh > 25.0 -> "vehiculo"
+            maxSpeedKmh > 8.0 -> "bicicleta"
+            else -> "caminando"
         }
 
         TripSegment(
@@ -1765,8 +1882,19 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
             endTime = formatTime(segPoints.last().recordedAt),
             durationText = durationText,
             distanceKm = distance,
-            maxSpeedKmh = maxSpeedKmh.toDouble()
+            maxSpeedKmh = maxSpeedKmh,
+            transportMode = mode
         )
+    }
+
+    // Filter out walking micro-movements of less than 150 meters (0.15 km)
+    val filteredSegments = allSegments.filter { segment ->
+        !(segment.transportMode == "caminando" && segment.distanceKm < 0.15)
+    }
+
+    // Re-index remaining segments to be sequential (0, 1, 2...) for UI selection consistency
+    return filteredSegments.mapIndexed { newIdx, segment ->
+        segment.copy(index = newIdx)
     }
 }
 
@@ -1844,33 +1972,129 @@ fun GeofenceRowItem(
 
 sealed class TimelineItem {
     data class Trip(val trip: TripSegment) : TimelineItem()
-    data class SafeZoneStay(
-        val name: String,
+    data class Stay(
+        val latitude: Double,
+        val longitude: Double,
         val durationText: String,
         val startTime: String,
         val endTime: String
     ) : TimelineItem()
 }
 
+private fun getStartOfDaySeconds(isoStr: String): Long {
+    return try {
+        val formatInput = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallbackDb = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val date = try {
+            formatInput.parse(isoStr)
+        } catch (e: Exception) {
+            try {
+                fallback.parse(isoStr)
+            } catch (e2: Exception) {
+                fallbackDb.parse(isoStr)
+            }
+        } ?: Date()
+        
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }
+        cal.timeInMillis / 1000
+    } catch (e: Exception) {
+        0L
+    }
+}
+
+private fun getEndOfDaySeconds(isoStr: String): Long {
+    return try {
+        val formatInput = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val fallbackDb = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+        val date = try {
+            formatInput.parse(isoStr)
+        } catch (e: Exception) {
+            try {
+                fallback.parse(isoStr)
+            } catch (e2: Exception) {
+                fallbackDb.parse(isoStr)
+            }
+        } ?: Date()
+        
+        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC")).apply {
+            time = date
+            set(Calendar.HOUR_OF_DAY, 23)
+            set(Calendar.MINUTE, 59)
+            set(Calendar.SECOND, 59)
+            set(Calendar.MILLISECOND, 999)
+        }
+        cal.timeInMillis / 1000
+    } catch (e: Exception) {
+        0L
+    }
+}
+
+private fun formatDuration(totalSeconds: Long): String {
+    return when {
+        totalSeconds < 60 -> "Menos de 1 min"
+        totalSeconds < 3600 -> "${totalSeconds / 60} min"
+        else -> {
+            val hours = totalSeconds / 3600
+            val mins = (totalSeconds % 3600) / 60
+            if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
+        }
+    }
+}
+
 fun buildHistoryTimeline(
     trips: List<TripSegment>,
-    geofences: List<GeofenceDto>
+    allPoints: List<com.estoyok.app.features.tracking.data.model.LocationHistoryDto>
 ): List<TimelineItem> {
-    if (trips.isEmpty()) return emptyList()
+    if (trips.isEmpty()) {
+        if (allPoints.isNotEmpty()) {
+            val firstPoint = allPoints.first()
+            return listOf(
+                TimelineItem.Stay(
+                    latitude = firstPoint.latitude,
+                    longitude = firstPoint.longitude,
+                    durationText = "Todo el día",
+                    startTime = "00:00",
+                    endTime = "23:59"
+                )
+            )
+        }
+        return emptyList()
+    }
     val timeline = mutableListOf<TimelineItem>()
 
-    // Check if the user was in a safe zone before the first trip of the day
+    // Check stay before the first trip
     val firstTrip = trips.first()
     val firstPoint = firstTrip.points.firstOrNull()
     if (firstPoint != null) {
-        val startSafeZone = geofences.find {
-            haversineDistance(firstPoint.latitude, firstPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
-        }
-        if (startSafeZone != null) {
+        val startSecs = parseIsoToSeconds(firstTrip.points.first().recordedAt)
+        val startOfDaySecs = getStartOfDaySeconds(firstTrip.points.first().recordedAt)
+        val gap = startSecs - startOfDaySecs
+        if (gap >= 300) { // 5 minutes threshold
             timeline.add(
-                TimelineItem.SafeZoneStay(
-                    name = startSafeZone.name,
-                    durationText = "Temprano",
+                TimelineItem.Stay(
+                    latitude = firstPoint.latitude,
+                    longitude = firstPoint.longitude,
+                    durationText = formatDuration(gap),
                     startTime = "00:00",
                     endTime = firstTrip.startTime
                 )
@@ -1878,7 +2102,7 @@ fun buildHistoryTimeline(
         }
     }
 
-    // Intersperse trips and safe zone stays
+    // Intersperse trips and stays
     for (i in trips.indices) {
         timeline.add(TimelineItem.Trip(trips[i]))
 
@@ -1888,26 +2112,15 @@ fun buildHistoryTimeline(
             val lastPoint = currentTrip.points.lastOrNull()
             val nextFirstPoint = nextTrip.points.firstOrNull()
             if (lastPoint != null && nextFirstPoint != null) {
-                val staySafeZone = geofences.find {
-                    haversineDistance(lastPoint.latitude, lastPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
-                }
-                if (staySafeZone != null) {
-                    val startSecs = parseIsoToSeconds(lastPoint.recordedAt)
-                    val endSecs = parseIsoToSeconds(nextFirstPoint.recordedAt)
-                    val totalSeconds = endSecs - startSecs
-                    val durationText = when {
-                        totalSeconds < 60 -> "Menos de 1 min"
-                        totalSeconds < 3600 -> "${totalSeconds / 60} min"
-                        else -> {
-                            val hours = totalSeconds / 3600
-                            val mins = (totalSeconds % 3600) / 60
-                            if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
-                        }
-                    }
+                val startSecs = parseIsoToSeconds(lastPoint.recordedAt)
+                val endSecs = parseIsoToSeconds(nextFirstPoint.recordedAt)
+                val gap = endSecs - startSecs
+                if (gap >= 300) { // 5 minutes threshold
                     timeline.add(
-                        TimelineItem.SafeZoneStay(
-                            name = staySafeZone.name,
-                            durationText = durationText,
+                        TimelineItem.Stay(
+                            latitude = lastPoint.latitude,
+                            longitude = lastPoint.longitude,
+                            durationText = formatDuration(gap),
                             startTime = currentTrip.endTime,
                             endTime = nextTrip.startTime
                         )
@@ -1917,18 +2130,19 @@ fun buildHistoryTimeline(
         }
     }
 
-    // Check if the user is in a safe zone after the last trip
+    // Check stay after the last trip
     val lastTrip = trips.last()
     val lastPoint = lastTrip.points.lastOrNull()
     if (lastPoint != null) {
-        val endSafeZone = geofences.find {
-            haversineDistance(lastPoint.latitude, lastPoint.longitude, it.latitude, it.longitude) * 1000 <= it.radius
-        }
-        if (endSafeZone != null) {
+        val lastPointSecs = parseIsoToSeconds(lastPoint.recordedAt)
+        val endOfDaySecs = getEndOfDaySeconds(lastPoint.recordedAt)
+        val gap = endOfDaySecs - lastPointSecs
+        if (gap >= 300) { // 5 minutes threshold
             timeline.add(
-                TimelineItem.SafeZoneStay(
-                    name = endSafeZone.name,
-                    durationText = "Tarde",
+                TimelineItem.Stay(
+                    latitude = lastPoint.latitude,
+                    longitude = lastPoint.longitude,
+                    durationText = formatDuration(gap),
                     startTime = lastTrip.endTime,
                     endTime = "23:59"
                 )
@@ -1937,4 +2151,69 @@ fun buildHistoryTimeline(
     }
 
     return timeline
+}
+
+suspend fun getAddressFromLocation(context: Context, latitude: Double, longitude: Double): String {
+    return withContext(Dispatchers.IO) {
+        try {
+            val geocoder = Geocoder(context, Locale.getDefault())
+            @Suppress("DEPRECATION")
+            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+            if (!addresses.isNullOrEmpty()) {
+                val address = addresses[0]
+                val street = address.thoroughfare ?: ""
+                val number = address.subThoroughfare ?: ""
+                if (street.isNotEmpty()) {
+                    if (number.isNotEmpty()) "$street $number" else street
+                } else {
+                    val admin = address.locality ?: address.subLocality ?: ""
+                    val feature = address.featureName ?: ""
+                    if (admin.isNotEmpty()) {
+                        if (feature.isNotEmpty() && feature != number) "$feature, $admin" else admin
+                    } else {
+                        address.getAddressLine(0) ?: "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
+                    }
+                }
+            } else {
+                "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
+            }
+        } catch (e: Exception) {
+            "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
+        }
+    }
+}
+
+@Composable
+fun AddressText(
+    latitude: Double,
+    longitude: Double,
+    geofences: List<GeofenceDto>,
+    modifier: Modifier = Modifier,
+    color: Color = Color.Unspecified,
+    fontWeight: FontWeight? = null,
+    fontSize: androidx.compose.ui.unit.TextUnit = androidx.compose.ui.unit.TextUnit.Unspecified,
+    textAlign: TextAlign? = null
+) {
+    val context = LocalContext.current
+    var address by remember(latitude, longitude) { mutableStateOf("Cargando ubicación...") }
+
+    LaunchedEffect(latitude, longitude, geofences) {
+        val matchedGeofence = geofences.find {
+            haversineDistance(latitude, longitude, it.latitude, it.longitude) * 1000 <= it.radius
+        }
+        if (matchedGeofence != null) {
+            address = matchedGeofence.name
+        } else {
+            address = getAddressFromLocation(context, latitude, longitude)
+        }
+    }
+
+    Text(
+        text = address,
+        modifier = modifier,
+        color = color,
+        fontWeight = fontWeight,
+        fontSize = fontSize,
+        textAlign = textAlign
+    )
 }

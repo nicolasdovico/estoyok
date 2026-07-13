@@ -666,6 +666,39 @@
   - Compilación Kotlin nativa finalizada exitosamente (`BUILD SUCCESSFUL`).
   - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
 
+## [2026-07-13] Mejoras en el Historial de Recorridos y Estadías (Estilo Life360)
+- **Backend (Laravel):**
+    - Modificado `HistoryController.php` para retornar los campos `speed` e `is_driving` en el endpoint del historial `/api/circles/{circle}/members/{member}/history`.
+    - Verificado el correcto funcionamiento mediante la suite de tests del backend (114 tests PASS).
+- **App Móvil Nativa (Android/Kotlin):**
+    - Actualizado `LocationHistoryDto` en `LocationModels.kt` para incorporar las propiedades `speed` e `isDriving`.
+    - Implementado el componente Compose reactivo `AddressText` que consulta asíncronamente en segundo plano (`Dispatchers.IO`) el `Geocoder` nativo de Android para resolución gratuita (costo cero) de nombres de calles y lugares.
+    - Desarrollado algoritmo local de clasificación de transporte que diferencia entre Caminata (🚶), Bicicleta (🚲) y Vehículo (🚗) según velocidad del tramo y estado de conducción.
+    - Diseñado algoritmo inteligente de detección de estadías intercalando cronológicamente permanencias mayores a 5 minutos entre trayectos diarios, y resolviendo automáticamente si ocurrieron dentro de una Zona Segura.
+    - Rediseñado visualmente el panel de detalles del historial de miembros en `MapaScreen.kt` para adoptar la estética Life360 con tarjetas estilizadas, iconos grandes, títulos origen-destino en formato de flecha de recorrido, y badges de velocidad y tipo de viaje.
+- **Validación:**
+    - Compilación nativa completada de forma 100% limpia sin advertencias ni errores (`BUILD SUCCESSFUL`).
 
+## [2026-07-13] Filtrado Inteligente de Micro-Movimientos en Recorridos
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado `segmentHistoryPoints(...)` para descartar caminatas (transportMode == "caminando") con distancia inferior a 150 metros (0.15 km).
+    - Implementada lógica de re-indexación secuencial para asegurar coherencia en la interfaz y selección del mapa.
+    - Modificado `buildHistoryTimeline(...)` para soportar una estadía unificada de "Todo el día" (00:00 - 23:59) si no hay viajes registrados pero sí coordenadas de presencia.
+    - Sincronizados y actualizados los parámetros de `buildHistoryTimeline` y su llamada en `MemberDetailsSheetContent`.
+- **Validación:**
+    - Compilación nativa Kotlin completada de forma limpia sin advertencias ni errores (`BUILD SUCCESSFUL` en 21s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (114/114 passed).
+
+## [2026-07-13] Optimización de Segmentación y Unión de Recorridos Continuos
+- **App Móvil Nativa (Android/Kotlin):**
+    - Rediseñado el algoritmo de división de segmentos en `segmentHistoryPoints(...)` utilizando lógica física de tiempo, distancia y velocidad combinados.
+    - Se eliminó el corte simple de distancia fija (`dist > 1.5 km`) y se reemplazó por:
+        - Corte por inactividad prolongada (> 10 minutos).
+        - Corte por parada física/estadía confirmada (> 5 minutos y desplazamiento < 200 metros).
+        - Corte por salto/error GPS (velocidad terrestre imposible > 180 km/h).
+    - Esto evita que los viajes vehiculares con reportes de señal espaciados o de alta velocidad se segmenten incorrectamente.
+- **Validación:**
+    - Compilación nativa Kotlin completada con éxito (`BUILD SUCCESSFUL` en 19s).
+    - Suite de pruebas del backend de Laravel ejecutada y completada sin regresiones (114/114 passed).
 
 

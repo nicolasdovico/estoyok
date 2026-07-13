@@ -165,8 +165,16 @@
         - [x] Removidos los botones flotantes redundantes de "Estoy OK" y "SOS" sobre el mapa para mantener la interfaz limpia y evitar saturación visual, dejando estas acciones en la pestaña principal dedicada.
         - [x] Ajustado el zoom inicial y centrado automático del mapa sobre los miembros en `MapaScreen.kt` de `15f` (demasiado cercano) a un nivel de zoom de **`13.5f`**, logrando una visualización más amplia y cómoda del entorno.
         - [x] Resuelta la superposición visual en la esquina superior izquierda de `MapaScreen.kt` configurando `compassEnabled = false` y `mapToolbarEnabled = false` en las directivas de `MapUiSettings` de Google Maps, evitando que la brújula y botones por defecto del SDK se rendericen detrás de nuestro botón de Ajustes.
-      - [x] Alineación de colores en el Frontend Web (Next.js & Tailwind CSS v4):
-        - [x] Configurada la directiva `@theme` en `globals.css` para sobreescribir la paleta `emerald`, `red` y `rose` con los tonos del nuevo color de marca **Electric Turquoise** (`#00e5d9`).
+      - [x] Mejoras en el Historial de Recorridos y Estadías (Estilo Life360):
+        - [x] Backend: Retorno de columnas `speed` e `is_driving` en consultas del historial de ubicaciones en `/api/circles/{circle}/members/{member}/history`.
+        - [x] App Nativa: Actualización de `LocationHistoryDto` para mapear los nuevos campos de velocidad y conducción.
+        - [x] App Nativa: Implementación del componente Compose reactivo `AddressText` con `Geocoder` nativo de Android en segundo plano para resolución asíncrona y gratuita (costo cero) de nombres de calles y lugares.
+        - [x] App Nativa: Algoritmo de clasificación de modo de transporte local (Caminata 🚶, Bicicleta 🚲, Vehículo 🚗) según velocidad y flag de conducción.
+        - [x] App Nativa: Algoritmo de detección inteligente de estadías generales e intercalado automático de permanencias (mayores a 5 minutos) en el historial de rutas diarias.
+        - [x] Rediseño visual premium de las tarjetas de historial en el panel de detalles de miembros (estilo Life360 con iconos de gran tamaño, flecha de trayecto `Origen → Destino` resuelta por geolocalización, franjas horarias y badges de velocidad).
+        - [x] Filtro de micro-movimientos: Eliminación de caminatas internas a pie menores a 150m en `segmentHistoryPoints` y fusión automática de tiempos en estadías continuas.
+        - [x] Estadía de día completo: Si el usuario no registra desplazamientos pero tiene coordenadas en el día, se muestra una estadía unificada de "Todo el día" (00:00 - 23:59).
+        - [x] Algoritmo de unión de trayectos continuos: Rediseñado el segmentador de viajes para evitar que brechas GPS cortas (menores a 5-10 minutos) o distancias vehiculares fragmenten un viaje continuo, aplicando reglas de velocidad y parada física (estadía menor a 200m).
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
