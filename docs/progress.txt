@@ -786,6 +786,15 @@
 - **Validación:**
     - Suite de pruebas de Laravel completada exitosamente sin regresiones (119/119 passed).
 
+## [2026-07-13] Corrección de Anclaje de Marcadores en Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Rediseñado el layout de `MarkerComposable` en `MapaScreen.kt` para ubicar el nombre del usuario arriba del avatar y la punta del piquito indicador en la base inferior absoluta.
+    - Se eliminaron los offsets negativos que desplazaban las dimensiones del layout real, logrando que el anclaje predeterminado de Google Maps `(bottom-center / 0.5f, 1.0f)` apunte con total precisión sobre la coordenada de la calle.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 13s).
+    - Suite de pruebas de Laravel completada exitosamente sin regresiones (119/119 passed).
+
+
 
 
 

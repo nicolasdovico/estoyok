@@ -371,70 +371,7 @@ fun MapaScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.wrapContentSize()
                             ) {
-                                // Avatar Circle Container wrapped with Box for movement badge overlay
-                                Box(
-                                    modifier = Modifier.wrapContentSize(),
-                                    contentAlignment = Alignment.BottomEnd
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .background(CardBackground, CircleShape)
-                                            .border(2.dp, borderColor, CircleShape)
-                                            .padding(2.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        if (!member.avatarUrl.isNullOrEmpty()) {
-                                            AsyncImage(
-                                                model = member.avatarUrl,
-                                                contentDescription = member.name,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop
-                                            )
-                                        } else {
-                                            val initials = member.name.split(" ")
-                                                .mapNotNull { it.firstOrNull()?.toString() }
-                                                .take(2)
-                                                .joinToString("")
-                                                .uppercase()
-                                            Text(
-                                                text = initials,
-                                                color = Color.White,
-                                                fontWeight = FontWeight.ExtraBold,
-                                                fontSize = 12.sp
-                                            )
-                                        }
-                                    }
-
-                                    val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
-                                    if (movementEmoji != null) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(18.dp)
-                                                .offset(x = 2.dp, y = 2.dp)
-                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                                .border(1.dp, Color.White, CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(text = movementEmoji, fontSize = 10.sp)
-                                        }
-                                    }
-                                }
-
-                                // Pointer arrow pointing down (rotated square)
-                                Box(
-                                    modifier = Modifier
-                                        .offset(y = (-5).dp)
-                                        .size(8.dp)
-                                        .graphicsLayer(rotationZ = 45f)
-                                        .background(borderColor)
-                                )
-
-                                Spacer(modifier = Modifier.height(2.dp))
-
-                                // Small first name tag below
+                                // 1. Name tag at the top
                                 Card(
                                     colors = CardDefaults.cardColors(
                                         containerColor = DarkSurface.copy(alpha = 0.9f)
@@ -451,6 +388,77 @@ fun MapaScreen(
                                         modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
                                         maxLines = 1
                                     )
+                                }
+
+                                Spacer(modifier = Modifier.height(2.dp))
+
+                                // 2. Avatar and pointer container (so pointer tip is the extreme bottom)
+                                Box(
+                                    modifier = Modifier.wrapContentSize(),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    // Pointer arrow pointing down (rotated square) at the bottom
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 2.dp)
+                                            .size(8.dp)
+                                            .graphicsLayer(rotationZ = 45f)
+                                            .background(borderColor)
+                                    )
+
+                                    // Avatar circle container (with bottom padding to lift it above the pointer tip)
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 6.dp)
+                                            .wrapContentSize(),
+                                        contentAlignment = Alignment.BottomEnd
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(44.dp)
+                                                .background(CardBackground, CircleShape)
+                                                .border(2.dp, borderColor, CircleShape)
+                                                .padding(2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            if (!member.avatarUrl.isNullOrEmpty()) {
+                                                AsyncImage(
+                                                    model = member.avatarUrl,
+                                                    contentDescription = member.name,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                val initials = member.name.split(" ")
+                                                    .mapNotNull { it.firstOrNull()?.toString() }
+                                                    .take(2)
+                                                    .joinToString("")
+                                                    .uppercase()
+                                                Text(
+                                                    text = initials,
+                                                    color = Color.White,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    fontSize = 12.sp
+                                                )
+                                            }
+                                        }
+
+                                        val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
+                                        if (movementEmoji != null) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(18.dp)
+                                                    .offset(x = 2.dp, y = 2.dp)
+                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                    .border(1.dp, Color.White, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(text = movementEmoji, fontSize = 10.sp)
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         }
