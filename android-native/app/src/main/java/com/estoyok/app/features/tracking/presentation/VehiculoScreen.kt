@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import com.estoyok.app.core.theme.*
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
 import com.estoyok.app.features.tracking.data.model.MemberDriveEventDto
@@ -127,28 +128,43 @@ fun VehiculoScreen(
                                     .padding(2.dp),
                                 contentAlignment = Alignment.Center
                             ) {
-                                if (!member.avatarUrl.isNullOrEmpty()) {
-                                    AsyncImage(
-                                        model = member.avatarUrl,
-                                        contentDescription = member.name,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .clip(CircleShape),
-                                        contentScale = ContentScale.Crop
-                                    )
+                                val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                    if (member.id == viewModel.currentUserProfile?.id) {
+                                        "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                    } else {
+                                        member.avatarUrl
+                                    }
                                 } else {
-                                    val initials = member.name.split(" ")
-                                        .mapNotNull { it.firstOrNull()?.toString() }
-                                        .take(2)
-                                        .joinToString("")
-                                        .uppercase()
-                                    Text(
-                                        text = initials,
-                                        color = TextPrimary,
-                                        fontWeight = FontWeight.Bold,
-                                        fontSize = 14.sp
-                                    )
+                                    null
                                 }
+
+                                val initials = member.name.split(" ")
+                                    .mapNotNull { it.firstOrNull()?.toString() }
+                                    .take(2)
+                                    .joinToString("")
+                                    .uppercase()
+
+                                SubcomposeAsyncImage(
+                                    model = memberAvatarUrl,
+                                    contentDescription = member.name,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .clip(CircleShape),
+                                    contentScale = ContentScale.Crop,
+                                    error = {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = initials,
+                                                color = TextPrimary,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    }
+                                )
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(

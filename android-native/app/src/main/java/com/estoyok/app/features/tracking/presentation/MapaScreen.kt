@@ -58,6 +58,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
+import coil.compose.SubcomposeAsyncImage
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Shield
@@ -523,33 +524,43 @@ fun MapaScreen(
                                                 .padding(2.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            if (!member.avatarUrl.isNullOrEmpty()) {
-                                                val markerAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                                            val markerAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                                if (member.id == viewModel.currentUserProfile?.id) {
                                                     "${member.avatarUrl}?v=${viewModel.avatarVersion}"
                                                 } else {
                                                     member.avatarUrl
                                                 }
-                                                AsyncImage(
-                                                    model = markerAvatarUrl,
-                                                    contentDescription = member.name,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(CircleShape),
-                                                    contentScale = ContentScale.Crop
-                                                )
                                             } else {
-                                                val initials = member.name.split(" ")
-                                                    .mapNotNull { it.firstOrNull()?.toString() }
-                                                    .take(2)
-                                                    .joinToString("")
-                                                    .uppercase()
-                                                Text(
-                                                    text = initials,
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.ExtraBold,
-                                                    fontSize = 12.sp
-                                                )
+                                                null
                                             }
+
+                                            val initials = member.name.split(" ")
+                                                .mapNotNull { it.firstOrNull()?.toString() }
+                                                .take(2)
+                                                .joinToString("")
+                                                .uppercase()
+
+                                            SubcomposeAsyncImage(
+                                                model = markerAvatarUrl,
+                                                contentDescription = member.name,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape),
+                                                contentScale = ContentScale.Crop,
+                                                error = {
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = initials,
+                                                            color = Color.White,
+                                                            fontWeight = FontWeight.ExtraBold,
+                                                            fontSize = 12.sp
+                                                        )
+                                                    }
+                                                }
+                                            )
                                         }
 
                                         val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
@@ -1212,31 +1223,41 @@ fun MemberRowItem(
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
-                    if (!member.avatarUrl.isNullOrEmpty()) {
-                        val rowAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                    val rowAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                        if (member.id == viewModel.currentUserProfile?.id) {
                             "${member.avatarUrl}?v=${viewModel.avatarVersion}"
                         } else {
                             member.avatarUrl
                         }
-                        AsyncImage(
-                            model = rowAvatarUrl,
-                            contentDescription = "Avatar de ${member.name}",
-                            modifier = Modifier.fillMaxSize(),
-                            contentScale = ContentScale.Crop
-                        )
                     } else {
-                        val initials = member.name.split(" ")
-                            .mapNotNull { it.firstOrNull()?.toString() }
-                            .take(2)
-                            .joinToString("")
-                            .uppercase()
-                        Text(
-                            text = initials,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary,
-                            fontSize = 14.sp
-                        )
+                        null
                     }
+
+                    val initials = member.name.split(" ")
+                        .mapNotNull { it.firstOrNull()?.toString() }
+                        .take(2)
+                        .joinToString("")
+                        .uppercase()
+
+                    SubcomposeAsyncImage(
+                        model = rowAvatarUrl,
+                        contentDescription = "Avatar de ${member.name}",
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop,
+                        error = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = initials,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        }
+                    )
                 }
 
                 if (loc != null) {
@@ -1437,31 +1458,41 @@ fun MemberDetailsSheetContent(
                 .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape),
             contentAlignment = Alignment.Center
         ) {
-            if (!member.avatarUrl.isNullOrEmpty()) {
-                val detailsAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+            val detailsAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                if (member.id == viewModel.currentUserProfile?.id) {
                     "${member.avatarUrl}?v=${viewModel.avatarVersion}"
                 } else {
                     member.avatarUrl
                 }
-                AsyncImage(
-                    model = detailsAvatarUrl,
-                    contentDescription = "Foto de perfil",
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
-                )
             } else {
-                val initials = member.name.split(" ")
-                    .mapNotNull { it.firstOrNull()?.toString() }
-                    .take(2)
-                    .joinToString("")
-                    .uppercase()
-                Text(
-                    text = initials,
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary
-                )
+                null
             }
+
+            val initials = member.name.split(" ")
+                .mapNotNull { it.firstOrNull()?.toString() }
+                .take(2)
+                .joinToString("")
+                .uppercase()
+
+            SubcomposeAsyncImage(
+                model = detailsAvatarUrl,
+                contentDescription = "Foto de perfil",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Crop,
+                error = {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = initials,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+            )
 
             if (isSelf) {
                 Box(
