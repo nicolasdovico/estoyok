@@ -184,6 +184,8 @@
         - [x] Badges de Movimiento sobre Avatares: Incorporados pequeños círculos flotantes de estado (Status Badges) en la esquina inferior derecha de las fotos/iniciales de los miembros. Clasifica en tiempo real según la telemetría: Vehículo (🚗), Bicicleta (🚲) y Caminando (🚶), tanto en el mapa (`MarkerComposable`) como en la lista de familiares (`MemberRowItem`).
         - [x] Backend: Creado el endpoint `GET /api/circles/{circle}/members/{member}/drives` en `DriveController.php` para obtener trayectos finalizados y calcular en caliente distancia (Haversine), score de seguridad, excesos de velocidad, aceleraciones rápidas y frenadas bruscas. Limita a un trayecto preview si el usuario actual es de plan gratuito (Free), o hasta 30 si es Premium. Integrada suite de tests completa (`DriveReportsTest.php`) con cobertura total.
         - [x] Corrección de Anclaje de Marcadores en Mapa: Reubicado el nombre del miembro en la parte superior y posicionado el puntero físico (piquito rotado) en la base inferior absoluta del marcador de mapa (`MarkerComposable`). Esto hace que el anclaje predeterminado de Google Maps `(bottom-center)` apunte de forma exacta sobre la calle del GPS.
+     - [x] Seguimiento Online Continuo (Animación de Marcadores): Implementado el movimiento fluido y continuo de los marcadores en el mapa cuando cambian las coordenadas de ubicación de los miembros en tiempo real, reemplazando los saltos abruptos por transiciones animadas de deslizamiento (1.5 segundos) tanto en la App Móvil Nativa (Jetpack Compose Google Maps) como en la Plataforma Web (React Leaflet).
+
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

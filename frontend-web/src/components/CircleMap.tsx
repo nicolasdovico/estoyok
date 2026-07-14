@@ -147,6 +147,41 @@ function MapEventsHandler({ onMapClick }: { onMapClick?: (lat: number, lng: numb
   return null;
 }
 
+function AnimatedMarker({ position, children, ...props }: any) {
+  const [currentPos, setCurrentPos] = useState<[number, number]>(position);
+
+  useEffect(() => {
+    const startPos = currentPos;
+    const endPos = position;
+    if (startPos[0] === endPos[0] && startPos[1] === endPos[1]) return;
+
+    const duration = 1500; // 1.5s
+    const startTime = performance.now();
+    let frameId: number;
+
+    const animate = (time: number) => {
+      const elapsed = time - startTime;
+      const t = Math.min(elapsed / duration, 1);
+      const lat = startPos[0] + (endPos[0] - startPos[0]) * t;
+      const lng = startPos[1] + (endPos[1] - startPos[1]) * t;
+      setCurrentPos([lat, lng]);
+
+      if (t < 1) {
+        frameId = requestAnimationFrame(animate);
+      }
+    };
+
+    frameId = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frameId);
+  }, [position]);
+
+  return (
+    <Marker position={currentPos} {...props}>
+      {children}
+    </Marker>
+  );
+}
+
 export default function CircleMap({ 
   members, 
   geofences, 
@@ -252,7 +287,7 @@ export default function CircleMap({
           }
 
           return (
-            <Marker 
+            <AnimatedMarker 
               key={member.id} 
               position={[Number(loc.latitude), Number(loc.longitude)]}
               icon={iconToUse}
@@ -332,7 +367,7 @@ export default function CircleMap({
                   </p>
                 </div>
               </Popup>
-            </Marker>
+            </AnimatedMarker>
           );
         })}
 

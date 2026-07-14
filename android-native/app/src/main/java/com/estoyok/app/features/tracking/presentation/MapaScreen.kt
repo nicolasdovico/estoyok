@@ -345,7 +345,23 @@ fun MapaScreen(
                     key(member.id) {
                         val markerState = rememberMarkerState(position = latLng)
                         LaunchedEffect(latLng) {
-                            markerState.position = latLng
+                            val startLatLng = markerState.position
+                            val endLatLng = latLng
+                            if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
+                                val duration = 1500L
+                                val startTime = System.currentTimeMillis()
+                                while (true) {
+                                    val elapsed = System.currentTimeMillis() - startTime
+                                    val t = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
+                                    val lat = startLatLng.latitude + (endLatLng.latitude - startLatLng.latitude) * t
+                                    val lng = startLatLng.longitude + (endLatLng.longitude - startLatLng.longitude) * t
+                                    markerState.position = LatLng(lat, lng)
+                                    if (t >= 1f) break
+                                    kotlinx.coroutines.delay(16)
+                                }
+                            } else {
+                                markerState.position = latLng
+                            }
                         }
 
                         val isOffline = loc.isOffline == true

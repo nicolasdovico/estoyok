@@ -794,6 +794,18 @@
     - Compilación nativa Kotlin finalizada con éxito (`BUILD SUCCESSFUL` en 13s).
     - Suite de pruebas de Laravel completada exitosamente sin regresiones (119/119 passed).
 
+## [2026-07-14] Seguimiento Online Continuo y Deslizamiento de Marcadores
+- **App Móvil Nativa (Android/Kotlin):**
+    - Implementada animación fluida en `MapaScreen.kt` para interpolar la posición del marcador (`markerState.position`) a lo largo de 1500 ms cuando se reciben nuevas coordenadas por el canal en tiempo real.
+    - Esto elimina el comportamiento de teletransportación y permite ver al marcador deslizarse suavemente sobre las calles y rutas al seguir en vivo a un familiar.
+- **Web Frontend (Next.js):**
+    - Creado el subcomponente `<AnimatedMarker>` en `CircleMap.tsx` y `EmergencyMap.tsx` encapsulando la API de `requestAnimationFrame` de React para realizar transiciones de interpolación lineal fluidas en mapas de Leaflet.
+- **Validación:**
+    - Verificación exitosa de compilación nativa en Kotlin (`BUILD SUCCESSFUL`).
+    - Verificación exitosa de compilación del frontend Next.js en producción (`Compiled successfully`).
+    - Suite completa de 119 pruebas del backend Laravel superada con éxito (119/119 tests PASS).
+
+
 
 
 
