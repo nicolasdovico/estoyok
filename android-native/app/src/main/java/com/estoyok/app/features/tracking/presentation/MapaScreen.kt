@@ -434,7 +434,8 @@ fun MapaScreen(
                             snippet = snippetText,
                             onClick = {
                                 selectedMemberForMap = member
-                                false // Return false to show standard info window popup
+                                viewModel.selectedMember = member
+                                true
                             }
                         ) {
                             Column(
@@ -1387,6 +1388,11 @@ fun MemberDetailsSheetContent(
                 offset == 0
             )
         }
+    }
+
+    LaunchedEffect(member.id) {
+        val todayStr = dates.first().first
+        viewModel.loadMemberHistory(member.id, todayStr)
     }
 
     if (showPremiumPromoDialog) {

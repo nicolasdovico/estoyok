@@ -839,6 +839,14 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Despliegue Automático de Recorridos en Click de Marcador
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado el callback `onClick` de `MarkerComposable` en `MapaScreen.kt` para que, en lugar de retornar `false` (que abría un popup de Info Window nativo redundante), asigne `selectedMemberForMap = member` y `viewModel.selectedMember = member`, retornando `true` para consumir el evento.
+    - Esto desencadena directamente la visualización de `ModalBottomSheet` con el panel `MemberDetailsSheetContent`.
+    - Agregado un `LaunchedEffect(member.id)` en `MemberDetailsSheetContent` que detecta la carga del panel del familiar y automáticamente dispara `viewModel.loadMemberHistory(member.id, todayStr)` con la fecha de hoy, cargando los recorridos y paradas inmediatamente en pantalla.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 
