@@ -217,6 +217,14 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
      */
     public function getAvatarUrlAttribute(): ?string
     {
-        return $this->avatar_path ? url(\Storage::url($this->avatar_path)) : null;
+        if (!$this->avatar_path) {
+            return null;
+        }
+
+        if (request()->httpHost()) {
+            return request()->schemeAndHttpHost() . '/storage/' . $this->avatar_path;
+        }
+
+        return url('/storage/' . $this->avatar_path);
     }
 }

@@ -875,6 +875,13 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Resolución Dinámica de URLs de Avatares (Múltiples Entornos)
+- **Backend (Laravel/PHP):**
+    - Modificado el accessor `getAvatarUrlAttribute` en `User.php` para que, en caso de existir una petición HTTP activa (`request()->httpHost()`), construya la URL absoluta utilizando dinámicamente el esquema y host de dicha petición (`request()->schemeAndHttpHost()`).
+    - Esto anula la dependencia del valor estático `APP_URL` de la configuración local en el archivo `.env` (que típicamente vale `http://localhost` y causaba que los teléfonos físicos intentasen descargar avatares de sí mismos en Railway), garantizando enlaces plenamente válidos (`https://.../storage/avatars/...`) en producción y staging.
+- **Validación:**
+    - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
+
 
 
 
