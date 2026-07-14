@@ -92,18 +92,22 @@ fun MapaScreen(
                 inputStream?.close()
 
                 if (fileBytes != null) {
-                    val mimeType = contentResolver.getType(selectedUri) ?: "image/jpeg"
-                    val fileExtension = when (mimeType) {
-                        "image/png" -> "png"
-                        else -> "jpg"
+                    if (fileBytes.size > 2 * 1024 * 1024) {
+                        Toast.makeText(context, "La imagen supera el límite de 2 MB. Elige una más liviana.", Toast.LENGTH_LONG).show()
+                    } else {
+                        val mimeType = contentResolver.getType(selectedUri) ?: "image/jpeg"
+                        val fileExtension = when (mimeType) {
+                            "image/png" -> "png"
+                            else -> "jpg"
+                        }
+                        val requestFile = fileBytes.toRequestBody(mimeType.toMediaTypeOrNull())
+                        val avatarPart = okhttp3.MultipartBody.Part.createFormData(
+                            "avatar",
+                            "avatar_$fileExtension",
+                            requestFile
+                        )
+                        viewModel.uploadAvatar(avatarPart)
                     }
-                    val requestFile = fileBytes.toRequestBody(mimeType.toMediaTypeOrNull())
-                    val avatarPart = okhttp3.MultipartBody.Part.createFormData(
-                        "avatar",
-                        "avatar_$fileExtension",
-                        requestFile
-                    )
-                    viewModel.uploadAvatar(avatarPart)
                 }
             } catch (e: Exception) {
                 Toast.makeText(context, "Error al leer la imagen seleccionada", Toast.LENGTH_SHORT).show()
@@ -535,8 +539,13 @@ fun MapaScreen(
                                             contentAlignment = Alignment.Center
                                         ) {
                                             if (!member.avatarUrl.isNullOrEmpty()) {
+                                                val markerAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                                                    "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                                } else {
+                                                    member.avatarUrl
+                                                }
                                                 AsyncImage(
-                                                    model = member.avatarUrl,
+                                                    model = markerAvatarUrl,
                                                     contentDescription = member.name,
                                                     modifier = Modifier
                                                         .fillMaxSize()
@@ -1188,7 +1197,8 @@ fun MapaScreen(
 @Composable
 fun MemberRowItem(
     member: CircleMemberDto,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
     val loc = member.currentLocation
@@ -1218,8 +1228,13 @@ fun MemberRowItem(
                     contentAlignment = Alignment.Center
                 ) {
                     if (!member.avatarUrl.isNullOrEmpty()) {
+                        val rowAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                            "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                        } else {
+                            member.avatarUrl
+                        }
                         AsyncImage(
-                            model = member.avatarUrl,
+                            model = rowAvatarUrl,
                             contentDescription = "Avatar de ${member.name}",
                             modifier = Modifier.fillMaxSize(),
                             contentScale = ContentScale.Crop
@@ -1438,8 +1453,13 @@ fun MemberDetailsSheetContent(
             contentAlignment = Alignment.Center
         ) {
             if (!member.avatarUrl.isNullOrEmpty()) {
+                val detailsAvatarUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                    "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                } else {
+                    member.avatarUrl
+                }
                 AsyncImage(
-                    model = member.avatarUrl,
+                    model = detailsAvatarUrl,
                     contentDescription = "Foto de perfil",
                     modifier = Modifier.fillMaxSize(),
                     contentScale = ContentScale.Crop

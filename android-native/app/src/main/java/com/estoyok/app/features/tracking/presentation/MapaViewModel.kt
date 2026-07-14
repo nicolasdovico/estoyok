@@ -84,6 +84,9 @@ class MapaViewModel @Inject constructor(
     var isUploadingAvatar by mutableStateOf(false)
         private set
 
+    var avatarVersion by mutableStateOf(0)
+        private set
+
     var uploadAvatarSuccessMessage by mutableStateOf<String?>(null)
     var uploadAvatarErrorMessage by mutableStateOf<String?>(null)
 
@@ -240,6 +243,7 @@ class MapaViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         isUploadingAvatar = false
+                        avatarVersion++
                         uploadAvatarSuccessMessage = "Foto de perfil actualizada exitosamente."
                         loadUserProfile()
                         refreshCircles()

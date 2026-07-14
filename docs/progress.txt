@@ -847,6 +847,14 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Corrección de Caché de Avatar y Validación de Tamaño de Foto
+- **App Móvil Nativa (Android/Kotlin):**
+    - Añadida la propiedad `avatarVersion` al `MapaViewModel.kt`, incrementándose en cada carga de avatar exitosa.
+    - Modificados los componentes `AsyncImage` en `MapaScreen.kt` (mapa, lista e historial de detalles) para adjuntar un parámetro cache-buster (`?v=version`) al URL de la foto si pertenece al usuario logueado. Esto elude el caché agresivo de Coil y muestra de forma inmediata la nueva imagen.
+    - Implementada validación local de tamaño de archivo en `imagePickerLauncher`: antes de convertir y enviar la imagen, verifica que `fileBytes.size` sea $\le 2$ MB. Si excede el tamaño, interrumpe el flujo y muestra un Toast amistoso informando al usuario.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 
