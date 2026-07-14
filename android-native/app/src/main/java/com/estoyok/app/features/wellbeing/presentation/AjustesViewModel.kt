@@ -1,5 +1,9 @@
 package com.estoyok.app.features.wellbeing.presentation
 
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.ContextCompat
+import com.estoyok.app.services.TrackingService
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -25,6 +29,9 @@ class AjustesViewModel @Inject constructor(
 
     // User settings states
     var userProfile by mutableStateOf<UserDto?>(null)
+        private set
+
+    var isTrackingServiceRunning by mutableStateOf(false)
         private set
 
     var checkinIntervalHours by mutableIntStateOf(24)
@@ -69,6 +76,7 @@ class AjustesViewModel @Inject constructor(
         private set
 
     init {
+        isTrackingServiceRunning = TrackingService.isRunning
         loadSettings()
         loadContacts()
     }
@@ -250,5 +258,25 @@ class AjustesViewModel @Inject constructor(
     fun clearMessages() {
         messageSuccess = null
         errorMessage = null
+    }
+
+    fun refreshServiceStatus() {
+        isTrackingServiceRunning = TrackingService.isRunning
+    }
+
+    fun toggleTrackingService(context: Context) {
+        if (isTrackingServiceRunning) {
+            val intent = Intent(context, TrackingService::class.java).apply {
+                action = TrackingService.ACTION_STOP
+            }
+            context.stopService(intent)
+            isTrackingServiceRunning = false
+        } else {
+            val intent = Intent(context, TrackingService::class.java).apply {
+                action = TrackingService.ACTION_START
+            }
+            ContextCompat.startForegroundService(context, intent)
+            isTrackingServiceRunning = true
+        }
     }
 }

@@ -831,6 +831,14 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Reubicación de Control de Rastreo y Auto-Inicio
+- **App Móvil Nativa (Android/Kotlin):**
+    - Removida la tarjeta flotante de control de servicio de rastreo (`Rastreo On/Off`) en `MapaScreen.kt` para simplificar la interfaz gráfica del mapa.
+    - Agregado el control de servicio de ubicación a la pantalla de Ajustes (`AjustesScreen.kt` / `AjustesViewModel.kt`) bajo un nuevo bloque "Ubicación en Tiempo Real", gestionando permisos y estados en segundo plano de forma coherente.
+    - Implementada lógica de auto-inicio en `MapaScreen.kt` mediante un `LaunchedEffect(Unit)`: si la aplicación cuenta con permisos de geolocalización y notificaciones aprobados por el usuario, el servicio de rastreo se inicia de forma silenciosa por defecto al abrir la pantalla de mapa.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 

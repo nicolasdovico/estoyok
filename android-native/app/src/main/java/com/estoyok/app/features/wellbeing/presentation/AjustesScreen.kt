@@ -1,5 +1,13 @@
 package com.estoyok.app.features.wellbeing.presentation
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import android.widget.Toast
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -30,10 +38,29 @@ fun AjustesScreen(
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
     val scrollState = rememberScrollState()
+    val context = LocalContext.current
+
+    val permissionsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineLocationGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val notificationGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissions[Manifest.permission.POST_NOTIFICATIONS] ?: false
+        } else {
+            true
+        }
+        
+        if (fineLocationGranted && notificationGranted) {
+            viewModel.toggleTrackingService(context)
+        } else {
+            Toast.makeText(context, "Se necesitan permisos de ubicación y notificaciones para el rastreo", Toast.LENGTH_LONG).show()
+        }
+    }
     
     // Clear messages when user leaves screen or on start
     LaunchedEffect(key1 = true) {
         viewModel.clearMessages()
+        viewModel.refreshServiceStatus()
     }
 
     Box(
@@ -350,7 +377,61 @@ fun AjustesScreen(
                 }
             }
 
-            // 6. Emergency Contacts
+            // 6. Real-Time Tracking Setting (Rastreo)
+            SettingsCard(title = "Ubicación en Tiempo Real") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Compartir Ubicación (Rastreo)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Permite a tu grupo familiar ver tu posición actual en vivo sobre el mapa.",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 15.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = viewModel.isTrackingServiceRunning,
+                        onCheckedChange = { checked ->
+                            val hasLocation = ContextCompat.checkSelfPermission(
+                                context,
+                                Manifest.permission.ACCESS_FINE_LOCATION
+                            ) == PackageManager.PERMISSION_GRANTED
+                            
+                            val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                ContextCompat.checkSelfPermission(
+                                    context,
+                                    Manifest.permission.POST_NOTIFICATIONS
+                                ) == PackageManager.PERMISSION_GRANTED
+                            } else {
+                                true
+                            }
+
+                            if (hasLocation && hasNotifications) {
+                                viewModel.toggleTrackingService(context)
+                            } else if (checked) {
+                                val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                    reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+                                }
+                                permissionsLauncher.launch(reqs.toTypedArray())
+                            }
+                        }
+                    )
+                }
+            }
+
+            // 7. Emergency Contacts
             SettingsCard(title = "Contactos de Emergencia") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(

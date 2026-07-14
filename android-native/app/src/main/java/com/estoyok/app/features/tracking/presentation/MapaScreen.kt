@@ -127,6 +127,35 @@ fun MapaScreen(
             Toast.makeText(context, "Se necesitan permisos de ubicación y notificaciones para el rastreo", Toast.LENGTH_LONG).show()
         }
     }
+
+    LaunchedEffect(Unit) {
+        val hasLocation = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) == PackageManager.PERMISSION_GRANTED
+        
+        val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+
+        if (hasLocation && hasNotifications) {
+            if (!viewModel.isServiceRunning) {
+                viewModel.toggleTrackingService(context)
+            }
+        } else {
+            val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
+            permissionsLauncher.launch(reqs.toTypedArray())
+        }
+    }
+
     var isCircleDropdownExpanded by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
     var showCreateGeofenceDialog by remember { mutableStateOf(false) }
@@ -623,58 +652,7 @@ fun MapaScreen(
         }
 
 
-        // 2b. Floating Header: Foreground Tracking Service Switch (Aligned TopEnd)
-        Card(
-            modifier = Modifier
-                .wrapContentWidth()
-                .padding(top = 16.dp, end = 16.dp)
-                .align(Alignment.TopEnd),
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
-            shape = RoundedCornerShape(20.dp),
-            elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
-        ) {
-            Row(
-                modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
-            ) {
-                Text(
-                    text = if (viewModel.isServiceRunning) "Rastreo On" else "Rastreo Off",
-                    fontSize = 11.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = if (viewModel.isServiceRunning) PrimaryEmerald else TextMuted
-                )
-                Switch(
-                    checked = viewModel.isServiceRunning,
-                    onCheckedChange = { _ ->
-                        val hasLocation = ContextCompat.checkSelfPermission(
-                            context,
-                            Manifest.permission.ACCESS_FINE_LOCATION
-                        ) == PackageManager.PERMISSION_GRANTED
-                        
-                        val hasNotifications = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            ContextCompat.checkSelfPermission(
-                                context,
-                                Manifest.permission.POST_NOTIFICATIONS
-                            ) == PackageManager.PERMISSION_GRANTED
-                        } else {
-                            true
-                        }
-
-                        if (hasLocation && hasNotifications) {
-                            viewModel.toggleTrackingService(context)
-                        } else {
-                            val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                reqs.add(Manifest.permission.POST_NOTIFICATIONS)
-                            }
-                            permissionsLauncher.launch(reqs.toTypedArray())
-                        }
-                    },
-                    modifier = Modifier.scale(0.8f)
-                )
-            }
-        }
+        // Floating switch removed to clean up the map, re-located to Settings
 
         // 3. Bottom Sliding Card: Members Monitoring Panel (Life360 style Expandable List)
         Card(
