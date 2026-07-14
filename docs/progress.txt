@@ -805,6 +805,34 @@
     - Verificación exitosa de compilación del frontend Next.js en producción (`Compiled successfully`).
     - Suite completa de 119 pruebas del backend Laravel superada con éxito (119/119 tests PASS).
 
+## [2026-07-14] Rediseño Visual de Zonas Seguras en Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Eliminado el marcador `Marker` (chinche celeste) del interior del bucle de geocercas en `MapaScreen.kt` para evitar la sobrecarga y el ruido visual sobre la interfaz del mapa.
+    - Se mantiene únicamente el componente `Circle` el cual se dibuja usando el color primario del tema (`MaterialTheme.colorScheme.primary`), que corresponde al Turquesa Eléctrico de la marca Estoy Ok.
+- **Web Frontend (Next.js):**
+    - Modificado `getGeofenceColor` en `CircleMap.tsx` para que retorne siempre `#00E5D9` (Turquesa Eléctrico) unificando la estética de la plataforma.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+    - Verificación exitosa de compilación Next.js (`Compiled successfully`).
+
+## [2026-07-14] Estabilización de Insignias de Movimiento (Badges de Tránsito)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Rediseñados los contenedores Box del avatar tanto en el marcador del mapa (`MarkerComposable`) como en la lista de familiares (`MemberRowItem`) para usar anchos y altos fijos mayores (`56.dp` por `50.dp` en mapa y `48.dp` por `44.dp` en lista).
+    - Esto elimina el uso de `.offset()` que desplazaba las vistas fuera de los límites lógicos medidos por el motor de diseño, evitando recortes o desapariciones en el canvas del mapa.
+    - Modificado `getMovementEmoji(...)` para que evalúe y retorne la insignia de movimiento según el estado actual (caminata 🚶, bicicleta 🚲, vehículo/conducción 🚗) y retorne `null` (ocultando el badge por completo) si el usuario está quieto, respetando la privacidad del reposo.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
+## [2026-07-14] Telemetría y Estadía en Tiempo Real sobre Marcadores de Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado un estado reactivo local `stayTracker` (`mutableStateMapOf`) en `MapaScreen.kt` que registra las coordenadas iniciales y la marca de tiempo de entrada al modo reposo de cada miembro.
+    - Implementada lógica de comparación de distancia geodésica mediante la fórmula Haversine: si un miembro permanece a menos de 30 metros de su última posición registrada, se mantiene el tiempo de inicio de su estadía; si se desplaza más allá de ese radio o empieza a conducir, el tracker se reinicia.
+    - Rediseñada la tarjeta de etiqueta de nombre (`Card`) en la parte superior del marcador de mapa (`MarkerComposable`) incorporando una vista en columna: muestra el primer nombre del usuario en negrita (`9.sp`) y un subtítulo secundario en color turquesa (`7.5.sp`, negrita) con la velocidad actual si está conduciendo (ej. `65 km/h`) o la duración exacta de su estadía en el lugar (ej: `45 min`, `2h 15m`).
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
+
+
 
 
 

@@ -134,6 +134,37 @@ fun MapaScreen(
     var showEditGeofenceDialog by remember { mutableStateOf(false) }
     var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
 
+    val stayTracker = remember { mutableStateMapOf<Int, Pair<LatLng, Long>>() }
+    LaunchedEffect(viewModel.selectedCircleMembers) {
+        val now = System.currentTimeMillis()
+        viewModel.selectedCircleMembers.forEach { member ->
+            val loc = member.currentLocation
+            if (loc != null) {
+                val latLng = LatLng(loc.latitude, loc.longitude)
+                val isMoving = loc.isDriving == true || (loc.speed ?: 0f) >= 1.5f
+                if (isMoving) {
+                    stayTracker.remove(member.id)
+                } else {
+                    val lastTrack = stayTracker[member.id]
+                    if (lastTrack == null) {
+                        stayTracker[member.id] = Pair(latLng, now)
+                    } else {
+                        val dist = haversineDistance(
+                            lastTrack.first.latitude, lastTrack.first.longitude,
+                            latLng.latitude, latLng.longitude
+                        )
+                        if (dist > 0.03) { // 30 meters
+                            stayTracker[member.id] = Pair(latLng, now)
+                        }
+                    }
+                }
+            } else {
+                stayTracker.remove(member.id)
+            }
+        }
+    }
+
+
     // LatLng for Argentina/Buenos Aires default center
     val defaultCenter = LatLng(-34.6037, -58.3816)
     val cameraPositionState = rememberCameraPositionState {
@@ -321,12 +352,6 @@ fun MapaScreen(
                     strokeColor = MaterialTheme.colorScheme.primary,
                     strokeWidth = 3f
                 )
-                Marker(
-                    state = rememberMarkerState(position = centerLatLng),
-                    title = "Zona Segura: ${geofence.name}",
-                    snippet = "Radio: ${geofence.radius.toInt()}m",
-                    icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
-                )
             }
 
             // Render markers for all nucleus members with valid location coordinates
@@ -387,7 +412,7 @@ fun MapaScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.wrapContentSize()
                             ) {
-                                // 1. Name tag at the top
+                                // 1. Name tag at the
                                 Card(
                                     colors = CardDefaults.cardColors(
                                         containerColor = DarkSurface.copy(alpha = 0.9f)
@@ -396,14 +421,56 @@ fun MapaScreen(
                                     border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
                                     elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                 ) {
-                                    Text(
-                                        text = member.name.substringBefore(" "),
-                                        fontSize = 9.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimary,
-                                        modifier = Modifier.padding(horizontal = 5.dp, vertical = 1.5.dp),
-                                        maxLines = 1
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = member.name.substringBefore(" "),
+                                            fontSize = 9.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary,
+                                            maxLines = 1
+                                        )
+                                        
+                                        val subtitleText = run {
+                                            val isD = loc.isDriving == true
+                                            val speedKmh = loc.speed ?: 0.0f
+                                            if (isD || speedKmh >= 15.0f) {
+                                                "${speedKmh.toInt()} km/h"
+                                            } else {
+                                                val stayInfo = stayTracker[member.id]
+                                                if (stayInfo != null) {
+                                                    val durationMs = System.currentTimeMillis() - stayInfo.second
+                                                    val durationMins = durationMs / 60000L
+                                                    if (durationMins > 0) {
+                                                        if (durationMins >= 60) {
+                                                            val hours = durationMins / 60
+                                                            val mins = durationMins % 60
+                                                            if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
+                                                        } else {
+                                                            "${durationMins} min"
+                                                        }
+                                                    } else {
+                                                        "Reciente"
+                                                    }
+                                                } else {
+                                                    null
+                                                }
+                                            }
+                                        }
+                                        
+                                        if (!subtitleText.isNullOrEmpty()) {
+                                            Spacer(modifier = Modifier.height(1.dp))
+                                            Text(
+                                                text = subtitleText,
+                                                fontSize = 7.5.sp,
+                                                color = MaterialTheme.colorScheme.primary,
+                                                fontWeight = FontWeight.Bold,
+                                                maxLines = 1
+                                            )
+                                        }
+                                    }
                                 }
 
                                 Spacer(modifier = Modifier.height(2.dp))
@@ -426,12 +493,12 @@ fun MapaScreen(
                                     Box(
                                         modifier = Modifier
                                             .padding(bottom = 6.dp)
-                                            .wrapContentSize(),
-                                        contentAlignment = Alignment.BottomEnd
+                                            .size(width = 56.dp, height = 50.dp)
                                     ) {
                                         Box(
                                             modifier = Modifier
                                                 .size(44.dp)
+                                                .align(Alignment.TopCenter)
                                                 .background(CardBackground, CircleShape)
                                                 .border(2.dp, borderColor, CircleShape)
                                                 .padding(2.dp),
@@ -466,7 +533,7 @@ fun MapaScreen(
                                             Box(
                                                 modifier = Modifier
                                                     .size(18.dp)
-                                                    .offset(x = 2.dp, y = 2.dp)
+                                                    .align(Alignment.BottomEnd)
                                                     .background(MaterialTheme.colorScheme.primary, CircleShape)
                                                     .border(1.dp, Color.White, CircleShape),
                                                 contentAlignment = Alignment.Center
@@ -1161,12 +1228,12 @@ fun MemberRowItem(
         ) {
             // Avatar wrapped with Box for movement badge overlay
             Box(
-                modifier = Modifier.wrapContentSize(),
-                contentAlignment = Alignment.BottomEnd
+                modifier = Modifier.size(width = 48.dp, height = 44.dp)
             ) {
                 Box(
                     modifier = Modifier
                         .size(40.dp)
+                        .align(Alignment.TopCenter)
                         .clip(CircleShape)
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.15f), CircleShape),
                     contentAlignment = Alignment.Center
@@ -1199,7 +1266,7 @@ fun MemberRowItem(
                         Box(
                             modifier = Modifier
                                 .size(16.dp)
-                                .offset(x = 2.dp, y = 2.dp)
+                                .align(Alignment.BottomEnd)
                                 .background(MaterialTheme.colorScheme.primary, CircleShape)
                                 .border(1.dp, Color.White, CircleShape),
                             contentAlignment = Alignment.Center

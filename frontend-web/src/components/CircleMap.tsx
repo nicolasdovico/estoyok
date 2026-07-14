@@ -235,15 +235,7 @@ export default function CircleMap({
 
   // Render geofence color based on type
   const getGeofenceColor = (type: string) => {
-    switch (type) {
-      case 'entry':
-        return '#10B981'; // Green
-      case 'exit':
-        return '#F59E0B'; // Orange
-      case 'entry_exit':
-      default:
-        return '#3B82F6'; // Blue
-    }
+    return '#00E5D9'; // Electric Turquoise for Estoy Ok branding
   };
 
   return (

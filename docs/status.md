@@ -185,6 +185,13 @@
         - [x] Backend: Creado el endpoint `GET /api/circles/{circle}/members/{member}/drives` en `DriveController.php` para obtener trayectos finalizados y calcular en caliente distancia (Haversine), score de seguridad, excesos de velocidad, aceleraciones rápidas y frenadas bruscas. Limita a un trayecto preview si el usuario actual es de plan gratuito (Free), o hasta 30 si es Premium. Integrada suite de tests completa (`DriveReportsTest.php`) con cobertura total.
         - [x] Corrección de Anclaje de Marcadores en Mapa: Reubicado el nombre del miembro en la parte superior y posicionado el puntero físico (piquito rotado) en la base inferior absoluta del marcador de mapa (`MarkerComposable`). Esto hace que el anclaje predeterminado de Google Maps `(bottom-center)` apunte de forma exacta sobre la calle del GPS.
      - [x] Seguimiento Online Continuo (Animación de Marcadores): Implementado el movimiento fluido y continuo de los marcadores en el mapa cuando cambian las coordenadas de ubicación de los miembros en tiempo real, reemplazando los saltos abruptos por transiciones animadas de deslizamiento (1.5 segundos) tanto en la App Móvil Nativa (Jetpack Compose Google Maps) como en la Plataforma Web (React Leaflet).
+     - [x] Rediseño de Zonas Seguras en Mapa: Eliminadas las chinches (marcadores/pines de Google Maps) de las Zonas Seguras en el mapa para reducir la saturación visual, representándolas únicamente a través de los círculos perimetrales translúcidos pintados en el color Turquesa Eléctrico (`#00E5D9`) de Estoy Ok (tanto en Mobile como en Web).
+     - [x] Estabilización de Insignias de Movimiento (Badges de Tránsito): Corregido el problema por el cual no se visualizaban los iconos de estado de movimiento (🚗/🚶) sobre los avatares en el mapa y la lista. Se rediseñó el contenedor de avatar para usar tamaños fijos simétricos que previenen el recorte en el canvas de Google Maps y se validó que las insignias se muestren según los umbrales de movimiento activos (caminata 🚶 $\ge 1.5$ km/h, bicicleta 🚲 $\ge 5$ km/h, vehículo 🚗/conducción $\ge 15$ km/h), ocultando por completo la insignia (retorna `null`) si el usuario está quieto.
+     - [x] Telemetría y Estadía en Marcadores de Mapa: Agregada información contextual reducida (`7.5.sp`) debajo del nombre en la etiqueta del marcador de cada miembro: si está conduciendo/en auto, muestra su velocidad actual (ej. `65 km/h`); si está quieto (sin movimiento), calcula y muestra la duración de su estadía en ese sitio (ej: `10 min`, `1h 45m`) mediante un tracker de permanencias local (`stayTracker`) basado en la fórmula Haversine.
+
+
+
+
 
 
 ### In Progress:
