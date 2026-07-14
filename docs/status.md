@@ -192,13 +192,8 @@
         - [x] Despliegue Automático de Recorridos en Click de Marcador: Modificado el callback `onClick` de los marcadores (`MarkerComposable`) de los miembros en el mapa. Al hacer click sobre el pin o nombre, se selecciona el familiar en el viewmodel y se despliega de forma inmediata el panel de detalles (`ModalBottomSheet`). Además, se agregó un `LaunchedEffect` en dicho panel para auto-cargar de forma asíncrona la ruta de hoy ("Hoy"), eliminando pasos intermedios.
         - [x] Corrección en Edición de Avatar y Control de Tamaño (2MB): Solucionado el problema de almacenamiento en caché en Coil (`AsyncImage`) implementando un sistema de versionado local (`avatarVersion` en el ViewModel) que se concatena al URL de la foto (`?v=1`) al completar la subida. Además, se añadió una validación local instantánea del tamaño del archivo seleccionado: si el archivo supera los 2 MB, se muestra un Toast amistoso informando al usuario en vez de fallar a nivel de red/servidor.
         - [x] Eliminación de Nombre Redundante en Marcador de Mapa: Removido el nombre de pila del usuario de la tarjeta flotante superior en `MarkerComposable`. El marcador ahora muestra únicamente la foto de perfil o iniciales del miembro (evitando redundancias y saturación visual). La tarjeta flotante superior se conserva única y exclusivamente para mostrar la telemetría en tiempo real (velocidad 🚗 o duración de estadía 🚶) cuando se encuentra activa.
-
-
-
-
-
-
-
+        - [x] Consistencia de Avatares en Pantalla de Vehículo: Modificado el componente `AsyncImage` en el selector horizontal de familiares de la solapa Vehículo (`VehiculoScreen.kt`) para concatenar el cache-buster versionado (`?v=version`) al URL del avatar del usuario actual. Esto soluciona los problemas de almacenamiento en caché y permite ver la foto actualizada o iniciales del usuario al instante.
+        - [x] Robustez y Fallback de Iniciales en Carga de Avatar: Corregido el problema de visualización de avatares en entornos con datos desincronizados (como la base de datos de Railway vs Local). Se reemplazaron las llamadas tradicionales de `AsyncImage` por `SubcomposeAsyncImage` en las vistas de Mapa, Lista de Familiares, Hoja de Detalles y Selector de Vehículo. Ahora, ante cualquier fallo de red (404 por imágenes no migradas, URLs locales rotas o valores `"null"` residuales), el sistema muestra automáticamente las iniciales del usuario calculadas localmente en la función `error` de Coil, en lugar de renderizar un círculo vacío.
 
 
 ### In Progress:

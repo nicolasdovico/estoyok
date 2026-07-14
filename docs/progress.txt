@@ -862,6 +862,19 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Consistencia de Avatares en Pantalla de Vehículo
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado el componente `AsyncImage` en el selector horizontal de familiares en `VehiculoScreen.kt` para concatenar el cache-buster versionado (`?v=version`) al URL del avatar del usuario actual. Esto evita la entrega de imágenes desactualizadas o rotas por la caché de Coil tras cambiar la foto de perfil en la aplicación.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
+## [2026-07-14] Robustez y Fallback de Iniciales en Carga de Avatar
+- **App Móvil Nativa (Android/Kotlin):**
+    - Se reemplazó el uso de `AsyncImage` por `SubcomposeAsyncImage` en todos los avatares (Marcador de Mapa, Lista de Familiares, Detalles de Miembro y Selector de la Solapa Vehículo).
+    - Implementado un bloque `error = { ... }` que dibuja localmente las iniciales del usuario si falla la conexión de red, si la imagen no existe en el servidor (404), si la base de datos devuelve valores basura como la cadena `"null"`, o si las URLs apuntan a un localhost inaccesible por cable de red físico desde el servidor de Railway.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 
