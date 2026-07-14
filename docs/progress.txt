@@ -855,6 +855,13 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
+## [2026-07-14] Eliminación de Nombre Redundante en Marcador de Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado el diseño del marcador en `MapaScreen.kt` para remover la visualización del nombre de pila del usuario por encima de su círculo de avatar, eliminando información redundante en el mapa.
+    - Se mantuvo la tarjeta flotante superior del marcador únicamente para mostrar la telemetría (velocidad en auto) o la duración de la estadía si el usuario está quieto, apareciendo de forma condicional solo cuando hay datos válidos.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 

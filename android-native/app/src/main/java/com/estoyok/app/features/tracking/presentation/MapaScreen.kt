@@ -446,68 +446,53 @@ fun MapaScreen(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.wrapContentSize()
                             ) {
-                                // 1. Name tag at the
-                                Card(
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = DarkSurface.copy(alpha = 0.9f)
-                                    ),
-                                    shape = RoundedCornerShape(6.dp),
-                                    border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
-                                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                                ) {
-                                    Column(
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
-                                        horizontalAlignment = Alignment.CenterHorizontally
-                                    ) {
-                                        Text(
-                                            text = member.name.substringBefore(" "),
-                                            fontSize = 9.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary,
-                                            maxLines = 1
-                                        )
-                                        
-                                        val subtitleText = run {
-                                            val isD = loc.isDriving == true
-                                            val speedKmh = loc.speed ?: 0.0f
-                                            if (isD || speedKmh >= 15.0f) {
-                                                "${speedKmh.toInt()} km/h"
-                                            } else {
-                                                val stayInfo = stayTracker[member.id]
-                                                if (stayInfo != null) {
-                                                    val durationMs = System.currentTimeMillis() - stayInfo.second
-                                                    val durationMins = durationMs / 60000L
-                                                    if (durationMins > 0) {
-                                                        if (durationMins >= 60) {
-                                                            val hours = durationMins / 60
-                                                            val mins = durationMins % 60
-                                                            if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
-                                                        } else {
-                                                            "${durationMins} min"
-                                                        }
-                                                    } else {
-                                                        "Reciente"
-                                                    }
+                                val subtitleText = run {
+                                    val isD = loc.isDriving == true
+                                    val speedKmh = loc.speed ?: 0.0f
+                                    if (isD || speedKmh >= 15.0f) {
+                                        "${speedKmh.toInt()} km/h"
+                                    } else {
+                                        val stayInfo = stayTracker[member.id]
+                                        if (stayInfo != null) {
+                                            val durationMs = System.currentTimeMillis() - stayInfo.second
+                                            val durationMins = durationMs / 60000L
+                                            if (durationMins > 0) {
+                                                if (durationMins >= 60) {
+                                                    val hours = durationMins / 60
+                                                    val mins = durationMins % 60
+                                                    if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
                                                 } else {
-                                                    null
+                                                    "${durationMins} min"
                                                 }
+                                            } else {
+                                                "Reciente"
                                             }
-                                        }
-                                        
-                                        if (!subtitleText.isNullOrEmpty()) {
-                                            Spacer(modifier = Modifier.height(1.dp))
-                                            Text(
-                                                text = subtitleText,
-                                                fontSize = 7.5.sp,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                fontWeight = FontWeight.Bold,
-                                                maxLines = 1
-                                            )
+                                        } else {
+                                            null
                                         }
                                     }
                                 }
 
-                                Spacer(modifier = Modifier.height(2.dp))
+                                if (!subtitleText.isNullOrEmpty()) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = DarkSurface.copy(alpha = 0.9f)
+                                        ),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                    ) {
+                                        Text(
+                                            text = subtitleText,
+                                            fontSize = 7.5.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
+                                            maxLines = 1
+                                        )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                }
 
                                 // 2. Avatar and pointer container (so pointer tip is the extreme bottom)
                                 Box(
