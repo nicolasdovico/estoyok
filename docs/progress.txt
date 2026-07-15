@@ -906,6 +906,16 @@
 - **Validación:**
     - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
 
+## [2026-07-14] Pre-descarga Concurrente de Avatares a Bitmap a Nivel de Pantalla (MapaScreen)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Se implementó un estado reactivo asociativo `markerBitmaps` (`SnapshotStateMap<Int, Bitmap>`) y un `LaunchedEffect(viewModel.selectedCircleMembers, viewModel.avatarVersion)` a nivel superior de la pantalla `MapaScreen.kt`.
+    - Esto pre-descarga de forma segura y paralela los avatares de todos los miembros del núcleo a memoria como objetos `Bitmap` no-hardware (evitando el ciclo de renderizado asincrónico dentro del sub-árbol de `MarkerComposable`).
+    - Se reemplazó el casteo explícito de `BitmapDrawable` por la función de extensión universal `drawable.toBitmap()` de `core-ktx` para soportar correctamente los drawables con animaciones de Coil (`CrossfadeDrawable`).
+    - Se configuró la descarga para lanzar hilos de ejecución concurrentes en paralelo (`launch { }`) por cada miembro del núcleo. Esto previene que URLs de localhost muertas u obsoletas (comunes en pruebas locales previas) causen bloqueos secuenciales de timeout (de 10 a 15 segundos) al descargar el resto de los avatares válidos de producción.
+    - Los marcadores simplemente leen del mapa indexado por ID de miembro (`markerBitmaps[member.id]`) y, en cuanto el bitmap se encuentra disponible en memoria, redibujan instantáneamente el avatar mediante una vista `Image` convencional sin retardos.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
 
 
 

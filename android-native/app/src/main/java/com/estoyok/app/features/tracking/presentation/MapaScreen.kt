@@ -59,6 +59,14 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
+import coil.compose.rememberAsyncImagePainter
+import coil.compose.AsyncImagePainter
+import androidx.compose.foundation.Image
+import androidx.compose.ui.graphics.asImageBitmap
+import coil.imageLoader
+import android.graphics.Bitmap
+import android.graphics.drawable.BitmapDrawable
+import androidx.core.graphics.drawable.toBitmap
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Shield
@@ -114,6 +122,43 @@ fun MapaScreen(
                 Toast.makeText(context, "Error al leer la imagen seleccionada", Toast.LENGTH_SHORT).show()
             }
         }
+    }
+    val markerBitmaps = remember { mutableStateMapOf<Int, Bitmap>() }
+
+    LaunchedEffect(Unit) {
+        snapshotFlow { Pair(viewModel.selectedCircleMembers, viewModel.avatarVersion) }
+            .collect { (members, version) ->
+                members.forEach { member ->
+                    val url = member.avatarUrl
+                    if (!url.isNullOrEmpty() && url != "null") {
+                        val finalUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                            "$url?v=$version"
+                        } else {
+                            url
+                        }
+                        val isCached = markerBitmaps.containsKey(member.id)
+                        if (!isCached || member.id == viewModel.currentUserProfile?.id) {
+                            launch {
+                                try {
+                                    val request = coil.request.ImageRequest.Builder(context)
+                                        .data(finalUrl)
+                                        .allowHardware(false)
+                                        .build()
+                                    val result = context.imageLoader.execute(request)
+                                    if (result is coil.request.SuccessResult) {
+                                        val drawable = result.drawable
+                                        markerBitmaps[member.id] = drawable.toBitmap()
+                                    }
+                                } catch (e: Exception) {
+                                    e.printStackTrace()
+                                }
+                            }
+                        }
+                    } else {
+                        markerBitmaps.remove(member.id)
+                    }
+                }
+            }
     }
 
     val permissionsLauncher = rememberLauncherForActivityResult(
@@ -433,16 +478,16 @@ fun MapaScreen(
                             else -> PrimaryEmerald
                         }
 
-                        MarkerComposable(
-                            state = markerState,
-                            title = titleText,
-                            snippet = snippetText,
-                            onClick = {
-                                selectedMemberForMap = member
-                                viewModel.selectedMember = member
-                                true
-                            }
-                        ) {
+                            MarkerComposable(
+                                state = markerState,
+                                title = titleText,
+                                snippet = snippetText,
+                                onClick = {
+                                    selectedMemberForMap = member
+                                    viewModel.selectedMember = member
+                                    true
+                                }
+                            ) {
                             Column(
                                 horizontalAlignment = Alignment.CenterHorizontally,
                                 modifier = Modifier.wrapContentSize()
@@ -524,56 +569,35 @@ fun MapaScreen(
                                                 .padding(2.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            val markerAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
-                                                if (member.id == viewModel.currentUserProfile?.id) {
-                                                    "${member.avatarUrl}?v=${viewModel.avatarVersion}"
-                                                } else {
-                                                    member.avatarUrl
-                                                }
-                                            } else {
-                                                null
-                                            }
-
                                             val initials = member.name.split(" ")
                                                 .mapNotNull { it.firstOrNull()?.toString() }
                                                 .take(2)
                                                 .joinToString("")
                                                 .uppercase()
 
-                                            SubcomposeAsyncImage(
-                                                model = markerAvatarUrl,
-                                                contentDescription = member.name,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop,
-                                                loading = {
-                                                    Box(
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            text = initials,
-                                                            color = Color.White,
-                                                            fontWeight = FontWeight.ExtraBold,
-                                                            fontSize = 12.sp
-                                                        )
-                                                    }
-                                                },
-                                                error = {
-                                                    Box(
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            text = initials,
-                                                            color = Color.White,
-                                                            fontWeight = FontWeight.ExtraBold,
-                                                            fontSize = 12.sp
-                                                        )
-                                                    }
+                                            val bitmapToDraw = markerBitmaps[member.id]
+                                            if (bitmapToDraw != null) {
+                                                Image(
+                                                    bitmap = bitmapToDraw.asImageBitmap(),
+                                                    contentDescription = member.name,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = initials,
+                                                        color = Color.White,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        fontSize = 12.sp
+                                                    )
                                                 }
-                                            )
+                                            }
                                         }
 
                                         val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
