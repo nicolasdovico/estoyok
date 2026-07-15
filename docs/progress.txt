@@ -899,6 +899,13 @@
     - Verificación exitosa de creación de enlace simbólico relativo local (`rm -rf public/storage && php artisan storage:link --relative` ejecutado correctamente dentro del contenedor local).
     - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
 
+## [2026-07-14] Reubicación del Enlace Simbólico al Comando de Arranque
+- **Backend (Laravel/PHP):**
+    - Se trasladó la lógica de creación de enlace simbólico relativo (`rm -rf public/storage && php artisan storage:link --relative`) del `preDeployCommand` al `startCommand` en `railway.json`.
+    - Esto se debe a que en Railway, el preDeployCommand se corre en un contenedor efímero temporal y los cambios de archivos allí generados no se heredan en el contenedor de ejecución final. Al correrlo al inicio del `startCommand`, garantizamos que la carpeta `public/storage` exista dentro del contenedor final que sirve las peticiones HTTP.
+- **Validación:**
+    - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
+
 
 
 

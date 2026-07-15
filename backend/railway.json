@@ -4,7 +4,7 @@
     "builder": "NIXPACKS"
   },
   "deploy": {
-    "preDeployCommand": "php artisan config:clear && php artisan migrate --force && rm -rf public/storage && php artisan storage:link --relative",
-    "startCommand": "if [ -n \"$START_COMMAND\" ]; then $START_COMMAND; else php artisan serve --host=0.0.0.0 --port=$PORT; fi"
+    "preDeployCommand": "php artisan config:clear && php artisan migrate --force",
+    "startCommand": "rm -rf public/storage && php artisan storage:link --relative && if [ -n \"$START_COMMAND\" ]; then $START_COMMAND; else php artisan serve --host=0.0.0.0 --port=$PORT; fi"
   }
 }
