@@ -891,6 +891,14 @@
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
     - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
 
+## [2026-07-14] Enlaces Simbólicos Relativos para Almacenamiento en Railway
+- **Backend (Laravel/PHP):**
+    - Modificado `railway.json` para eliminar el enlace simbólico obsoleto y ejecutar `php artisan storage:link --relative` en la etapa de pre-despliegue. Esto evita los enlaces simbólicos absolutos que causaban errores HTTP 404 al apuntar a directorios de la fase de compilación (`/workspace/...`) inexistentes en el contenedor de ejecución (`/app/...`).
+    - Añadido el paquete de Composer `symfony/filesystem` al proyecto (ejecutando `composer require symfony/filesystem`) para proveer soporte nativo de enlaces simbólicos relativos en el framework de Laravel.
+- **Validación:**
+    - Verificación exitosa de creación de enlace simbólico relativo local (`rm -rf public/storage && php artisan storage:link --relative` ejecutado correctamente dentro del contenedor local).
+    - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
+
 
 
 
