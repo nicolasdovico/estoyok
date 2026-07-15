@@ -222,7 +222,9 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         }
 
         if (request()->httpHost()) {
-            return request()->schemeAndHttpHost() . '/storage/' . $this->avatar_path;
+            $isSecure = request()->secure() || (strtolower(request()->header('X-Forwarded-Proto', '')) === 'https');
+            $scheme = $isSecure ? 'https' : 'http';
+            return $scheme . '://' . request()->httpHost() . '/storage/' . $this->avatar_path;
         }
 
         return url('/storage/' . $this->avatar_path);

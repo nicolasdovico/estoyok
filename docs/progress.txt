@@ -882,6 +882,15 @@
 - **Validación:**
     - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
 
+## [2026-07-14] Detección de Proxy Reverso HTTPS y Estado de Carga de Iniciales
+- **Backend (Laravel/PHP):**
+    - Añadida detección explícita del encabezado `X-Forwarded-Proto` en `getAvatarUrlAttribute` de `User.php`. Esto previene que el proxy reverso del servidor (como el de Railway) obligue a usar el protocolo inseguro `http://` (el cual es abortado por defecto por la política de seguridad Cleartext de Android), forzando correctamente un enlace seguro `https://` en entornos de producción.
+- **App Móvil Nativa (Android/Kotlin):**
+    - Agregado el parámetro `loading = { ... }` a los componentes `SubcomposeAsyncImage` en `MapaScreen.kt` y `VehiculoScreen.kt`. Esto dibuja las iniciales del miembro de forma inmediata durante el transcurso de la petición de red, erradicando estados de pantalla vacíos y asegurando una excelente retroalimentación visual al usuario en redes móviles.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+    - Suite de pruebas completa del backend ejecutada exitosamente (`119 passed, 390 assertions`).
+
 
 
 

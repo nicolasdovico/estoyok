@@ -547,6 +547,19 @@ fun MapaScreen(
                                                     .fillMaxSize()
                                                     .clip(CircleShape),
                                                 contentScale = ContentScale.Crop,
+                                                loading = {
+                                                    Box(
+                                                        modifier = Modifier.fillMaxSize(),
+                                                        contentAlignment = Alignment.Center
+                                                    ) {
+                                                        Text(
+                                                            text = initials,
+                                                            color = Color.White,
+                                                            fontWeight = FontWeight.ExtraBold,
+                                                            fontSize = 12.sp
+                                                        )
+                                                    }
+                                                },
                                                 error = {
                                                     Box(
                                                         modifier = Modifier.fillMaxSize(),
@@ -1244,6 +1257,19 @@ fun MemberRowItem(
                         contentDescription = "Avatar de ${member.name}",
                         modifier = Modifier.fillMaxSize(),
                         contentScale = ContentScale.Crop,
+                        loading = {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = initials,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary,
+                                    fontSize = 14.sp
+                                )
+                            }
+                        },
                         error = {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -1479,6 +1505,19 @@ fun MemberDetailsSheetContent(
                 contentDescription = "Foto de perfil",
                 modifier = Modifier.fillMaxSize(),
                 contentScale = ContentScale.Crop,
+                loading = {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = initials,
+                            fontSize = 32.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
                 error = {
                     Box(
                         modifier = Modifier.fillMaxSize(),

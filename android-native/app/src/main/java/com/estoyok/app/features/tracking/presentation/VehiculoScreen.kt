@@ -151,6 +151,19 @@ fun VehiculoScreen(
                                         .fillMaxSize()
                                         .clip(CircleShape),
                                     contentScale = ContentScale.Crop,
+                                    loading = {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = initials,
+                                                color = TextPrimary,
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 14.sp
+                                            )
+                                        }
+                                    },
                                     error = {
                                         Box(
                                             modifier = Modifier.fillMaxSize(),
