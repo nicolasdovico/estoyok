@@ -25,24 +25,56 @@ class DriveController extends Controller
             return response()->json(['message' => 'El miembro no pertenece a este círculo'], 400);
         }
 
-        // 2. Obtener los trayectos finalizados
-        $query = DriveEvent::where('user_id', $member->id)
+        // 2. Obtener los trayectos finalizados del miembro (ordenados cronológicamente)
+        $rawDrives = DriveEvent::where('user_id', $member->id)
             ->whereNotNull('end_time')
-            ->orderBy('start_time', 'desc');
+            ->orderBy('start_time', 'asc')
+            ->get();
+
+        $mergedDrives = [];
+        foreach ($rawDrives as $drive) {
+            if (empty($mergedDrives)) {
+                $mergedDrives[] = $drive;
+            } else {
+                $lastIndex = count($mergedDrives) - 1;
+                $last = $mergedDrives[$lastIndex];
+                
+                $lastEnd = strtotime($last->end_time);
+                $currentStart = strtotime($drive->start_time);
+                $gapSeconds = $currentStart - $lastEnd;
+                
+                // Si la diferencia es de 10 minutos o menos, los fusionamos en un solo bloque
+                if ($gapSeconds >= 0 && $gapSeconds <= 600) {
+                    // Actualizar fin de trayecto y velocidad máxima en memoria
+                    $last->end_time = $drive->end_time;
+                    $last->max_speed = max((float)$last->max_speed, (float)$drive->max_speed);
+                    $last->exceeded_speed_limit = (bool)$last->exceeded_speed_limit || (bool)$drive->exceeded_speed_limit;
+                    
+                    $mergedDrives[$lastIndex] = $last;
+                } else {
+                    $mergedDrives[] = $drive;
+                }
+            }
+        }
+
+        // Ordenar los trayectos fusionados en orden descendente (más recientes primero)
+        $mergedDrives = array_reverse($mergedDrives);
 
         $isPremium = (bool) $currentUser->is_premium;
 
         if (!$isPremium) {
             // Usuarios gratuitos solo acceden al último trayecto registrado como preview
-            $drives = $query->take(1)->get();
+            $drives = array_slice($mergedDrives, 0, 1);
         } else {
             // Usuarios premium acceden a los últimos 30 trayectos
-            $drives = $query->take(30)->get();
+            $drives = array_slice($mergedDrives, 0, 30);
         }
+
+        $drivesCollection = collect($drives);
 
         $speedLimit = $circle->speed_limit ?? 120;
 
-        $response = $drives->map(function ($drive) use ($speedLimit) {
+        $response = $drivesCollection->map(function ($drive) use ($speedLimit) {
             // Consultar las coordenadas históricas del trayecto
             $points = DB::select("
                 SELECT 
