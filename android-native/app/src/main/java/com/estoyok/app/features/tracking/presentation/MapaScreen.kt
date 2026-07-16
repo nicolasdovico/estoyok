@@ -40,6 +40,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -670,7 +672,16 @@ fun MapaScreen(
                                                 .border(1.5.dp, Color.White, CircleShape),
                                             contentAlignment = Alignment.Center
                                         ) {
-                                            Text(text = movementEmoji, fontSize = 13.sp)
+                                            Text(
+                                                text = movementEmoji,
+                                                fontSize = 13.sp,
+                                                textAlign = TextAlign.Center,
+                                                style = TextStyle(
+                                                    platformStyle = PlatformTextStyle(
+                                                        includeFontPadding = false
+                                                    )
+                                                )
+                                            )
                                         }
                                     }
                                 }
