@@ -48,7 +48,8 @@ fun VehiculoScreen(
 ) {
     val selectedCircle = viewModel.selectedCircle
     val selectedMember = viewModel.selectedMember
-    val drives = viewModel.memberDrives
+    val rawDrives = viewModel.memberDrives
+    val drives = remember(rawDrives) { groupAndMergeDrives(rawDrives) }
     val isPremium = viewModel.isPremiumDrives
     val isLoading = viewModel.isDrivesLoading
     val errorMessage = viewModel.drivesErrorMessage
@@ -846,6 +847,61 @@ private fun BadgeItem(text: String, color: Color) {
     ) {
         Text(text = text, color = color, fontSize = 10.sp, fontWeight = FontWeight.Bold)
     }
+}
+
+private fun parseIsoToSeconds(isoStr: String): Long {
+    val date = parseIsoDate(isoStr) ?: return 0L
+    return date.time / 1000L
+}
+
+private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberDriveEventDto> {
+    if (drives.isEmpty()) return emptyList()
+    val sortedDrives = drives.sortedBy { parseIsoToSeconds(it.startTime) }
+    val merged = mutableListOf<MemberDriveEventDto>()
+    for (drive in sortedDrives) {
+        if (merged.isEmpty()) {
+            merged.add(drive)
+        } else {
+            val last = merged.last()
+            val lastEnd = parseIsoToSeconds(last.endTime)
+            val currentStart = parseIsoToSeconds(drive.startTime)
+            val gapSeconds = currentStart - lastEnd
+            // Merge consecutive drives if gap is less than 10 minutes (600 seconds)
+            if (gapSeconds in 0..600) {
+                val mergedPoints = last.routePoints + drive.routePoints
+                val mergedHardBrakes = last.events.hardBrakes + drive.events.hardBrakes
+                val mergedAccelerations = last.events.rapidAccelerations + drive.events.rapidAccelerations
+                val mergedSpeedings = last.events.speeding + drive.events.speeding
+                
+                val newStartTime = last.startTime
+                val newEndTime = drive.endTime
+                val newDurationSeconds = parseIsoToSeconds(newEndTime) - parseIsoToSeconds(newStartTime)
+                val newDistanceKm = last.distanceKm + drive.distanceKm
+                val newMaxSpeed = maxOf(last.maxSpeed, drive.maxSpeed)
+                val newExceededSpeedLimit = last.exceededSpeedLimit || drive.exceededSpeedLimit
+                val newSafetyScore = ((last.safetyScore + drive.safetyScore) / 2)
+                
+                val updatedLast = last.copy(
+                    endTime = newEndTime,
+                    durationSeconds = newDurationSeconds,
+                    distanceKm = newDistanceKm,
+                    maxSpeed = newMaxSpeed,
+                    exceededSpeedLimit = newExceededSpeedLimit,
+                    safetyScore = newSafetyScore,
+                    routePoints = mergedPoints,
+                    events = last.events.copy(
+                        hardBrakes = mergedHardBrakes,
+                        rapidAccelerations = mergedAccelerations,
+                        speeding = mergedSpeedings
+                    )
+                )
+                merged[merged.lastIndex] = updatedLast
+            } else {
+                merged.add(drive)
+            }
+        }
+    }
+    return merged.sortedByDescending { parseIsoToSeconds(it.startTime) }
 }
 
 private fun parseIsoDate(isoString: String): Date? {
