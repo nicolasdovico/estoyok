@@ -39,6 +39,20 @@ fun AjustesScreen(
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    var showBackgroundLocationDialog by remember { mutableStateOf(false) }
+
+    val backgroundPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        if (granted) {
+            Toast.makeText(context, "Permiso de segundo plano concedido. La app te protegerá en todo momento.", Toast.LENGTH_LONG).show()
+            if (!viewModel.isTrackingServiceRunning) {
+                viewModel.toggleTrackingService(context)
+            }
+        } else {
+            Toast.makeText(context, "El rastreo en segundo plano requiere el permiso 'Permitir todo el tiempo'", Toast.LENGTH_LONG).show()
+        }
+    }
 
     val permissionsLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestMultiplePermissions()
@@ -51,7 +65,20 @@ fun AjustesScreen(
         }
         
         if (fineLocationGranted && notificationGranted) {
-            viewModel.toggleTrackingService(context)
+            val hasBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED
+            } else {
+                true
+            }
+            
+            if (!hasBackground) {
+                showBackgroundLocationDialog = true
+            } else {
+                viewModel.toggleTrackingService(context)
+            }
         } else {
             Toast.makeText(context, "Se necesitan permisos de ubicación y notificaciones para el rastreo", Toast.LENGTH_LONG).show()
         }
@@ -417,14 +444,32 @@ fun AjustesScreen(
                                 true
                             }
 
-                            if (hasLocation && hasNotifications) {
-                                viewModel.toggleTrackingService(context)
-                            } else if (checked) {
-                                val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-                                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                                    reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+                            if (checked) {
+                                if (hasLocation && hasNotifications) {
+                                    val hasBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                        ContextCompat.checkSelfPermission(
+                                            context,
+                                            Manifest.permission.ACCESS_BACKGROUND_LOCATION
+                                        ) == PackageManager.PERMISSION_GRANTED
+                                    } else {
+                                        true
+                                    }
+                                    if (!hasBackground) {
+                                        showBackgroundLocationDialog = true
+                                    } else if (!viewModel.isTrackingServiceRunning) {
+                                        viewModel.toggleTrackingService(context)
+                                    }
+                                } else {
+                                    val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+                                    }
+                                    permissionsLauncher.launch(reqs.toTypedArray())
                                 }
-                                permissionsLauncher.launch(reqs.toTypedArray())
+                            } else {
+                                if (viewModel.isTrackingServiceRunning) {
+                                    viewModel.toggleTrackingService(context)
+                                }
                             }
                         }
                     )
@@ -557,6 +602,61 @@ fun AjustesScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+
+        if (showBackgroundLocationDialog) {
+            AlertDialog(
+                onDismissRequest = { showBackgroundLocationDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Rastreo en Segundo Plano",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Estoy Ok recopila datos de ubicación para permitir el rastreo en tiempo real, alertas de zonas seguras y detección de choques incluso cuando la app está cerrada o no está en uso.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Para activar esta protección continua, selecciona 'Permitir todo el tiempo' en la configuración de ubicación.",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showBackgroundLocationDialog = false
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                backgroundPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+                            }
+                        }
+                    ) {
+                        Text("Configurar", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBackgroundLocationDialog = false }) {
+                        Text("Ahora no", color = MaterialTheme.colorScheme.outline)
+                    }
+                }
+            )
         }
     }
 }
