@@ -916,16 +916,10 @@
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+## [2026-07-16] Corrección de Pérdida de Rastreo en Segundo Plano y UX de Permisos
+- **App Móvil Nativa (Android/Kotlin):**
+    - Se agregaron logs detallados (`Log.d`/`Log.e`) a `TrackingService.kt` y `LocationRepositoryImpl.kt` para simplificar la depuración con `adb logcat`.
+    - Se solucionó la cola de ubicaciones offline local (Room): ahora, cuando el dispositivo reporta una coordenada en vivo con éxito, se invoca `flushOfflineQueue()` de forma reactiva en segundo plano para subir todas las coordenadas acumuladas por pérdida de red durante traslados.
+    - Se implementó un diálogo de advertencia prominente ("Prominent Disclosure") para el permiso de ubicación en segundo plano (`ACCESS_BACKGROUND_LOCATION`) tanto en `MapaScreen.kt` como en `AjustesScreen.kt`. Si el usuario tiene el permiso configurado solo en "Con la app en uso", se le explica la importancia del rastreo en segundo plano y se le redirige de forma amigable a la pantalla de Ajustes del sistema para activar "Permitir todo el tiempo".
+- **Validación:**
+    - Se verificó la compilación de la app nativa en Kotlin exitosamente (`BUILD SUCCESSFUL`).
