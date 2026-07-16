@@ -39,6 +39,7 @@ import com.google.maps.android.compose.*
 import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -847,76 +848,48 @@ private fun BadgeItem(text: String, color: Color) {
     }
 }
 
-private fun formatTime(isoString: String): String {
-    return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
+private fun parseIsoDate(isoString: String): Date? {
+    val patterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd HH:mm:ss"
+    )
+    for (pattern in patterns) {
+        try {
+            val parser = SimpleDateFormat(pattern, Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val date = parser.parse(isoString)
+            if (date != null) return date
+        } catch (e: Exception) {
+            // Try next pattern
         }
-        val date = parser.parse(isoString) ?: return isoString
+    }
+    return null
+}
+
+private fun formatTime(isoString: String): String {
+    val date = parseIsoDate(isoString) ?: return isoString
+    return try {
         val formatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
             timeZone = TimeZone.getDefault()
         }
         formatter.format(date)
     } catch (e: Exception) {
-        try {
-            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val date = parser.parse(isoString) ?: return isoString
-            val formatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
-                timeZone = TimeZone.getDefault()
-            }
-            formatter.format(date)
-        } catch (e: Exception) {
-            try {
-                val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC")
-                }
-                val date = parser.parse(isoString) ?: return isoString
-                val formatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getDefault()
-                }
-                formatter.format(date)
-            } catch (e2: Exception) {
-                isoString
-            }
-        }
+        isoString
     }
 }
 
 private fun formatDate(isoString: String): String {
+    val date = parseIsoDate(isoString) ?: return isoString
     return try {
-        val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val date = parser.parse(isoString) ?: return isoString
         val formatter = SimpleDateFormat("dd 'de' MMMM", Locale.getDefault()).apply {
             timeZone = TimeZone.getDefault()
         }
         formatter.format(date)
     } catch (e: Exception) {
-        try {
-            val parser = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val date = parser.parse(isoString) ?: return isoString
-            val formatter = SimpleDateFormat("dd 'de' MMMM", Locale.getDefault()).apply {
-                timeZone = TimeZone.getDefault()
-            }
-            formatter.format(date)
-        } catch (e: Exception) {
-            try {
-                val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getTimeZone("UTC")
-                }
-                val date = parser.parse(isoString) ?: return isoString
-                val formatter = SimpleDateFormat("dd 'de' MMMM", Locale.getDefault()).apply {
-                    timeZone = TimeZone.getDefault()
-                }
-                formatter.format(date)
-            } catch (e2: Exception) {
-                isoString
-            }
-        }
+        isoString
     }
 }

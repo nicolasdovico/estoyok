@@ -1575,31 +1575,36 @@ fun MemberRowItem(
     }
 }
 
+private fun parseIsoDate(isoString: String): Date? {
+    val patterns = listOf(
+        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
+        "yyyy-MM-dd'T'HH:mm:ssXXX",
+        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+        "yyyy-MM-dd HH:mm:ss"
+    )
+    for (pattern in patterns) {
+        try {
+            val parser = SimpleDateFormat(pattern, Locale.getDefault()).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            val date = parser.parse(isoString)
+            if (date != null) return date
+        } catch (e: Exception) {
+            // Try next
+        }
+    }
+    return null
+}
+
 private fun formatLastSeen(isoTimestamp: String?): String {
     if (isoTimestamp == null) return "Nunca"
+    val date = parseIsoDate(isoTimestamp) ?: return "Reciente"
     return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val inputFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val sqlFallback = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
-        }
-        val date = try {
-            inputFormat.parse(isoTimestamp)
-        } catch (e: Exception) {
-            try {
-                inputFallback.parse(isoTimestamp)
-            } catch (e2: Exception) {
-                sqlFallback.parse(isoTimestamp)
-            }
-        }
         val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
             timeZone = TimeZone.getDefault()
         }
-        outputFormat.format(date!!)
+        outputFormat.format(date)
     } catch (e: Exception) {
         "Reciente"
     }
