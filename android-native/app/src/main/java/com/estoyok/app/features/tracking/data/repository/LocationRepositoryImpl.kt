@@ -30,25 +30,29 @@ class LocationRepositoryImpl @Inject constructor(
         
         if (!isOnline) {
             // Save to offline Room database
+            android.util.Log.d("LocationRepository", "Device is offline. Saving location to Room database.")
             saveOffline(request)
             emit(Resource.Success(LocationUpdateResponse("Ubicación guardada localmente (Sin Conexión).", false)))
             return@flow
         }
 
         try {
+            android.util.Log.d("LocationRepository", "Sending location update to API: Lat: ${request.latitude}, Lng: ${request.longitude}")
             val response = apiService.updateLocation(request)
             if (response.isSuccessful && response.body() != null) {
+                android.util.Log.d("LocationRepository", "Location update successful! Response: ${response.body()?.message}")
                 emit(Resource.Success(response.body()!!))
             } else {
-                // If it fails with server error (e.g. 500), write offline to avoid data loss
+                android.util.Log.e("LocationRepository", "Server returned error code: ${response.code()}")
                 saveOffline(request)
                 emit(Resource.Success(LocationUpdateResponse("Error de servidor. Guardado localmente.", false)))
             }
-        } catch (e: IOException) {
-            // Network failure during execution, fallback offline
+        } catch (e: java.io.IOException) {
+            android.util.Log.e("LocationRepository", "Network connection error: ${e.message}")
             saveOffline(request)
             emit(Resource.Success(LocationUpdateResponse("Error de red. Guardado localmente.", false)))
         } catch (e: Exception) {
+            android.util.Log.e("LocationRepository", "Unexpected error: ${e.message}", e)
             emit(Resource.Error("Ocurrió un error inesperado al enviar ubicación."))
         }
     }

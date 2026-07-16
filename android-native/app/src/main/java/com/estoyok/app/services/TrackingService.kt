@@ -52,8 +52,8 @@ class TrackingService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
 
-    private var currentIntervalMs = 30000L // Default 30s
-    private var currentMinDistance = 15f   // Default 15m
+    private var currentIntervalMs = 10000L // Default 10s for testing
+    private var currentMinDistance = 0f   // Default 0m for testing
     private var stationaryStartTime: Long = 0L
     private var isTrackingActive = false
 
@@ -86,6 +86,7 @@ class TrackingService : Service(), SensorEventListener {
 
     override fun onCreate() {
         super.onCreate()
+        android.util.Log.d("TrackingService", "onCreate called")
         isRunning = true
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
@@ -94,16 +95,17 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        android.util.Log.d("TrackingService", "onStartCommand called with action: ${intent?.action}")
         when (intent?.action) {
             ACTION_START -> {
-                val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
+                val interval = intent.getLongExtra(EXTRA_INTERVAL, 10000L)
                 startTracking(interval)
             }
             ACTION_STOP -> {
                 stopTracking()
             }
             ACTION_UPDATE_INTERVAL -> {
-                val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
+                val interval = intent.getLongExtra(EXTRA_INTERVAL, 10000L)
                 updateInterval(interval)
             }
         }
@@ -111,6 +113,7 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun startTracking(interval: Long) {
+        android.util.Log.d("TrackingService", "startTracking called. isTrackingActive: $isTrackingActive")
         if (isTrackingActive) return
         isTrackingActive = true
         currentIntervalMs = interval
@@ -122,10 +125,10 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun updateInterval(newInterval: Long) {
+        android.util.Log.d("TrackingService", "updateInterval called. newInterval: $newInterval")
         if (currentIntervalMs == newInterval) return
         currentIntervalMs = newInterval
-        // If it's an emergency or active checking, disable distance filter. Otherwise use default 15m.
-        currentMinDistance = if (newInterval <= 5000L) 0f else 15f
+        currentMinDistance = 0f // Keep 0m distance filter for testing
         if (isTrackingActive) {
             stopLocationUpdates()
             startLocationUpdates()
@@ -133,6 +136,7 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun stopTracking() {
+        android.util.Log.d("TrackingService", "stopTracking called")
         isTrackingActive = false
         stopLocationUpdates()
         unregisterAccelerometer()
@@ -141,6 +145,7 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun startLocationUpdates() {
+        android.util.Log.d("TrackingService", "startLocationUpdates called. Interval: $currentIntervalMs, MinDistance: $currentMinDistance")
         if (ActivityCompat.checkSelfPermission(
                 this,
                 Manifest.permission.ACCESS_FINE_LOCATION
@@ -149,6 +154,7 @@ class TrackingService : Service(), SensorEventListener {
                 Manifest.permission.ACCESS_COARSE_LOCATION
             ) != PackageManager.PERMISSION_GRANTED
         ) {
+            android.util.Log.e("TrackingService", "Location permissions NOT GRANTED. Stopping tracking service.")
             stopTracking()
             return
         }
@@ -164,6 +170,7 @@ class TrackingService : Service(), SensorEventListener {
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
+                android.util.Log.d("TrackingService", "onLocationResult received ${locationResult.locations.size} locations")
                 for (location in locationResult.locations) {
                     processLocationUpdate(location)
                 }
@@ -178,6 +185,7 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun stopLocationUpdates() {
+        android.util.Log.d("TrackingService", "stopLocationUpdates called")
         locationCallback?.let {
             fusedLocationClient.removeLocationUpdates(it)
         }
@@ -185,6 +193,7 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun processLocationUpdate(location: Location) {
+        android.util.Log.d("TrackingService", "processLocationUpdate: Lat: ${location.latitude}, Lng: ${location.longitude}, Speed: ${location.speed}, Accuracy: ${location.accuracy}")
         lastLatitude = location.latitude
         lastLongitude = location.longitude
         lastAccuracy = location.accuracy
@@ -213,52 +222,26 @@ class TrackingService : Service(), SensorEventListener {
                 isDriving = isDriving
             )
 
+            android.util.Log.d("TrackingService", "Calling locationRepository.updateLocation. isOnline: $isOnline")
             locationRepository.updateLocation(request, isOnline).collectLatest { resource ->
+                android.util.Log.d("TrackingService", "updateLocation resource: ${resource.javaClass.simpleName}")
                 if (resource is Resource.Success) {
                     val data = resource.data
+                    android.util.Log.d("TrackingService", "updateLocation Success! Message: ${data?.message}, activeGeofence: ${data?.activeDynamicGeofence}")
                     if (data?.activeDynamicGeofence == true) {
                         updateInterval(5000L) // GPS high fidelity for relative geofencing
                     }
+                } else if (resource is Resource.Error) {
+                    android.util.Log.e("TrackingService", "updateLocation Error: ${resource.message}")
                 }
             }
         }
     }
 
     private fun adjustTrackingMode(speedMps: Float) {
-        val speedKmh = speedMps * 3.6f
-        val now = System.currentTimeMillis()
-
-        val (targetInterval, targetDistance) = when {
-            // Vehicle: Speed > 15 km/h
-            speedKmh > 15.0f -> {
-                stationaryStartTime = 0L
-                Pair(10000L, 40f)
-            }
-            // Walking: Speed between 1.5 and 15 km/h
-            speedKmh > 1.5f -> {
-                stationaryStartTime = 0L
-                Pair(30000L, 15f)
-            }
-            // Stationary candidate: Speed < 1.5 km/h
-            else -> {
-                if (stationaryStartTime == 0L) {
-                    stationaryStartTime = now
-                }
-                
-                // Only enter Stationary low-power mode after 2 minutes of zero activity
-                if (now - stationaryStartTime >= 120000L) {
-                    Pair(300000L, 20f)
-                } else {
-                    // Stay in the last active mode (default to Walking if unknown, or keep current)
-                    if (currentIntervalMs <= 10000L) Pair(10000L, 40f) else Pair(30000L, 15f)
-                }
-            }
-        }
-
-        // If emergency or check-in alert is active, force maximum high-frequency mode (5s updates)
-        if (currentIntervalMs <= 5000L && targetInterval > 5000L) {
-            return
-        }
+        // Keep it locked at 10 seconds / 0 meters for testing to guarantee continuous updates
+        val targetInterval = 10000L
+        val targetDistance = 0f
 
         if (currentIntervalMs != targetInterval || currentMinDistance != targetDistance) {
             currentIntervalMs = targetInterval
