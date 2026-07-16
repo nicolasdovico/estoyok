@@ -52,8 +52,8 @@ class TrackingService : Service(), SensorEventListener {
     private lateinit var sensorManager: SensorManager
     private var accelerometer: Sensor? = null
 
-    private var currentIntervalMs = 10000L // Default 10s for testing
-    private var currentMinDistance = 0f   // Default 0m for testing
+    private var currentIntervalMs = 30000L // Default 30s
+    private var currentMinDistance = 15f   // Default 15m
     private var stationaryStartTime: Long = 0L
     private var isTrackingActive = false
 
@@ -98,14 +98,14 @@ class TrackingService : Service(), SensorEventListener {
         android.util.Log.d("TrackingService", "onStartCommand called with action: ${intent?.action}")
         when (intent?.action) {
             ACTION_START -> {
-                val interval = intent.getLongExtra(EXTRA_INTERVAL, 10000L)
+                val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
                 startTracking(interval)
             }
             ACTION_STOP -> {
                 stopTracking()
             }
             ACTION_UPDATE_INTERVAL -> {
-                val interval = intent.getLongExtra(EXTRA_INTERVAL, 10000L)
+                val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
                 updateInterval(interval)
             }
         }
@@ -128,7 +128,8 @@ class TrackingService : Service(), SensorEventListener {
         android.util.Log.d("TrackingService", "updateInterval called. newInterval: $newInterval")
         if (currentIntervalMs == newInterval) return
         currentIntervalMs = newInterval
-        currentMinDistance = 0f // Keep 0m distance filter for testing
+        // If it's an emergency or active checking, disable distance filter. Otherwise use default 15m.
+        currentMinDistance = if (newInterval <= 5000L) 0f else 15f
         if (isTrackingActive) {
             stopLocationUpdates()
             startLocationUpdates()
@@ -253,9 +254,40 @@ class TrackingService : Service(), SensorEventListener {
     }
 
     private fun adjustTrackingMode(speedMps: Float) {
-        // Keep it locked at 10 seconds / 0 meters for testing to guarantee continuous updates
-        val targetInterval = 10000L
-        val targetDistance = 0f
+        val speedKmh = speedMps * 3.6f
+        val now = System.currentTimeMillis()
+
+        val (targetInterval, targetDistance) = when {
+            // Vehicle: Speed > 15 km/h
+            speedKmh > 15.0f -> {
+                stationaryStartTime = 0L
+                Pair(10000L, 40f)
+            }
+            // Walking: Speed between 1.5 and 15 km/h
+            speedKmh > 1.5f -> {
+                stationaryStartTime = 0L
+                Pair(30000L, 15f)
+            }
+            // Stationary candidate: Speed < 1.5 km/h
+            else -> {
+                if (stationaryStartTime == 0L) {
+                    stationaryStartTime = now
+                }
+                
+                // Only enter Stationary low-power mode after 2 minutes of zero activity
+                if (now - stationaryStartTime >= 120000L) {
+                    Pair(300000L, 20f)
+                } else {
+                    // Stay in the last active mode (default to Walking if unknown, or keep current)
+                    if (currentIntervalMs <= 10000L) Pair(10000L, 40f) else Pair(30000L, 15f)
+                }
+            }
+        }
+
+        // If emergency or check-in alert is active, force maximum high-frequency mode (5s updates)
+        if (currentIntervalMs <= 5000L && targetInterval > 5000L) {
+            return
+        }
 
         if (currentIntervalMs != targetInterval || currentMinDistance != targetDistance) {
             currentIntervalMs = targetInterval
