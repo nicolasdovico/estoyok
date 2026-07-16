@@ -500,7 +500,11 @@ fun MapaScreen(
                     }
 
                     val hasBitmap = markerBitmaps[member.id] != null
-                    val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
+                    val movementEmoji = if (isOffline || isTrackingOff || isGpsOff) {
+                        null
+                    } else {
+                        getMovementEmoji(loc.speed, loc.isDriving)
+                    }
 
                     key(member.id, hasBitmap, borderColor, movementEmoji) {
                         val markerState = rememberMarkerState(position = latLng)
@@ -539,28 +543,35 @@ fun MapaScreen(
                                 modifier = Modifier.wrapContentSize()
                             ) {
                                 val subtitleText = run {
-                                    val isD = loc.isDriving == true
-                                    val speedKmh = loc.speed ?: 0.0f
-                                    if (isD || speedKmh >= 15.0f) {
-                                        "${speedKmh.toInt()} km/h"
-                                    } else {
-                                        val stayInfo = stayTracker[member.id]
-                                        if (stayInfo != null) {
-                                            val durationMs = System.currentTimeMillis() - stayInfo.second
-                                            val durationMins = durationMs / 60000L
-                                            if (durationMins > 0) {
-                                                if (durationMins >= 60) {
-                                                    val hours = durationMins / 60
-                                                    val mins = durationMins % 60
-                                                    if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
-                                                } else {
-                                                    "${durationMins} min"
-                                                }
+                                    when {
+                                        isTrackingOff -> "Rastreo Apagado"
+                                        isGpsOff -> "GPS Apagado"
+                                        isOffline -> "Sin Señal"
+                                        else -> {
+                                            val isD = loc.isDriving == true
+                                            val speedKmh = loc.speed ?: 0.0f
+                                            if (isD || speedKmh >= 15.0f) {
+                                                "${speedKmh.toInt()} km/h"
                                             } else {
-                                                "Reciente"
+                                                val stayInfo = stayTracker[member.id]
+                                                if (stayInfo != null) {
+                                                    val durationMs = System.currentTimeMillis() - stayInfo.second
+                                                    val durationMins = durationMs / 60000L
+                                                    if (durationMins > 0) {
+                                                        if (durationMins >= 60) {
+                                                            val hours = durationMins / 60
+                                                            val mins = durationMins % 60
+                                                            if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
+                                                        } else {
+                                                            "${durationMins} min"
+                                                        }
+                                                    } else {
+                                                        "Reciente"
+                                                    }
+                                                } else {
+                                                    null
+                                                }
                                             }
-                                        } else {
-                                            null
                                         }
                                     }
                                 }
