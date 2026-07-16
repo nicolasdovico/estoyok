@@ -868,7 +868,18 @@ private fun formatTime(isoString: String): String {
             }
             formatter.format(date)
         } catch (e: Exception) {
-            isoString
+            try {
+                val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val date = parser.parse(isoString) ?: return isoString
+                val formatter = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getDefault()
+                }
+                formatter.format(date)
+            } catch (e2: Exception) {
+                isoString
+            }
         }
     }
 }
@@ -894,7 +905,18 @@ private fun formatDate(isoString: String): String {
             }
             formatter.format(date)
         } catch (e: Exception) {
-            isoString
+            try {
+                val parser = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val date = parser.parse(isoString) ?: return isoString
+                val formatter = SimpleDateFormat("dd 'de' MMMM", Locale.getDefault()).apply {
+                    timeZone = TimeZone.getDefault()
+                }
+                formatter.format(date)
+            } catch (e2: Exception) {
+                isoString
+            }
         }
     }
 }

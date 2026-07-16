@@ -1584,12 +1584,21 @@ private fun formatLastSeen(isoTimestamp: String?): String {
         val inputFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
             timeZone = TimeZone.getTimeZone("UTC")
         }
+        val sqlFallback = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.getDefault()).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
         val date = try {
             inputFormat.parse(isoTimestamp)
         } catch (e: Exception) {
-            inputFallback.parse(isoTimestamp)
+            try {
+                inputFallback.parse(isoTimestamp)
+            } catch (e2: Exception) {
+                sqlFallback.parse(isoTimestamp)
+            }
         }
-        val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault()).apply {
+            timeZone = TimeZone.getDefault()
+        }
         outputFormat.format(date!!)
     } catch (e: Exception) {
         "Reciente"
