@@ -519,23 +519,36 @@ fun MapaScreen(
                                 if (isD || speedKmh >= 15.0f) {
                                     "${speedKmh.toInt()} km/h"
                                 } else {
+                                    val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
+                                        haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
+                                    }
                                     val stayInfo = stayTracker[member.id]
                                     if (stayInfo != null) {
                                         val durationMs = System.currentTimeMillis() - stayInfo.second
                                         val durationMins = durationMs / 60000L
-                                        if (durationMins > 0) {
+                                        val durationStr = if (durationMins > 0) {
                                             if (durationMins >= 60) {
                                                 val hours = durationMins / 60
                                                 val mins = durationMins % 60
-                                                if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
+                                                if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
                                             } else {
                                                 "${durationMins} min"
                                             }
                                         } else {
-                                            "Reciente"
+                                            null
+                                        }
+
+                                        if (matchingGeofence != null) {
+                                            if (durationStr != null) "En ${matchingGeofence.name} desde hace $durationStr" else "En ${matchingGeofence.name}"
+                                        } else {
+                                            if (durationStr != null) "Aquí desde hace $durationStr" else "Aquí"
                                         }
                                     } else {
-                                        null
+                                        if (matchingGeofence != null) {
+                                            "En ${matchingGeofence.name}"
+                                        } else {
+                                            null
+                                        }
                                     }
                                 }
                             }
