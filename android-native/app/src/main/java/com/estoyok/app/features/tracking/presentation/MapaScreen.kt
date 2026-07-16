@@ -568,51 +568,51 @@ fun MapaScreen(
                                 if (!subtitleText.isNullOrEmpty()) {
                                     Card(
                                         colors = CardDefaults.cardColors(
-                                            containerColor = DarkSurface.copy(alpha = 0.9f)
+                                            containerColor = DarkSurface.copy(alpha = 0.95f)
                                         ),
-                                        shape = RoundedCornerShape(6.dp),
-                                        border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                                        shape = RoundedCornerShape(12.dp),
+                                        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.8f)),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
                                     ) {
                                         Text(
                                             text = subtitleText,
-                                            fontSize = 7.5.sp,
+                                            fontSize = 9.sp,
                                             color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
+                                            fontWeight = FontWeight.ExtraBold,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
                                             maxLines = 1
                                         )
                                     }
-                                    Spacer(modifier = Modifier.height(2.dp))
+                                    Spacer(modifier = Modifier.height(3.dp))
                                 }
 
-                                // 2. Avatar and pointer container (so pointer tip is the extreme bottom)
+                                // Unified Pin shape container (Avatar + Pointer Tail + Movement Badge)
                                 Box(
-                                    modifier = Modifier.wrapContentSize(),
+                                    modifier = Modifier
+                                        .size(width = 56.dp, height = 56.dp),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
-                                    // Pointer arrow pointing down (rotated square) at the bottom
+                                    // 1. Pointer tail (rotated square) centered at the bottom
                                     Box(
                                         modifier = Modifier
-                                            .padding(bottom = 2.dp)
-                                            .size(8.dp)
+                                            .padding(bottom = 6.dp)
+                                            .size(14.dp)
                                             .graphicsLayer(rotationZ = 45f)
                                             .background(borderColor)
                                     )
 
-                                    // Avatar circle container (with bottom padding to lift it above the pointer tip)
+                                    // 2. Avatar circle container pushed to the top
                                     Box(
                                         modifier = Modifier
-                                            .padding(bottom = 6.dp)
-                                            .size(width = 56.dp, height = 50.dp)
+                                            .padding(bottom = 8.dp)
+                                            .size(48.dp)
+                                            .align(Alignment.TopCenter)
                                     ) {
                                         Box(
                                             modifier = Modifier
-                                                .size(44.dp)
-                                                .align(Alignment.TopCenter)
-                                                .background(CardBackground, CircleShape)
-                                                .border(2.dp, borderColor, CircleShape)
-                                                .padding(2.dp),
+                                                .fillMaxSize()
+                                                .background(borderColor, CircleShape)
+                                                .padding(3.dp), // Solid 3dp thick border
                                             contentAlignment = Alignment.Center
                                         ) {
                                             val initials = member.name.split(" ")
@@ -633,30 +633,33 @@ fun MapaScreen(
                                                 )
                                             } else {
                                                 Box(
-                                                    modifier = Modifier.fillMaxSize(),
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(CardBackground, CircleShape),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
                                                         text = initials,
                                                         color = Color.White,
                                                         fontWeight = FontWeight.ExtraBold,
-                                                        fontSize = 12.sp
+                                                        fontSize = 13.sp
                                                     )
                                                 }
                                             }
                                         }
+                                    }
 
-                                        if (movementEmoji != null) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(18.dp)
-                                                    .align(Alignment.BottomEnd)
-                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                                    .border(1.dp, Color.White, CircleShape),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                Text(text = movementEmoji, fontSize = 10.sp)
-                                            }
+                                    // 3. Movement badge overlay (larger and clearer) aligned at bottom right
+                                    if (movementEmoji != null) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(24.dp)
+                                                .align(Alignment.BottomEnd)
+                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                .border(1.5.dp, Color.White, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(text = movementEmoji, fontSize = 13.sp)
                                         }
                                     }
                                 }
