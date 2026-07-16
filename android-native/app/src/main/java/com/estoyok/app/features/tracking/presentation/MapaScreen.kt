@@ -126,20 +126,22 @@ fun MapaScreen(
     val markerBitmaps = remember { mutableStateMapOf<Int, Bitmap>() }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Pair(viewModel.selectedCircleMembers, viewModel.avatarVersion) }
-            .collect { (members, version) ->
+        snapshotFlow { Triple(viewModel.selectedCircleMembers, viewModel.avatarVersion, viewModel.currentUserProfile) }
+            .collect { (members, version, profile) ->
                 members.forEach { member ->
                     val url = member.avatarUrl
                     if (!url.isNullOrEmpty() && url != "null") {
-                        val finalUrl = if (member.id == viewModel.currentUserProfile?.id) {
+                        val isCurrentUser = profile != null && member.id == profile.id
+                        val finalUrl = if (isCurrentUser) {
                             "$url?v=$version"
                         } else {
                             url
                         }
                         val isCached = markerBitmaps.containsKey(member.id)
-                        if (!isCached || member.id == viewModel.currentUserProfile?.id) {
+                        if (!isCached || isCurrentUser) {
                             launch {
                                 try {
+                                    android.util.Log.d("MapaScreen", "Downloading marker avatar for ${member.name} (isCurrentUser: $isCurrentUser) from: $finalUrl")
                                     val request = coil.request.ImageRequest.Builder(context)
                                         .data(finalUrl)
                                         .allowHardware(false)
@@ -148,9 +150,12 @@ fun MapaScreen(
                                     if (result is coil.request.SuccessResult) {
                                         val drawable = result.drawable
                                         markerBitmaps[member.id] = drawable.toBitmap()
+                                        android.util.Log.d("MapaScreen", "Successfully downloaded avatar for ${member.name}")
+                                    } else {
+                                        android.util.Log.e("MapaScreen", "Failed to download avatar for ${member.name}")
                                     }
                                 } catch (e: Exception) {
-                                    e.printStackTrace()
+                                    android.util.Log.e("MapaScreen", "Error downloading avatar for ${member.name}: ${e.message}", e)
                                 }
                             }
                         }
