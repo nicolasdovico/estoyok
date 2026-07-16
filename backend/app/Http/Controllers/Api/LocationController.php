@@ -130,6 +130,20 @@ class LocationController extends Controller
                         ->whereNull('end_time')
                         ->first();
 
+                    if (!$activeDriveEvent) {
+                        $lastClosedDrive = DriveEvent::where('user_id', $user->id)
+                            ->whereNotNull('end_time')
+                            ->orderBy('end_time', 'desc')
+                            ->first();
+
+                        if ($lastClosedDrive && abs($recordedAt->diffInSeconds($lastClosedDrive->end_time)) <= 600) {
+                            $activeDriveEvent = $lastClosedDrive;
+                            $activeDriveEvent->update([
+                                'end_time' => null
+                            ]);
+                        }
+                    }
+
                     $exceeded = false;
                     $minLimit = $user->circles()->min('speed_limit') ?? 120;
                     if ($speedKmh !== null && $speedKmh > $minLimit) {
