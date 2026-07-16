@@ -63,8 +63,14 @@ fun VehiculoScreen(
                 ?: selectedCircle.members.firstOrNull()
             if (myMember != null) {
                 viewModel.selectedMember = myMember
-                viewModel.loadMemberDrives(myMember.id)
             }
+        }
+    }
+
+    // Load drives whenever selectedMember changes to prevent showing previously loaded user drives
+    LaunchedEffect(selectedMember) {
+        if (selectedMember != null) {
+            viewModel.loadMemberDrives(selectedMember.id)
         }
     }
 
@@ -874,7 +880,7 @@ private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberD
                 val mergedSpeedings = last.events.speeding + drive.events.speeding
                 
                 val newStartTime = last.startTime
-                val newEndTime = drive.endTime
+                val newEndTime = if (parseIsoToSeconds(drive.endTime) > parseIsoToSeconds(last.endTime)) drive.endTime else last.endTime
                 val newDurationSeconds = parseIsoToSeconds(newEndTime) - parseIsoToSeconds(newStartTime)
                 val newDistanceKm = last.distanceKm + drive.distanceKm
                 val newMaxSpeed = maxOf(last.maxSpeed, drive.maxSpeed)
