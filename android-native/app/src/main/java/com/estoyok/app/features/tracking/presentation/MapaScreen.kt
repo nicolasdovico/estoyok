@@ -259,6 +259,7 @@ fun MapaScreen(
     var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
 
     val stayTracker = remember { mutableStateMapOf<Int, Pair<LatLng, Long>>() }
+    val lastCoordinates = remember { mutableStateMapOf<Int, LatLng>() }
     LaunchedEffect(viewModel.selectedCircleMembers) {
         val now = System.currentTimeMillis()
         viewModel.selectedCircleMembers.forEach { member ->
@@ -483,6 +484,10 @@ fun MapaScreen(
                 val loc = member.currentLocation
                 if (loc != null) {
                     val latLng = LatLng(loc.latitude, loc.longitude)
+                    val prevLatLng = lastCoordinates[member.id]
+                    SideEffect {
+                        lastCoordinates[member.id] = latLng
+                    }
                     val titleText = member.name
                     val snippetText = buildString {
                         append("Batería: ${loc.batteryLevel?.let { (it * 100).toInt() } ?: 100}%")
@@ -560,6 +565,8 @@ fun MapaScreen(
                         LaunchedEffect(latLng) {
                             val startLatLng = markerState.position
                             val endLatLng = latLng
+                            
+                            // 1. Smooth interpolation to the newly received coordinate
                             if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
                                 val duration = 1500L
                                 val startTime = System.currentTimeMillis()
@@ -574,6 +581,26 @@ fun MapaScreen(
                                 }
                             } else {
                                 markerState.position = latLng
+                            }
+
+                            // 2. Dead Reckoning (Extrapolation) if the user is in movement
+                            val isMoving = !isOffline && !isTrackingOff && !isGpsOff && (loc.speed ?: 0.0f) >= 1.5f
+                            if (isMoving && prevLatLng != null) {
+                                val dLat = endLatLng.latitude - prevLatLng.latitude
+                                val dLng = endLatLng.longitude - prevLatLng.longitude
+                                
+                                // Velocity step per millisecond assuming 10 seconds update interval
+                                val vLatPerMs = dLat / 10000.0
+                                val vLngPerMs = dLng / 10000.0
+                                
+                                val startExtrapolatingTime = System.currentTimeMillis()
+                                while (true) {
+                                    val elapsedMs = System.currentTimeMillis() - startExtrapolatingTime
+                                    val extLat = endLatLng.latitude + vLatPerMs * elapsedMs
+                                    val extLng = endLatLng.longitude + vLngPerMs * elapsedMs
+                                    markerState.position = LatLng(extLat, extLng)
+                                    kotlinx.coroutines.delay(50)
+                                }
                             }
                         }
 
