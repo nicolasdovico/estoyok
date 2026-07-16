@@ -228,6 +228,20 @@ class TrackingService : Service(), SensorEventListener {
                 if (resource is Resource.Success) {
                     val data = resource.data
                     android.util.Log.d("TrackingService", "updateLocation Success! Message: ${data?.message}, activeGeofence: ${data?.activeDynamicGeofence}")
+                    
+                    // Flush offline queue if we are online and successfully sent the current location
+                    if (isOnline) {
+                        serviceScope.launch {
+                            locationRepository.flushOfflineQueue().collectLatest { syncResource ->
+                                if (syncResource is Resource.Success) {
+                                    android.util.Log.d("TrackingService", "Synced ${syncResource.data} offline locations from Room.")
+                                } else if (syncResource is Resource.Error) {
+                                    android.util.Log.e("TrackingService", "Failed to sync offline locations: ${syncResource.message}")
+                                }
+                            }
+                        }
+                    }
+
                     if (data?.activeDynamicGeofence == true) {
                         updateInterval(5000L) // GPS high fidelity for relative geofencing
                     }
