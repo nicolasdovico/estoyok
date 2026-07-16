@@ -489,7 +489,20 @@ fun MapaScreen(
                         }
                     }
 
-                    key(member.id) {
+                    val isOffline = loc.isOffline == true
+                    val isTrackingOff = loc.isTrackingActive == false
+                    val isGpsOff = loc.gpsEnabled == false
+
+                    val borderColor = when {
+                        isTrackingOff || isOffline -> TextMuted
+                        isGpsOff -> PrimaryOrange
+                        else -> PrimaryEmerald
+                    }
+
+                    val hasBitmap = markerBitmaps[member.id] != null
+                    val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
+
+                    key(member.id, hasBitmap, borderColor, movementEmoji) {
                         val markerState = rememberMarkerState(position = latLng)
                         LaunchedEffect(latLng) {
                             val startLatLng = markerState.position
@@ -511,153 +524,138 @@ fun MapaScreen(
                             }
                         }
 
-                        val isOffline = loc.isOffline == true
-                        val isTrackingOff = loc.isTrackingActive == false
-                        val isGpsOff = loc.gpsEnabled == false
-
-                        val borderColor = when {
-                            isTrackingOff || isOffline -> TextMuted
-                            isGpsOff -> PrimaryOrange
-                            else -> PrimaryEmerald
-                        }
-
-                        val hasBitmap = markerBitmaps[member.id] != null
-                        val movementEmoji = getMovementEmoji(loc.speed, loc.isDriving)
-
-                        key(hasBitmap, borderColor, movementEmoji) {
-                            MarkerComposable(
-                                state = markerState,
-                                title = titleText,
-                                snippet = snippetText,
-                                onClick = {
-                                    selectedMemberForMap = member
-                                    viewModel.selectedMember = member
-                                    true
-                                }
+                        MarkerComposable(
+                            state = markerState,
+                            title = titleText,
+                            snippet = snippetText,
+                            onClick = {
+                                selectedMemberForMap = member
+                                viewModel.selectedMember = member
+                                true
+                            }
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.wrapContentSize()
                             ) {
-                                Column(
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    modifier = Modifier.wrapContentSize()
-                                ) {
-                                    val subtitleText = run {
-                                        val isD = loc.isDriving == true
-                                        val speedKmh = loc.speed ?: 0.0f
-                                        if (isD || speedKmh >= 15.0f) {
-                                            "${speedKmh.toInt()} km/h"
-                                        } else {
-                                            val stayInfo = stayTracker[member.id]
-                                            if (stayInfo != null) {
-                                                val durationMs = System.currentTimeMillis() - stayInfo.second
-                                                val durationMins = durationMs / 60000L
-                                                if (durationMins > 0) {
-                                                    if (durationMins >= 60) {
-                                                        val hours = durationMins / 60
-                                                        val mins = durationMins % 60
-                                                        if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
-                                                    } else {
-                                                        "${durationMins} min"
-                                                    }
+                                val subtitleText = run {
+                                    val isD = loc.isDriving == true
+                                    val speedKmh = loc.speed ?: 0.0f
+                                    if (isD || speedKmh >= 15.0f) {
+                                        "${speedKmh.toInt()} km/h"
+                                    } else {
+                                        val stayInfo = stayTracker[member.id]
+                                        if (stayInfo != null) {
+                                            val durationMs = System.currentTimeMillis() - stayInfo.second
+                                            val durationMins = durationMs / 60000L
+                                            if (durationMins > 0) {
+                                                if (durationMins >= 60) {
+                                                    val hours = durationMins / 60
+                                                    val mins = durationMins % 60
+                                                    if (mins > 0) "${hours}h ${mins}m" else "${hours}h"
                                                 } else {
-                                                    "Reciente"
+                                                    "${durationMins} min"
                                                 }
                                             } else {
-                                                null
+                                                "Reciente"
                                             }
+                                        } else {
+                                            null
                                         }
                                     }
+                                }
 
-                                    if (!subtitleText.isNullOrEmpty()) {
-                                        Card(
-                                            colors = CardDefaults.cardColors(
-                                                containerColor = DarkSurface.copy(alpha = 0.9f)
-                                            ),
-                                            shape = RoundedCornerShape(6.dp),
-                                            border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
-                                            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-                                        ) {
-                                            Text(
-                                                text = subtitleText,
-                                                fontSize = 7.5.sp,
-                                                color = MaterialTheme.colorScheme.primary,
-                                                fontWeight = FontWeight.Bold,
-                                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
-                                                maxLines = 1
-                                            )
-                                        }
-                                        Spacer(modifier = Modifier.height(2.dp))
-                                    }
-
-                                    // 2. Avatar and pointer container (so pointer tip is the extreme bottom)
-                                    Box(
-                                        modifier = Modifier.wrapContentSize(),
-                                        contentAlignment = Alignment.BottomCenter
+                                if (!subtitleText.isNullOrEmpty()) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = DarkSurface.copy(alpha = 0.9f)
+                                        ),
+                                        shape = RoundedCornerShape(6.dp),
+                                        border = BorderStroke(0.5.dp, borderColor.copy(alpha = 0.5f)),
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
                                     ) {
-                                        // Pointer arrow pointing down (rotated square) at the bottom
-                                        Box(
-                                            modifier = Modifier
-                                                .padding(bottom = 2.dp)
-                                                .size(8.dp)
-                                                .graphicsLayer(rotationZ = 45f)
-                                                .background(borderColor)
+                                        Text(
+                                            text = subtitleText,
+                                            fontSize = 7.5.sp,
+                                            color = MaterialTheme.colorScheme.primary,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.5.dp),
+                                            maxLines = 1
                                         )
+                                    }
+                                    Spacer(modifier = Modifier.height(2.dp))
+                                }
 
-                                        // Avatar circle container (with bottom padding to lift it above the pointer tip)
+                                // 2. Avatar and pointer container (so pointer tip is the extreme bottom)
+                                Box(
+                                    modifier = Modifier.wrapContentSize(),
+                                    contentAlignment = Alignment.BottomCenter
+                                ) {
+                                    // Pointer arrow pointing down (rotated square) at the bottom
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 2.dp)
+                                            .size(8.dp)
+                                            .graphicsLayer(rotationZ = 45f)
+                                            .background(borderColor)
+                                    )
+
+                                    // Avatar circle container (with bottom padding to lift it above the pointer tip)
+                                    Box(
+                                        modifier = Modifier
+                                            .padding(bottom = 6.dp)
+                                            .size(width = 56.dp, height = 50.dp)
+                                    ) {
                                         Box(
                                             modifier = Modifier
-                                                .padding(bottom = 6.dp)
-                                                .size(width = 56.dp, height = 50.dp)
+                                                .size(44.dp)
+                                                .align(Alignment.TopCenter)
+                                                .background(CardBackground, CircleShape)
+                                                .border(2.dp, borderColor, CircleShape)
+                                                .padding(2.dp),
+                                            contentAlignment = Alignment.Center
                                         ) {
-                                            Box(
-                                                modifier = Modifier
-                                                    .size(44.dp)
-                                                    .align(Alignment.TopCenter)
-                                                    .background(CardBackground, CircleShape)
-                                                    .border(2.dp, borderColor, CircleShape)
-                                                    .padding(2.dp),
-                                                contentAlignment = Alignment.Center
-                                            ) {
-                                                val initials = member.name.split(" ")
-                                                    .mapNotNull { it.firstOrNull()?.toString() }
-                                                    .take(2)
-                                                    .joinToString("")
-                                                    .uppercase()
+                                            val initials = member.name.split(" ")
+                                                .mapNotNull { it.firstOrNull()?.toString() }
+                                                .take(2)
+                                                .joinToString("")
+                                                .uppercase()
 
-                                                val bitmapToDraw = markerBitmaps[member.id]
-                                                if (bitmapToDraw != null) {
-                                                    Image(
-                                                        bitmap = bitmapToDraw.asImageBitmap(),
-                                                        contentDescription = member.name,
-                                                        modifier = Modifier
-                                                            .fillMaxSize()
-                                                            .clip(CircleShape),
-                                                        contentScale = ContentScale.Crop
-                                                    )
-                                                } else {
-                                                    Box(
-                                                        modifier = Modifier.fillMaxSize(),
-                                                        contentAlignment = Alignment.Center
-                                                    ) {
-                                                        Text(
-                                                            text = initials,
-                                                            color = Color.White,
-                                                            fontWeight = FontWeight.ExtraBold,
-                                                            fontSize = 12.sp
-                                                        )
-                                                    }
-                                                }
-                                            }
-
-                                            if (movementEmoji != null) {
-                                                Box(
+                                            val bitmapToDraw = markerBitmaps[member.id]
+                                            if (bitmapToDraw != null) {
+                                                Image(
+                                                    bitmap = bitmapToDraw.asImageBitmap(),
+                                                    contentDescription = member.name,
                                                     modifier = Modifier
-                                                        .size(18.dp)
-                                                        .align(Alignment.BottomEnd)
-                                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                                        .border(1.dp, Color.White, CircleShape),
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop
+                                                )
+                                            } else {
+                                                Box(
+                                                    modifier = Modifier.fillMaxSize(),
                                                     contentAlignment = Alignment.Center
                                                 ) {
-                                                    Text(text = movementEmoji, fontSize = 10.sp)
+                                                    Text(
+                                                        text = initials,
+                                                        color = Color.White,
+                                                        fontWeight = FontWeight.ExtraBold,
+                                                        fontSize = 12.sp
+                                                    )
                                                 }
+                                            }
+                                        }
+
+                                        if (movementEmoji != null) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(18.dp)
+                                                    .align(Alignment.BottomEnd)
+                                                    .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                    .border(1.dp, Color.White, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(text = movementEmoji, fontSize = 10.sp)
                                             }
                                         }
                                     }
