@@ -790,65 +790,41 @@ fun DriveMapDialog(
                         width = 8f
                     )
 
-                    // Start marker (Traffic Light icon)
+                    // Start marker (Traffic Light Emoji Badge)
                     MarkerComposable(
                         state = rememberMarkerState(position = path.first()),
                         title = "Inicio del trayecto"
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(30.dp)
-                                .background(PrimaryEmerald, CircleShape)
-                                .border(1.5.dp, Color.White, CircleShape),
+                                .size(34.dp)
+                                .background(Color.White, CircleShape)
+                                .border(1.5.dp, PrimaryEmerald, CircleShape),
                             contentAlignment = Alignment.Center
                         ) {
-                            Icon(
-                                imageVector = Icons.Default.Traffic,
-                                contentDescription = null,
-                                tint = Color.White,
-                                modifier = Modifier.size(16.dp)
+                            Text(
+                                text = "🚦",
+                                fontSize = 18.sp
                             )
                         }
                     }
 
-                    // End marker (Checkered Flag pattern)
+                    // End marker (Checkered Flag Emoji Badge)
                     MarkerComposable(
                         state = rememberMarkerState(position = path.last()),
                         title = "Fin del trayecto"
                     ) {
                         Box(
                             modifier = Modifier
-                                .size(30.dp)
-                                .clip(CircleShape)
-                                .background(Color.DarkGray)
-                                .border(1.5.dp, Color.White, CircleShape)
+                                .size(34.dp)
+                                .background(Color.White, CircleShape)
+                                .border(1.5.dp, Color.Black, CircleShape),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Column(modifier = Modifier.fillMaxSize()) {
-                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                }
-                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                }
-                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                }
-                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
-                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
-                                }
-                            }
+                            Text(
+                                text = "🏁",
+                                fontSize = 18.sp
+                            )
                         }
                     }
 
