@@ -673,7 +673,7 @@ fun MapaScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(borderColor, RoundedCornerShape(16.dp))
+                                                .background(borderColor, RoundedCornerShape(22.dp))
                                                 .padding(3.5.dp), // Solid 3.5dp thick border
                                             contentAlignment = Alignment.Center
                                         ) {
@@ -690,14 +690,14 @@ fun MapaScreen(
                                                     contentDescription = member.name,
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .clip(RoundedCornerShape(12.dp)),
+                                                        .clip(RoundedCornerShape(18.dp)),
                                                     contentScale = ContentScale.Crop
                                                 )
                                             } else {
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .background(CardBackground, RoundedCornerShape(12.dp)),
+                                                        .background(CardBackground, RoundedCornerShape(18.dp)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
