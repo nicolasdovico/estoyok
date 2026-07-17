@@ -790,19 +790,67 @@ fun DriveMapDialog(
                         width = 8f
                     )
 
-                    // Start marker
-                    Marker(
+                    // Start marker (Traffic Light icon)
+                    MarkerComposable(
                         state = rememberMarkerState(position = path.first()),
-                        title = "Inicio del trayecto",
-                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)
-                    )
+                        title = "Inicio del trayecto"
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .background(PrimaryEmerald, CircleShape)
+                                .border(1.5.dp, Color.White, CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Traffic,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
 
-                    // End marker
-                    Marker(
+                    // End marker (Checkered Flag pattern)
+                    MarkerComposable(
                         state = rememberMarkerState(position = path.last()),
-                        title = "Fin del trayecto",
-                        icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                    )
+                        title = "Fin del trayecto"
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .clip(CircleShape)
+                                .background(Color.DarkGray)
+                                .border(1.5.dp, Color.White, CircleShape)
+                        ) {
+                            Column(modifier = Modifier.fillMaxSize()) {
+                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                }
+                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                }
+                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                }
+                                Row(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.Black))
+                                    Box(modifier = Modifier.weight(1f).fillMaxHeight().background(Color.White))
+                                }
+                            }
+                        }
+                    }
 
                     // Telemetry events
                     drive.events.hardBrakes.forEach { event ->
