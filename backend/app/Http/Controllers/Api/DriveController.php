@@ -61,20 +61,14 @@ class DriveController extends Controller
         $mergedDrives = array_reverse($mergedDrives);
 
         $isPremium = (bool) $currentUser->is_premium;
-
-        if (!$isPremium) {
-            // Usuarios gratuitos solo acceden al último trayecto registrado como preview
-            $drives = array_slice($mergedDrives, 0, 1);
-        } else {
-            // Usuarios premium acceden a los últimos 30 trayectos
-            $drives = array_slice($mergedDrives, 0, 30);
-        }
+        // Todos los usuarios acceden a los últimos 30 trayectos para estadísticas, pero se les restringe el detalle si son Free
+        $drives = array_slice($mergedDrives, 0, 30);
 
         $drivesCollection = collect($drives);
 
         $speedLimit = $circle->speed_limit ?? 120;
 
-        $response = $drivesCollection->map(function ($drive) use ($speedLimit) {
+        $response = $drivesCollection->map(function ($drive, $index) use ($speedLimit, $isPremium) {
             // Consultar las coordenadas históricas del trayecto
             $points = DB::select("
                 SELECT 
@@ -166,18 +160,22 @@ class DriveController extends Controller
                 'max_speed' => round($drive->max_speed, 1),
                 'exceeded_speed_limit' => (bool) $drive->exceeded_speed_limit,
                 'safety_score' => $score,
-                'route_points' => array_map(function ($pt) {
+                'route_points' => ($isPremium || $index === 0) ? array_map(function ($pt) {
                     return [
                         'latitude' => (double) $pt->latitude,
                         'longitude' => (double) $pt->longitude,
                         'speed' => $pt->speed !== null ? (double) $pt->speed : 0.0,
                         'recorded_at' => $pt->recorded_at
                     ];
-                }, $points),
-                'events' => [
+                }, $points) : [],
+                'events' => ($isPremium || $index === 0) ? [
                     'hard_brakes' => $hardBrakes,
                     'rapid_accelerations' => $rapidAccelerations,
                     'speeding' => $speedings,
+                ] : [
+                    'hard_brakes' => [],
+                    'rapid_accelerations' => [],
+                    'speeding' => [],
                 ]
             ];
         });

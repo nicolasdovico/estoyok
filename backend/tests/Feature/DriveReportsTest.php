@@ -72,7 +72,7 @@ class DriveReportsTest extends TestCase
         $response->assertStatus(200);
         $data = $response->json();
         $this->assertFalse($data['is_premium']);
-        $this->assertCount(1, $data['drives']); // Standard user only gets 1 drive
+        $this->assertCount(2, $data['drives']); // Standard user gets all drives metadata for weekly stats
     }
 
     public function test_premium_user_gets_all_recent_drives()
