@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.automirrored.filled.DirectionsWalk
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -88,6 +88,10 @@ fun getWeeks(): List<WeekRange> {
     return weeks
 }
 
+enum class ExplanationType {
+    NONE, SPEEDING, DISTRACTION, ACCELERATION, BRAKING
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehiculoScreen(
@@ -106,6 +110,7 @@ fun VehiculoScreen(
     
     val weeks = remember { getWeeks() }
     var selectedWeekIndex by remember { mutableStateOf(0) }
+    var activeExplanationDialog by remember { mutableStateOf(ExplanationType.NONE) }
 
     val filteredDrives = remember(drives, selectedWeekIndex) {
         val week = weeks[selectedWeekIndex]
@@ -420,10 +425,64 @@ fun VehiculoScreen(
                                                 }
                                             }
                                         }
+
+                                        Spacer(modifier = Modifier.height(4.dp))
+
+                                        // 2x2 Infraction Pills
+                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                InfractionPill(
+                                                    icon = Icons.Default.Speed,
+                                                    count = filteredDrives.sumOf { it.events.speeding.size },
+                                                    color = PrimaryOrange,
+                                                    modifier = Modifier.weight(1f),
+                                                    onClick = {
+                                                        activeExplanationDialog = ExplanationType.SPEEDING
+                                                    }
+                                                )
+                                                InfractionPill(
+                                                    icon = Icons.Default.Smartphone,
+                                                    count = filteredDrives.sumOf { it.events.phoneDistractions.size },
+                                                    color = PrimaryRed,
+                                                    modifier = Modifier.weight(1f),
+                                                    onClick = {
+                                                        activeExplanationDialog = ExplanationType.DISTRACTION
+                                                    }
+                                                )
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                InfractionPill(
+                                                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                                    count = filteredDrives.sumOf { it.events.rapidAccelerations.size },
+                                                    color = PrimaryOrange,
+                                                    modifier = Modifier.weight(1f),
+                                                    onClick = {
+                                                        activeExplanationDialog = ExplanationType.ACCELERATION
+                                                    }
+                                                )
+                                                InfractionPill(
+                                                    icon = Icons.AutoMirrored.Filled.TrendingDown,
+                                                    count = filteredDrives.sumOf { it.events.hardBrakes.size },
+                                                    color = PrimaryRed,
+                                                    modifier = Modifier.weight(1f),
+                                                    onClick = {
+                                                        activeExplanationDialog = ExplanationType.BRAKING
+                                                    }
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
                         }
+
+
 
                         // Drives List header
                         item {
@@ -638,6 +697,44 @@ fun VehiculoScreen(
         }
     }
 
+    // Infraction details dialog
+    if (activeExplanationDialog != ExplanationType.NONE) {
+        val (title, explanation) = when (activeExplanationDialog) {
+            ExplanationType.SPEEDING -> "Exceso de Velocidad" to "Se registra cuando la velocidad del vehículo supera el límite configurado para el círculo (por defecto 120 km/h) o límites urbanos."
+            ExplanationType.DISTRACTION -> "Distracción (Celular)" to "Se registra cuando se detecta el uso o manipulación del teléfono móvil con la pantalla encendida mientras el vehículo está en movimiento."
+            ExplanationType.ACCELERATION -> "Aceleración Rápida" to "Se registra cuando el vehículo incrementa su velocidad de forma brusca (12 km/h o más en un lapso de 3 segundos)."
+            ExplanationType.BRAKING -> "Frenada Brusca" to "Se registra cuando el vehículo disminuye su velocidad bruscamente (15 km/h o más en un lapso de 3 segundos)."
+            else -> "" to ""
+        }
+
+        AlertDialog(
+            onDismissRequest = { activeExplanationDialog = ExplanationType.NONE },
+            title = {
+                Text(
+                    text = title,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    fontSize = 16.sp
+                )
+            },
+            text = {
+                Text(
+                    text = explanation,
+                    color = TextSecondary,
+                    fontSize = 13.sp,
+                    lineHeight = 18.sp
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { activeExplanationDialog = ExplanationType.NONE }) {
+                    Text("Entendido", color = PrimaryEmerald, fontWeight = FontWeight.Bold)
+                }
+            },
+            containerColor = CardBackground,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
+
     // Drive Details Dialog
     activeDetailDrive?.let { drive ->
         DriveMapDialog(
@@ -732,6 +829,15 @@ fun DriveMapDialog(
                             title = "Exceso de Velocidad",
                             snippet = "Velocidad: ${event.speed?.toInt()} km/h (Límite: ${event.limit})",
                             icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
+                        )
+                    }
+
+                    drive.events.phoneDistractions.forEach { event ->
+                        Marker(
+                            state = rememberMarkerState(position = LatLng(event.latitude, event.longitude)),
+                            title = "Uso del Teléfono / Distracción",
+                            snippet = "Duración: ${event.durationSeconds} s",
+                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
                         )
                     }
                 }
@@ -884,6 +990,7 @@ private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberD
                 val mergedHardBrakes = last.events.hardBrakes + drive.events.hardBrakes
                 val mergedAccelerations = last.events.rapidAccelerations + drive.events.rapidAccelerations
                 val mergedSpeedings = last.events.speeding + drive.events.speeding
+                val mergedDistractions = last.events.phoneDistractions + drive.events.phoneDistractions
                 
                 val newStartTime = last.startTime
                 val newEndTime = if (parseIsoToSeconds(drive.endTime) > parseIsoToSeconds(last.endTime)) drive.endTime else last.endTime
@@ -904,7 +1011,8 @@ private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberD
                     events = last.events.copy(
                         hardBrakes = mergedHardBrakes,
                         rapidAccelerations = mergedAccelerations,
-                        speeding = mergedSpeedings
+                        speeding = mergedSpeedings,
+                        phoneDistractions = mergedDistractions
                     )
                 )
                 merged[merged.lastIndex] = updatedLast
@@ -959,5 +1067,45 @@ private fun formatDate(isoString: String): String {
         formatter.format(date)
     } catch (e: Exception) {
         isoString
+    }
+}
+
+@Composable
+fun InfractionPill(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    count: Int,
+    color: Color,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = modifier
+            .clip(RoundedCornerShape(12.dp))
+            .clickable { onClick() },
+        colors = CardDefaults.cardColors(containerColor = BorderColor.copy(alpha = 0.4f)),
+        shape = RoundedCornerShape(12.dp),
+        border = BorderStroke(1.dp, BorderColor)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = color,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                text = "$count",
+                color = TextPrimary,
+                fontWeight = FontWeight.Bold,
+                fontSize = 14.sp
+            )
+        }
     }
 }
