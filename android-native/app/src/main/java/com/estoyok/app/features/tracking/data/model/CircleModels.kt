@@ -79,13 +79,15 @@ data class DriveTelemetryEvent(
     @SerializedName("speed_drop") val speedDrop: Double? = null,
     @SerializedName("speed_gain") val speedGain: Double? = null,
     @SerializedName("speed") val speed: Double? = null,
-    @SerializedName("limit") val limit: Int? = null
+    @SerializedName("limit") val limit: Int? = null,
+    @SerializedName("duration_seconds") val durationSeconds: Int? = null
 )
 
 data class DriveTelemetryEventsContainer(
     @SerializedName("hard_brakes") val hardBrakes: List<DriveTelemetryEvent> = emptyList(),
     @SerializedName("rapid_accelerations") val rapidAccelerations: List<DriveTelemetryEvent> = emptyList(),
-    @SerializedName("speeding") val speeding: List<DriveTelemetryEvent> = emptyList()
+    @SerializedName("speeding") val speeding: List<DriveTelemetryEvent> = emptyList(),
+    @SerializedName("phone_distractions") val phoneDistractions: List<DriveTelemetryEvent> = emptyList()
 )
 
 data class DriveRoutePointDto(
