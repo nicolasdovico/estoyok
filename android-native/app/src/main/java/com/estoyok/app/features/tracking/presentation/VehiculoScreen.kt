@@ -435,18 +435,16 @@ fun VehiculoScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
                                                 InfractionPill(
-                                                    icon = Icons.Default.Speed,
+                                                    emoji = "⚠️",
                                                     count = filteredDrives.sumOf { it.events.speeding.size },
-                                                    color = PrimaryOrange,
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.SPEEDING
                                                     }
                                                 )
                                                 InfractionPill(
-                                                    icon = Icons.Default.Smartphone,
+                                                    emoji = "📱",
                                                     count = filteredDrives.sumOf { it.events.phoneDistractions.size },
-                                                    color = PrimaryRed,
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.DISTRACTION
@@ -458,18 +456,16 @@ fun VehiculoScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
                                                 InfractionPill(
-                                                    icon = Icons.AutoMirrored.Filled.TrendingUp,
+                                                    emoji = "⚡",
                                                     count = filteredDrives.sumOf { it.events.rapidAccelerations.size },
-                                                    color = PrimaryOrange,
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.ACCELERATION
                                                     }
                                                 )
                                                 InfractionPill(
-                                                    icon = Icons.AutoMirrored.Filled.TrendingDown,
+                                                    emoji = "🛑",
                                                     count = filteredDrives.sumOf { it.events.hardBrakes.size },
-                                                    color = PrimaryRed,
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.BRAKING
@@ -1158,9 +1154,8 @@ private fun formatDate(isoString: String): String {
 
 @Composable
 fun InfractionPill(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    emoji: String,
     count: Int,
-    color: Color,
     modifier: Modifier = Modifier,
     onClick: () -> Unit
 ) {
@@ -1179,11 +1174,9 @@ fun InfractionPill(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = color,
-                modifier = Modifier.size(18.dp)
+            Text(
+                text = emoji,
+                fontSize = 18.sp
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
