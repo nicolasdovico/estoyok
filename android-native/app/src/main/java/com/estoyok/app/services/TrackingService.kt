@@ -10,6 +10,8 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import android.hardware.TriggerEvent
+import android.hardware.TriggerEventListener
 import android.location.Location
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -69,6 +71,18 @@ class TrackingService : Service(), SensorEventListener {
     private var lastAccuracy = 0.0f
     private var lastSentLocation: Location? = null
 
+    // Significant Motion Sensor for low-power wake-up (Activity Recognition alternative)
+    private var significantMotionSensor: Sensor? = null
+    private var isSignificantMotionRegistered = false
+    private val triggerEventListener = object : TriggerEventListener() {
+        override fun onTrigger(event: TriggerEvent?) {
+            android.util.Log.d("TrackingService", "Significant motion trigger fired!")
+            stationaryStartTime = 0L
+            isSignificantMotionRegistered = false
+            updateInterval(30000L) // Switch back to active walking mode immediately (30s)
+        }
+    }
+
     // Crash algorithm states
     private var isPostImpactMonitoring = false
     private var impactTime: Long = 0
@@ -92,6 +106,7 @@ class TrackingService : Service(), SensorEventListener {
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
+        significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
         createNotificationChannel()
     }
 
@@ -143,6 +158,7 @@ class TrackingService : Service(), SensorEventListener {
         isTrackingActive = false
         stopLocationUpdates()
         unregisterAccelerometer()
+        unregisterSignificantMotion()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -282,11 +298,13 @@ class TrackingService : Service(), SensorEventListener {
             // Vehicle: Speed > 15 km/h
             speedKmh > 15.0f -> {
                 stationaryStartTime = 0L
+                unregisterSignificantMotion()
                 Pair(10000L, 40f)
             }
             // Walking: Speed between 1.5 and 15 km/h
             speedKmh > 1.5f -> {
                 stationaryStartTime = 0L
+                unregisterSignificantMotion()
                 Pair(30000L, 15f)
             }
             // Stationary candidate: Speed < 1.5 km/h
@@ -297,6 +315,7 @@ class TrackingService : Service(), SensorEventListener {
                 
                 // Only enter Stationary low-power mode after 2 minutes of zero activity
                 if (now - stationaryStartTime >= 120000L) {
+                    registerSignificantMotion()
                     Pair(300000L, 20f)
                 } else {
                     // Stay in the last active mode (default to Walking if unknown, or keep current)
@@ -521,10 +540,29 @@ class TrackingService : Service(), SensorEventListener {
         }
     }
 
+    private fun registerSignificantMotion() {
+        if (isSignificantMotionRegistered) return
+        significantMotionSensor?.let { sensor ->
+            val success = sensorManager.requestTriggerSensor(triggerEventListener, sensor)
+            isSignificantMotionRegistered = success
+            android.util.Log.d("TrackingService", "SignificantMotion sensor trigger requested: $success")
+        }
+    }
+
+    private fun unregisterSignificantMotion() {
+        if (!isSignificantMotionRegistered) return
+        significantMotionSensor?.let { sensor ->
+            sensorManager.cancelTriggerSensor(triggerEventListener, sensor)
+            isSignificantMotionRegistered = false
+            android.util.Log.d("TrackingService", "SignificantMotion sensor trigger cancelled")
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
         unregisterAccelerometer()
+        unregisterSignificantMotion()
         serviceJob.cancel()
     }
 }
