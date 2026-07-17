@@ -806,39 +806,95 @@ fun DriveMapDialog(
 
                     // Telemetry events
                     drive.events.hardBrakes.forEach { event ->
-                        Marker(
+                        MarkerComposable(
                             state = rememberMarkerState(position = LatLng(event.latitude, event.longitude)),
                             title = "Frenada Brusca",
-                            snippet = "Bajó ${event.speedDrop?.toInt()} km/h",
-                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_ORANGE)
-                        )
+                            snippet = "Bajó ${event.speedDrop?.toInt()} km/h"
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(PrimaryOrange, CircleShape)
+                                    .border(1.5.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.TrendingDown,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
 
                     drive.events.rapidAccelerations.forEach { event ->
-                        Marker(
+                        MarkerComposable(
                             state = rememberMarkerState(position = LatLng(event.latitude, event.longitude)),
                             title = "Aceleración Rápida",
-                            snippet = "Subió ${event.speedGain?.toInt()} km/h",
-                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_YELLOW)
-                        )
+                            snippet = "Subió ${event.speedGain?.toInt()} km/h"
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(PrimaryOrange, CircleShape)
+                                    .border(1.5.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
 
                     drive.events.speeding.forEach { event ->
-                        Marker(
+                        MarkerComposable(
                             state = rememberMarkerState(position = LatLng(event.latitude, event.longitude)),
                             title = "Exceso de Velocidad",
-                            snippet = "Velocidad: ${event.speed?.toInt()} km/h (Límite: ${event.limit})",
-                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
-                        )
+                            snippet = "Velocidad: ${event.speed?.toInt()} km/h (Límite: ${event.limit})"
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(PrimaryRed, CircleShape)
+                                    .border(1.5.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
 
                     drive.events.phoneDistractions.forEach { event ->
-                        Marker(
+                        MarkerComposable(
                             state = rememberMarkerState(position = LatLng(event.latitude, event.longitude)),
                             title = "Uso del Teléfono / Distracción",
-                            snippet = "Duración: ${event.durationSeconds} s",
-                            icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_AZURE)
-                        )
+                            snippet = "Duración: ${event.durationSeconds} s"
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .background(PrimaryRed, CircleShape)
+                                    .border(1.5.dp, Color.White, CircleShape),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Smartphone,
+                                    contentDescription = null,
+                                    tint = Color.White,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -945,7 +1001,13 @@ fun DriveMapDialog(
                         if (drive.events.speeding.isNotEmpty()) {
                             BadgeItem(text = "⚠️ Excesos: ${drive.events.speeding.size}", color = PrimaryRed)
                         }
-                        if (drive.events.hardBrakes.isEmpty() && drive.events.rapidAccelerations.isEmpty() && drive.events.speeding.isEmpty()) {
+                        if (drive.events.phoneDistractions.isNotEmpty()) {
+                            BadgeItem(text = "📱 Celular: ${drive.events.phoneDistractions.size}", color = PrimaryRed)
+                        }
+                        if (drive.events.hardBrakes.isEmpty() && 
+                            drive.events.rapidAccelerations.isEmpty() && 
+                            drive.events.speeding.isEmpty() &&
+                            drive.events.phoneDistractions.isEmpty()) {
                             Text("✅ Conducción impecable sin infracciones", color = PrimaryEmerald, fontSize = 12.sp, fontWeight = FontWeight.Bold)
                         }
                     }
