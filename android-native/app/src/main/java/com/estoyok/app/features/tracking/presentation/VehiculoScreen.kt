@@ -29,6 +29,7 @@ import androidx.compose.ui.window.DialogProperties
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import com.estoyok.app.core.theme.*
+import com.estoyok.app.core.navigation.Screen
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
 import com.estoyok.app.features.tracking.data.model.MemberDriveEventDto
 import com.google.android.gms.maps.CameraUpdateFactory
@@ -40,10 +41,57 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 import java.util.TimeZone
 import java.util.Date
+import java.util.Calendar
+
+data class WeekRange(
+    val id: Int,
+    val label: String,
+    val startDate: Date,
+    val endDate: Date
+)
+
+fun getWeeks(): List<WeekRange> {
+    val weeks = mutableListOf<WeekRange>()
+    val sdf = SimpleDateFormat("dd MMM", Locale("es", "ES"))
+    
+    for (i in 0..3) {
+        val calStart = Calendar.getInstance()
+        calStart.firstDayOfWeek = Calendar.MONDAY
+        calStart.add(Calendar.WEEK_OF_YEAR, -i)
+        
+        calStart.set(Calendar.DAY_OF_WEEK, Calendar.MONDAY)
+        calStart.set(Calendar.HOUR_OF_DAY, 0)
+        calStart.set(Calendar.MINUTE, 0)
+        calStart.set(Calendar.SECOND, 0)
+        calStart.set(Calendar.MILLISECOND, 0)
+        val startDate = calStart.time
+
+        val calEnd = Calendar.getInstance()
+        calEnd.firstDayOfWeek = Calendar.MONDAY
+        calEnd.add(Calendar.WEEK_OF_YEAR, -i)
+        
+        calEnd.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY)
+        calEnd.set(Calendar.HOUR_OF_DAY, 23)
+        calEnd.set(Calendar.MINUTE, 59)
+        calEnd.set(Calendar.SECOND, 59)
+        calEnd.set(Calendar.MILLISECOND, 999)
+        val endDate = calEnd.time
+        
+        val label = when (i) {
+            0 -> "Semana actual"
+            1 -> "Semana anterior"
+            else -> "${sdf.format(startDate)} - ${sdf.format(endDate)}"
+        }
+        
+        weeks.add(WeekRange(i, label, startDate, endDate))
+    }
+    return weeks
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun VehiculoScreen(
+    navController: androidx.navigation.NavHostController? = null,
     viewModel: MapaViewModel = androidx.hilt.navigation.compose.hiltViewModel()
 ) {
     val selectedCircle = viewModel.selectedCircle
@@ -55,6 +103,23 @@ fun VehiculoScreen(
     val errorMessage = viewModel.drivesErrorMessage
 
     var activeDetailDrive by remember { mutableStateOf<MemberDriveEventDto?>(null) }
+    
+    val weeks = remember { getWeeks() }
+    var selectedWeekIndex by remember { mutableStateOf(0) }
+
+    val filteredDrives = remember(drives, selectedWeekIndex) {
+        val week = weeks[selectedWeekIndex]
+        val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        drives.filter { drive ->
+            try {
+                val cleanTime = drive.startTime.replace("Z", "")
+                val driveDate = sdfIso.parse(cleanTime)
+                driveDate != null && driveDate.after(week.startDate) && driveDate.before(week.endDate)
+            } catch (e: Exception) {
+                false
+            }
+        }
+    }
 
     // Auto-select logged-in user or first member when circle loads
     LaunchedEffect(selectedCircle) {
@@ -269,6 +334,39 @@ fun VehiculoScreen(
                         }
                     }
 
+                    // Week Selector (Pills)
+                    item {
+                        LazyRow(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            contentPadding = PaddingValues(vertical = 4.dp)
+                        ) {
+                            items(weeks) { week ->
+                                val isSelected = selectedWeekIndex == week.id
+                                Card(
+                                    modifier = Modifier
+                                        .clip(RoundedCornerShape(20.dp))
+                                        .clickable {
+                                            selectedWeekIndex = week.id
+                                        },
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = if (isSelected) PrimaryEmerald else CardBackground
+                                    ),
+                                    shape = RoundedCornerShape(20.dp),
+                                    border = if (isSelected) null else BorderStroke(1.dp, BorderColor)
+                                ) {
+                                    Text(
+                                        text = week.label,
+                                        color = if (isSelected) Color.White else TextPrimary,
+                                        fontSize = 12.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                                    )
+                                }
+                            }
+                        }
+                    }
+
                     // Crash Detection Card
                     item {
                         Card(
@@ -336,12 +434,12 @@ fun VehiculoScreen(
                             }
                         }
                     } else {
-                        // Premium User weekly driving stats
-                        if (isPremium && drives.isNotEmpty()) {
+                        // Weekly driving stats (shown to all users)
+                        if (filteredDrives.isNotEmpty()) {
                             item {
-                                val avgScore = drives.map { it.safetyScore }.average().toInt()
-                                val totalDistance = drives.sumOf { it.distanceKm }
-                                val maxSpeedEver = drives.maxOfOrNull { it.maxSpeed } ?: 0.0
+                                val avgScore = filteredDrives.map { it.safetyScore }.average().toInt()
+                                val totalDistance = filteredDrives.sumOf { it.distanceKm }
+                                val maxSpeedEver = filteredDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
@@ -406,14 +504,14 @@ fun VehiculoScreen(
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     Text("Viajes totales:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${drives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                                    Text("${filteredDrives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                                 }
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     Text("Distancia total:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${String.format("%.1f", totalDistance)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                                    Text("${String.format(Locale.US, "%.1f", totalDistance)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                                 }
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
@@ -440,23 +538,31 @@ fun VehiculoScreen(
                             )
                         }
 
-                        if (drives.isEmpty()) {
+                        val drivesToShow = if (isPremium) {
+                            filteredDrives
+                        } else {
+                            if (selectedWeekIndex == 0) filteredDrives.take(1) else emptyList()
+                        }
+
+                        if (drivesToShow.isEmpty()) {
                             item {
                                 Box(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .padding(vertical = 30.dp),
+                                        .padding(vertical = 20.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
-                                        text = "No se registran viajes en vehículo cerrados.",
+                                        text = if (!isPremium && selectedWeekIndex > 0)
+                                            "Historial bloqueado. Pásate a Premium para ver el detalle."
+                                            else "No se registran viajes en este período.",
                                         color = TextMuted,
                                         fontSize = 13.sp
                                     )
                                 }
                             }
                         } else {
-                            items(drives) { drive ->
+                            items(drivesToShow) { drive ->
                                 Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -612,7 +718,9 @@ fun VehiculoScreen(
                                                 lineHeight = 18.sp
                                             )
                                             Button(
-                                                onClick = { /* Navigate to Premium Screen / Purchase */ },
+                                                onClick = {
+                                                    navController?.navigate(Screen.Premium.route)
+                                                },
                                                 colors = ButtonDefaults.buttonColors(
                                                     containerColor = PrimaryEmerald,
                                                     contentColor = DarkBackground
