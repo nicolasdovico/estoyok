@@ -271,69 +271,6 @@ fun VehiculoScreen(
                     contentPadding = PaddingValues(horizontal = 20.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Current Status Card
-                    item {
-                        selectedMember?.let { member ->
-                            val loc = member.currentLocation
-                            val isDriving = loc?.isDriving == true
-                            val speed = loc?.speed ?: 0.0f
-
-                            Card(
-                                modifier = Modifier.fillMaxWidth(),
-                                colors = CardDefaults.cardColors(containerColor = CardBackground),
-                                shape = RoundedCornerShape(16.dp),
-                                border = BorderStroke(1.dp, BorderColor)
-                            ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(16.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                                        Text(
-                                            text = "Estado de Conducción",
-                                            fontSize = 11.sp,
-                                            color = TextMuted,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                        Text(
-                                            text = if (isDriving) "🚗 En Movimiento" else "💤 En Reposo",
-                                            fontSize = 18.sp,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            color = if (isDriving) PrimaryEmerald else TextPrimary
-                                        )
-                                        if (isDriving) {
-                                            Text(
-                                                text = "Velocidad actual: ${speed.toInt()} km/h",
-                                                fontSize = 12.sp,
-                                                color = TextSecondary
-                                            )
-                                        }
-                                    }
-
-                                    Box(
-                                        modifier = Modifier
-                                            .size(44.dp)
-                                            .background(
-                                                if (isDriving) PrimaryEmerald.copy(alpha = 0.15f) else BorderColor,
-                                                CircleShape
-                                            ),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = if (isDriving) Icons.Default.DirectionsCar else Icons.AutoMirrored.Filled.DirectionsWalk,
-                                            contentDescription = null,
-                                            tint = if (isDriving) PrimaryEmerald else TextSecondary,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                            }
-                        }
-                    }
-
                     // Week Selector (Pills)
                     item {
                         LazyRow(
@@ -363,45 +300,6 @@ fun VehiculoScreen(
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                                     )
                                 }
-                            }
-                        }
-                    }
-
-                    // Crash Detection Card
-                    item {
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(containerColor = PrimaryEmerald.copy(alpha = 0.05f)),
-                            shape = RoundedCornerShape(16.dp),
-                            border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.2f))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Warning,
-                                        contentDescription = null,
-                                        tint = PrimaryEmerald,
-                                        modifier = Modifier.size(20.dp)
-                                    )
-                                    Text(
-                                        text = "Detección de Accidentes",
-                                        fontSize = 14.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = PrimaryEmerald
-                                    )
-                                }
-                                Text(
-                                    text = "Estoy Ok utiliza el acelerómetro del dispositivo automáticamente durante trayectos en auto para detectar colisiones graves (impactos mayores a 4.5G) y alerta a tus contactos si hay inmovilidad posterior.",
-                                    fontSize = 11.sp,
-                                    color = TextSecondary,
-                                    lineHeight = 16.sp
-                                )
                             }
                         }
                     }
