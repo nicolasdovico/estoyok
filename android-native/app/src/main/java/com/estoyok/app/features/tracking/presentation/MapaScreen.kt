@@ -169,6 +169,7 @@ fun MapaScreen(
     }
 
     var showBackgroundLocationDialog by remember { mutableStateOf(false) }
+    var showBatteryOptimizationDialog by remember { mutableStateOf(false) }
 
     val backgroundPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -239,8 +240,16 @@ fun MapaScreen(
             
             if (!hasBackground) {
                 showBackgroundLocationDialog = true
-            } else if (!viewModel.isServiceRunning && viewModel.isTrackingPersistedEnabled) {
-                viewModel.toggleTrackingService(context)
+            } else {
+                val powerManager = context.getSystemService(Context.POWER_SERVICE) as android.os.PowerManager
+                val isIgnoringBattery = powerManager.isIgnoringBatteryOptimizations(context.packageName)
+                if (!isIgnoringBattery) {
+                    showBatteryOptimizationDialog = true
+                }
+                
+                if (!viewModel.isServiceRunning && viewModel.isTrackingPersistedEnabled) {
+                    viewModel.toggleTrackingService(context)
+                }
             }
         } else {
             val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
@@ -1384,6 +1393,67 @@ fun MapaScreen(
                 },
                 dismissButton = {
                     TextButton(onClick = { showBackgroundLocationDialog = false }) {
+                        Text("Ahora no", color = MaterialTheme.colorScheme.outline)
+                    }
+                }
+            )
+        }
+
+        if (showBatteryOptimizationDialog) {
+            AlertDialog(
+                onDismissRequest = { showBatteryOptimizationDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Warning,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Optimización de Batería",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Para asegurar que Estoy Ok funcione de forma confiable en segundo plano y envíe alertas de seguridad y S.O.S., el sistema operativo no debe restringir su uso de batería.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(12.dp))
+                        Text(
+                            text = "Por favor, selecciona 'Sin Restricciones' en la configuración de batería para garantizar un rastreo estable (estilo Life360).",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showBatteryOptimizationDialog = false
+                            try {
+                                val intent = Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS).apply {
+                                    data = android.net.Uri.parse("package:${context.packageName}")
+                                }
+                                context.startActivity(intent)
+                            } catch (e: Exception) {
+                                val intent = Intent(android.provider.Settings.ACTION_SETTINGS)
+                                context.startActivity(intent)
+                            }
+                        }
+                    ) {
+                        Text("Configurar", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showBatteryOptimizationDialog = false }) {
                         Text("Ahora no", color = MaterialTheme.colorScheme.outline)
                     }
                 }
