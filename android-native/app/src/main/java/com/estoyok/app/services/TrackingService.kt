@@ -67,6 +67,7 @@ class TrackingService : Service(), SensorEventListener {
     private var lastLatitude = 0.0
     private var lastLongitude = 0.0
     private var lastAccuracy = 0.0f
+    private var lastSentLocation: Location? = null
 
     // Crash algorithm states
     private var isPostImpactMonitoring = false
@@ -117,6 +118,7 @@ class TrackingService : Service(), SensorEventListener {
         if (isTrackingActive) return
         isTrackingActive = true
         currentIntervalMs = interval
+        lastSentLocation = null
 
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
@@ -202,6 +204,25 @@ class TrackingService : Service(), SensorEventListener {
 
         evaluateDrivingHysteresis()
         adjustTrackingMode(lastSpeedMps)
+
+        // 1. Accuracy Filter: discard noisy updates (accuracy > 40m) if not in emergency mode (interval <= 5s)
+        if (location.hasAccuracy() && location.accuracy > 40f && currentIntervalMs > 5000L) {
+            android.util.Log.d("TrackingService", "Discarding location update due to poor accuracy: ${location.accuracy}m")
+            return
+        }
+
+        // 2. GPS Drift Filter: if the user is stationary (speed < 3 km/h) and displacement is small (< 15m), discard it (if not in emergency)
+        lastSentLocation?.let { lastLoc ->
+            val distance = lastLoc.distanceTo(location)
+            val speedKmh = lastSpeedMps * 3.6f
+            
+            if (distance < 15f && speedKmh < 3.0f && currentIntervalMs > 5000L) {
+                android.util.Log.d("TrackingService", "Discarding location update as drift: distance=$distance m, speed=$speedKmh km/h")
+                return
+            }
+        }
+
+        lastSentLocation = location
 
         serviceScope.launch {
             val batteryStatus = getBatteryStatus()
