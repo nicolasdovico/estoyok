@@ -239,7 +239,7 @@ fun MapaScreen(
             
             if (!hasBackground) {
                 showBackgroundLocationDialog = true
-            } else if (!viewModel.isServiceRunning) {
+            } else if (!viewModel.isServiceRunning && viewModel.isTrackingPersistedEnabled) {
                 viewModel.toggleTrackingService(context)
             }
         } else {

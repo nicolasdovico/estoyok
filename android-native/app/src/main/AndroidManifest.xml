@@ -51,6 +51,18 @@
             android:exported="false"
             android:foregroundServiceType="location" />
 
+        <!-- Boot Receiver for Auto-starting Tracking -->
+        <receiver
+            android:name=".services.BootReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+            </intent-filter>
+        </receiver>
+
         <!-- Crash Alert Countdown Activity -->
         <activity
             android:name=".features.tracking.presentation.CrashAlertActivity"

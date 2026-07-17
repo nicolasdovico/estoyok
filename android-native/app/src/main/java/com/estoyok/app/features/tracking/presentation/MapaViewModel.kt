@@ -25,11 +25,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import com.estoyok.app.core.data.local.SessionManager
 
 @HiltViewModel
 class MapaViewModel @Inject constructor(
     private val circleRepository: CircleRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     var circles by mutableStateOf<List<CircleDto>>(emptyList())
@@ -68,6 +70,9 @@ class MapaViewModel @Inject constructor(
 
     // Selected trip index for Option A segment highlight
     var selectedTripIndex by mutableStateOf<Int?>(null)
+ 
+    var isTrackingPersistedEnabled by mutableStateOf(true)
+        private set
 
     // Driving/Vehiculo events and summary state
     var memberDrives by mutableStateOf<List<MemberDriveEventDto>>(emptyList())
@@ -97,6 +102,11 @@ class MapaViewModel @Inject constructor(
         refreshCircles()
         loadUserProfile()
         startPolling()
+        viewModelScope.launch {
+            sessionManager.isTrackingEnabledFlow.collectLatest { enabled ->
+                isTrackingPersistedEnabled = enabled
+            }
+        }
     }
 
     fun refreshCircles() {
@@ -159,12 +169,18 @@ class MapaViewModel @Inject constructor(
             }
             context.stopService(intent)
             isServiceRunning = false
+            viewModelScope.launch {
+                sessionManager.saveTrackingEnabled(false)
+            }
         } else {
             val intent = Intent(context, TrackingService::class.java).apply {
                 action = TrackingService.ACTION_START
             }
             ContextCompat.startForegroundService(context, intent)
             isServiceRunning = true
+            viewModelScope.launch {
+                sessionManager.saveTrackingEnabled(true)
+            }
         }
     }
 

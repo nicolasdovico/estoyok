@@ -20,11 +20,13 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.util.TimeZone
 import javax.inject.Inject
+import com.estoyok.app.core.data.local.SessionManager
 
 @HiltViewModel
 class AjustesViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
-    private val contactsRepository: EmergencyContactsRepository
+    private val contactsRepository: EmergencyContactsRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     // User settings states
@@ -271,12 +273,18 @@ class AjustesViewModel @Inject constructor(
             }
             context.stopService(intent)
             isTrackingServiceRunning = false
+            viewModelScope.launch {
+                sessionManager.saveTrackingEnabled(false)
+            }
         } else {
             val intent = Intent(context, TrackingService::class.java).apply {
                 action = TrackingService.ACTION_START
             }
             ContextCompat.startForegroundService(context, intent)
             isTrackingServiceRunning = true
+            viewModelScope.launch {
+                sessionManager.saveTrackingEnabled(true)
+            }
         }
     }
 }

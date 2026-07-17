@@ -5,6 +5,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -24,6 +25,7 @@ class SessionManager @Inject constructor(
         private val USER_NAME = stringPreferencesKey("user_name")
         private val USER_PHONE = stringPreferencesKey("user_phone")
         private val API_BASE_URL = stringPreferencesKey("api_base_url")
+        private val TRACKING_ENABLED = booleanPreferencesKey("tracking_enabled")
     }
 
     val authTokenFlow: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -32,6 +34,16 @@ class SessionManager @Inject constructor(
 
     val apiBaseUrlFlow: Flow<String?> = context.dataStore.data.map { preferences ->
         preferences[API_BASE_URL]
+    }
+
+    val isTrackingEnabledFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[TRACKING_ENABLED] ?: true
+    }
+
+    suspend fun saveTrackingEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[TRACKING_ENABLED] = enabled
+        }
     }
 
     suspend fun saveApiBaseUrl(url: String) {
