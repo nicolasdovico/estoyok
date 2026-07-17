@@ -435,7 +435,7 @@ fun VehiculoScreen(
                                                 horizontalArrangement = Arrangement.spacedBy(8.dp)
                                             ) {
                                                 InfractionPill(
-                                                    emoji = "⚠️",
+                                                    emoji = "🏎️",
                                                     count = filteredDrives.sumOf { it.events.speeding.size },
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
@@ -1019,7 +1019,7 @@ fun DriveMapDialog(
                             BadgeItem(text = "⚡ Acel.: ${drive.events.rapidAccelerations.size}", color = PrimaryOrange)
                         }
                         if (drive.events.speeding.isNotEmpty()) {
-                            BadgeItem(text = "⚠️ Excesos: ${drive.events.speeding.size}", color = PrimaryRed)
+                            BadgeItem(text = "🏎️ Excesos: ${drive.events.speeding.size}", color = PrimaryRed)
                         }
                         if (drive.events.phoneDistractions.isNotEmpty()) {
                             BadgeItem(text = "📱 Celular: ${drive.events.phoneDistractions.size}", color = PrimaryRed)
