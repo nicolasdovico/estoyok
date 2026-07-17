@@ -648,33 +648,33 @@ fun MapaScreen(
                                     Spacer(modifier = Modifier.height(3.dp))
                                 }
 
-                                // Unified Pin shape container (Avatar + Pointer Tail + Movement Badge)
+                                // Unified Pin shape container (Avatar + Pointer Tail + Movement Badge) - Redesigned to rounded square (Life360 style)
                                 Box(
                                     modifier = Modifier
-                                        .size(width = 56.dp, height = 56.dp),
+                                        .size(width = 66.dp, height = 66.dp),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
                                     // 1. Pointer tail (rotated square) centered at the bottom
                                     Box(
                                         modifier = Modifier
-                                            .padding(bottom = 6.dp)
-                                            .size(14.dp)
+                                            .padding(bottom = 7.dp)
+                                            .size(16.dp)
                                             .graphicsLayer(rotationZ = 45f)
                                             .background(borderColor)
                                     )
 
-                                    // 2. Avatar circle container pushed to the top
+                                    // 2. Avatar rounded square container pushed to the top
                                     Box(
                                         modifier = Modifier
-                                            .padding(bottom = 8.dp)
-                                            .size(48.dp)
+                                            .padding(bottom = 10.dp)
+                                            .size(56.dp)
                                             .align(Alignment.TopCenter)
                                     ) {
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(borderColor, CircleShape)
-                                                .padding(3.dp), // Solid 3dp thick border
+                                                .background(borderColor, RoundedCornerShape(16.dp))
+                                                .padding(3.5.dp), // Solid 3.5dp thick border
                                             contentAlignment = Alignment.Center
                                         ) {
                                             val initials = member.name.split(" ")
@@ -690,21 +690,21 @@ fun MapaScreen(
                                                     contentDescription = member.name,
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .clip(CircleShape),
+                                                        .clip(RoundedCornerShape(12.dp)),
                                                     contentScale = ContentScale.Crop
                                                 )
                                             } else {
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .background(CardBackground, CircleShape),
+                                                        .background(CardBackground, RoundedCornerShape(12.dp)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
                                                         text = initials,
                                                         color = Color.White,
                                                         fontWeight = FontWeight.ExtraBold,
-                                                        fontSize = 13.sp
+                                                        fontSize = 15.sp
                                                     )
                                                 }
                                             }
