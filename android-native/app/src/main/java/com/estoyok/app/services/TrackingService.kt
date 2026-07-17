@@ -495,6 +495,32 @@ class TrackingService : Service(), SensorEventListener {
         return null
     }
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        super.onTaskRemoved(rootIntent)
+        android.util.Log.d("TrackingService", "onTaskRemoved called. isTrackingActive: $isTrackingActive")
+        
+        if (isTrackingActive) {
+            val restartServiceIntent = Intent(applicationContext, this.javaClass).apply {
+                action = ACTION_START
+                setPackage(packageName)
+            }
+            
+            val restartServicePendingIntent = PendingIntent.getService(
+                applicationContext,
+                1,
+                restartServiceIntent,
+                PendingIntent.FLAG_ONE_SHOT or PendingIntent.FLAG_IMMUTABLE
+            )
+            
+            val alarmService = applicationContext.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            alarmService.set(
+                AlarmManager.RTC_WAKEUP,
+                System.currentTimeMillis() + 5000L,
+                restartServicePendingIntent
+            )
+        }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
