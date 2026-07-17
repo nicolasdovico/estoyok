@@ -1878,57 +1878,110 @@ fun MemberDetailsSheetContent(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Horizontal Dates Selector
-        LazyRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            contentPadding = PaddingValues(horizontal = 4.dp)
-        ) {
-            items(dates) { (dateStr, displayStr, isFreeAllowed) ->
-                val isSelectable = isPremium || isFreeAllowed
-                val isSelected = viewModel.historyDate == dateStr
-
-                Card(
-                    modifier = Modifier
-                        .width(72.dp)
-                        .height(80.dp)
-                        .clickable {
-                            if (isSelectable) {
-                                viewModel.loadMemberHistory(member.id, dateStr)
-                            } else {
-                                showPremiumPromoDialog = true
-                            }
-                        },
-                    colors = CardDefaults.cardColors(
-                        containerColor = when {
-                            isSelected -> MaterialTheme.colorScheme.primary
-                            !isSelectable -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        }
-                    ),
-                    shape = RoundedCornerShape(12.dp),
-                    border = if (isSelected) null else BorderStroke(1.dp, BorderColor)
+        // Horizontal Dates Selector or Premium Banner
+        if (!isPremium) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.25f)
+                ),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Column(
-                        modifier = Modifier.fillMaxSize().padding(8.dp),
-                        verticalArrangement = Arrangement.Center,
-                        horizontalAlignment = Alignment.CenterHorizontally
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        val dayText = if (dateStr == dates.first().first) "Hoy" else displayStr.split(" ").firstOrNull() ?: ""
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = "Premium Icon",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
                         Text(
-                            text = dayText,
-                            fontSize = 16.sp,
+                            text = "Historial Completo de 30 Días",
                             fontWeight = FontWeight.Bold,
-                            color = if (isSelected) Color.White else if (isSelectable) TextPrimary else TextMuted
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
-                        val monthText = displayStr.split(" ").lastOrNull() ?: ""
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Conoce dónde ha estado tu familia en los últimos 30 días. Con la cuenta Free solo tienes acceso al historial del día actual.",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        textAlign = TextAlign.Center
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = {
+                            viewModel.selectedMember = null
+                            navController?.navigate(Screen.Premium.route)
+                        },
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
                         Text(
-                            text = if (isSelectable) monthText else "$monthText 🔒",
-                            fontSize = 11.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = if (isSelected) Color.White.copy(alpha = 0.8f) else TextMuted
+                            text = "Ver Planes Premium",
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 13.sp
                         )
+                    }
+                }
+            }
+        } else {
+            LazyRow(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                contentPadding = PaddingValues(horizontal = 4.dp)
+            ) {
+                items(dates) { (dateStr, displayStr, _) ->
+                    val isSelected = viewModel.historyDate == dateStr
+
+                    Card(
+                        modifier = Modifier
+                            .width(72.dp)
+                            .height(80.dp)
+                            .clickable {
+                                viewModel.loadMemberHistory(member.id, dateStr)
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        border = if (isSelected) null else BorderStroke(1.dp, BorderColor)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxSize().padding(8.dp),
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            val dayText = if (dateStr == dates.first().first) "Hoy" else displayStr.split(" ").firstOrNull() ?: ""
+                            Text(
+                                text = dayText,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = if (isSelected) Color.White else TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            val monthText = displayStr.split(" ").lastOrNull() ?: ""
+                            Text(
+                                text = monthText,
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (isSelected) Color.White.copy(alpha = 0.8f) else TextMuted
+                            )
+                        }
                     }
                 }
             }
