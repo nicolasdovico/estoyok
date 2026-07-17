@@ -1427,7 +1427,7 @@ fun MapaScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Por favor, selecciona 'Sin Restricciones' en la configuración de batería para garantizar un rastreo estable (estilo Life360).",
+                            text = "Por favor, selecciona 'Sin Restricciones' en la configuración de batería para garantizar un rastreo estable.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
