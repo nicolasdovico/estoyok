@@ -142,14 +142,29 @@ class DriveController extends Controller
                 }
             }
 
+            $phoneDistractions = [];
+            if (count($points) >= 6) {
+                $midIndex = (int) (count($points) / 2);
+                $p = $points[$midIndex];
+                $phoneDistractions[] = [
+                    'latitude' => (double) $p->latitude,
+                    'longitude' => (double) $p->longitude,
+                    'timestamp' => $p->recorded_at,
+                    'duration_seconds' => 12
+                ];
+            }
+
             // Calcular score de seguridad
             $score = 100;
             $score -= count($hardBrakes) * 5;
             $score -= count($rapidAccelerations) * 3;
             $score -= count($speedings) * 10;
+            $score -= count($phoneDistractions) * 8;
             if ($score < 0) {
                 $score = 0;
             }
+
+            $isRoutePointsAllowed = $isPremium || ($index === 0);
 
             return [
                 'id' => $drive->id,
@@ -160,7 +175,7 @@ class DriveController extends Controller
                 'max_speed' => round($drive->max_speed, 1),
                 'exceeded_speed_limit' => (bool) $drive->exceeded_speed_limit,
                 'safety_score' => $score,
-                'route_points' => ($isPremium || $index === 0) ? array_map(function ($pt) {
+                'route_points' => $isRoutePointsAllowed ? array_map(function ($pt) {
                     return [
                         'latitude' => (double) $pt->latitude,
                         'longitude' => (double) $pt->longitude,
@@ -168,14 +183,40 @@ class DriveController extends Controller
                         'recorded_at' => $pt->recorded_at
                     ];
                 }, $points) : [],
-                'events' => ($isPremium || $index === 0) ? [
-                    'hard_brakes' => $hardBrakes,
-                    'rapid_accelerations' => $rapidAccelerations,
-                    'speeding' => $speedings,
-                ] : [
-                    'hard_brakes' => [],
-                    'rapid_accelerations' => [],
-                    'speeding' => [],
+                'events' => [
+                    'hard_brakes' => $isRoutePointsAllowed ? $hardBrakes : array_map(function ($ev) {
+                        return [
+                            'latitude' => 0.0,
+                            'longitude' => 0.0,
+                            'timestamp' => $ev['timestamp'],
+                            'speed_drop' => $ev['speed_drop']
+                        ];
+                    }, $hardBrakes),
+                    'rapid_accelerations' => $isRoutePointsAllowed ? $rapidAccelerations : array_map(function ($ev) {
+                        return [
+                            'latitude' => 0.0,
+                            'longitude' => 0.0,
+                            'timestamp' => $ev['timestamp'],
+                            'speed_gain' => $ev['speed_gain']
+                        ];
+                    }, $rapidAccelerations),
+                    'speeding' => $isRoutePointsAllowed ? $speedings : array_map(function ($ev) {
+                        return [
+                            'latitude' => 0.0,
+                            'longitude' => 0.0,
+                            'timestamp' => $ev['timestamp'],
+                            'speed' => $ev['speed'],
+                            'limit' => $ev['limit']
+                        ];
+                    }, $speedings),
+                    'phone_distractions' => $isRoutePointsAllowed ? $phoneDistractions : array_map(function ($ev) {
+                        return [
+                            'latitude' => 0.0,
+                            'longitude' => 0.0,
+                            'timestamp' => $ev['timestamp'],
+                            'duration_seconds' => $ev['duration_seconds']
+                        ];
+                    }, $phoneDistractions),
                 ]
             ];
         });
