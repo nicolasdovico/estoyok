@@ -488,11 +488,11 @@ fun MapaScreen(
                 )
             }
 
-            // Render markers for all nucleus members with valid location coordinates
-            viewModel.selectedCircleMembers.forEach { member ->
+            // Render markers for all nucleus members with valid location coordinates (using Option A: Dispersion / Spiderfying)
+            val dispersedMembers = getDispersedMembers(viewModel.selectedCircleMembers)
+            dispersedMembers.forEach { (member, latLng) ->
                 val loc = member.currentLocation
                 if (loc != null) {
-                    val latLng = LatLng(loc.latitude, loc.longitude)
                     val prevLatLng = lastCoordinates[member.id]
                     SideEffect {
                         lastCoordinates[member.id] = latLng
@@ -2759,4 +2759,53 @@ fun AddressText(
         fontSize = fontSize,
         textAlign = textAlign
     )
+}
+
+fun getDispersedMembers(members: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>): List<Pair<com.estoyok.app.features.tracking.data.model.CircleMemberDto, LatLng>> {
+    val results = mutableListOf<Pair<com.estoyok.app.features.tracking.data.model.CircleMemberDto, LatLng>>()
+    val validMembers = members.filter { it.currentLocation != null }
+    val groups = mutableListOf<MutableList<com.estoyok.app.features.tracking.data.model.CircleMemberDto>>()
+    
+    for (member in validMembers) {
+        val loc = member.currentLocation!!
+        var addedToGroup = false
+        for (group in groups) {
+            val first = group.first()
+            val firstLoc = first.currentLocation!!
+            val distance = haversineDistance(loc.latitude, loc.longitude, firstLoc.latitude, firstLoc.longitude) * 1000.0 // in meters
+            if (distance < 20.0) { // Group if within 20 meters
+                group.add(member)
+                addedToGroup = true
+                break
+            }
+        }
+        if (!addedToGroup) {
+            groups.add(mutableListOf(member))
+        }
+    }
+    
+    for (group in groups) {
+        val size = group.size
+        if (size == 1) {
+            val member = group.first()
+            val loc = member.currentLocation!!
+            results.add(Pair(member, LatLng(loc.latitude, loc.longitude)))
+        } else {
+            val centerLat = group.map { it.currentLocation!!.latitude }.average()
+            val centerLng = group.map { it.currentLocation!!.longitude }.average()
+            val radius = 0.00015 // approx 15 meters offset
+            
+            for (index in 0 until size) {
+                val member = group[index]
+                val angle = (2.0 * Math.PI * index) / size
+                val cosLat = Math.cos(Math.toRadians(centerLat))
+                val offsetLat = radius * Math.cos(angle)
+                val offsetLng = radius * Math.sin(angle) / if (cosLat > 0.1) cosLat else 1.0
+                
+                results.add(Pair(member, LatLng(centerLat + offsetLat, centerLng + offsetLng)))
+            }
+        }
+    }
+    
+    return results
 }
