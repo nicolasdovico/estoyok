@@ -204,6 +204,7 @@
         - [x] Sincronización Programada (Android Native): Agendado y configurado el worker de sincronización `LocationSyncWorker` en `EstoyOkApplication.kt` con WorkManager utilizando restricciones de red conectada (`NetworkType.CONNECTED`), garantizando el vaciado automático de la cola Room local al recuperar la red.
         - [x] Resiliencia ante Cierre Forzado (Android Native): Sobreescrito el método `onTaskRemoved` en `TrackingService.kt` para programar un reinicio del servicio mediante `AlarmManager` en 5 segundos si el usuario desliza y fuerza el cierre de la app desde la pantalla de recientes.
         - [x] Sensor de Movimiento Significativo (Android Native): Integrado el sensor de hardware `Sensor.TYPE_SIGNIFICANT_MOTION` en `TrackingService.kt` para despertar y acelerar instantáneamente el GPS de su estado de reposo lento (Estadía) a modo activo en cuanto se detecta movimiento, optimizando la batería sin sacrificar precisión al iniciar trayectos.
+        - [x] Dispersión de Marcadores Superpuestos (Android Native): Implementado el algoritmo de Dispersión Circular Dinámica (Spiderfying) en `MapaScreen.kt`. Al detectar familiares que se encuentran a menos de 20 metros de distancia física, se calcula un desfase geométrico circular (de aproximadamente 15 metros) para sus coordenadas de renderizado temporal en el mapa, permitiendo visualizar y pulsar cada avatar por separado cuando están en el mismo lugar (estilo Life360).
 
 
 
