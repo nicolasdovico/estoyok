@@ -268,7 +268,7 @@ fun MapaScreen(
     var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
 
     val stayTracker = remember { mutableStateMapOf<Int, Pair<LatLng, Long>>() }
-    val lastCoordinates = remember { mutableStateMapOf<Int, LatLng>() }
+    val lastUpdateTimes = remember { mutableStateMapOf<Int, Long>() }
     LaunchedEffect(viewModel.selectedCircleMembers) {
         val now = System.currentTimeMillis()
         viewModel.selectedCircleMembers.forEach { member ->
@@ -493,10 +493,6 @@ fun MapaScreen(
             dispersedMembers.forEach { (member, latLng) ->
                 val loc = member.currentLocation
                 if (loc != null) {
-                    val prevLatLng = lastCoordinates[member.id]
-                    SideEffect {
-                        lastCoordinates[member.id] = latLng
-                    }
                     val titleText = member.name
                     val snippetText = buildString {
                         append("Batería: ${loc.batteryLevel?.let { (it * 100).toInt() } ?: 100}%")
@@ -522,47 +518,53 @@ fun MapaScreen(
                         getMovementEmoji(loc.speed, loc.isDriving)
                     }
 
+                    val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
+                        haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
+                    }
+                    val parsedRecordedAt = loc.recordedAt?.let { parseIsoDate(it)?.time }
+                    val durationStr = run {
+                        val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt
+                        if (startTime != null) {
+                            val durationMs = System.currentTimeMillis() - startTime
+                            val durationMins = durationMs / 60000L
+                            if (durationMins > 0) {
+                                if (durationMins >= 1440) {
+                                    val days = durationMins / 1440
+                                    "${days} d"
+                                } else if (durationMins >= 60) {
+                                    val hours = durationMins / 60
+                                    val mins = durationMins % 60
+                                    if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
+                                } else {
+                                    "${durationMins} min"
+                                }
+                            } else {
+                                null
+                            }
+                        } else {
+                            null
+                        }
+                    }
+
                     val subtitleText = run {
                         when {
                             isTrackingOff -> "Rastreo Apagado"
                             isGpsOff -> "GPS Apagado"
-                            isOffline -> "Sin Señal"
+                            isOffline -> {
+                                val place = matchingGeofence?.name ?: "Aquí"
+                                if (durationStr != null) "$place • Sin Señal (hace $durationStr)" else "$place • Sin Señal"
+                            }
                             else -> {
                                 val isD = loc.isDriving == true
                                 val speedKmh = loc.speed ?: 0.0f
                                 if (isD || speedKmh >= 15.0f) {
                                     "${speedKmh.toInt()} km/h"
                                 } else {
-                                    val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
-                                        haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
-                                    }
-                                    val stayInfo = stayTracker[member.id]
-                                    if (stayInfo != null) {
-                                        val durationMs = System.currentTimeMillis() - stayInfo.second
-                                        val durationMins = durationMs / 60000L
-                                        val durationStr = if (durationMins > 0) {
-                                            if (durationMins >= 60) {
-                                                val hours = durationMins / 60
-                                                val mins = durationMins % 60
-                                                if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
-                                            } else {
-                                                "${durationMins} min"
-                                            }
-                                        } else {
-                                            null
-                                        }
-
-                                        if (matchingGeofence != null) {
-                                            if (durationStr != null) "En ${matchingGeofence.name} desde hace $durationStr" else "En ${matchingGeofence.name}"
-                                        } else {
-                                            if (durationStr != null) "Aquí desde hace $durationStr" else "Aquí"
-                                        }
+                                    val place = matchingGeofence?.name
+                                    if (place != null) {
+                                        if (durationStr != null) "En $place desde hace $durationStr" else "En $place"
                                     } else {
-                                        if (matchingGeofence != null) {
-                                            "En ${matchingGeofence.name}"
-                                        } else {
-                                            null
-                                        }
+                                        if (durationStr != null) "Aquí desde hace $durationStr" else "Aquí"
                                     }
                                 }
                             }
@@ -575,41 +577,44 @@ fun MapaScreen(
                             val startLatLng = markerState.position
                             val endLatLng = latLng
                             
-                            // 1. Smooth interpolation to the newly received coordinate
                             if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
-                                val duration = 1500L
+                                val now = System.currentTimeMillis()
+                                val prevTime = lastUpdateTimes[member.id]
+                                lastUpdateTimes[member.id] = now
+                                
+                                val speed = loc.speed ?: 0.0f
+                                val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
+                                val isDriving = isMoving && (loc.isDriving == true || speed >= 15.0f)
+                                
+                                val duration = if (prevTime != null && isMoving) {
+                                    val diff = now - prevTime
+                                    if (diff in 2000L..15000L) {
+                                        (diff * 0.9f).toLong() // 90% del intervalo real
+                                    } else {
+                                        if (isDriving) 2200L else 1500L
+                                    }
+                                } else {
+                                    if (isDriving) 2200L else 1000L // 1.0s quieto
+                                }
+                                
                                 val startTime = System.currentTimeMillis()
                                 while (true) {
                                     val elapsed = System.currentTimeMillis() - startTime
                                     val t = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
-                                    val lat = startLatLng.latitude + (endLatLng.latitude - startLatLng.latitude) * t
-                                    val lng = startLatLng.longitude + (endLatLng.longitude - startLatLng.longitude) * t
+                                    
+                                    // Curva de desaceleración (Ease-out cúbico)
+                                    val diff = 1f - t
+                                    val easedT = 1f - (diff * diff * diff)
+                                    
+                                    val lat = startLatLng.latitude + (endLatLng.latitude - startLatLng.latitude) * easedT
+                                    val lng = startLatLng.longitude + (endLatLng.longitude - startLatLng.longitude) * easedT
                                     markerState.position = LatLng(lat, lng)
+                                    
                                     if (t >= 1f) break
                                     kotlinx.coroutines.delay(16)
                                 }
                             } else {
                                 markerState.position = latLng
-                            }
-
-                            // 2. Dead Reckoning (Extrapolation) if the user is in movement
-                            val isMoving = !isOffline && !isTrackingOff && !isGpsOff && (loc.speed ?: 0.0f) >= 1.5f
-                            if (isMoving && prevLatLng != null) {
-                                val dLat = endLatLng.latitude - prevLatLng.latitude
-                                val dLng = endLatLng.longitude - prevLatLng.longitude
-                                
-                                // Velocity step per millisecond assuming 10 seconds update interval
-                                val vLatPerMs = dLat / 10000.0
-                                val vLngPerMs = dLng / 10000.0
-                                
-                                val startExtrapolatingTime = System.currentTimeMillis()
-                                while (true) {
-                                    val elapsedMs = System.currentTimeMillis() - startExtrapolatingTime
-                                    val extLat = endLatLng.latitude + vLatPerMs * elapsedMs
-                                    val extLng = endLatLng.longitude + vLngPerMs * elapsedMs
-                                    markerState.position = LatLng(extLat, extLng)
-                                    kotlinx.coroutines.delay(50)
-                                }
                             }
                         }
 
