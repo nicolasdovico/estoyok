@@ -511,7 +511,6 @@ fun MapaScreen(
                         else -> PrimaryEmerald
                     }
 
-                    val hasBitmap = markerBitmaps[member.id] != null
                     val movementEmoji = if (isOffline || isTrackingOff || isGpsOff) {
                         null
                     } else {
@@ -572,7 +571,7 @@ fun MapaScreen(
                         }
                     }
 
-                    key(member.id, hasBitmap, borderColor, movementEmoji, subtitleText) {
+                    key(member.id) {
                         val markerState = rememberMarkerState(position = latLng)
                         LaunchedEffect(latLng) {
                             val startLatLng = markerState.position
