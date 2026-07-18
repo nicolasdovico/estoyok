@@ -42,6 +42,13 @@ class CleanupActiveDrives extends Command
             $event->update([
                 'end_time' => $lastSeen,
             ]);
+
+            if ($event->user->currentLocation) {
+                $event->user->currentLocation->update([
+                    'is_driving' => false,
+                    'speed' => 0.0,
+                ]);
+            }
             $count++;
         }
 

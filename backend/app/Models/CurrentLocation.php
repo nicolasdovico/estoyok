@@ -59,6 +59,22 @@ class CurrentLocation extends Model
         return $lastSeen->lt(now()->subMinutes(15));
     }
 
+    public function getIsDrivingAttribute($value): bool
+    {
+        if ($this->getIsOfflineAttribute()) {
+            return false;
+        }
+        return (bool) $value;
+    }
+
+    public function getSpeedAttribute($value): ?float
+    {
+        if ($this->getIsOfflineAttribute()) {
+            return 0.0;
+        }
+        return $value !== null ? (float) $value : null;
+    }
+
     protected static function booted()
     {
         static::addGlobalScope('coordinates', function (Builder $builder) {

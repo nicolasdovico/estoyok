@@ -58,6 +58,7 @@ class TrackingService : Service(), SensorEventListener {
     private var currentMinDistance = 15f   // Default 15m
     private var stationaryStartTime: Long = 0L
     private var isTrackingActive = false
+    private var isEmergencyMode = false
 
     // Driving Hysteresis States
     private var isDriving = false
@@ -97,6 +98,7 @@ class TrackingService : Service(), SensorEventListener {
         const val ACTION_STOP = "ACTION_STOP"
         const val ACTION_UPDATE_INTERVAL = "ACTION_UPDATE_INTERVAL"
         const val EXTRA_INTERVAL = "EXTRA_INTERVAL"
+        const val EXTRA_EMERGENCY = "EXTRA_EMERGENCY"
     }
 
     override fun onCreate() {
@@ -115,13 +117,16 @@ class TrackingService : Service(), SensorEventListener {
         when (intent?.action) {
             ACTION_START -> {
                 val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
+                isEmergencyMode = intent.getBooleanExtra(EXTRA_EMERGENCY, false)
                 startTracking(interval)
             }
             ACTION_STOP -> {
+                isEmergencyMode = false
                 stopTracking()
             }
             ACTION_UPDATE_INTERVAL -> {
                 val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
+                isEmergencyMode = intent.getBooleanExtra(EXTRA_EMERGENCY, false)
                 updateInterval(interval)
             }
         }
@@ -221,18 +226,18 @@ class TrackingService : Service(), SensorEventListener {
         evaluateDrivingHysteresis()
         adjustTrackingMode(lastSpeedMps)
 
-        // 1. Accuracy Filter: discard noisy updates (accuracy > 40m) if not in emergency mode (interval <= 5s)
-        if (location.hasAccuracy() && location.accuracy > 40f && currentIntervalMs > 5000L) {
+        // 1. Accuracy Filter: discard noisy updates (accuracy > 40m) if not in emergency mode
+        if (location.hasAccuracy() && location.accuracy > 40f && !isEmergencyMode) {
             android.util.Log.d("TrackingService", "Discarding location update due to poor accuracy: ${location.accuracy}m")
             return
         }
 
-        // 2. GPS Drift Filter: if the user is stationary (speed < 3 km/h) and displacement is small (< 15m), discard it (if not in emergency)
+        // 2. GPS Drift Filter: if the user is stationary (speed < 3 km/h) and displacement is small (< 15m), discard it (if not in emergency/driving)
         lastSentLocation?.let { lastLoc ->
             val distance = lastLoc.distanceTo(location)
             val speedKmh = lastSpeedMps * 3.6f
             
-            if (distance < 15f && speedKmh < 3.0f && currentIntervalMs > 5000L) {
+            if (distance < 15f && speedKmh < 3.0f && !isEmergencyMode && !isDriving) {
                 android.util.Log.d("TrackingService", "Discarding location update as drift: distance=$distance m, speed=$speedKmh km/h")
                 return
             }
@@ -299,7 +304,7 @@ class TrackingService : Service(), SensorEventListener {
             speedKmh > 15.0f -> {
                 stationaryStartTime = 0L
                 unregisterSignificantMotion()
-                Pair(10000L, 40f)
+                Pair(5000L, 15f)
             }
             // Walking: Speed between 1.5 and 15 km/h
             speedKmh > 1.5f -> {
@@ -319,7 +324,9 @@ class TrackingService : Service(), SensorEventListener {
                     Pair(300000L, 20f)
                 } else {
                     // Stay in the last active mode (default to Walking if unknown, or keep current)
-                    if (currentIntervalMs <= 10000L) Pair(10000L, 40f) else Pair(30000L, 15f)
+                    if (currentIntervalMs <= 5000L) Pair(5000L, 15f)
+                    else if (currentIntervalMs <= 10000L) Pair(10000L, 40f)
+                    else Pair(30000L, 15f)
                 }
             }
         }
