@@ -948,3 +948,14 @@
 - **Validación:**
     - Se ejecutaron los tests del backend con éxito (`docker compose exec backend php artisan test` - 119 tests pasados).
     - Se verificó la compilación de la app nativa en Kotlin exitosamente (`BUILD SUCCESSFUL`).
+
+## [2026-07-18] Mejora de Precisión y Fluidez de Marcadores (Estilo Life360)
+- **Frecuencia de Rastreo Elevada a 5s en Conducción:** Modificado `TrackingService.kt` para acelerar el intervalo de tracking GPS de 10s a 5s (distancia reducida a 15m) cuando el usuario está en movimiento vehicular, emulando la transmisión reactiva de Life360.
+- **Interpolación Dinámica al Intervalo de Tiempo Real:** Se implementó una lógica de medición temporal en `MapaScreen.kt` que registra la hora exacta entre reportes consecutivos para cada miembro (`lastUpdateTimes`), calculando dinámicamente la duración de la interpolación al 90% del intervalo real.
+- **Curva de Desaceleración y Detención Exacta:** Se eliminó la extrapolación imprecisa (*Dead Reckoning*). El marcador se desliza a lo largo del intervalo de 5s y desacelera suavemente (Ease-Out Cúbico) al aproximarse a la coordenada real confirmada, quedándose estable de inmediato allí. Esto logra un movimiento continuo y suave sin rebasar esquinas ni retroceder.
+- **Refactorización de Código Limpio:** Se eliminaron las variables obsoletas `lastCoordinates` y `prevLatLng` en `MapaScreen.kt`, limpiando advertencias.
+- **Corrección de Estado Residual en Inactividad y Soporte de Estadías Offline:**
+  * **Backend:** Modificado `CurrentLocation.php` agregando accesores dinámicos para `is_driving` (retorna `false`) y `speed` (retorna `0.0`) si el usuario está desconectado/offline. Además, se actualizó el comando console `CleanupActiveDrives.php` para resetear el estado actual de los usuarios con viajes huérfanos.
+  * **Mobile:** Modificada la lógica de filtros de precisión y drift en `TrackingService.kt`. En `MapaScreen.kt`, se implementó la visualización descriptiva del tiempo transcurrido en inactividad/desconexión (ej: `"En Casa • Sin Señal (hace 16 h)"`) utilizando `loc.recordedAt` de la API como fallback si el `stayTracker` en memoria local está vacío al abrir la app.
+  * **Web:** Modificados `CircleMap.tsx` y `Dashboard.tsx` para ignorar datos de conducción de miembros offline y mostrar dinámicamente en el texto del badge y popup desde hace cuánto tiempo no reportan señal (ej: `"🌐 Sin Señal (hace X h)"`).
+- **Validación:** Compilaciones Kotlin (`BUILD SUCCESSFUL`) y Next.js completadas con éxito, y suite de tests backend pasó sin regresiones (119/119 PASS).
