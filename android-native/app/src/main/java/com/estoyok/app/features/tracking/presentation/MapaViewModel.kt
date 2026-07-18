@@ -20,6 +20,8 @@ import com.estoyok.app.features.auth.data.model.UserDto
 import com.estoyok.app.services.TrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
@@ -76,6 +78,9 @@ class MapaViewModel @Inject constructor(
 
     // Driving/Vehiculo events and summary state
     var memberDrives by mutableStateOf<List<MemberDriveEventDto>>(emptyList())
+        private set
+
+    var allMembersDrives by mutableStateOf<Map<Int, List<MemberDriveEventDto>>>(emptyMap())
         private set
 
     var isDrivesLoading by mutableStateOf(false)
@@ -229,8 +234,12 @@ class MapaViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         isDrivesLoading = false
-                        memberDrives = resource.data?.drives ?: emptyList()
+                        val drivesList = resource.data?.drives ?: emptyList()
+                        memberDrives = drivesList
                         isPremiumDrives = resource.data?.isPremium ?: false
+                        allMembersDrives = allMembersDrives.toMutableMap().apply {
+                            put(memberId, drivesList)
+                        }
                     }
                     is Resource.Error -> {
                         isDrivesLoading = false
@@ -238,6 +247,44 @@ class MapaViewModel @Inject constructor(
                         drivesErrorMessage = resource.message ?: "Error al obtener historial de conducción."
                     }
                 }
+            }
+        }
+    }
+
+    fun loadAllMembersDrives(circleId: Int, members: List<CircleMemberDto>) {
+        viewModelScope.launch {
+            isDrivesLoading = true
+            drivesErrorMessage = null
+            val tempMap = mutableMapOf<Int, List<MemberDriveEventDto>>()
+            var hasPremium = false
+
+            val deferredDrives = members.map { member ->
+                async {
+                    var drivesList = emptyList<MemberDriveEventDto>()
+                    try {
+                        circleRepository.getMemberDrives(circleId, member.id).collect { resource ->
+                            if (resource is Resource.Success) {
+                                drivesList = resource.data?.drives ?: emptyList()
+                                hasPremium = hasPremium || (resource.data?.isPremium ?: false)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("MapaViewModel", "Error loading drives for member ${member.id}", e)
+                    }
+                    member.id to drivesList
+                }
+            }
+
+            deferredDrives.awaitAll().forEach { (memberId, drivesList) ->
+                tempMap[memberId] = drivesList
+            }
+
+            allMembersDrives = tempMap
+            isPremiumDrives = hasPremium
+            isDrivesLoading = false
+
+            selectedMember?.id?.let { selId ->
+                memberDrives = tempMap[selId] ?: emptyList()
             }
         }
     }
