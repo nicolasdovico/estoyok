@@ -100,8 +100,6 @@ fun VehiculoScreen(
 ) {
     val selectedCircle = viewModel.selectedCircle
     val selectedMember = viewModel.selectedMember
-    val rawDrives = viewModel.memberDrives
-    val drives = remember(rawDrives) { groupAndMergeDrives(rawDrives) }
     val isPremium = viewModel.isPremiumDrives
     val isLoading = viewModel.isDrivesLoading
     val errorMessage = viewModel.drivesErrorMessage
@@ -112,34 +110,47 @@ fun VehiculoScreen(
     var selectedWeekIndex by remember { mutableStateOf(0) }
     var activeExplanationDialog by remember { mutableStateOf(ExplanationType.NONE) }
 
-    val filteredDrives = remember(drives, selectedWeekIndex) {
+    val allFilteredDrives = remember(viewModel.allMembersDrives, selectedWeekIndex) {
         val week = weeks[selectedWeekIndex]
         val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-        drives.filter { drive ->
-            try {
-                val cleanTime = drive.startTime.replace("Z", "")
-                val driveDate = sdfIso.parse(cleanTime)
-                driveDate != null && driveDate.after(week.startDate) && driveDate.before(week.endDate)
-            } catch (e: Exception) {
-                false
+        viewModel.allMembersDrives.mapValues { (_, raw) ->
+            val drivesGrouped = groupAndMergeDrives(raw)
+            drivesGrouped.filter { drive ->
+                try {
+                    val cleanTime = drive.startTime.replace("Z", "")
+                    val driveDate = sdfIso.parse(cleanTime)
+                    driveDate != null && driveDate.after(week.startDate) && driveDate.before(week.endDate)
+                } catch (e: Exception) {
+                    false
+                }
             }
         }
     }
 
-    // Auto-select logged-in user or first member when circle loads
+    val consolidatedDrives = remember(allFilteredDrives) {
+        allFilteredDrives.values.flatten()
+    }
+
+    val filteredDrives = remember(allFilteredDrives, selectedMember) {
+        selectedMember?.let { allFilteredDrives[it.id] } ?: emptyList()
+    }
+
     LaunchedEffect(selectedCircle) {
-        if (selectedCircle != null && selectedMember == null) {
-            val myMember = selectedCircle.members.find { it.email == viewModel.currentUserProfile?.email }
-                ?: selectedCircle.members.firstOrNull()
-            if (myMember != null) {
-                viewModel.selectedMember = myMember
+        if (selectedCircle != null) {
+            viewModel.loadAllMembersDrives(selectedCircle.id, selectedCircle.members)
+            
+            if (selectedMember == null) {
+                val myMember = selectedCircle.members.find { it.email == viewModel.currentUserProfile?.email }
+                    ?: selectedCircle.members.firstOrNull()
+                if (myMember != null) {
+                    viewModel.selectedMember = myMember
+                }
             }
         }
     }
 
-    // Load drives whenever selectedMember changes to prevent showing previously loaded user drives
     LaunchedEffect(selectedMember) {
-        if (selectedMember != null) {
+        if (selectedMember != null && selectedCircle != null) {
             viewModel.loadMemberDrives(selectedMember.id)
         }
     }
@@ -179,7 +190,7 @@ fun VehiculoScreen(
                     )
                 }
             } else {
-                // Member horizontal selector (Life360 style)
+                // Member horizontal selector (Life360 style with breakdown cards)
                 LazyRow(
                     modifier = Modifier.fillMaxWidth(),
                     contentPadding = PaddingValues(horizontal = 20.dp),
@@ -187,85 +198,135 @@ fun VehiculoScreen(
                 ) {
                     items(selectedCircle.members) { member ->
                         val isSelected = selectedMember?.id == member.id
-                        val borderColor = if (isSelected) PrimaryEmerald else Color.Transparent
+                        val memberFilteredDrives = allFilteredDrives[member.id] ?: emptyList()
+                        
+                        val tripsCount = memberFilteredDrives.size
+                        val totalDist = memberFilteredDrives.sumOf { it.distanceKm }
+                        val maxSpd = memberFilteredDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
+                        val score = if (memberFilteredDrives.isNotEmpty()) {
+                            memberFilteredDrives.map { it.safetyScore }.average().toInt()
+                        } else {
+                            100
+                        }
 
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
+                        Card(
                             modifier = Modifier
+                                .width(150.dp)
                                 .clickable {
                                     viewModel.selectedMember = member
                                     viewModel.loadMemberDrives(member.id)
-                                }
-                                .padding(4.dp)
+                                },
+                            colors = CardDefaults.cardColors(containerColor = CardBackground),
+                            shape = RoundedCornerShape(12.dp),
+                            border = if (isSelected) BorderStroke(2.dp, PrimaryEmerald) else BorderStroke(1.dp, BorderColor)
                         ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(52.dp)
-                                    .background(CardBackground, CircleShape)
-                                    .border(2.dp, borderColor, CircleShape)
-                                    .padding(2.dp),
-                                contentAlignment = Alignment.Center
+                            Column(
+                                modifier = Modifier.padding(10.dp),
+                                verticalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
-                                val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
-                                    if (member.id == viewModel.currentUserProfile?.id) {
-                                        "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                // Header: Avatar + Name
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                ) {
+                                    val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                        if (member.id == viewModel.currentUserProfile?.id) {
+                                            "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                        } else {
+                                            member.avatarUrl
+                                        }
                                     } else {
-                                        member.avatarUrl
+                                        null
                                     }
-                                } else {
-                                    null
+
+                                    val initials = member.name.split(" ")
+                                        .mapNotNull { it.firstOrNull()?.toString() }
+                                        .take(2)
+                                        .joinToString("")
+                                        .uppercase()
+
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(DarkBackground, CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        SubcomposeAsyncImage(
+                                            model = memberAvatarUrl,
+                                            contentDescription = member.name,
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .clip(CircleShape),
+                                            contentScale = ContentScale.Crop,
+                                            loading = {
+                                                Text(initials, color = TextPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                            },
+                                            error = {
+                                                Text(initials, color = TextPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
+                                            }
+                                        )
+                                    }
+
+                                    Text(
+                                        text = member.name.substringBefore(" "),
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
                                 }
 
-                                val initials = member.name.split(" ")
-                                    .mapNotNull { it.firstOrNull()?.toString() }
-                                    .take(2)
-                                    .joinToString("")
-                                    .uppercase()
+                                HorizontalDivider(color = BorderColor, modifier = Modifier.fillMaxWidth())
 
-                                SubcomposeAsyncImage(
-                                    model = memberAvatarUrl,
-                                    contentDescription = member.name,
-                                    modifier = Modifier
-                                        .fillMaxSize()
-                                        .clip(CircleShape),
-                                    contentScale = ContentScale.Crop,
-                                    loading = {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = initials,
-                                                color = TextPrimary,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp
-                                            )
-                                        }
-                                    },
-                                    error = {
-                                        Box(
-                                            modifier = Modifier.fillMaxSize(),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Text(
-                                                text = initials,
-                                                color = TextPrimary,
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 14.sp
-                                            )
-                                        }
+                                // Stats Breakdown (Scoring, Trips, Distance, Max Speed)
+                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
+                                    // Score
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Score:", color = TextMuted, fontSize = 10.sp)
+                                        Text(
+                                            text = "$score",
+                                            color = when {
+                                                score >= 90 -> PrimaryEmerald
+                                                score >= 70 -> PrimaryOrange
+                                                else -> PrimaryRed
+                                            },
+                                            fontWeight = FontWeight.Bold,
+                                            fontSize = 10.sp
+                                        )
                                     }
-                                )
+
+                                    // Trips
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Viajes:", color = TextMuted, fontSize = 10.sp)
+                                        Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                                    }
+
+                                    // Distance
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Distancia:", color = TextMuted, fontSize = 10.sp)
+                                        Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                                    }
+
+                                    // Max Speed
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween
+                                    ) {
+                                        Text("Vel. Máx:", color = TextMuted, fontSize = 10.sp)
+                                        Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
+                                    }
+                                }
                             }
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = member.name.substringBefore(" "),
-                                fontSize = 11.sp,
-                                color = if (isSelected) TextPrimary else TextMuted,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                maxLines = 1,
-                                overflow = TextOverflow.Ellipsis
-                            )
                         }
                     }
                 }
@@ -337,12 +398,12 @@ fun VehiculoScreen(
                             }
                         }
                     } else {
-                        // Weekly driving stats (shown to all users)
-                        if (filteredDrives.isNotEmpty()) {
+                        // Weekly driving stats (shown to all users consolidated)
+                        if (consolidatedDrives.isNotEmpty()) {
                             item {
-                                val avgScore = filteredDrives.map { it.safetyScore }.average().toInt()
-                                val totalDistance = filteredDrives.sumOf { it.distanceKm }
-                                val maxSpeedEver = filteredDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
+                                val avgScore = consolidatedDrives.map { it.safetyScore }.average().toInt()
+                                val totalDistance = consolidatedDrives.sumOf { it.distanceKm }
+                                val maxSpeedEver = consolidatedDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
 
                                 Card(
                                     modifier = Modifier.fillMaxWidth(),
@@ -407,7 +468,7 @@ fun VehiculoScreen(
                                                     horizontalArrangement = Arrangement.SpaceBetween
                                                 ) {
                                                     Text("Viajes totales:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${filteredDrives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                                    Text("${consolidatedDrives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
                                                 }
                                                 Row(
                                                     modifier = Modifier.fillMaxWidth(),
@@ -436,7 +497,7 @@ fun VehiculoScreen(
                                             ) {
                                                 InfractionPill(
                                                     emoji = "🏎️",
-                                                    count = filteredDrives.sumOf { it.events.speeding.size },
+                                                    count = consolidatedDrives.sumOf { it.events.speeding.size },
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.SPEEDING
@@ -444,7 +505,7 @@ fun VehiculoScreen(
                                                 )
                                                 InfractionPill(
                                                     emoji = "📱",
-                                                    count = filteredDrives.sumOf { it.events.phoneDistractions.size },
+                                                    count = consolidatedDrives.sumOf { it.events.phoneDistractions.size },
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.DISTRACTION
@@ -457,7 +518,7 @@ fun VehiculoScreen(
                                             ) {
                                                 InfractionPill(
                                                     emoji = "⚡",
-                                                    count = filteredDrives.sumOf { it.events.rapidAccelerations.size },
+                                                    count = consolidatedDrives.sumOf { it.events.rapidAccelerations.size },
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.ACCELERATION
@@ -465,7 +526,7 @@ fun VehiculoScreen(
                                                 )
                                                 InfractionPill(
                                                     emoji = "🛑",
-                                                    count = filteredDrives.sumOf { it.events.hardBrakes.size },
+                                                    count = consolidatedDrives.sumOf { it.events.hardBrakes.size },
                                                     modifier = Modifier.weight(1f),
                                                     onClick = {
                                                         activeExplanationDialog = ExplanationType.BRAKING
