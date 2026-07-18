@@ -522,8 +522,9 @@ fun MapaScreen(
                         haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
                     }
                     val parsedRecordedAt = loc.recordedAt?.let { parseIsoDate(it)?.time }
+                    val parsedLastSeenAt = loc.lastSeenAt?.let { parseIsoDate(it)?.time }
                     val durationStr = run {
-                        val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt
+                        val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt ?: parsedLastSeenAt
                         if (startTime != null) {
                             val durationMs = System.currentTimeMillis() - startTime
                             val durationMins = durationMs / 60000L
@@ -1651,6 +1652,22 @@ fun MemberRowItem(
 }
 
 private fun parseIsoDate(isoString: String): Date? {
+    var cleanStr = isoString
+    if (cleanStr.contains(".")) {
+        try {
+            val parts = cleanStr.split(".")
+            if (parts.size == 2) {
+                val afterDot = parts[1]
+                val digits = afterDot.takeWhile { it.isDigit() }
+                val firstThreeDigits = digits.take(3)
+                val nonDigits = afterDot.drop(digits.length)
+                cleanStr = parts[0] + "." + firstThreeDigits.padEnd(3, '0') + nonDigits
+            }
+        } catch (e: Exception) {
+            // Fallback to original string if split fails
+        }
+    }
+
     val patterns = listOf(
         "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
         "yyyy-MM-dd'T'HH:mm:ssXXX",
@@ -1663,7 +1680,7 @@ private fun parseIsoDate(isoString: String): Date? {
             val parser = SimpleDateFormat(pattern, Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }
-            val date = parser.parse(isoString)
+            val date = parser.parse(cleanStr)
             if (date != null) return date
         } catch (e: Exception) {
             // Try next
