@@ -190,147 +190,6 @@ fun VehiculoScreen(
                     )
                 }
             } else {
-                // Member horizontal selector (Life360 style with breakdown cards)
-                LazyRow(
-                    modifier = Modifier.fillMaxWidth(),
-                    contentPadding = PaddingValues(horizontal = 20.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    items(selectedCircle.members) { member ->
-                        val isSelected = selectedMember?.id == member.id
-                        val memberFilteredDrives = allFilteredDrives[member.id] ?: emptyList()
-                        
-                        val tripsCount = memberFilteredDrives.size
-                        val totalDist = memberFilteredDrives.sumOf { it.distanceKm }
-                        val maxSpd = memberFilteredDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
-                        val score = if (memberFilteredDrives.isNotEmpty()) {
-                            memberFilteredDrives.map { it.safetyScore }.average().toInt()
-                        } else {
-                            100
-                        }
-
-                        Card(
-                            modifier = Modifier
-                                .width(150.dp)
-                                .clickable {
-                                    viewModel.selectedMember = member
-                                    viewModel.loadMemberDrives(member.id)
-                                },
-                            colors = CardDefaults.cardColors(containerColor = CardBackground),
-                            shape = RoundedCornerShape(12.dp),
-                            border = if (isSelected) BorderStroke(2.dp, PrimaryEmerald) else BorderStroke(1.dp, BorderColor)
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(10.dp),
-                                verticalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                // Header: Avatar + Name
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                ) {
-                                    val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
-                                        if (member.id == viewModel.currentUserProfile?.id) {
-                                            "${member.avatarUrl}?v=${viewModel.avatarVersion}"
-                                        } else {
-                                            member.avatarUrl
-                                        }
-                                    } else {
-                                        null
-                                    }
-
-                                    val initials = member.name.split(" ")
-                                        .mapNotNull { it.firstOrNull()?.toString() }
-                                        .take(2)
-                                        .joinToString("")
-                                        .uppercase()
-
-                                    Box(
-                                        modifier = Modifier
-                                            .size(24.dp)
-                                            .background(DarkBackground, CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        SubcomposeAsyncImage(
-                                            model = memberAvatarUrl,
-                                            contentDescription = member.name,
-                                            modifier = Modifier
-                                                .fillMaxSize()
-                                                .clip(CircleShape),
-                                            contentScale = ContentScale.Crop,
-                                            loading = {
-                                                Text(initials, color = TextPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                            },
-                                            error = {
-                                                Text(initials, color = TextPrimary, fontSize = 8.sp, fontWeight = FontWeight.Bold)
-                                            }
-                                        )
-                                    }
-
-                                    Text(
-                                        text = member.name.substringBefore(" "),
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = TextPrimary,
-                                        maxLines = 1,
-                                        overflow = TextOverflow.Ellipsis
-                                    )
-                                }
-
-                                HorizontalDivider(color = BorderColor, modifier = Modifier.fillMaxWidth())
-
-                                // Stats Breakdown (Scoring, Trips, Distance, Max Speed)
-                                Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
-                                    // Score
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Score:", color = TextMuted, fontSize = 10.sp)
-                                        Text(
-                                            text = "$score",
-                                            color = when {
-                                                score >= 90 -> PrimaryEmerald
-                                                score >= 70 -> PrimaryOrange
-                                                else -> PrimaryRed
-                                            },
-                                            fontWeight = FontWeight.Bold,
-                                            fontSize = 10.sp
-                                        )
-                                    }
-
-                                    // Trips
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Viajes:", color = TextMuted, fontSize = 10.sp)
-                                        Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-                                    }
-
-                                    // Distance
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Distancia:", color = TextMuted, fontSize = 10.sp)
-                                        Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-                                    }
-
-                                    // Max Speed
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween
-                                    ) {
-                                        Text("Vel. Máx:", color = TextMuted, fontSize = 10.sp)
-                                        Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 10.sp)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 // Main Scrollable Area
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -539,7 +398,152 @@ fun VehiculoScreen(
                             }
                         }
 
+                        // Member vertical selector (Breakdown cards, stacked full-width)
+                        item {
+                            Text(
+                                text = "Desglose por Usuario",
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary,
+                                fontSize = 15.sp,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                        }
 
+                        items(selectedCircle.members) { member ->
+                            val isSelected = selectedMember?.id == member.id
+                            val memberFilteredDrives = allFilteredDrives[member.id] ?: emptyList()
+                            
+                            val tripsCount = memberFilteredDrives.size
+                            val totalDist = memberFilteredDrives.sumOf { it.distanceKm }
+                            val maxSpd = memberFilteredDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
+                            val score = if (memberFilteredDrives.isNotEmpty()) {
+                                memberFilteredDrives.map { it.safetyScore }.average().toInt()
+                            } else {
+                                100
+                            }
+
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.selectedMember = member
+                                        viewModel.loadMemberDrives(member.id)
+                                    },
+                                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                                shape = RoundedCornerShape(12.dp),
+                                border = if (isSelected) BorderStroke(2.dp, PrimaryEmerald) else BorderStroke(1.dp, BorderColor)
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                ) {
+                                    // Left side: Avatar + Name
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                        modifier = Modifier.width(110.dp)
+                                    ) {
+                                        val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                            if (member.id == viewModel.currentUserProfile?.id) {
+                                                "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                            } else {
+                                                member.avatarUrl
+                                            }
+                                        } else {
+                                            null
+                                        }
+
+                                        val initials = member.name.split(" ")
+                                            .mapNotNull { it.firstOrNull()?.toString() }
+                                            .take(2)
+                                            .joinToString("")
+                                            .uppercase()
+
+                                        Box(
+                                            modifier = Modifier
+                                                .size(32.dp)
+                                                .background(DarkBackground, CircleShape),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            SubcomposeAsyncImage(
+                                                model = memberAvatarUrl,
+                                                contentDescription = member.name,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .clip(CircleShape),
+                                                contentScale = ContentScale.Crop,
+                                                loading = {
+                                                    Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                },
+                                                error = {
+                                                    Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                }
+                                            )
+                                        }
+
+                                        Text(
+                                            text = member.name.substringBefore(" "),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    // Divider between Avatar/Name and Stats
+                                    Box(
+                                        modifier = Modifier
+                                            .width(1.dp)
+                                            .height(30.dp)
+                                            .background(BorderColor)
+                                    )
+
+                                    // Right side: Stats horizontal list
+                                    Row(
+                                        modifier = Modifier.weight(1f),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        // Score
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("Score", color = TextMuted, fontSize = 9.sp)
+                                            Text(
+                                                text = "$score",
+                                                color = when {
+                                                    score >= 90 -> PrimaryEmerald
+                                                    score >= 70 -> PrimaryOrange
+                                                    else -> PrimaryRed
+                                                },
+                                                fontWeight = FontWeight.Bold,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+
+                                        // Trips
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("Viajes", color = TextMuted, fontSize = 9.sp)
+                                            Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        }
+
+                                        // Distance
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("Distancia", color = TextMuted, fontSize = 9.sp)
+                                            Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        }
+
+                                        // Max Speed
+                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                            Text("Vel. Máx", color = TextMuted, fontSize = 9.sp)
+                                            Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
                         // Drives List header
                         item {
