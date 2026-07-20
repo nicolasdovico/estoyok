@@ -258,140 +258,142 @@ fun VehiculoScreen(
                         }
                     } else {
                         // Weekly driving stats (shown to all users consolidated)
-                        if (consolidatedDrives.isNotEmpty()) {
-                            item {
-                                val avgScore = consolidatedDrives.map { it.safetyScore }.average().toInt()
-                                val totalDistance = consolidatedDrives.sumOf { it.distanceKm }
-                                val maxSpeedEver = consolidatedDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
+                        item {
+                            val avgScore = if (consolidatedDrives.isNotEmpty()) {
+                                consolidatedDrives.map { it.safetyScore }.average().toInt()
+                            } else {
+                                100
+                            }
+                            val totalDistance = consolidatedDrives.sumOf { it.distanceKm }
+                            val maxSpeedEver = consolidatedDrives.maxOfOrNull { it.maxSpeed } ?: 0.0
 
-                                Card(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    colors = CardDefaults.cardColors(containerColor = CardBackground),
-                                    shape = RoundedCornerShape(16.dp),
-                                    border = BorderStroke(1.dp, BorderColor)
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = CardBackground),
+                                shape = RoundedCornerShape(16.dp),
+                                border = BorderStroke(1.dp, BorderColor)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(16.dp),
+                                    verticalArrangement = Arrangement.spacedBy(16.dp)
                                 ) {
-                                    Column(
-                                        modifier = Modifier.padding(16.dp),
-                                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                                    Text(
+                                        text = "Resumen Semanal de Conducción",
+                                        fontWeight = FontWeight.Bold,
+                                        color = TextPrimary,
+                                        fontSize = 14.sp
+                                    )
+
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
                                     ) {
-                                        Text(
-                                            text = "Resumen Semanal de Conducción",
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary,
-                                            fontSize = 14.sp
-                                        )
-
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                        // Circular score indicator
+                                        Box(
+                                            contentAlignment = Alignment.Center,
+                                            modifier = Modifier.size(80.dp)
                                         ) {
-                                            // Circular score indicator
-                                            Box(
-                                                contentAlignment = Alignment.Center,
-                                                modifier = Modifier.size(80.dp)
-                                            ) {
-                                                CircularProgressIndicator(
-                                                    progress = { avgScore / 100f },
-                                                    modifier = Modifier.fillMaxSize(),
-                                                    color = when {
-                                                        avgScore >= 90 -> PrimaryEmerald
-                                                        avgScore >= 70 -> PrimaryOrange
-                                                        else -> PrimaryRed
-                                                    },
-                                                    strokeWidth = 8.dp,
-                                                    trackColor = BorderColor
+                                            CircularProgressIndicator(
+                                                progress = { avgScore / 100f },
+                                                modifier = Modifier.fillMaxSize(),
+                                                color = when {
+                                                    avgScore >= 90 -> PrimaryEmerald
+                                                    avgScore >= 70 -> PrimaryOrange
+                                                    else -> PrimaryRed
+                                                },
+                                                strokeWidth = 8.dp,
+                                                trackColor = BorderColor
+                                            )
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text(
+                                                    text = "$avgScore",
+                                                    fontSize = 20.sp,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    color = TextPrimary
                                                 )
-                                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                                    Text(
-                                                        text = "$avgScore",
-                                                        fontSize = 20.sp,
-                                                        fontWeight = FontWeight.ExtraBold,
-                                                        color = TextPrimary
-                                                    )
-                                                    Text(
-                                                        text = "Score",
-                                                        fontSize = 10.sp,
-                                                        color = TextMuted
-                                                    )
-                                                }
-                                            }
-
-                                            // Text Stats
-                                            Column(
-                                                modifier = Modifier.weight(1f).padding(start = 24.dp),
-                                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Text("Viajes totales:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${consolidatedDrives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                                }
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Text("Distancia total:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${String.format(Locale.US, "%.1f", totalDistance)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                                }
-                                                Row(
-                                                    modifier = Modifier.fillMaxWidth(),
-                                                    horizontalArrangement = Arrangement.SpaceBetween
-                                                ) {
-                                                    Text("Velocidad máx.:", color = TextMuted, fontSize = 12.sp)
-                                                    Text("${maxSpeedEver.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                                }
+                                                Text(
+                                                    text = "Score",
+                                                    fontSize = 10.sp,
+                                                    color = TextMuted
+                                                )
                                             }
                                         }
 
-                                        Spacer(modifier = Modifier.height(4.dp))
+                                        // Text Stats
+                                        Column(
+                                            modifier = Modifier.weight(1f).padding(start = 24.dp),
+                                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Viajes totales:", color = TextMuted, fontSize = 12.sp)
+                                                Text("${consolidatedDrives.size}", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Distancia total:", color = TextMuted, fontSize = 12.sp)
+                                                Text("${String.format(Locale.US, "%.1f", totalDistance)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                            Row(
+                                                modifier = Modifier.fillMaxWidth(),
+                                                horizontalArrangement = Arrangement.SpaceBetween
+                                            ) {
+                                                Text("Velocidad máx.:", color = TextMuted, fontSize = 12.sp)
+                                                Text("${maxSpeedEver.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
+                                        }
+                                    }
 
-                                        // 2x2 Infraction Pills
-                                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                InfractionPill(
-                                                    emoji = "🏎️",
-                                                    count = consolidatedDrives.sumOf { it.events.speeding.size },
-                                                    modifier = Modifier.weight(1f),
-                                                    onClick = {
-                                                        activeExplanationDialog = ExplanationType.SPEEDING
-                                                    }
-                                                )
-                                                InfractionPill(
-                                                    emoji = "📱",
-                                                    count = consolidatedDrives.sumOf { it.events.phoneDistractions.size },
-                                                    modifier = Modifier.weight(1f),
-                                                    onClick = {
-                                                        activeExplanationDialog = ExplanationType.DISTRACTION
-                                                    }
-                                                )
-                                            }
-                                            Row(
-                                                modifier = Modifier.fillMaxWidth(),
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                InfractionPill(
-                                                    emoji = "⚡",
-                                                    count = consolidatedDrives.sumOf { it.events.rapidAccelerations.size },
-                                                    modifier = Modifier.weight(1f),
-                                                    onClick = {
-                                                        activeExplanationDialog = ExplanationType.ACCELERATION
-                                                    }
-                                                )
-                                                InfractionPill(
-                                                    emoji = "🛑",
-                                                    count = consolidatedDrives.sumOf { it.events.hardBrakes.size },
-                                                    modifier = Modifier.weight(1f),
-                                                    onClick = {
-                                                        activeExplanationDialog = ExplanationType.BRAKING
-                                                    }
-                                                )
-                                            }
+                                    Spacer(modifier = Modifier.height(4.dp))
+
+                                    // 2x2 Infraction Pills
+                                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            InfractionPill(
+                                                emoji = "🏎️",
+                                                count = consolidatedDrives.sumOf { it.events.speeding.size },
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    activeExplanationDialog = ExplanationType.SPEEDING
+                                                }
+                                            )
+                                            InfractionPill(
+                                                emoji = "📱",
+                                                count = consolidatedDrives.sumOf { it.events.phoneDistractions.size },
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    activeExplanationDialog = ExplanationType.DISTRACTION
+                                                }
+                                            )
+                                        }
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            InfractionPill(
+                                                emoji = "⚡",
+                                                count = consolidatedDrives.sumOf { it.events.rapidAccelerations.size },
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    activeExplanationDialog = ExplanationType.ACCELERATION
+                                                }
+                                            )
+                                            InfractionPill(
+                                                emoji = "🛑",
+                                                count = consolidatedDrives.sumOf { it.events.hardBrakes.size },
+                                                modifier = Modifier.weight(1f),
+                                                onClick = {
+                                                    activeExplanationDialog = ExplanationType.BRAKING
+                                                }
+                                            )
                                         }
                                     }
                                 }
