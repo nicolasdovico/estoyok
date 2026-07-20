@@ -964,3 +964,14 @@
   * **Resumen Consolidado:** Modificado el "Resumen Semanal de Conducción" para calcular los totales agregados acumulando los datos de todo el círculo familiar (`consolidatedDrives` sumando viajes y distancias, extrayendo el máximo absoluto de velocidad y promediando scores). La lista inferior de trayectos sigue desglosando los viajes del usuario seleccionado de forma reactiva.
 - **Validación:** Compilaciones Kotlin (`BUILD SUCCESSFUL` sin warnings) y tests backend de Laravel pasaron sin regresiones (119/119 PASS).
 
+
+## [2026-07-20] Optimización de Fluidez de Marcadores (Movimiento Uniforme)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Removido el easing de desaceleración Ease-Out Cúbico de la transición de marcadores de familiares en `MapaScreen.kt`, reemplazándolo por una interpolación lineal pura.
+    - Implementado cálculo dinámico de la duración de la animación: calcula la distancia en metros entre las posiciones de origen y destino mediante `android.location.Location.distanceBetween` y la divide por la velocidad del miembro en metros por segundo (derivada de `loc.speed` de la API).
+    - Agregado acotamiento de seguridad (`coerceIn`) al tiempo de animación: acota la duración entre 2s y 7.5s para la conducción vehicular (con frecuencia de update a 5s) y entre 5s y 35s para la caminata (con frecuencia de update a 30s) para evitar saltos o retrasos por problemas de cobertura de GPS.
+    - Esto logra que los avatares se deslicen de forma continua a su velocidad física real por el mapa en lugar de moverse rápido y detenerse bruscamente en cada ciclo, emulando la fluidez de Life360.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL`).
+    - Suite de 119 pruebas automatizadas de Laravel completadas con éxito sin regresiones (119/119 tests PASS).
+
