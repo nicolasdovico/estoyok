@@ -58,6 +58,10 @@ class TrackingService : Service(), SensorEventListener {
     private var currentMinDistance = 15f   // Default 15m
     private var stationaryStartTime: Long = 0L
     private var isTrackingActive = false
+
+    // Geofencing Client for dynamic stay geofences
+    private lateinit var geofencingClient: com.google.android.gms.location.GeofencingClient
+    private var isStayGeofenceRegistered = false
     private var isEmergencyMode = false
 
     // Driving Hysteresis States
@@ -109,6 +113,7 @@ class TrackingService : Service(), SensorEventListener {
         sensorManager = getSystemService(Context.SENSOR_SERVICE) as SensorManager
         accelerometer = sensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)
         significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
+        geofencingClient = LocationServices.getGeofencingClient(this)
         createNotificationChannel()
     }
 
@@ -152,6 +157,12 @@ class TrackingService : Service(), SensorEventListener {
         currentIntervalMs = newInterval
         // If it's an emergency or active checking, disable distance filter. Otherwise use default 15m.
         currentMinDistance = if (newInterval <= 5000L) 0f else 15f
+        
+        // If leaving stationary mode, remove stay geofence immediately
+        if (newInterval <= 30000L) {
+            unregisterStayGeofence()
+        }
+
         if (isTrackingActive) {
             stopLocationUpdates()
             startLocationUpdates()
@@ -164,6 +175,7 @@ class TrackingService : Service(), SensorEventListener {
         stopLocationUpdates()
         unregisterAccelerometer()
         unregisterSignificantMotion()
+        unregisterStayGeofence()
         stopForeground(STOP_FOREGROUND_REMOVE)
         stopSelf()
     }
@@ -224,7 +236,7 @@ class TrackingService : Service(), SensorEventListener {
         lastSpeedMps = if (location.hasSpeed()) location.speed else 0.0f
 
         evaluateDrivingHysteresis()
-        adjustTrackingMode(lastSpeedMps)
+        adjustTrackingMode(lastSpeedMps, location)
 
         // 1. Accuracy Filter: discard noisy updates (accuracy > 40m) if not in emergency mode
         if (location.hasAccuracy() && location.accuracy > 40f && !isEmergencyMode) {
@@ -295,7 +307,7 @@ class TrackingService : Service(), SensorEventListener {
         }
     }
 
-    private fun adjustTrackingMode(speedMps: Float) {
+    private fun adjustTrackingMode(speedMps: Float, currentLoc: Location) {
         val speedKmh = speedMps * 3.6f
         val now = System.currentTimeMillis()
 
@@ -304,12 +316,14 @@ class TrackingService : Service(), SensorEventListener {
             speedKmh > 15.0f -> {
                 stationaryStartTime = 0L
                 unregisterSignificantMotion()
+                unregisterStayGeofence()
                 Pair(5000L, 15f)
             }
             // Walking: Speed between 1.5 and 15 km/h
             speedKmh > 1.5f -> {
                 stationaryStartTime = 0L
                 unregisterSignificantMotion()
+                unregisterStayGeofence()
                 Pair(30000L, 15f)
             }
             // Stationary candidate: Speed < 1.5 km/h
@@ -321,6 +335,7 @@ class TrackingService : Service(), SensorEventListener {
                 // Only enter Stationary low-power mode after 2 minutes of zero activity
                 if (now - stationaryStartTime >= 120000L) {
                     registerSignificantMotion()
+                    registerStayGeofence(currentLoc.latitude, currentLoc.longitude)
                     Pair(300000L, 20f)
                 } else {
                     // Stay in the last active mode (default to Walking if unknown, or keep current)
@@ -565,11 +580,75 @@ class TrackingService : Service(), SensorEventListener {
         }
     }
 
+    private fun registerStayGeofence(latitude: Double, longitude: Double) {
+        if (isStayGeofenceRegistered) return
+        
+        if (ActivityCompat.checkSelfPermission(
+                this,
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
+            android.util.Log.w("TrackingService", "Cannot register stay geofence: Permission denied.")
+            return
+        }
+
+        val geofence = com.google.android.gms.location.Geofence.Builder()
+            .setRequestId("dynamic_stay_geofence")
+            .setCircularRegion(latitude, longitude, 100f) // 100 meters radius
+            .setExpirationDuration(com.google.android.gms.location.Geofence.NEVER_EXPIRE)
+            .setTransitionTypes(com.google.android.gms.location.Geofence.GEOFENCE_TRANSITION_EXIT)
+            .build()
+
+        val request = com.google.android.gms.location.GeofencingRequest.Builder()
+            .setInitialTrigger(com.google.android.gms.location.GeofencingRequest.INITIAL_TRIGGER_EXIT)
+            .addGeofence(geofence)
+            .build()
+
+        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            this,
+            202,
+            intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
+        )
+
+        geofencingClient.addGeofences(request, pendingIntent)
+            .addOnSuccessListener {
+                isStayGeofenceRegistered = true
+                android.util.Log.d("TrackingService", "Successfully registered dynamic stay geofence at ($latitude, $longitude)")
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("TrackingService", "Failed to register stay geofence: ${e.message}", e)
+            }
+    }
+
+    private fun unregisterStayGeofence() {
+        if (!isStayGeofenceRegistered) return
+        
+        val intent = Intent(this, GeofenceBroadcastReceiver::class.java)
+        val pendingIntent = android.app.PendingIntent.getBroadcast(
+            this,
+            202,
+            intent,
+            android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_MUTABLE
+        )
+
+        geofencingClient.removeGeofences(pendingIntent)
+            .addOnSuccessListener {
+                isStayGeofenceRegistered = false
+                android.util.Log.d("TrackingService", "Successfully unregistered dynamic stay geofence")
+            }
+            .addOnFailureListener { e ->
+                android.util.Log.e("TrackingService", "Failed to unregister stay geofence: ${e.message}", e)
+            }
+    }
+
     override fun onDestroy() {
         super.onDestroy()
         isRunning = false
         unregisterAccelerometer()
         unregisterSignificantMotion()
+        unregisterStayGeofence()
         serviceJob.cancel()
     }
 }

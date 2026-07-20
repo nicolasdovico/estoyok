@@ -64,6 +64,12 @@
             </intent-filter>
         </receiver>
 
+        <!-- Geofence Broadcast Receiver -->
+        <receiver
+            android:name=".services.GeofenceBroadcastReceiver"
+            android:enabled="true"
+            android:exported="true" />
+
         <!-- Crash Alert Countdown Activity -->
         <activity
             android:name=".features.tracking.presentation.CrashAlertActivity"
