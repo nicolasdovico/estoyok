@@ -578,35 +578,54 @@ fun MapaScreen(
                             val endLatLng = latLng
                             
                             if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
-                                val now = System.currentTimeMillis()
-                                lastUpdateTimes[member.id] = now
-                                
-                                val speed = loc.speed ?: 0.0f
-                                val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
-                                val isDriving = isMoving && (loc.isDriving == true || speed >= 15.0f)
-                                
-                                // Calcular distancia en metros usando la API de Android
-                                val results = FloatArray(1)
-                                android.location.Location.distanceBetween(
-                                    startLatLng.latitude, startLatLng.longitude,
-                                    endLatLng.latitude, endLatLng.longitude,
-                                    results
-                                )
-                                val distance = results[0]
-                                val speedMps = speed / 3.6f
-                                
-                                // Duración calculada de forma dinámica según distancia y velocidad física del usuario
-                                val duration = if (isMoving && speedMps > 0.1f) {
-                                    val calc = (distance / speedMps * 1000).toLong()
-                                    if (isDriving) {
-                                        calc.coerceIn(2000L, 7500L) // Acotado para updates vehiculares frecuentes
-                                    } else {
-                                        calc.coerceIn(5000L, 35000L) // Acotado para caminata (updates cada 30s)
-                                    }
-                                } else {
-                                    if (isDriving) 2200L else 1000L // Fallback estacionario
-                                }
-                                
+                                 val now = System.currentTimeMillis()
+                                 val prevTime = lastUpdateTimes[member.id]
+                                 lastUpdateTimes[member.id] = now
+                                 
+                                 val speed = loc.speed ?: 0.0f
+                                 val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
+                                 val isDriving = isMoving && (loc.isDriving == true || speed >= 15.0f)
+                                 
+                                 // Calcular distancia en metros usando la API de Android
+                                 val results = FloatArray(1)
+                                 android.location.Location.distanceBetween(
+                                     startLatLng.latitude, startLatLng.longitude,
+                                     endLatLng.latitude, endLatLng.longitude,
+                                     results
+                                 )
+                                 val distance = results[0]
+                                 val speedMps = speed / 3.6f
+                                 
+                                 // Calcular delta de tiempo real entre actualizaciones del servidor
+                                 val timeDelta = if (prevTime != null) now - prevTime else 0L
+                                 
+                                 val physicalDuration = if (isMoving && speedMps > 0.1f) {
+                                     (distance / speedMps * 1000).toLong()
+                                 } else {
+                                     0L
+                                 }
+                                 
+                                 // Duración calculada de forma dinámica usando el tiempo entre updates reales como base principal
+                                 val duration = if (isMoving) {
+                                     val baseDuration = if (timeDelta in 2500L..45000L) {
+                                         timeDelta
+                                     } else if (physicalDuration > 0L) {
+                                         physicalDuration
+                                     } else {
+                                         if (isDriving) 5000L else 30000L
+                                     }
+                                     // Buffer factor de 1.25x (125%) para estirar la animación de forma que
+                                     // la nueva posición llegue ANTES de que el marcador se detenga en el destino.
+                                     val buffered = (baseDuration * 1.25f).toLong()
+                                     if (isDriving) {
+                                         buffered.coerceIn(3500L, 9000L) // updates vehiculares cada ~5s
+                                     } else {
+                                         buffered.coerceIn(8000L, 45000L) // updates de caminata cada ~30s
+                                     }
+                                 } else {
+                                     if (isDriving) 2200L else 1000L // Fallback estacionario
+                                 }
+
                                 val startTime = System.currentTimeMillis()
                                 while (true) {
                                     val elapsed = System.currentTimeMillis() - startTime
