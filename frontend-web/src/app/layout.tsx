@@ -15,6 +15,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Estoy Ok - Seguridad Familiar Integral",
   description: "Plataforma de seguridad familiar con monitoreo activo y pasivo. Cuidamos a los que más querés.",
+  icons: {
+    icon: "/favicon.png",
+  },
 };
 
 export default function RootLayout({
