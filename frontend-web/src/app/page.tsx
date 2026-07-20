@@ -35,12 +35,12 @@ export default function Home() {
     <div className="flex flex-col min-h-screen bg-neutral-950 text-neutral-100 font-sans antialiased selection:bg-red-500 selection:text-white">
       {/* Header / Navigation */}
       <header className="sticky top-0 z-50 px-6 lg:px-12 h-20 flex items-center justify-between bg-neutral-950/80 backdrop-blur-md border-b border-neutral-900">
-        <Link className="flex items-center gap-2 group" href="/">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-red-500 to-rose-600 flex items-center justify-center shadow-lg shadow-red-500/20 group-hover:scale-105 transition-transform duration-300">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
+        <Link className="flex items-center gap-3 group" href="/">
+          <img
+            src="/logo-square.png"
+            alt="Estoy Ok"
+            className="w-10 h-10 object-contain group-hover:scale-105 transition-transform duration-300"
+          />
           <span className="text-2xl font-black tracking-tight text-white">
             ESTOY <span className="text-red-500">OK</span>
           </span>
