@@ -579,22 +579,32 @@ fun MapaScreen(
                             
                             if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
                                 val now = System.currentTimeMillis()
-                                val prevTime = lastUpdateTimes[member.id]
                                 lastUpdateTimes[member.id] = now
                                 
                                 val speed = loc.speed ?: 0.0f
                                 val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
                                 val isDriving = isMoving && (loc.isDriving == true || speed >= 15.0f)
                                 
-                                val duration = if (prevTime != null && isMoving) {
-                                    val diff = now - prevTime
-                                    if (diff in 2000L..15000L) {
-                                        (diff * 0.9f).toLong() // 90% del intervalo real
+                                // Calcular distancia en metros usando la API de Android
+                                val results = FloatArray(1)
+                                android.location.Location.distanceBetween(
+                                    startLatLng.latitude, startLatLng.longitude,
+                                    endLatLng.latitude, endLatLng.longitude,
+                                    results
+                                )
+                                val distance = results[0]
+                                val speedMps = speed / 3.6f
+                                
+                                // Duración calculada de forma dinámica según distancia y velocidad física del usuario
+                                val duration = if (isMoving && speedMps > 0.1f) {
+                                    val calc = (distance / speedMps * 1000).toLong()
+                                    if (isDriving) {
+                                        calc.coerceIn(2000L, 7500L) // Acotado para updates vehiculares frecuentes
                                     } else {
-                                        if (isDriving) 2200L else 1500L
+                                        calc.coerceIn(5000L, 35000L) // Acotado para caminata (updates cada 30s)
                                     }
                                 } else {
-                                    if (isDriving) 2200L else 1000L // 1.0s quieto
+                                    if (isDriving) 2200L else 1000L // Fallback estacionario
                                 }
                                 
                                 val startTime = System.currentTimeMillis()
@@ -602,9 +612,8 @@ fun MapaScreen(
                                     val elapsed = System.currentTimeMillis() - startTime
                                     val t = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
                                     
-                                    // Curva de desaceleración (Ease-out cúbico)
-                                    val diff = 1f - t
-                                    val easedT = 1f - (diff * diff * diff)
+                                    // Interpolación lineal pura para velocidad y deslizamiento constante (estilo Life360)
+                                    val easedT = t
                                     
                                     val lat = startLatLng.latitude + (endLatLng.latitude - startLatLng.latitude) * easedT
                                     val lng = startLatLng.longitude + (endLatLng.longitude - startLatLng.longitude) * easedT
