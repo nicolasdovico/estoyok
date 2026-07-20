@@ -21,3 +21,7 @@ captures/
 *.log
 *.tmp
 .DS_Store
+
+# Firebase configuration
+google-services.json
+

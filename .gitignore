@@ -14,4 +14,6 @@ Thumbs.db
 # Credenciales de Firebase
 firebase_credentials.json
 firebase_credential.json
+google-services.json
+
 
