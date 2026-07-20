@@ -36,3 +36,7 @@ data class AutomationRequest(
 data class ProximityAlertsRequest(
     @SerializedName("proximity_alerts_enabled") val enabled: Boolean
 )
+
+data class PushTokenRequest(
+    @SerializedName("push_token") val pushToken: String
+)

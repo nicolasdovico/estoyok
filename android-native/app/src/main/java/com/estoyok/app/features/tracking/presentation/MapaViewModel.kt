@@ -194,6 +194,22 @@ class MapaViewModel @Inject constructor(
             settingsRepository.getUserProfile().collectLatest { resource ->
                 if (resource is Resource.Success) {
                     currentUserProfile = resource.data
+                    
+                    // Sync FCM push token with the server
+                    try {
+                        com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                            if (task.isSuccessful) {
+                                val token = task.result
+                                viewModelScope.launch {
+                                    settingsRepository.updatePushToken(token).collectLatest { res ->
+                                        android.util.Log.d("MapaViewModel", "FCM Token sync result: $res")
+                                    }
+                                }
+                            }
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("MapaViewModel", "Error fetching FCM token: ${e.message}", e)
+                    }
                 }
             }
         }

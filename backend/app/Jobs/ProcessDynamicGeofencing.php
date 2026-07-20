@@ -79,24 +79,18 @@ class ProcessDynamicGeofencing implements ShouldQueue
                     Log::info("Dynamic geofence breached: {$target->name} is {$dist}m away from {$initiator->name} (Limit: {$geofence->safe_radius_meters}m)");
                     
                     if ($initiator->expo_push_token) {
-                        try {
-                            Http::post('https://exp.host/--/api/v2/push/send', [
-                                'to' => $initiator->expo_push_token,
-                                'title' => '🚨 Alerta de Proximidad',
-                                'body' => "¡Atención! {$target->name} se ha alejado demasiado (" . round($dist) . "m)",
-                                'sound' => 'default',
-                                'priority' => 'high',
-                                'channelId' => 'emergency',
-                                'data' => [
-                                    'type' => 'dynamic_geofence_breached',
-                                    'geofence_id' => $geofence->id,
-                                    'distance' => $dist,
-                                    'target_name' => $target->name,
-                                ],
-                            ]);
-                        } catch (\Exception $e) {
-                            Log::error("Failed to send dynamic geofence push: " . $e->getMessage());
-                        }
+                        app(\App\Services\PushNotificationService::class)->sendPush(
+                            $initiator->expo_push_token,
+                            '🚨 Alerta de Proximidad',
+                            "¡Atención! {$target->name} se ha alejado demasiado (" . round($dist) . "m)",
+                            [
+                                'type' => 'dynamic_geofence_breached',
+                                'geofence_id' => (string) $geofence->id,
+                                'distance' => (string) $dist,
+                                'target_name' => $target->name,
+                            ],
+                            true
+                        );
                     }
                     // Keep breached state in cache for rate limiting (15 minutes)
                     cache()->put($cacheKey, true, now()->addMinutes(15));
@@ -107,22 +101,17 @@ class ProcessDynamicGeofencing implements ShouldQueue
                     Log::info("Dynamic geofence restored: {$target->name} returned near {$initiator->name} ({$dist}m)");
 
                     if ($initiator->expo_push_token) {
-                        try {
-                            Http::post('https://exp.host/--/api/v2/push/send', [
-                                'to' => $initiator->expo_push_token,
-                                'title' => '🛡️ Proximidad Restablecida',
-                                'body' => "{$target->name} ha regresado a la zona de seguridad (" . round($dist) . "m)",
-                                'sound' => 'default',
-                                'priority' => 'high',
-                                'data' => [
-                                    'type' => 'dynamic_geofence_restored',
-                                    'geofence_id' => $geofence->id,
-                                    'distance' => $dist,
-                                ],
-                            ]);
-                        } catch (\Exception $e) {
-                            Log::error("Failed to send dynamic geofence restored push: " . $e->getMessage());
-                        }
+                        app(\App\Services\PushNotificationService::class)->sendPush(
+                            $initiator->expo_push_token,
+                            '🛡️ Proximidad Restablecida',
+                            "{$target->name} ha regresado a la zona de seguridad (" . round($dist) . "m)",
+                            [
+                                'type' => 'dynamic_geofence_restored',
+                                'geofence_id' => (string) $geofence->id,
+                                'distance' => (string) $dist,
+                            ],
+                            true
+                        );
                     }
                     cache()->forget($cacheKey);
                 }

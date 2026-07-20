@@ -111,16 +111,12 @@ class SendInactivityAlerts implements ShouldQueue
             return;
         }
 
-        $response = Http::post('https://exp.host/--/api/v2/push/send', [
-            'to' => $this->user->expo_push_token,
-            'title' => '¡Alerta de Seguridad!',
-            'body' => 'No has realizado tu check-in diario. Tus contactos de emergencia han sido notificados.',
-            'data' => ['type' => 'inactivity_alert'],
-        ]);
-
-        if ($response->failed()) {
-            Log::warning("Expo Push Notification failed for user {$this->user->id}: ".$response->body());
-        }
+        app(\App\Services\PushNotificationService::class)->sendPush(
+            $this->user->expo_push_token,
+            '¡Alerta de Seguridad!',
+            'No has realizado tu check-in diario. Tus contactos de emergencia han sido notificados.',
+            ['type' => 'inactivity_alert']
+        );
     }
 
     protected function sendEmailAlert(string $emergencyUrl)

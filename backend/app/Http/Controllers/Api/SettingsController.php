@@ -408,5 +408,40 @@ class SettingsController extends Controller
             'avatar_url' => $user->avatar_url,
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/push-token',
+        summary: 'Actualizar el token de notificaciones push (FCM / Expo)',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['push_token'],
+                properties: [
+                    new OA\Property(property: 'push_token', type: 'string', example: 'ExponentPushToken[12345]'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Token actualizado'),
+        ]
+    )]
+    public function updatePushToken(Request $request)
+    {
+        $validated = $request->validate([
+            'push_token' => 'required|string|max:500',
+        ]);
+
+        $user = Auth::user();
+        $user->update([
+            'expo_push_token' => $validated['push_token']
+        ]);
+
+        return response()->json([
+            'message' => 'Push token updated successfully',
+            'push_token' => $user->expo_push_token,
+        ]);
+    }
 }
 

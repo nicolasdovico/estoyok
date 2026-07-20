@@ -50,24 +50,16 @@ class SendBatteryAlertJob implements ShouldQueue
 
         foreach ($memberIds as $member) {
             if ($member->expo_push_token) {
-                try {
-                    $response = Http::post('https://exp.host/--/api/v2/push/send', [
-                        'to' => $member->expo_push_token,
-                        'title' => '🔋 Batería baja de un miembro',
-                        'body' => "La batería de {$this->user->name} está baja ({$percentage}%).",
-                        'data' => [
-                            'type' => 'low_battery_alert',
-                            'user_id' => $this->user->id,
-                            'battery_level' => $this->batteryLevel,
-                        ],
-                    ]);
-
-                    if ($response->failed()) {
-                        Log::warning("Expo Push Notification failed for low battery alert to user {$member->id}: " . $response->body());
-                    }
-                } catch (\Exception $e) {
-                    Log::error("Failed to send low battery push notification to user {$member->id}: " . $e->getMessage());
-                }
+                app(\App\Services\PushNotificationService::class)->sendPush(
+                    $member->expo_push_token,
+                    '🔋 Batería baja de un miembro',
+                    "La batería de {$this->user->name} está baja ({$percentage}%).",
+                    [
+                        'type' => 'low_battery_alert',
+                        'user_id' => (string) $this->user->id,
+                        'battery_level' => (string) $this->batteryLevel,
+                    ]
+                );
             }
         }
     }

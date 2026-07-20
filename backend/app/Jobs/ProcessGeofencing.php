@@ -89,16 +89,16 @@ class ProcessGeofencing implements ShouldQueue
 
         foreach ($members as $member) {
             if ($member->expo_push_token) {
-                Http::post('https://exp.host/--/api/v2/push/send', [
-                    'to' => $member->expo_push_token,
-                    'title' => 'Alerta de Perímetro',
-                    'body' => "{$this->user->name} ha {$action}: {$geofence->name}",
-                    'data' => [
+                app(\App\Services\PushNotificationService::class)->sendPush(
+                    $member->expo_push_token,
+                    'Alerta de Perímetro',
+                    "{$this->user->name} ha {$action}: {$geofence->name}",
+                    [
                         'type' => 'geofence_alert',
-                        'geofence_id' => $geofence->id,
+                        'geofence_id' => (string) $geofence->id,
                         'event' => $action == 'ingresado a' ? 'entry' : 'exit',
-                    ],
-                ]);
+                    ]
+                );
             }
         }
     }

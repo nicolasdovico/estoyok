@@ -6,6 +6,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.dagger.hilt.android")
     id("org.jetbrains.kotlin.kapt")
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -104,6 +105,10 @@ dependencies {
 
     // DataStore for session token storage
     implementation("androidx.datastore:datastore-preferences:1.0.0")
+
+    // Firebase Cloud Messaging
+    implementation(platform("com.google.firebase:firebase-bom:32.7.2"))
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
     // Fused Location Provider & Google Maps Compose
     implementation("com.google.android.gms:play-services-location:21.1.0")

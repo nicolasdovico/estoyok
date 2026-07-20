@@ -84,20 +84,14 @@ class SendCheckInReminders extends Command
     {
         $actionUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'));
 
-        // 1. Enviar notificación Push a través de Expo
+        // 1. Enviar notificación Push híbrida (FCM / Expo)
         if ($user->expo_push_token) {
-            $response = Http::post('https://exp.host/--/api/v2/push/send', [
-                'to' => $user->expo_push_token,
-                'title' => '¿Estás por ahí?',
-                'body' => 'Recuerda confirmar tu bienestar para evitar avisar a tus contactos.',
-                'data' => ['type' => 'checkin_reminder'],
-            ]);
-
-            if ($response->failed()) {
-                Log::warning("Expo Push Notification reminder failed for user {$user->id}: ".$response->body());
-            } else {
-                Log::info("Expo Push Notification reminder sent to user {$user->id}");
-            }
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $user->expo_push_token,
+                '¿Estás por ahí?',
+                'Recuerda confirmar tu bienestar para evitar avisar a tus contactos.',
+                ['type' => 'checkin_reminder']
+            );
         } else {
             Log::info("User {$user->id} does not have an expo_push_token registered. Skipping push.");
         }

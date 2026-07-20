@@ -70,6 +70,15 @@
             android:enabled="true"
             android:exported="true" />
 
+        <!-- Firebase Messaging Service -->
+        <service
+            android:name=".services.MyFirebaseMessagingService"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
+            </intent-filter>
+        </service>
+
         <!-- Crash Alert Countdown Activity -->
         <activity
             android:name=".features.tracking.presentation.CrashAlertActivity"

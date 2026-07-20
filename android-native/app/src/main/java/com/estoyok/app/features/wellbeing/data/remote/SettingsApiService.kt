@@ -57,4 +57,9 @@ interface SettingsApiService {
     suspend fun updateProximityAlerts(
         @Body request: ProximityAlertsRequest
     ): Response<MessageResponse>
+
+    @PUT("settings/push-token")
+    suspend fun updatePushToken(
+        @Body request: PushTokenRequest
+    ): Response<MessageResponse>
 }

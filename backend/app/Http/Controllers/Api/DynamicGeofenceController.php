@@ -99,22 +99,17 @@ class DynamicGeofenceController extends Controller
 
         // 5. Notificar por push al destino para iniciar tracking de alta frecuencia
         if ($target->expo_push_token) {
-            try {
-                Http::post('https://exp.host/--/api/v2/push/send', [
-                    'to' => $target->expo_push_token,
-                    'title' => '📡 Radar de Proximidad Activado',
-                    'body' => "{$user->name} ha iniciado un radar de proximidad contigo.",
-                    'sound' => 'default',
-                    'priority' => 'high',
-                    'data' => [
-                        'type' => 'dynamic_geofence_activated',
-                        'geofence_id' => $geofence->id,
-                        'initiator_name' => $user->name,
-                    ],
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Failed to send activation push: " . $e->getMessage());
-            }
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $target->expo_push_token,
+                '📡 Radar de Proximidad Activado',
+                "{$user->name} ha iniciado un radar de proximidad contigo.",
+                [
+                    'type' => 'dynamic_geofence_activated',
+                    'geofence_id' => (string) $geofence->id,
+                    'initiator_name' => $user->name,
+                ],
+                true
+            );
         }
 
         return response()->json($geofence->load(['initiator', 'target']), 201);
@@ -149,21 +144,16 @@ class DynamicGeofenceController extends Controller
         $otherUser = User::find($otherUserId);
 
         if ($otherUser && $otherUser->expo_push_token) {
-            try {
-                Http::post('https://exp.host/--/api/v2/push/send', [
-                    'to' => $otherUser->expo_push_token,
-                    'title' => '📡 Radar de Proximidad Finalizado',
-                    'body' => "El radar de proximidad ha sido desactivado por {$user->name}.",
-                    'sound' => 'default',
-                    'priority' => 'high',
-                    'data' => [
-                        'type' => 'dynamic_geofence_deactivated',
-                        'geofence_id' => $geofence->id,
-                    ],
-                ]);
-            } catch (\Exception $e) {
-                Log::error("Failed to send deactivation push: " . $e->getMessage());
-            }
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $otherUser->expo_push_token,
+                '📡 Radar de Proximidad Finalizado',
+                "El radar de proximidad ha sido desactivado por {$user->name}.",
+                [
+                    'type' => 'dynamic_geofence_deactivated',
+                    'geofence_id' => (string) $geofence->id,
+                ],
+                true
+            );
         }
 
         return response()->json([

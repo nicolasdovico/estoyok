@@ -81,6 +81,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
     Route::put('/settings/automation', [SettingsController::class, 'updateAutomation']);
     Route::put('/settings/proximity-alerts', [SettingsController::class, 'updateProximityAlerts']);
+    Route::put('/settings/push-token', [SettingsController::class, 'updatePushToken']);
     Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar']);
 
     Route::get('/user', function (Request $request) {

@@ -208,20 +208,18 @@ class EmergencyAlertController extends Controller
 
         foreach ($members as $member) {
             if ($member->expo_push_token) {
-                \Illuminate\Support\Facades\Http::post('https://exp.host/--/api/v2/push/send', [
-                    'to' => $member->expo_push_token,
-                    'title' => '🚨 ¡SOS CRÍTICO!',
-                    'body' => "{$user->name} ha activado un SOS silencioso. Revisa su ubicación inmediatamente.",
-                    'sound' => 'default',
-                    'priority' => 'high',
-                    'channelId' => 'emergency',
-                    'data' => [
+                app(\App\Services\PushNotificationService::class)->sendPush(
+                    $member->expo_push_token,
+                    '🚨 ¡SOS CRÍTICO!',
+                    "{$user->name} ha activado un SOS silencioso. Revisa su ubicación inmediatamente.",
+                    [
                         'type' => 'silent_sos',
-                        'alert_id' => $alert->id,
-                        'user_id' => $user->id,
+                        'alert_id' => (string) $alert->id,
+                        'user_id' => (string) $user->id,
                         'user_name' => $user->name,
                     ],
-                ]);
+                    true
+                );
             }
         }
 
