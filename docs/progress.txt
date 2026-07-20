@@ -978,6 +978,7 @@
     - Implementado un diseño dinámicamente adaptativo para las tarjetas de desglose de usuarios en `VehiculoScreen.kt`: evalúa en tiempo real si el ancho de pantalla es menor a 385dp o si la escala de fuente de accesibilidad de Android supera 1.15x. Ante cualquiera de estas condiciones, reestructura la tarjeta de una sola fila a dos filas apiladas (Avatar/Nombre completo en la fila superior, y las 4 métricas distribuidas a lo ancho de la tarjeta abajo), eliminando el encabalgamiento de textos o el desorden visual.
     - Creada la guía oficial de marcas y dimensiones de logotipo en `docs/logo_assets.md`.
     - Resuelta la visualización del favicon en el frontend web Next.js: se reubicó `favicon.png` de `src/app/` al directorio `public/` (sirviéndose directamente en `/favicon.png` con 200 OK) y se actualizó `layout.tsx` para agregar la referencia explícita del favicon en los metadatos de iconos, eliminando el error 404 del navegador.
+    - Expandido `layout.tsx` de Next.js para mapear e inyectar metadatos explícitos de los nuevos iconos: `logo-square.png` (como icono 192x192), `icon.png` (como icono 512x512) y `apple.icon.png` (como apple-touch-icon 180x180), garantizando compatibilidad en navegadores y dispositivos iOS/Android/PWA.
 - **Validación:**
     - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL`).
     - Suite de 119 pruebas automatizadas de Laravel completadas con éxito sin regresiones (119/119 tests PASS).
