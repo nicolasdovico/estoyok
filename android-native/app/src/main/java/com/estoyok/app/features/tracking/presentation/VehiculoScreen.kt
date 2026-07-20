@@ -424,6 +424,10 @@ fun VehiculoScreen(
                                 100
                             }
 
+                            val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+                            val density = androidx.compose.ui.platform.LocalDensity.current
+                            val isAdaptiveLayout = configuration.screenWidthDp < 385 || density.fontScale > 1.15f
+
                             Card(
                                 modifier = Modifier
                                     .fillMaxWidth()
@@ -435,112 +439,218 @@ fun VehiculoScreen(
                                 shape = RoundedCornerShape(12.dp),
                                 border = if (isSelected) BorderStroke(2.dp, PrimaryEmerald) else BorderStroke(1.dp, BorderColor)
                             ) {
-                                Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .padding(12.dp),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    // Left side: Avatar + Name
-                                    Row(
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp),
-                                        modifier = Modifier.width(110.dp)
+                                if (isAdaptiveLayout) {
+                                    // Layout de dos filas para pantallas pequeñas o letras grandes
+                                    Column(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp)
                                     ) {
-                                        val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
-                                            if (member.id == viewModel.currentUserProfile?.id) {
-                                                "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                        // Fila Superior: Avatar + Nombre Completo
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                        ) {
+                                            val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                                if (member.id == viewModel.currentUserProfile?.id) {
+                                                    "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                                } else {
+                                                    member.avatarUrl
+                                                }
                                             } else {
-                                                member.avatarUrl
+                                                null
                                             }
-                                        } else {
-                                            null
+
+                                            val initials = member.name.split(" ")
+                                                .mapNotNull { it.firstOrNull()?.toString() }
+                                                .take(2)
+                                                .joinToString("")
+                                                .uppercase()
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .background(DarkBackground, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                SubcomposeAsyncImage(
+                                                    model = memberAvatarUrl,
+                                                    contentDescription = member.name,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop,
+                                                    loading = {
+                                                        Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    },
+                                                    error = {
+                                                        Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    }
+                                                )
+                                            }
+
+                                            Text(
+                                                text = member.name,
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
                                         }
 
-                                        val initials = member.name.split(" ")
-                                            .mapNotNull { it.firstOrNull()?.toString() }
-                                            .take(2)
-                                            .joinToString("")
-                                            .uppercase()
+                                        HorizontalDivider(color = BorderColor, thickness = 1.dp)
 
+                                        // Fila Inferior: Estadísticas distribuidas uniformemente
+                                        Row(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Score
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Score", color = TextMuted, fontSize = 10.sp)
+                                                Text(
+                                                    text = "$score",
+                                                    color = when {
+                                                        score >= 90 -> PrimaryEmerald
+                                                        score >= 70 -> PrimaryOrange
+                                                        else -> PrimaryRed
+                                                    },
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 13.sp
+                                                )
+                                            }
+
+                                            // Viajes
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Viajes", color = TextMuted, fontSize = 10.sp)
+                                                Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                            }
+
+                                            // Distancia
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Distancia", color = TextMuted, fontSize = 10.sp)
+                                                Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                            }
+
+                                            // Velocidad Máxima
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Vel. Máx", color = TextMuted, fontSize = 10.sp)
+                                                Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                            }
+                                        }
+                                    }
+                                } else {
+                                    // Layout compacto original de una fila para pantallas grandes y letra normal
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .padding(12.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                                    ) {
+                                        // Left side: Avatar + Name
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                                            modifier = Modifier.width(110.dp)
+                                        ) {
+                                            val memberAvatarUrl = if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                                                if (member.id == viewModel.currentUserProfile?.id) {
+                                                    "${member.avatarUrl}?v=${viewModel.avatarVersion}"
+                                                } else {
+                                                    member.avatarUrl
+                                                }
+                                            } else {
+                                                null
+                                            }
+
+                                            val initials = member.name.split(" ")
+                                                .mapNotNull { it.firstOrNull()?.toString() }
+                                                .take(2)
+                                                .joinToString("")
+                                                .uppercase()
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .background(DarkBackground, CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                SubcomposeAsyncImage(
+                                                    model = memberAvatarUrl,
+                                                    contentDescription = member.name,
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .clip(CircleShape),
+                                                    contentScale = ContentScale.Crop,
+                                                    loading = {
+                                                        Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    },
+                                                    error = {
+                                                        Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
+                                                    }
+                                                )
+                                            }
+
+                                            Text(
+                                                text = member.name.substringBefore(" "),
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary,
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+
+                                        // Divider between Avatar/Name and Stats
                                         Box(
                                             modifier = Modifier
-                                                .size(32.dp)
-                                                .background(DarkBackground, CircleShape),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            SubcomposeAsyncImage(
-                                                model = memberAvatarUrl,
-                                                contentDescription = member.name,
-                                                modifier = Modifier
-                                                    .fillMaxSize()
-                                                    .clip(CircleShape),
-                                                contentScale = ContentScale.Crop,
-                                                loading = {
-                                                    Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                                },
-                                                error = {
-                                                    Text(initials, color = TextPrimary, fontSize = 10.sp, fontWeight = FontWeight.Bold)
-                                                }
-                                            )
-                                        }
-
-                                        Text(
-                                            text = member.name.substringBefore(" "),
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = TextPrimary,
-                                            maxLines = 1,
-                                            overflow = TextOverflow.Ellipsis
+                                                .width(1.dp)
+                                                .height(30.dp)
+                                                .background(BorderColor)
                                         )
-                                    }
 
-                                    // Divider between Avatar/Name and Stats
-                                    Box(
-                                        modifier = Modifier
-                                            .width(1.dp)
-                                            .height(30.dp)
-                                            .background(BorderColor)
-                                    )
+                                        // Right side: Stats horizontal list
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            horizontalArrangement = Arrangement.SpaceBetween,
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            // Score
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Score", color = TextMuted, fontSize = 9.sp)
+                                                Text(
+                                                    text = "$score",
+                                                    color = when {
+                                                        score >= 90 -> PrimaryEmerald
+                                                        score >= 70 -> PrimaryOrange
+                                                        else -> PrimaryRed
+                                                    },
+                                                    fontWeight = FontWeight.Bold,
+                                                    fontSize = 12.sp
+                                                )
+                                            }
 
-                                    // Right side: Stats horizontal list
-                                    Row(
-                                        modifier = Modifier.weight(1f),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        // Score
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text("Score", color = TextMuted, fontSize = 9.sp)
-                                            Text(
-                                                text = "$score",
-                                                color = when {
-                                                    score >= 90 -> PrimaryEmerald
-                                                    score >= 70 -> PrimaryOrange
-                                                    else -> PrimaryRed
-                                                },
-                                                fontWeight = FontWeight.Bold,
-                                                fontSize = 12.sp
-                                            )
-                                        }
+                                            // Trips
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Viajes", color = TextMuted, fontSize = 9.sp)
+                                                Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
 
-                                        // Trips
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text("Viajes", color = TextMuted, fontSize = 9.sp)
-                                            Text("$tripsCount", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        }
+                                            // Distance
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Distancia", color = TextMuted, fontSize = 9.sp)
+                                                Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
 
-                                        // Distance
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text("Distancia", color = TextMuted, fontSize = 9.sp)
-                                            Text("${String.format(Locale.US, "%.1f", totalDist)} km", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
-                                        }
-
-                                        // Max Speed
-                                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                                            Text("Vel. Máx", color = TextMuted, fontSize = 9.sp)
-                                            Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            // Max Speed
+                                            Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                                Text("Vel. Máx", color = TextMuted, fontSize = 9.sp)
+                                                Text("${maxSpd.toInt()} km/h", color = TextPrimary, fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                                            }
                                         }
                                     }
                                 }
