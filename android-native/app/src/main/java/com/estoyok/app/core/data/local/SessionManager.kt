@@ -7,9 +7,11 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
+import com.estoyok.app.core.util.CryptoManager
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.firstOrNull
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -26,6 +28,7 @@ class SessionManager @Inject constructor(
         private val USER_PHONE = stringPreferencesKey("user_phone")
         private val API_BASE_URL = stringPreferencesKey("api_base_url")
         private val TRACKING_ENABLED = booleanPreferencesKey("tracking_enabled")
+        private val ENCRYPTED_PASSWORD = stringPreferencesKey("encrypted_password")
     }
 
     val authTokenFlow: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -71,12 +74,31 @@ class SessionManager @Inject constructor(
         }
     }
 
+    suspend fun saveEncryptedPassword(password: String) {
+        val crypto = CryptoManager()
+        val encrypted = crypto.encryptString(password)
+        context.dataStore.edit { preferences ->
+            preferences[ENCRYPTED_PASSWORD] = encrypted
+        }
+    }
+
+    suspend fun getDecryptedPassword(): String? {
+        val crypto = CryptoManager()
+        val encrypted = context.dataStore.data.map { it[ENCRYPTED_PASSWORD] }.firstOrNull() ?: return null
+        return try {
+            crypto.decryptString(encrypted)
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     suspend fun clearSession() {
         context.dataStore.edit { preferences ->
             preferences.remove(AUTH_TOKEN)
             preferences.remove(USER_NAME)
             preferences.remove(USER_EMAIL)
             preferences.remove(USER_PHONE)
+            preferences.remove(ENCRYPTED_PASSWORD)
         }
     }
 }

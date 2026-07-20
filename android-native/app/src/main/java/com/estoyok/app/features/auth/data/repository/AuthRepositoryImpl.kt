@@ -19,8 +19,21 @@ class AuthRepositoryImpl @Inject constructor(
     private val sessionManager: SessionManager
 ) : AuthRepository {
 
-    override fun register(request: RegisterRequest): Flow<Resource<MessageResponse>> = safeApiCall {
-        apiService.register(request)
+    override fun register(request: RegisterRequest): Flow<Resource<MessageResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.register(request)
+            if (response.isSuccessful && response.body() != null) {
+                sessionManager.saveEncryptedPassword(request.password)
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado."))
+        }
     }
 
     override fun login(request: LoginRequest): Flow<Resource<AuthResponse>> = flow {
@@ -29,13 +42,13 @@ class AuthRepositoryImpl @Inject constructor(
             val response = apiService.login(request)
             if (response.isSuccessful && response.body() != null) {
                 val body = response.body()!!
-                // Save session token and info
                 sessionManager.saveSession(
                     token = body.token,
                     name = body.user.name,
                     email = body.user.email,
                     phone = body.user.phone
                 )
+                sessionManager.saveEncryptedPassword(request.password)
                 emit(Resource.Success(body))
             } else {
                 emit(Resource.Error(parseErrorMessage(response)))
