@@ -132,7 +132,11 @@ class TrackingService : Service(), SensorEventListener {
             ACTION_UPDATE_INTERVAL -> {
                 val interval = intent.getLongExtra(EXTRA_INTERVAL, 30000L)
                 isEmergencyMode = intent.getBooleanExtra(EXTRA_EMERGENCY, false)
-                updateInterval(interval)
+                if (!isTrackingActive) {
+                    startTracking(interval)
+                } else {
+                    updateInterval(interval)
+                }
             }
         }
         return START_STICKY

@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import com.estoyok.app.core.theme.EstoyOkTheme
 import com.estoyok.app.core.theme.PrimaryRed
 import com.estoyok.app.core.util.Resource
@@ -148,8 +149,9 @@ class CrashAlertActivity : ComponentActivity() {
         val trackingIntent = Intent(this, TrackingService::class.java).apply {
             action = TrackingService.ACTION_UPDATE_INTERVAL
             putExtra(TrackingService.EXTRA_INTERVAL, 5000L)
+            putExtra(TrackingService.EXTRA_EMERGENCY, true)
         }
-        startService(trackingIntent)
+        ContextCompat.startForegroundService(this, trackingIntent)
 
         // Close countdown activity
         finish()

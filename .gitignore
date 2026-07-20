@@ -10,3 +10,8 @@ Thumbs.db
 *.njsproj
 *.sln
 *.swp
+
+# Credenciales de Firebase
+firebase_credentials.json
+firebase_credential.json
+

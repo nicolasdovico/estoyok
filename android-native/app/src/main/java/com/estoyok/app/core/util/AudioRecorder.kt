@@ -14,26 +14,34 @@ class AudioRecorder(private val context: Context) {
         val file = File(context.cacheDir, "sos_ambient_${System.currentTimeMillis()}.mp4")
         outputFile = file
 
-        recorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            MediaRecorder(context)
-        } else {
-            @Suppress("DEPRECATION")
-            MediaRecorder()
-        }.apply {
-            setAudioSource(MediaRecorder.AudioSource.MIC)
-            setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-            setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-            setOutputFile(file.absolutePath)
+        try {
+            val mediaRecorder = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                MediaRecorder(context)
+            } else {
+                @Suppress("DEPRECATION")
+                MediaRecorder()
+            }
             
-            try {
+            mediaRecorder.apply {
+                setAudioSource(MediaRecorder.AudioSource.MIC)
+                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setOutputFile(file.absolutePath)
                 prepare()
                 start()
-            } catch (e: Exception) {
-                e.printStackTrace()
-                return null
             }
+            recorder = mediaRecorder
+            return file
+        } catch (e: Exception) {
+            e.printStackTrace()
+            try {
+                recorder?.release()
+            } catch (ex: Exception) {
+                ex.printStackTrace()
+            }
+            recorder = null
+            return null
         }
-        return file
     }
 
     fun stopRecording() {

@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.estoyok.app.BuildConfig
@@ -157,8 +158,9 @@ class PanelViewModel @Inject constructor(
         val trackingIntent = Intent(context, TrackingService::class.java).apply {
             action = TrackingService.ACTION_UPDATE_INTERVAL
             putExtra(TrackingService.EXTRA_INTERVAL, 5000L)
+            putExtra(TrackingService.EXTRA_EMERGENCY, true)
         }
-        context.startService(trackingIntent)
+        ContextCompat.startForegroundService(context, trackingIntent)
 
         // 2. Start Audio Recording in background
         val audioRecorder = AudioRecorder(context)
