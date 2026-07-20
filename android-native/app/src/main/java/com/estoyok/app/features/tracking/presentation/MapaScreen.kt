@@ -631,6 +631,12 @@ fun MapaScreen(
                             state = markerState,
                             title = titleText,
                             snippet = snippetText,
+                            keys = arrayOf(
+                                subtitleText,
+                                borderColor,
+                                movementEmoji ?: "",
+                                markerBitmaps[member.id] ?: Unit
+                            ),
                             onClick = {
                                 selectedMemberForMap = member
                                 viewModel.selectedMember = member
