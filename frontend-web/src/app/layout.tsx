@@ -16,7 +16,14 @@ export const metadata: Metadata = {
   title: "Estoy Ok - Seguridad Familiar Integral",
   description: "Plataforma de seguridad familiar con monitoreo activo y pasivo. Cuidamos a los que más querés.",
   icons: {
-    icon: "/favicon.png",
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/logo-square.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon.png", sizes: "512x512", type: "image/png" }
+    ],
+    apple: [
+      { url: "/apple.icon.png", sizes: "180x180", type: "image/png" }
+    ]
   },
 };
 
