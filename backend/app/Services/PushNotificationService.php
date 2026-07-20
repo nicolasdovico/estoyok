@@ -82,7 +82,7 @@ class PushNotificationService
         }
 
         try {
-            $message = CloudMessage::withTarget('token', $to);
+            $message = CloudMessage::new()->withToken($to);
 
             // Silent push wake_up payload (used to wake up gps background service)
             if ($highPriority && isset($data['action']) && $data['action'] === 'wake_up') {
