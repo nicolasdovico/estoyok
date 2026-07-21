@@ -994,10 +994,11 @@
     - Añadida adaptabilidad dinámica en el selector de servidores en [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) convirtiéndolo en `Column` (vertical) para evitar solapamientos en anchos menores a 365dp o fuentes grandes, y manteniendo `Row` en pantallas estándar.
     - Asegurado que el texto de descripción en el interruptor de Modo Sueño en [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) use `Modifier.weight(1f)` y un espaciador de seguridad para evitar colisiones con el Switch.
     - Restringido el ancho máximo del selector de núcleos en [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) en base a `WindowInfo` y configurado el nombre de miembro con `TextOverflow.Ellipsis` para prevenir superposición de menús.
+    - Unificada la paleta de colores de la interfaz nativa: reemplazados los colores blancos planos en el botón flotante de Ajustes/Volver en [NavGraph.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt), el nombre del núcleo activo en el pill superior de [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) y los títulos principales de todas las pantallas (`PanelScreen.kt`, `AjustesScreen.kt`, `VehiculoScreen.kt`, `FamiliaScreen.kt`, `PremiumScreen.kt`) para utilizar el color oficial turquesa eléctrico de la marca (`PrimaryEmerald`).
 - **Backend & Docs:**
     - Creado el catálogo detallado de eventos de notificaciones push en [eventos_notificaciones_push.md](file:///home/usuario/aplicaciones/estoyok/docs/eventos_notificaciones_push.md) con comandos Tinker interactivos para realizar pruebas de integración de cada una de las 11 notificaciones.
 - **Validación:**
-    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL`).
+    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL` en 2m 14s).
     - Suite de 119 pruebas unitarias y de integración de Laravel completada exitosamente sin regresiones (`119 passed`).
 
 
