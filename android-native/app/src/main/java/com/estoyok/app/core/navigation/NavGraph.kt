@@ -185,7 +185,7 @@ fun MainScreen(
                         .padding(start = 16.dp, top = 8.dp),
                     colors = IconButtonDefaults.iconButtonColors(
                         containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.9f),
-                        contentColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        contentColor = MaterialTheme.colorScheme.primary
                     )
                 ) {
                     Icon(

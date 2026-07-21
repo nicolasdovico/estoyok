@@ -107,7 +107,7 @@ fun AjustesScreen(
                 text = "Configuración de Seguridad",
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.primary
             )
 
             // Feedback messages (Snackbar Mock)

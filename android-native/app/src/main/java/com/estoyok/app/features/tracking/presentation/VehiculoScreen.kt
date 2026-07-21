@@ -171,7 +171,7 @@ fun VehiculoScreen(
                 text = "🚗 Protección Vehicular",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = TextPrimary,
+                color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(horizontal = 20.dp)
             )
 

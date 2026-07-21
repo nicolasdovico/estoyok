@@ -88,7 +88,7 @@ fun PanelContent(
                             text = "Mi Bienestar",
                             style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.onBackground
+                            color = MaterialTheme.colorScheme.primary
                         )
                         Text(
                             text = userName,

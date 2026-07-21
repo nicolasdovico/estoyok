@@ -804,7 +804,7 @@ fun MapaScreen(
                     text = viewModel.selectedCircle?.name ?: "Seleccionar Núcleo",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary,
+                    color = MaterialTheme.colorScheme.primary,
                     maxLines = 1,
                     overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
                     modifier = Modifier.weight(1f, fill = false)

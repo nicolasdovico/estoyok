@@ -64,7 +64,7 @@ fun FamiliaScreen(
                     text = "👥 Mi Núcleo",
                     fontSize = 22.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary
+                    color = MaterialTheme.colorScheme.primary
                 )
                 IconButton(
                     onClick = { viewModel.refreshData() }

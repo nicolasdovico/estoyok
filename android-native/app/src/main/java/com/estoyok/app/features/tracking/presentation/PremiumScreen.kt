@@ -53,7 +53,7 @@ fun PremiumScreen(
                 text = "👑 Suscripción Premium",
                 fontSize = 22.sp,
                 fontWeight = FontWeight.ExtraBold,
-                color = MaterialTheme.colorScheme.onBackground
+                color = MaterialTheme.colorScheme.primary
             )
 
             // Subscription status card
