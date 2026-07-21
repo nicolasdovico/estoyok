@@ -987,4 +987,17 @@
     - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL`).
     - Suite de 119 pruebas automatizadas de Laravel completadas con éxito sin regresiones (119/119 tests PASS).
 
+## [2026-07-21] Adaptabilidad de Interfaz por Fuentes e Historial de Notificaciones
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado e integrado [WindowInfo.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/util/WindowInfo.kt) para proveer detección reactiva de dimensiones de pantalla y escalas de fuentes del sistema de hasta 1.5x (150%).
+    - Reestructurada por completo la pantalla de bienestar de [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) en una sola `LazyColumn` global, eliminando espaciados redundantes y escalando el botón "Estoy OK" de 180dp a 130dp de forma dinámica cuando se usan fuentes gigantes o pantallas estrechas.
+    - Añadida adaptabilidad dinámica en el selector de servidores en [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) convirtiéndolo en `Column` (vertical) para evitar solapamientos en anchos menores a 365dp o fuentes grandes, y manteniendo `Row` en pantallas estándar.
+    - Asegurado que el texto de descripción en el interruptor de Modo Sueño en [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) use `Modifier.weight(1f)` y un espaciador de seguridad para evitar colisiones con el Switch.
+    - Restringido el ancho máximo del selector de núcleos en [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) en base a `WindowInfo` y configurado el nombre de miembro con `TextOverflow.Ellipsis` para prevenir superposición de menús.
+- **Backend & Docs:**
+    - Creado el catálogo detallado de eventos de notificaciones push en [eventos_notificaciones_push.md](file:///home/usuario/aplicaciones/estoyok/docs/eventos_notificaciones_push.md) con comandos Tinker interactivos para realizar pruebas de integración de cada una de las 11 notificaciones.
+- **Validación:**
+    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL`).
+    - Suite de 119 pruebas unitarias y de integración de Laravel completada exitosamente sin regresiones (`119 passed`).
+
 
