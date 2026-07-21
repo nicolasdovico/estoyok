@@ -998,10 +998,11 @@
     - Desarrollado e integrado el sistema de Indicadores de Borde (Off-Screen Edge Indicators) en la pantalla de [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt): detecta a través del objeto `Projection` de la cámara si un familiar se encuentra fuera del visor de la pantalla, calcula la trayectoria matemática desde el centro del visor e intercepta la pastilla flotante con avatar en el borde exacto (respetando márgenes de seguridad para no tapar la UI del sistema o paneles del mapa).
     - Incorporado un solucionador de colisiones angulares en tiempo real que previene que dos o más pastillas de borde se superpongan si los familiares están en el mismo sentido, desplazándolos dinámicamente sobre el perímetro visible.
     - Soportado el click interactivo en los indicadores de borde para enfocar y animar suavemente la cámara del mapa sobre el familiar correspondiente, activando su seguimiento en primer plano de manera fluida (estilo Life360).
+    - Solucionado el problema de recarga molesta en la pestaña de bienestar de vehículos en [VehiculoScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/VehiculoScreen.kt): cambiadas las claves de los bloques `LaunchedEffect` observadores (`selectedCircle` y `selectedMember`) para utilizar sus identificadores numéricos (`selectedCircle?.id` y `selectedMember?.id`). Esto previene que el bucle de polling periódico de 10 segundos del mapa fuerce recargas y destellos en la pantalla de viajes cuando las instancias de datos cambian de referencia sin alterar el núcleo seleccionado.
 - **Backend & Docs:**
     - Creado el catálogo detallado de eventos de notificaciones push en [eventos_notificaciones_push.md](file:///home/usuario/aplicaciones/estoyok/docs/eventos_notificaciones_push.md) con comandos Tinker interactivos para realizar pruebas de integración de cada una de las 11 notificaciones.
 - **Validación:**
-    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL` en 56s).
+    - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL` en 19s).
     - Suite de 119 pruebas unitarias y de integración de Laravel completada exitosamente sin regresiones (`119 passed`).
 
 

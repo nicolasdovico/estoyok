@@ -135,7 +135,7 @@ fun VehiculoScreen(
         selectedMember?.let { allFilteredDrives[it.id] } ?: emptyList()
     }
 
-    LaunchedEffect(selectedCircle) {
+    LaunchedEffect(selectedCircle?.id) {
         if (selectedCircle != null) {
             viewModel.loadAllMembersDrives(selectedCircle.id, selectedCircle.members)
             
@@ -149,7 +149,7 @@ fun VehiculoScreen(
         }
     }
 
-    LaunchedEffect(selectedMember) {
+    LaunchedEffect(selectedMember?.id) {
         if (selectedMember != null && selectedCircle != null) {
             viewModel.loadMemberDrives(selectedMember.id)
         }
