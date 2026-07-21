@@ -70,6 +70,7 @@ Route::get('/debug/geofence-test', function (Illuminate\Http\Request $request) {
     }
 
     $triggered = false;
+    $syncMode = false;
     if ($request->query('trigger') == '1' && $geofences->isNotEmpty()) {
         $firstGeofence = $geofences->first();
         \App\Models\GeofenceEvent::create([
@@ -78,7 +79,13 @@ Route::get('/debug/geofence-test', function (Illuminate\Http\Request $request) {
             'type' => 'entry',
             'occurred_at' => now()->subMinutes(5)
         ]);
-        \App\Jobs\ProcessGeofencing::dispatch($user, 0.0, 0.0);
+        
+        if ($request->query('sync') == '1') {
+            \App\Jobs\ProcessGeofencing::dispatchSync($user, 0.0, 0.0);
+            $syncMode = true;
+        } else {
+            \App\Jobs\ProcessGeofencing::dispatch($user, 0.0, 0.0);
+        }
         $triggered = true;
     }
 
@@ -92,6 +99,7 @@ Route::get('/debug/geofence-test', function (Illuminate\Http\Request $request) {
         'circles' => $user->circles->pluck('name', 'id'),
         'geofences' => $geofencesData,
         'triggered_simulation' => $triggered,
+        'triggered_sync_mode' => $syncMode,
         'queue_connection' => config('queue.default'),
         'app_env' => config('app.env')
     ]);
