@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.navigation.NavHostController
 import com.estoyok.app.core.navigation.Screen
 import androidx.compose.material3.*
@@ -412,7 +413,28 @@ fun MapaScreen(
         }
     }
 
-    Box(
+    val density = androidx.compose.ui.platform.LocalDensity.current
+    val offScreenMembers by remember {
+        derivedStateOf {
+            @Suppress("UNUSED_VARIABLE")
+            val position = cameraPositionState.position // Reactive dependency on camera movement!
+            val projection = cameraPositionState.projection
+            if (projection == null) {
+                emptyList()
+            } else {
+                viewModel.selectedCircleMembers
+                    .filter { it.currentLocation != null }
+                    .map { member ->
+                        val loc = member.currentLocation!!
+                        val latLng = LatLng(loc.latitude, loc.longitude)
+                        val screenPoint = projection.toScreenLocation(latLng)
+                        Pair(member, screenPoint)
+                    }
+            }
+        }
+    }
+
+    BoxWithConstraints(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
@@ -775,6 +797,184 @@ fun MapaScreen(
                                         }
                                     }
                                 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // 1b. Off-Screen Edge Indicators Overlay (Life360 style boundary tabs)
+        val width = constraints.maxWidth.toFloat()
+        val height = constraints.maxHeight.toFloat()
+        
+        val leftMargin = 0f
+        val rightMargin = 0f
+        val topMargin = with(density) { 60.dp.toPx() }
+        val bottomMargin = with(density) { 140.dp.toPx() }
+        
+        val cameraTarget = cameraPositionState.position.target
+        val cameraTargetScreenPoint = cameraPositionState.projection?.toScreenLocation(cameraTarget)
+        val cx = cameraTargetScreenPoint?.x?.toFloat() ?: (width / 2f)
+        val cy = cameraTargetScreenPoint?.y?.toFloat() ?: (height / 2f)
+        
+        val placedAngles = mutableListOf<Double>()
+        
+        offScreenMembers.forEach { (member, screenPoint) ->
+            val mx = screenPoint.x.toFloat()
+            val my = screenPoint.y.toFloat()
+            
+            // Draw indicators ONLY if the member is actually off-screen (outside safety margins)
+            val insetX = with(density) { 22.dp.toPx() }
+            val insetY = with(density) { 22.dp.toPx() }
+            val isOffScreen = mx < insetX || mx > width - insetX || my < topMargin + insetY || my > height - bottomMargin - insetY
+            
+            if (isOffScreen) {
+                val dx = mx - cx
+                val dy = my - cy
+                
+                val initialAngleRad = Math.atan2(dy.toDouble(), dx.toDouble())
+                
+                // Avoid overlapping indicators on the edge (collision solver)
+                var resolvedAngleRad = initialAngleRad
+                val minAngleDiff = Math.toRadians(18.0) // ~18 degrees separation
+                var collisions = 0
+                do {
+                    var foundCollision = false
+                    for (placedAngle in placedAngles) {
+                        var diff = Math.abs(resolvedAngleRad - placedAngle)
+                        if (diff > Math.PI) {
+                            diff = (2.0 * Math.PI - diff)
+                        }
+                        if (diff < minAngleDiff) {
+                            resolvedAngleRad += minAngleDiff
+                            foundCollision = true
+                            collisions++
+                            break
+                        }
+                    }
+                } while (foundCollision && collisions < 10)
+                placedAngles.add(resolvedAngleRad)
+                
+                val rdx = Math.cos(resolvedAngleRad).toFloat()
+                val rdy = Math.sin(resolvedAngleRad).toFloat()
+                
+                var edge = "none"
+                var t = Float.MAX_VALUE
+                if (rdx < 0) {
+                    val tLeft = (leftMargin - cx) / rdx
+                    if (tLeft in 0f..t) {
+                        t = tLeft
+                        edge = "left"
+                    }
+                } else if (rdx > 0) {
+                    val tRight = (width - rightMargin - cx) / rdx
+                    if (tRight in 0f..t) {
+                        t = tRight
+                        edge = "right"
+                    }
+                }
+                if (rdy < 0) {
+                    val tTop = (topMargin - cy) / rdy
+                    if (tTop in 0f..t) {
+                        t = tTop
+                        edge = "top"
+                    }
+                } else if (rdy > 0) {
+                    val tBottom = (height - bottomMargin - cy) / rdy
+                    if (tBottom in 0f..t) {
+                        t = tBottom
+                        edge = "bottom"
+                    }
+                }
+                
+                if (t != Float.MAX_VALUE) {
+                    val ix = cx + t * rdx
+                    val iy = cy + t * rdy
+                    
+                    val ixDp = with(density) { ix.toDp() }
+                    val iyDp = with(density) { iy.toDp() }
+                    
+                    val boxX = when (edge) {
+                        "left" -> 0.dp
+                        "right" -> with(density) { (width - with(density) { 44.dp.toPx() }).toDp() }
+                        else -> ixDp - 22.dp
+                    }
+                    
+                    val boxY = when (edge) {
+                        "top" -> with(density) { topMargin.toDp() }
+                        "bottom" -> with(density) { (height - bottomMargin - with(density) { 44.dp.toPx() }).toDp() }
+                        else -> iyDp - 22.dp
+                    }
+                    
+                    val cornerRadius = 12.dp
+                    val tabShape = when (edge) {
+                        "left" -> RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = cornerRadius, bottomEnd = cornerRadius)
+                        "right" -> RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius, topEnd = 0.dp, bottomEnd = 0.dp)
+                        "top" -> RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = cornerRadius, bottomEnd = cornerRadius)
+                        "bottom" -> RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius, bottomStart = 0.dp, bottomEnd = 0.dp)
+                        else -> CircleShape
+                    }
+                    
+                    val loc = member.currentLocation!!
+                    val isOffline = loc.isOffline == true
+                    val borderColor = if (isOffline) TextMuted else PrimaryEmerald
+                    
+                    Box(
+                        modifier = Modifier
+                            .offset(x = boxX, y = boxY)
+                            .size(44.dp)
+                            .background(MaterialTheme.colorScheme.surface, tabShape)
+                            .border(2.dp, borderColor, tabShape)
+                            .clip(tabShape)
+                            .clickable {
+                                scope.launch {
+                                    cameraPositionState.animate(
+                                        CameraUpdateFactory.newLatLngZoom(
+                                            LatLng(loc.latitude, loc.longitude),
+                                            16f
+                                        )
+                                    )
+                                    selectedMemberForMap = member
+                                    viewModel.selectedMember = member
+                                }
+                            }
+                    ) {
+                        if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
+                            SubcomposeAsyncImage(
+                                model = member.avatarUrl,
+                                contentDescription = "Foto de perfil",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop,
+                                error = {
+                                    Box(
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .background(MaterialTheme.colorScheme.surfaceVariant),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = member.name.take(2).uppercase(),
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            )
+                        } else {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .background(MaterialTheme.colorScheme.surfaceVariant),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = member.name.take(2).uppercase(),
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }
