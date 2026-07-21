@@ -46,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
+import com.estoyok.app.core.util.rememberWindowInfo
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
 import com.estoyok.app.features.tracking.data.model.GeofenceDto
 import com.google.android.gms.maps.model.CameraPosition
@@ -92,6 +93,7 @@ fun MapaScreen(
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+    val windowInfo = rememberWindowInfo()
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
@@ -784,7 +786,7 @@ fun MapaScreen(
         // 2a. Floating Header: Circle Selector Combo (Centered Pill)
         Card(
             modifier = Modifier
-                .wrapContentWidth()
+                .widthIn(max = if (windowInfo.isNarrowScreen) 220.dp else 300.dp)
                 .padding(top = 16.dp)
                 .align(Alignment.TopCenter),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
@@ -802,7 +804,10 @@ fun MapaScreen(
                     text = viewModel.selectedCircle?.name ?: "Seleccionar Núcleo",
                     fontSize = 14.sp,
                     fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f, fill = false)
                 )
                 Icon(
                     imageVector = Icons.Default.ArrowDropDown,

@@ -241,8 +241,10 @@ fun AjustesScreen(
                             text = "Habilitar Modo Sueño",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = TextPrimary
+                            color = TextPrimary,
+                            modifier = Modifier.weight(1f)
                         )
+                        Spacer(modifier = Modifier.width(16.dp))
                         Switch(
                             checked = viewModel.quietHoursEnabled,
                             onCheckedChange = {

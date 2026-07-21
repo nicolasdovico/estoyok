@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
+import com.estoyok.app.core.util.rememberWindowInfo
 import com.estoyok.app.features.wellbeing.data.model.CheckInDto
 import java.text.SimpleDateFormat
 import java.util.*
@@ -32,8 +33,6 @@ import java.util.*
 fun PanelScreen(
     viewModel: PanelViewModel = hiltViewModel()
 ) {
-    val context = LocalContext.current
-
     PanelContent(
         userName = viewModel.user?.name ?: "Usuario",
         status = viewModel.status,
@@ -59,138 +58,143 @@ fun PanelContent(
     onSos: (android.content.Context) -> Unit
 ) {
     val context = LocalContext.current
+    val windowInfo = rememberWindowInfo()
+
+    val buttonSize = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 130.dp else 180.dp
+    val spacingHeaderToBanner = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 12.dp else 20.dp
+    val spacingBannerToButton = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 16.dp else 30.dp
+    val spacingButtonToTitle = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 20.dp else 36.dp
 
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(20.dp)
+                .padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            // Header
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Mi Bienestar",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    )
-                    Text(
-                        text = userName,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                    )
-                }
-
+            item {
+                // Header
                 Row(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Button(
-                        onClick = onRefresh,
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                        shape = RoundedCornerShape(8.dp),
-                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                    ) {
-                        Text("Actualizar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Mi Bienestar",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.onBackground
+                        )
+                        Text(
+                            text = userName,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                        )
                     }
 
-                    // Silent SOS long-press trigger button
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (isSosTriggered) PrimaryRed.copy(alpha = 0.5f) else PrimaryRed)
-                            .pointerInput(Unit) {
-                                detectTapGestures(
-                                    onLongPress = {
-                                        onSos(context)
-                                        Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
-                                    },
-                                    onTap = {
-                                        Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
-                                    }
-                                )
-                            }
-                            .padding(horizontal = 14.dp, vertical = 10.dp)
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(
-                            text = if (isSosTriggered) "SOS... 🚨" else "SOS",
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold
-                        )
+                        Button(
+                            onClick = onRefresh,
+                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                            shape = RoundedCornerShape(8.dp),
+                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text("Actualizar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                        }
+
+                        // Silent SOS long-press trigger button
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (isSosTriggered) PrimaryRed.copy(alpha = 0.5f) else PrimaryRed)
+                                .pointerInput(Unit) {
+                                    detectTapGestures(
+                                        onLongPress = {
+                                            onSos(context)
+                                            Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
+                                        },
+                                        onTap = {
+                                            Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
+                                        }
+                                    )
+                                }
+                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        ) {
+                            Text(
+                                text = if (isSosTriggered) "SOS... 🚨" else "SOS",
+                                color = Color.White,
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // 1. Wellbeing Status Banner
-            StatusBanner(status = status)
-
-            Spacer(modifier = Modifier.height(30.dp))
-
-            // 2. Check-In Main Button
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .wrapContentHeight(),
-                contentAlignment = Alignment.Center
-            ) {
-                CheckInButton(
-                    isCheckingIn = isCheckingIn,
-                    onClick = onCheckIn
-                )
+            item {
+                Spacer(modifier = Modifier.height(spacingHeaderToBanner))
+                // 1. Wellbeing Status Banner
+                StatusBanner(status = status)
             }
 
-            Spacer(modifier = Modifier.height(36.dp))
-
-            // 3. History Title
-            Text(
-                text = "Historial de Reportes",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onBackground,
-                modifier = Modifier.padding(bottom = 12.dp)
-            )
-
-            // 4. History List
-            if (checkInHistory.isEmpty()) {
+            item {
+                Spacer(modifier = Modifier.height(spacingBannerToButton))
+                // 2. Check-In Main Button
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .weight(1f)
-                        .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
-                        .padding(24.dp),
+                        .wrapContentHeight(),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = "Aún no tienes reportes guardados.",
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
-                        textAlign = TextAlign.Center
+                    CheckInButton(
+                        isCheckingIn = isCheckingIn,
+                        onClick = onCheckIn,
+                        size = buttonSize
                     )
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(MaterialTheme.colorScheme.surface),
-                    contentPadding = PaddingValues(12.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(checkInHistory) { checkIn ->
-                        CheckInItemRow(checkIn = checkIn)
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(spacingButtonToTitle))
+                // 3. History Title
+                Text(
+                    text = "Historial de Reportes",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                )
+            }
+
+            // 4. History List
+            if (checkInHistory.isEmpty()) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(150.dp)
+                            .background(MaterialTheme.colorScheme.surface, RoundedCornerShape(12.dp))
+                            .padding(24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Aún no tienes reportes guardados.",
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                            textAlign = TextAlign.Center
+                        )
                     }
+                }
+            } else {
+                items(checkInHistory) { checkIn ->
+                    CheckInItemRow(checkIn = checkIn)
                 }
             }
         }
@@ -269,11 +273,12 @@ fun StatusBanner(status: WellbeingStatus) {
 @Composable
 fun CheckInButton(
     isCheckingIn: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    size: androidx.compose.ui.unit.Dp = 180.dp
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.size(180.dp),
+        modifier = Modifier.size(size),
         shape = CircleShape,
         colors = ButtonDefaults.buttonColors(containerColor = Color.Unspecified),
         contentPadding = PaddingValues(0.dp)
@@ -292,22 +297,24 @@ fun CheckInButton(
             if (isCheckingIn) {
                 CircularProgressIndicator(
                     color = Color.White,
-                    modifier = Modifier.size(48.dp)
+                    modifier = Modifier.size(size * 0.27f)
                 )
             } else {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "Estoy OK",
-                        fontSize = 22.sp,
+                        fontSize = if (size < 150.dp) 18.sp else 22.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = Color.White
                     )
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Text(
-                        text = "Reportar bienestar",
-                        fontSize = 11.sp,
-                        color = Color.White.copy(alpha = 0.8f)
-                    )
+                    if (size >= 150.dp) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Reportar bienestar",
+                            fontSize = 11.sp,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
                 }
             }
         }
