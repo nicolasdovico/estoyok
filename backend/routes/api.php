@@ -31,6 +31,72 @@ Route::post('/webhooks/twilio/message', [WebhookController::class, 'twilioMessag
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);
 Route::post('/emergency-alerts/{id}/respond', [EmergencyAlertController::class, 'respond']);
 
+// Temporary Debug Route for Geofence Diagnostics on Railway
+Route::get('/debug/geofence-test', function (Illuminate\Http\Request $request) {
+    $email = $request->query('email', 'analia@gmail.com');
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return response()->json(['error' => "User $email not found"], 404);
+    }
+
+    $circleIds = $user->circles->pluck('id');
+    $geofences = \App\Models\Geofence::whereIn('circle_id', $circleIds)->get();
+
+    $geofencesData = [];
+    foreach ($geofences as $g) {
+        $lastEvent = \App\Models\GeofenceEvent::where('user_id', $user->id)
+            ->where('geofence_id', $g->id)
+            ->latest('occurred_at')
+            ->first();
+
+        $members = $g->circle->users()->where('users.id', '!=', $user->id)->get()->map(function ($m) {
+            return [
+                'email' => $m->email,
+                'has_push_token' => !empty($m->expo_push_token),
+                'push_token_preview' => $m->expo_push_token ? substr($m->expo_push_token, 0, 30) . '...' : null,
+            ];
+        });
+
+        $geofencesData[] = [
+            'geofence_name' => $g->name,
+            'is_active' => $g->is_active,
+            'user_id' => $g->user_id,
+            'last_event' => $lastEvent ? [
+                'type' => $lastEvent->type,
+                'occurred_at' => $lastEvent->occurred_at
+            ] : null,
+            'members_to_notify' => $members
+        ];
+    }
+
+    $triggered = false;
+    if ($request->query('trigger') == '1' && $geofences->isNotEmpty()) {
+        $firstGeofence = $geofences->first();
+        \App\Models\GeofenceEvent::create([
+            'user_id' => $user->id,
+            'geofence_id' => $firstGeofence->id,
+            'type' => 'entry',
+            'occurred_at' => now()->subMinutes(5)
+        ]);
+        \App\Jobs\ProcessGeofencing::dispatch($user, 0.0, 0.0);
+        $triggered = true;
+    }
+
+    return response()->json([
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'has_push_token' => !empty($user->expo_push_token),
+            'push_token_preview' => $user->expo_push_token ? substr($user->expo_push_token, 0, 30) . '...' : null,
+        ],
+        'circles' => $user->circles->pluck('name', 'id'),
+        'geofences' => $geofencesData,
+        'triggered_simulation' => $triggered,
+        'queue_connection' => config('queue.default'),
+        'app_env' => config('app.env')
+    ]);
+});
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/check-in', [CheckInController::class, 'store']);
