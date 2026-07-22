@@ -30,6 +30,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.PrimaryEmerald
 import com.estoyok.app.core.theme.PrimaryTeal
+import com.estoyok.app.core.theme.TextOnPrimary
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
