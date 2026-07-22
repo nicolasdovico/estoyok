@@ -9,7 +9,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -216,7 +216,7 @@ fun StatusBanner(status: WellbeingStatus) {
             emoji = "ℹ️"
         }
         is WellbeingStatus.Safe -> {
-            containerColor = PrimaryEmerald.copy(alpha = 0.15f)
+            containerColor = PrimaryEmerald.copy(alpha = 0.12f)
             title = "Protegido y a Salvo"
             desc = "Tu temporizador está activo. Debes reportarte antes de:\n${status.nextReportAt}"
             emoji = "🛡️"
@@ -242,29 +242,105 @@ fun StatusBanner(status: WellbeingStatus) {
             }
         )
     ) {
-        Row(
-            modifier = Modifier.padding(16.dp),
-            verticalAlignment = Alignment.Top
+        Column(
+            modifier = Modifier.padding(16.dp)
         ) {
-            Text(
-                text = emoji,
-                fontSize = 24.sp,
-                modifier = Modifier.padding(end = 12.dp)
-            )
-            Column {
+            Row(
+                verticalAlignment = Alignment.Top
+            ) {
                 Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                    text = emoji,
+                    fontSize = 24.sp,
+                    modifier = Modifier.padding(end = 12.dp)
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = desc,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary,
-                    lineHeight = 16.sp
-                )
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = desc,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        lineHeight = 16.sp
+                    )
+                }
+            }
+
+            if (status is WellbeingStatus.Safe) {
+                var currentTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
+
+                androidx.compose.runtime.LaunchedEffect(status.nextReportTimestamp) {
+                    while (true) {
+                        currentTimeMs = System.currentTimeMillis()
+                        kotlinx.coroutines.delay(1000L)
+                    }
+                }
+
+                val nowMs: Long = currentTimeMs
+                val targetMs: Long = status.nextReportTimestamp
+                val remainingMs: Long = (targetMs - nowMs).coerceAtLeast(0L)
+                val totalMs: Long = status.totalDurationMs
+                val progressVal: Float = if (totalMs > 0L) (remainingMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f) else 0f
+
+                val hours = remainingMs / 3600000L
+                val minutes = (remainingMs % 3600000L) / 60000L
+                val seconds = (remainingMs % 60000L) / 1000L
+                val formattedCountdown = String.format("%02dh %02dm %02ds", hours, minutes, seconds)
+
+                val progressColor = when {
+                    progressVal > 0.25f -> PrimaryEmerald
+                    progressVal > 0.10f -> PrimaryOrange
+                    else -> PrimaryRed
+                }
+
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(CardBackground.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                        .padding(horizontal = 14.dp, vertical = 10.dp)
+                ) {
+                    Column {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Text("⏱️ ", fontSize = 14.sp)
+                                Text(
+                                    text = "Tiempo Restante",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = TextSecondary
+                                )
+                            }
+                            Text(
+                                text = formattedCountdown,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = progressColor
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        LinearProgressIndicator(
+                            progress = { progressVal },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(6.dp)
+                                .clip(RoundedCornerShape(3.dp)),
+                            color = progressColor,
+                            trackColor = BorderColor
+                        )
+                    }
+                }
             }
         }
     }
@@ -403,7 +479,11 @@ fun PanelScreenPreview() {
     EstoyOkTheme {
         PanelContent(
             userName = "Juan Pérez",
-            status = WellbeingStatus.Safe("07/07/2026 23:59:59"),
+            status = WellbeingStatus.Safe(
+                nextReportAt = "07/07/2026 23:59:59",
+                nextReportTimestamp = System.currentTimeMillis() + 86400000L,
+                totalDurationMs = 86400000L
+            ),
             checkInHistory = listOf(
                 CheckInDto(1, "manual", "2026-07-06T20:30:00Z"),
                 CheckInDto(2, "wifi", "2026-07-06T15:20:00Z"),

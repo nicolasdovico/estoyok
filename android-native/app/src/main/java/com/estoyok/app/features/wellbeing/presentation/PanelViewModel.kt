@@ -32,7 +32,11 @@ import javax.inject.Inject
 
 sealed interface WellbeingStatus {
     object NoReports : WellbeingStatus
-    data class Safe(val nextReportAt: String) : WellbeingStatus
+    data class Safe(
+        val nextReportAt: String,
+        val nextReportTimestamp: Long,
+        val totalDurationMs: Long
+    ) : WellbeingStatus
     object Expired : WellbeingStatus
 }
 
@@ -243,7 +247,11 @@ class PanelViewModel @Inject constructor(
             if (nextCheckInTime > now) {
                 val nextReportDate = Date(nextCheckInTime)
                 val outputFormat = SimpleDateFormat("dd/MM/yyyy HH:mm:ss", Locale.getDefault())
-                status = WellbeingStatus.Safe(outputFormat.format(nextReportDate))
+                status = WellbeingStatus.Safe(
+                    nextReportAt = outputFormat.format(nextReportDate),
+                    nextReportTimestamp = nextCheckInTime,
+                    totalDurationMs = intervalMs
+                )
             } else {
                 status = WellbeingStatus.Expired
             }

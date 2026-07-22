@@ -411,16 +411,19 @@
 
 ## [2026-07-22] Mejora de Legibilidad y Contraste Uniforme (TextOnPrimary)
 - **App Móvil Nativa (Android/Kotlin):**
-    - Creada la constante de color oficial `TextOnPrimary = Color(0xFF0F172A)` (Azul Marino Oscuro / Charcoal Profundo) en [Color.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) y vinculada a `onPrimary` / `onSecondary` en [Theme.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Theme.kt).
-    - Actualizado de forma 100% uniforme el color de texto e iconos a `TextOnPrimary` en todas las pastillas seleccionadas, botones primarios y selectores de la aplicación:
-      - Pastillas de semanas en la solapa Vehículos ([VehiculoScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/VehiculoScreen.kt)).
-      - Carrusel de fechas de historial en el Mapa ([MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt)).
-      - Botones de suscripción y pasarela de pago ([PremiumScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt)).
-      - Selector segmentado de servidores Local / Railway ([LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt)).
-      - Botones primarios de formulación y autenticación ([RegisterScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterScreen.kt) y [VerifyEmailScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/verify/VerifyEmailScreen.kt)).
+    - Creada la constante de color oficial `TextOnPrimary = Color(0xFF0F172A)` (Azul Marino Oscuro / Charcoal Profundo) en [Color.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) y vinculada a `onPrimary` / `onSecondary` en [Theme.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/theme/Theme.kt).
+    - Actualizado de forma 100% uniforme el color de texto e iconos a `TextOnPrimary` en todas las pastillas seleccionadas, botones primarios y selectores de la aplicación.
 - **Validación:**
     - Generado commit atómico Git `style(ui): apply uniform high-contrast TextOnPrimary color across all selected pills and buttons` (`2b2af28`).
     - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL` en 34s).
+
+## [2026-07-22] Estoy Ok - Punto 1: Temporizador y Cuenta Regresiva Reactiva en Tiempo Real
+- **App Móvil Nativa (Android/Kotlin):**
+    - Actualizado `WellbeingStatus.Safe` en [PanelViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) para incluir metadatos de timestamp objetivo y duración total en ms.
+    - Implementado cronómetro dinámico en tiempo real (`LaunchedEffect` ticker de 1 segundo) en `StatusBanner` de [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt).
+    - Agregada barra de progreso lineal (`LinearProgressIndicator`) con colores dinámicos según el tiempo restante: Verde (`PrimaryEmerald` $>25\%$), Amarillo (`PrimaryOrange` $10-25\%$) y Rojo (`PrimaryRed` $<10\%$).
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 29s).
 
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
