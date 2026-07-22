@@ -477,6 +477,13 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 12s).
 
+## [2026-07-22] Optimización UI: Limpieza de Icono Flotante de Ajustes en Pestañas Principales
+- **App Móvil Nativa (Android/Kotlin):**
+    - Removida la renderización del botón flotante de engranaje en las solapas principales (`Mapa`, `EstoyOk`, `Vehiculos`, `Familia`, `Premium`) en [NavGraph.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt).
+    - Preservado el botón de retroceso (`ArrowBack`) únicamente al estar navegando dentro de sub-pantallas de Ajustes.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 5s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).
