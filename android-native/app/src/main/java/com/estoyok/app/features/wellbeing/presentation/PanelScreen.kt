@@ -318,76 +318,79 @@ fun StatusBanner(status: WellbeingStatus) {
                 }
             }
 
-            if (status is WellbeingStatus.Safe) {
-                var currentTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
+            var currentTimeMs by remember { mutableStateOf(System.currentTimeMillis()) }
 
+            if (status is WellbeingStatus.Safe) {
                 androidx.compose.runtime.LaunchedEffect(status.nextReportTimestamp) {
                     while (true) {
                         currentTimeMs = System.currentTimeMillis()
                         kotlinx.coroutines.delay(1000L)
                     }
                 }
+            }
 
-                val nowMs: Long = currentTimeMs
-                val targetMs: Long = status.nextReportTimestamp
-                val remainingMs: Long = (targetMs - nowMs).coerceAtLeast(0L)
-                val totalMs: Long = status.totalDurationMs
-                val progressVal: Float = if (totalMs > 0L) (remainingMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f) else 0f
-
-                val hours = remainingMs / 3600000L
-                val minutes = (remainingMs % 3600000L) / 60000L
-                val seconds = (remainingMs % 60000L) / 1000L
-                val formattedCountdown = String.format("%02dh %02dm %02ds", hours, minutes, seconds)
-
-                val progressColor = when {
-                    progressVal > 0.25f -> PrimaryEmerald
-                    progressVal > 0.10f -> PrimaryOrange
-                    else -> PrimaryRed
+            val (formattedCountdown, progressVal, progressColor) = when (status) {
+                is WellbeingStatus.Safe -> {
+                    val remainingMs: Long = (status.nextReportTimestamp - currentTimeMs).coerceAtLeast(0L)
+                    val totalMs: Long = status.totalDurationMs
+                    val p: Float = if (totalMs > 0L) (remainingMs.toFloat() / totalMs.toFloat()).coerceIn(0f, 1f) else 0f
+                    val hours = remainingMs / 3600000L
+                    val minutes = (remainingMs % 3600000L) / 60000L
+                    val seconds = (remainingMs % 60000L) / 1000L
+                    val formatted = String.format("%02dh %02dm %02ds", hours, minutes, seconds)
+                    val color = when {
+                        p > 0.25f -> PrimaryEmerald
+                        p > 0.10f -> PrimaryOrange
+                        else -> PrimaryRed
+                    }
+                    Triple(formatted, p, color)
                 }
+                is WellbeingStatus.Expired -> Triple("00h 00m 00s (Expirado)", 0f, PrimaryRed)
+                is WellbeingStatus.NoReports -> Triple("--h --m --s (Pendiente)", 0f, TextMuted)
+            }
 
-                Spacer(modifier = Modifier.height(14.dp))
+            Spacer(modifier = Modifier.height(14.dp))
 
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .background(CardBackground.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
-                        .padding(horizontal = 14.dp, vertical = 10.dp)
-                ) {
-                    Column {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("⏱️ ", fontSize = 14.sp)
-                                Text(
-                                    text = "Tiempo Restante",
-                                    fontSize = 11.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextSecondary
-                                )
-                            }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(CardBackground.copy(alpha = 0.7f), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 14.dp, vertical = 10.dp)
+            ) {
+                Column {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Text("⏱️ ", fontSize = 14.sp)
                             Text(
-                                text = formattedCountdown,
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = progressColor
+                                text = "Tiempo Restante",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextSecondary
                             )
                         }
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        LinearProgressIndicator(
-                            progress = { progressVal },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(6.dp)
-                                .clip(RoundedCornerShape(3.dp)),
-                            color = progressColor,
-                            trackColor = BorderColor
+                        Text(
+                            text = formattedCountdown,
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = progressColor
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    LinearProgressIndicator(
+                        progress = { progressVal },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(6.dp)
+                            .clip(RoundedCornerShape(3.dp)),
+                        color = progressColor,
+                        trackColor = BorderColor
+                    )
                 }
             }
         }

@@ -265,17 +265,25 @@ class PanelViewModel @Inject constructor(
         }
 
         try {
-            val sdf = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val sdfFallback = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
+            val dateFormats = listOf(
+                "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                "yyyy-MM-dd HH:mm:ss"
+            )
 
-            val lastCheckInDate = try {
-                sdf.parse(lastCheckInAt)
-            } catch (e: Exception) {
-                sdfFallback.parse(lastCheckInAt)
+            var lastCheckInDate: Date? = null
+            for (format in dateFormats) {
+                try {
+                    val sdf = SimpleDateFormat(format, Locale.getDefault()).apply {
+                        timeZone = TimeZone.getTimeZone("UTC")
+                    }
+                    val parsed = sdf.parse(lastCheckInAt)
+                    if (parsed != null) {
+                        lastCheckInDate = parsed
+                        break
+                    }
+                } catch (_: Exception) {}
             }
 
             if (lastCheckInDate == null) {
@@ -284,9 +292,8 @@ class PanelViewModel @Inject constructor(
             }
 
             val lastCheckInTime = lastCheckInDate.time
-            
-            val isDebug = BuildConfig.DEBUG
-            val intervalMs = targetUser.checkinIntervalHours * if (isDebug) 60L * 1000L else 60L * 60L * 1000L
+            val hours = if (targetUser.checkinIntervalHours > 0) targetUser.checkinIntervalHours else 24
+            val intervalMs = hours * 3600_000L
             val nextCheckInTime = lastCheckInTime + intervalMs
             val now = System.currentTimeMillis()
 

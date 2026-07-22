@@ -454,6 +454,14 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 5s).
 
+## [2026-07-22] Estoy Ok: Corrección de Parseo de Fechas ISO y Visibilidad Permanente del Temporizador
+- **App Móvil Nativa (Android/Kotlin):**
+    - Corregida la falla de parseo de fechas ISO con microsegundos (formato `.SSSSSS'Z'` entregado por la API de Laravel) en [PanelViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), evitando que la pantalla caiga en estado fallback por excepción.
+    - Removida la multiplicación acelerada por minutos en builds de debug para usar la duración real en horas del intervalo (`checkinIntervalHours * 3600_000L`).
+    - Modificado `StatusBanner` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) para renderizar de forma garantizada y permanente la caja de **⏱️ Tiempo Restante** con su barra de progreso y cronómetro dinámico en todos los estados (`Safe`, `Expired` y `NoReports`).
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 13s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).
