@@ -520,6 +520,12 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 13s).
 
+## [2026-07-22] UI/UX Fix: Contraste Unificado en Botón de Formulario de Contactos SOS
+- **App Móvil Nativa (Android/Kotlin):**
+    - Aplicado explícitamente el color de texto uniforme `TextOnPrimary` (`#0F172A` - Azul Marino Oscuro de alto contraste) en el componente `Text` del botón principal de `ManageContactsModal` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt), unificando el estilo con el resto de la aplicación sobre fondo Turquesa Eléctrico (`PrimaryEmerald`).
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 10s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).

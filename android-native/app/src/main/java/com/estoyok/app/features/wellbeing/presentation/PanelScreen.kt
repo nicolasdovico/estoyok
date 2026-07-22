@@ -1120,7 +1120,8 @@ fun ManageContactsModal(
                             Text(
                                 text = if (editingContactId != null) "Actualizar Contacto ✏️" else "Guardar Contacto",
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp
+                                fontSize = 12.sp,
+                                color = TextOnPrimary
                             )
                         }
 
