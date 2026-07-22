@@ -526,6 +526,13 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 10s).
 
+## [2026-07-22] UI/UX Fix: Diálogo de Confirmación de Borrado de Contactos SOS y Actualización Optimista de Estado
+- **App Móvil Nativa (Android/Kotlin):**
+    - Implementado diálogo de confirmación `AlertDialog` `"🗑️ Eliminar Contacto SOS"` al presionar el ícono de cesto de basura en `ManageContactsModal` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt).
+    - Agregada eliminación optimista de estado local en `deleteContact` de [PanelViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) para asegurar que el contacto desaparezca de forma inmediata al confirmar.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 12s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).

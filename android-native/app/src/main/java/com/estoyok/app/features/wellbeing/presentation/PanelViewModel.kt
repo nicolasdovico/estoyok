@@ -128,9 +128,13 @@ class PanelViewModel @Inject constructor(
     }
 
     fun deleteContact(contactId: Int) {
+        emergencyContacts = emergencyContacts.filter { it.id != contactId }
+        contactsCount = emergencyContacts.count { it.isActive }
         viewModelScope.launch {
             contactsRepository.deleteContact(contactId).collectLatest { resource ->
                 if (resource is Resource.Success) {
+                    fetchEmergencyContacts()
+                } else if (resource is Resource.Error) {
                     fetchEmergencyContacts()
                 }
             }

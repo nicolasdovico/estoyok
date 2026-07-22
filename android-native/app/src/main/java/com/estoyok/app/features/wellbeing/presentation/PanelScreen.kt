@@ -873,9 +873,51 @@ fun ManageContactsModal(
     onMoveContactDown: (Int) -> Unit
 ) {
     var editingContactId by remember { mutableStateOf<Int?>(null) }
+    var contactToDelete by remember { mutableStateOf<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto?>(null) }
     var newName by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
+
+    contactToDelete?.let { contact ->
+        AlertDialog(
+            onDismissRequest = { contactToDelete = null },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🗑️ ", fontSize = 20.sp)
+                    Text("Eliminar Contacto SOS", fontSize = 16.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                }
+            },
+            text = {
+                Text(
+                    text = "¿Estás seguro de que deseas eliminar a \"${contact.name}\" de tus contactos de emergencia?",
+                    fontSize = 13.sp,
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        contact.id?.let { onDeleteContact(it) }
+                        contactToDelete = null
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryRed, contentColor = Color.White),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Eliminar", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { contactToDelete = null },
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text("Cancelar", fontSize = 12.sp)
+                }
+            },
+            containerColor = CardBackground,
+            shape = RoundedCornerShape(16.dp)
+        )
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -1036,9 +1078,9 @@ fun ManageContactsModal(
                                     )
                                 }
 
-                                contact.id?.let { contactId ->
+                                contact.id?.let {
                                     IconButton(
-                                        onClick = { onDeleteContact(contactId) },
+                                        onClick = { contactToDelete = contact },
                                         modifier = Modifier.size(28.dp)
                                     ) {
                                         Icon(
