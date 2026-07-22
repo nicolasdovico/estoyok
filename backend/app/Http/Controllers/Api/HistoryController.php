@@ -104,7 +104,7 @@ class HistoryController extends Controller
                       AND recorded_at BETWEEN :start1 AND :end1
                 ),
                 simplified AS (
-                    SELECT ST_Simplify(geom, 0.00005) as geom -- Tolerancia ~5.5m
+                    SELECT ST_Simplify(geom, 0.00015) as geom -- Tolerancia ~15m (Life360 standard)
                     FROM path
                 ),
                 vertices AS (

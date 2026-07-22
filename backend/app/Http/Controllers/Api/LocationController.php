@@ -105,15 +105,42 @@ class LocationController extends Controller
                     $updateData
                 );
 
-                // 2. Add to History
-                LocationHistory::create([
-                    'user_id' => $user->id,
-                    'accuracy' => $accuracy,
-                    'recorded_at' => $recordedAt,
-                    'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
-                    'speed' => $speedKmh,
-                    'is_driving' => $isDriving,
-                ]);
+                // 2. Add to History (Downsampled to prevent point flooding while keeping live tracking 100% fluid)
+                $shouldCreateHistory = true;
+                $lastHistory = LocationHistory::where('user_id', $user->id)
+                    ->orderBy('recorded_at', 'desc')
+                    ->first();
+
+                if ($lastHistory) {
+                    $timeDiffSeconds = abs($recordedAt->diffInSeconds($lastHistory->recorded_at));
+                    $isNear = DB::selectOne("
+                        SELECT ST_DWithin(
+                            location,
+                            ST_GeomFromText('POINT($lng $lat)', 4326)::geography,
+                            15
+                        ) as is_near
+                        FROM location_histories
+                        WHERE id = ?
+                    ", [$lastHistory->id]);
+
+                    $isWithin15m = $isNear ? (bool) $isNear->is_near : false;
+                    $drivingStatusChanged = ((bool) $lastHistory->is_driving !== $isDriving);
+
+                    if ($isWithin15m && !$drivingStatusChanged && $timeDiffSeconds < 30) {
+                        $shouldCreateHistory = false;
+                    }
+                }
+
+                if ($shouldCreateHistory) {
+                    LocationHistory::create([
+                        'user_id' => $user->id,
+                        'accuracy' => $accuracy,
+                        'recorded_at' => $recordedAt,
+                        'location' => DB::raw("ST_GeomFromText('POINT($lng $lat)', 4326)"),
+                        'speed' => $speedKmh,
+                        'is_driving' => $isDriving,
+                    ]);
+                }
 
                 // 3. Dispatch low battery alert if transitioning to low battery
                 if ($batteryLevel !== null && $isBatteryLow && !$previousIsBatteryLow && $user->low_battery_alerts_enabled) {

@@ -32,6 +32,8 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import androidx.compose.ui.Alignment
@@ -3009,32 +3011,43 @@ fun buildHistoryTimeline(
     return timeline
 }
 
+private val addressCache = java.util.concurrent.ConcurrentHashMap<String, String>()
+private val geocoderSemaphore = Semaphore(2)
+
 suspend fun getAddressFromLocation(context: Context, latitude: Double, longitude: Double): String {
+    val key = "${String.format(Locale.US, "%.3f", latitude)},${String.format(Locale.US, "%.3f", longitude)}"
+    addressCache[key]?.let { return it }
+
     return withContext(Dispatchers.IO) {
-        try {
-            val geocoder = Geocoder(context, Locale.getDefault())
-            @Suppress("DEPRECATION")
-            val addresses = geocoder.getFromLocation(latitude, longitude, 1)
-            if (!addresses.isNullOrEmpty()) {
-                val address = addresses[0]
-                val street = address.thoroughfare ?: ""
-                val number = address.subThoroughfare ?: ""
-                if (street.isNotEmpty()) {
-                    if (number.isNotEmpty()) "$street $number" else street
-                } else {
-                    val admin = address.locality ?: address.subLocality ?: ""
-                    val feature = address.featureName ?: ""
-                    if (admin.isNotEmpty()) {
-                        if (feature.isNotEmpty() && feature != number) "$feature, $admin" else admin
+        geocoderSemaphore.withPermit {
+            addressCache[key]?.let { return@withPermit it }
+            try {
+                val geocoder = Geocoder(context, Locale.getDefault())
+                @Suppress("DEPRECATION")
+                val addresses = geocoder.getFromLocation(latitude, longitude, 1)
+                val resolved = if (!addresses.isNullOrEmpty()) {
+                    val address = addresses[0]
+                    val street = address.thoroughfare ?: ""
+                    val number = address.subThoroughfare ?: ""
+                    if (street.isNotEmpty()) {
+                        if (number.isNotEmpty()) "$street $number" else street
                     } else {
-                        address.getAddressLine(0) ?: "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
+                        val admin = address.locality ?: address.subLocality ?: ""
+                        val feature = address.featureName ?: ""
+                        if (admin.isNotEmpty()) {
+                            if (feature.isNotEmpty() && feature != number) "$feature, $admin" else admin
+                        } else {
+                            address.getAddressLine(0) ?: "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
+                        }
                     }
+                } else {
+                    "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
                 }
-            } else {
+                addressCache[key] = resolved
+                resolved
+            } catch (e: Exception) {
                 "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
             }
-        } catch (e: Exception) {
-            "${String.format(Locale.US, "%.4f", latitude)}, ${String.format(Locale.US, "%.4f", longitude)}"
         }
     }
 }
