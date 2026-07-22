@@ -66,6 +66,9 @@ class PanelViewModel @Inject constructor(
     var isCheckingIn by mutableStateOf(false)
         private set
 
+    var showCheckInSuccessDialog by mutableStateOf(false)
+        private set
+
     var isRefreshing by mutableStateOf(false)
         private set
 
@@ -161,6 +164,7 @@ class PanelViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         isCheckingIn = false
+                        showCheckInSuccessDialog = true
                         refreshDashboard()
                     }
                     is Resource.Error -> {
@@ -170,6 +174,10 @@ class PanelViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun dismissSuccessDialog() {
+        showCheckInSuccessDialog = false
     }
 
     fun triggerSos(context: Context) {

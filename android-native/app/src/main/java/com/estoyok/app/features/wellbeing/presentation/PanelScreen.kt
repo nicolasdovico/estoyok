@@ -45,9 +45,11 @@ fun PanelScreen(
         intervalHours = viewModel.user?.checkinIntervalHours ?: 24,
         wifiAutoCheckinActive = viewModel.user?.wifiAutoCheckinEnabled == true,
         isCheckingIn = viewModel.isCheckingIn,
+        showSuccessDialog = viewModel.showCheckInSuccessDialog,
         isSosTriggered = viewModel.isSosTriggered,
         onRefresh = { viewModel.refreshDashboard() },
         onCheckIn = { viewModel.performCheckIn() },
+        onDismissSuccessDialog = { viewModel.dismissSuccessDialog() },
         onSos = { ctx -> viewModel.triggerSos(ctx) },
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings
@@ -65,9 +67,11 @@ fun PanelContent(
     intervalHours: Int,
     wifiAutoCheckinActive: Boolean,
     isCheckingIn: Boolean,
+    showSuccessDialog: Boolean,
     isSosTriggered: Boolean,
     onRefresh: () -> Unit,
     onCheckIn: () -> Unit,
+    onDismissSuccessDialog: () -> Unit,
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit
@@ -85,6 +89,10 @@ fun PanelContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (showSuccessDialog) {
+            CheckInSuccessDialog(onDismiss = onDismissSuccessDialog)
+        }
+
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -668,6 +676,55 @@ fun ProtectionSummaryCard(
     }
 }
 
+@Composable
+fun CheckInSuccessDialog(
+    onDismiss: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryEmerald,
+                    contentColor = TextOnPrimary
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Entendido 👍", fontWeight = FontWeight.Bold)
+            }
+        },
+        title = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("🛡️✨", fontSize = 36.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "¡Reporte Registrado!",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Tu familia y contactos de emergencia han recibido tu confirmación de tranquilidad. Tu temporizador de bienestar ha sido reiniciado.",
+                fontSize = 13.sp,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+            )
+        },
+        containerColor = CardBackground,
+        shape = RoundedCornerShape(20.dp)
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PanelScreenPreview() {
@@ -689,9 +746,11 @@ fun PanelScreenPreview() {
             intervalHours = 24,
             wifiAutoCheckinActive = true,
             isCheckingIn = false,
+            showSuccessDialog = false,
             isSosTriggered = false,
             onRefresh = {},
             onCheckIn = {},
+            onDismissSuccessDialog = {},
             onSos = {},
             onSendReminder = {},
             onNavigateToSettings = {}

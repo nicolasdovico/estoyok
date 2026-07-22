@@ -6,7 +6,7 @@ Este documento especifica los 4 módulos a desarrollar e integrar en la pestaña
 
 ## 📌 Módulos a Implementar
 
-### 1. ⏱️ Temporizador y Cuenta Regresiva Reactiva en Tiempo Real
+### 1. ⏱️ Temporizador y Cuenta Regresiva Reactiva en Tiempo Real [x]
 - **Objetivo:** Mostrar un cronómetro dinámico en tiempo real (*"Expira en 05 h 23 min 12 s"*) que se actualice cada segundo.
 - **Componentes:**
   - `LaunchedEffect` con bucle de 1 segundo en `PanelViewModel` / Composable.
@@ -17,7 +17,7 @@ Este documento especifica los 4 módulos a desarrollar e integrar en la pestaña
 
 ---
 
-### 2. 👨‍👩‍👧‍👦 Sección "Tranquilidad del Núcleo" (Bienestar de los Familiares)
+### 2. 👨‍👩‍👧‍👦 Sección "Tranquilidad del Núcleo" (Bienestar de los Familiares) [x]
 - **Objetivo:** Permitir visualizar el estado de check-in pasivo de los miembros del grupo sin necesidad de abrir el mapa.
 - **Componentes:**
   - Tarjeta o lista de familiares con su último reporte de bienestar (*"Protegido hasta las 20:00"*, *"Reporte Vencido hace 15m"*).
@@ -28,7 +28,7 @@ Este documento especifica los 4 módulos a desarrollar e integrar en la pestaña
 
 ---
 
-### 3. ⚙️ Tarjeta de Resumen y Acceso Rápido a Configuración de Protección
+### 3. ⚙️ Tarjeta de Resumen y Acceso Rápido a Configuración de Protección [x]
 - **Objetivo:** Mostrar una vista sintética de los parámetros de seguridad configurados con un botón de acceso directo a Ajustes.
 - **Componentes:**
   - Tarjeta con resumen de: Intervalo activo, Contactos asignados, Modo Sueño y Auto-Check-in en Wi-Fi.
@@ -38,7 +38,7 @@ Este documento especifica los 4 módulos a desarrollar e integrar en la pestaña
 
 ---
 
-### 4. ✨ Feedback Animado y Celebración de Reporte Exitoso
+### 4. ✨ Feedback Animado y Celebración de Reporte Exitoso [x]
 - **Objetivo:** Ofrecer una respuesta táctil y visual satisfactoria al presionar el botón "Estoy OK".
 - **Componentes:**
   - Diálogo / Cartel modal de felicitación animado (*"¡Genial! Tu familia sabe que estás bien y estás protegido hasta..."*).
