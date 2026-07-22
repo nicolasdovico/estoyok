@@ -193,18 +193,37 @@ fun PanelContent(
                 }
             }
 
-            if (circleMembers.isNotEmpty()) {
-                item {
-                    Spacer(modifier = Modifier.height(20.dp))
-                    Text(
-                        text = "Tranquilidad del Núcleo",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        modifier = Modifier.padding(bottom = 8.dp)
-                    )
-                }
+            item {
+                Spacer(modifier = Modifier.height(20.dp))
+                Text(
+                    text = "Tranquilidad del Núcleo",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    modifier = Modifier.padding(bottom = 8.dp)
+                )
+            }
 
+            if (circleMembers.isEmpty()) {
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        colors = CardDefaults.cardColors(containerColor = CardBackground),
+                        shape = RoundedCornerShape(12.dp),
+                        border = BorderStroke(1.dp, BorderColor)
+                    ) {
+                        Text(
+                            text = "Sin otros miembros en tu círculo. Invita a tu familia para ver su estado de bienestar aquí.",
+                            fontSize = 12.sp,
+                            color = TextMuted,
+                            modifier = Modifier.padding(14.dp),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+                }
+            } else {
                 items(circleMembers) { member ->
                     CircleMemberWellbeingCard(member = member, onSendReminder = { onSendReminder(member.id) })
                 }
@@ -529,8 +548,58 @@ fun CircleMemberWellbeingCard(
     member: com.estoyok.app.features.tracking.data.model.CircleMemberDto,
     onSendReminder: () -> Unit
 ) {
+    val recordedAtStr = member.currentLocation?.recordedAt ?: member.currentLocation?.lastSeenAt
     val isOffline = member.currentLocation?.isOffline == true
-    val isSafe = !isOffline && member.currentLocation?.recordedAt != null
+
+    var isSafe = false
+    var relativeTimeStr = "sin reporte"
+    var timeFormatted: String? = null
+
+    if (recordedAtStr != null) {
+        val dateFormats = listOf(
+            "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+            "yyyy-MM-dd'T'HH:mm:ss'Z'",
+            "yyyy-MM-dd HH:mm:ss"
+        )
+        for (format in dateFormats) {
+            try {
+                val sdf = SimpleDateFormat(format, Locale.getDefault()).apply {
+                    timeZone = TimeZone.getTimeZone("UTC")
+                }
+                val date = sdf.parse(recordedAtStr)
+                if (date != null) {
+                    val diffMs = System.currentTimeMillis() - date.time
+                    val diffMins = (diffMs / 60000L).coerceAtLeast(0L)
+                    val diffHours = diffMins / 60L
+                    val diffDays = diffHours / 24L
+
+                    relativeTimeStr = when {
+                        diffMins < 1 -> "hace 1m"
+                        diffMins < 60 -> "hace ${diffMins}m"
+                        diffHours < 24 -> "hace ${diffHours}h"
+                        else -> "hace ${diffDays}d"
+                    }
+
+                    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
+                    timeFormatted = timeFormatter.format(date)
+
+                    if (!isOffline && diffHours < 24) {
+                        isSafe = true
+                    }
+                    break
+                }
+            } catch (_: Exception) {}
+        }
+    }
+
+    val statusText = if (isSafe) {
+        if (timeFormatted != null) "🛡️ Protegido (hasta $timeFormatted • $relativeTimeStr)" else "🛡️ Protegido ($relativeTimeStr)"
+    } else {
+        "⚠️ Reporte Vencido ($relativeTimeStr)"
+    }
+
+    val statusColor = if (isSafe) PrimaryEmerald else PrimaryOrange
 
     Card(
         modifier = Modifier
@@ -538,7 +607,7 @@ fun CircleMemberWellbeingCard(
             .padding(vertical = 4.dp),
         colors = CardDefaults.cardColors(containerColor = CardBackground),
         shape = RoundedCornerShape(14.dp),
-        border = BorderStroke(1.dp, if (isSafe) PrimaryEmerald.copy(alpha = 0.3f) else PrimaryOrange.copy(alpha = 0.3f))
+        border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
     ) {
         Row(
             modifier = Modifier
@@ -555,14 +624,14 @@ fun CircleMemberWellbeingCard(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(CircleShape)
-                        .background(if (isSafe) PrimaryEmerald.copy(alpha = 0.2f) else PrimaryOrange.copy(alpha = 0.2f)),
+                        .background(statusColor.copy(alpha = 0.2f)),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = member.name.take(2).uppercase(),
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Bold,
-                        color = if (isSafe) PrimaryEmerald else PrimaryOrange
+                        color = statusColor
                     )
                 }
 
@@ -577,26 +646,26 @@ fun CircleMemberWellbeingCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = if (isSafe) "🛡️ Protegido/a (A salvo)" else "⚠️ Sin reporte activo",
+                        text = statusText,
                         fontSize = 11.sp,
-                        color = if (isSafe) PrimaryEmerald else PrimaryOrange,
+                        color = statusColor,
                         fontWeight = FontWeight.Medium
                     )
                 }
             }
 
-            if (!isSafe) {
-                Button(
-                    onClick = onSendReminder,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PrimaryOrange.copy(alpha = 0.15f),
-                        contentColor = PrimaryOrange
-                    ),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
-                ) {
-                    Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                }
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = onSendReminder,
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = if (isSafe) PrimaryEmerald.copy(alpha = 0.15f) else PrimaryOrange.copy(alpha = 0.2f),
+                    contentColor = if (isSafe) PrimaryEmerald else PrimaryOrange
+                ),
+                shape = RoundedCornerShape(8.dp),
+                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+            ) {
+                Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
             }
         }
     }
@@ -744,7 +813,37 @@ fun PanelScreenPreview() {
                 CheckInDto(2, "wifi", "2026-07-06T15:20:00Z"),
                 CheckInDto(3, "movement", "2026-07-06T10:15:00Z")
             ),
-            circleMembers = emptyList(),
+            circleMembers = listOf(
+                com.estoyok.app.features.tracking.data.model.CircleMemberDto(
+                    id = 2,
+                    name = "Analía",
+                    email = "analia@gmail.com",
+                    phone = "+5491100001111",
+                    avatarUrl = null,
+                    currentLocation = com.estoyok.app.features.tracking.data.model.MemberLocationDto(
+                        latitude = -34.6,
+                        longitude = -58.4,
+                        accuracy = 10f,
+                        batteryLevel = 85f,
+                        isBatteryLow = false,
+                        isTrackingActive = true,
+                        gpsEnabled = true,
+                        recordedAt = "2026-07-22T10:30:00Z",
+                        speed = 0f,
+                        isDriving = false,
+                        isOffline = false,
+                        lastSeenAt = "2026-07-22T10:30:00Z"
+                    )
+                ),
+                com.estoyok.app.features.tracking.data.model.CircleMemberDto(
+                    id = 3,
+                    name = "Nicolás",
+                    email = "nicolas@gmail.com",
+                    phone = "+5491100002222",
+                    avatarUrl = null,
+                    currentLocation = null
+                )
+            ),
             contactsCount = 2,
             intervalHours = 24,
             wifiAutoCheckinActive = true,
