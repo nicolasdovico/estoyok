@@ -7,12 +7,16 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.foundation.clickable
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDownward
+import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -58,7 +62,10 @@ fun PanelScreen(
         onOpenManageContactsModal = { viewModel.openManageContactsModal() },
         onDismissManageContactsModal = { viewModel.dismissManageContactsModal() },
         onAddContact = { name, phone, rel -> viewModel.addContact(name, phone, rel, context) },
+        onUpdateContact = { id, name, phone, rel -> viewModel.updateContact(id, name, phone, rel, context) },
         onDeleteContact = { id -> viewModel.deleteContact(id) },
+        onMoveContactUp = { idx -> viewModel.moveContactUp(idx) },
+        onMoveContactDown = { idx -> viewModel.moveContactDown(idx) },
         onSos = { ctx -> viewModel.triggerSos(ctx) },
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings
@@ -86,7 +93,10 @@ fun PanelContent(
     onOpenManageContactsModal: () -> Unit,
     onDismissManageContactsModal: () -> Unit,
     onAddContact: (String, String, String) -> Unit,
+    onUpdateContact: (Int, String, String, String) -> Unit,
     onDeleteContact: (Int) -> Unit,
+    onMoveContactUp: (Int) -> Unit,
+    onMoveContactDown: (Int) -> Unit,
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit
@@ -114,7 +124,10 @@ fun PanelContent(
                 emergencyContacts = emergencyContacts,
                 onDismiss = onDismissManageContactsModal,
                 onAddContact = onAddContact,
-                onDeleteContact = onDeleteContact
+                onUpdateContact = onUpdateContact,
+                onDeleteContact = onDeleteContact,
+                onMoveContactUp = onMoveContactUp,
+                onMoveContactDown = onMoveContactDown
             )
         }
 
@@ -854,8 +867,12 @@ fun ManageContactsModal(
     emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
     onDismiss: () -> Unit,
     onAddContact: (String, String, String) -> Unit,
-    onDeleteContact: (Int) -> Unit
+    onUpdateContact: (Int, String, String, String) -> Unit,
+    onDeleteContact: (Int) -> Unit,
+    onMoveContactUp: (Int) -> Unit,
+    onMoveContactDown: (Int) -> Unit
 ) {
+    var editingContactId by remember { mutableStateOf<Int?>(null) }
     var newName by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
@@ -888,7 +905,7 @@ fun ManageContactsModal(
             LazyColumn(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .heightIn(max = 420.dp),
+                    .heightIn(max = 440.dp),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 item {
@@ -940,29 +957,96 @@ fun ManageContactsModal(
                         Text("No has registrado contactos externos aún.", fontSize = 11.sp, color = TextMuted)
                     }
                 } else {
-                    items(emergencyContacts) { contact ->
+                    itemsIndexed(emergencyContacts) { index, contact ->
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                .padding(10.dp),
+                                .background(
+                                    if (editingContactId == contact.id) PrimaryEmerald.copy(alpha = 0.15f)
+                                    else CardBackground.copy(alpha = 0.5f),
+                                    RoundedCornerShape(8.dp)
+                                )
+                                .padding(8.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                Text("${contact.phone} • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Surface(
+                                    color = PrimaryEmerald.copy(alpha = 0.2f),
+                                    contentColor = PrimaryEmerald,
+                                    shape = RoundedCornerShape(4.dp)
+                                ) {
+                                    Text(
+                                        text = "#${index + 1}",
+                                        fontSize = 11.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                    )
+                                }
+
+                                Spacer(modifier = Modifier.width(8.dp))
+
+                                Column {
+                                    Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                    Text("${contact.phone} • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
+                                }
                             }
-                            contact.id?.let { contactId ->
+
+                            Row(verticalAlignment = Alignment.CenterVertically) {
                                 IconButton(
-                                    onClick = { onDeleteContact(contactId) },
-                                    modifier = Modifier.size(32.dp)
+                                    onClick = { onMoveContactUp(index) },
+                                    enabled = index > 0,
+                                    modifier = Modifier.size(28.dp)
                                 ) {
                                     Icon(
-                                        imageVector = Icons.Default.Delete,
-                                        contentDescription = "Eliminar contacto",
-                                        tint = PrimaryRed
+                                        imageVector = Icons.Default.ArrowUpward,
+                                        contentDescription = "Subir",
+                                        tint = if (index > 0) PrimaryEmerald else TextMuted
                                     )
+                                }
+
+                                IconButton(
+                                    onClick = { onMoveContactDown(index) },
+                                    enabled = index < emergencyContacts.size - 1,
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.ArrowDownward,
+                                        contentDescription = "Bajar",
+                                        tint = if (index < emergencyContacts.size - 1) PrimaryEmerald else TextMuted
+                                    )
+                                }
+
+                                IconButton(
+                                    onClick = {
+                                        editingContactId = contact.id
+                                        newName = contact.name
+                                        newPhone = contact.phone
+                                        newRelationship = contact.relationship ?: ""
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Edit,
+                                        contentDescription = "Editar contacto",
+                                        tint = PrimaryEmerald
+                                    )
+                                }
+
+                                contact.id?.let { contactId ->
+                                    IconButton(
+                                        onClick = { onDeleteContact(contactId) },
+                                        modifier = Modifier.size(28.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = "Eliminar contacto",
+                                            tint = PrimaryRed
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -974,7 +1058,7 @@ fun ManageContactsModal(
                     HorizontalDivider(color = BorderColor)
                     Spacer(modifier = Modifier.height(6.dp))
                     Text(
-                        text = "➕ Agregar Nuevo Contacto Externo",
+                        text = if (editingContactId != null) "✏️ Editar Contacto" else "➕ Agregar Nuevo Contacto Externo",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
@@ -1015,18 +1099,45 @@ fun ManageContactsModal(
                 }
 
                 item {
-                    Button(
-                        onClick = {
-                            onAddContact(newName, newPhone, newRelationship)
-                            newName = ""
-                            newPhone = ""
-                            newRelationship = ""
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Guardar Contacto", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Button(
+                            onClick = {
+                                val currentId = editingContactId
+                                if (currentId != null) {
+                                    onUpdateContact(currentId, newName, newPhone, newRelationship)
+                                } else {
+                                    onAddContact(newName, newPhone, newRelationship)
+                                }
+                                editingContactId = null
+                                newName = ""
+                                newPhone = ""
+                                newRelationship = ""
+                            },
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                text = if (editingContactId != null) "Actualizar Contacto ✏️" else "Guardar Contacto",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 12.sp
+                            )
+                        }
+
+                        if (editingContactId != null) {
+                            OutlinedButton(
+                                onClick = {
+                                    editingContactId = null
+                                    newName = ""
+                                    newPhone = ""
+                                    newRelationship = ""
+                                },
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Text("Cancelar Edición", fontSize = 11.sp)
+                            }
+                        }
                     }
                 }
             }
@@ -1097,7 +1208,10 @@ fun PanelScreenPreview() {
             onOpenManageContactsModal = {},
             onDismissManageContactsModal = {},
             onAddContact = { _, _, _ -> },
+            onUpdateContact = { _, _, _, _ -> },
             onDeleteContact = {},
+            onMoveContactUp = {},
+            onMoveContactDown = {},
             onSos = {},
             onSendReminder = {},
             onNavigateToSettings = {}

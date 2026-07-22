@@ -162,6 +162,58 @@ class PanelViewModel @Inject constructor(
         }
     }
 
+    fun updateContact(contactId: Int, name: String, phone: String, relationship: String, context: android.content.Context) {
+        if (name.isBlank() || phone.isBlank()) {
+            android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val formattedPhone = if (phone.trim().startsWith("+")) phone.trim() else "+${phone.trim()}"
+        val dto = EmergencyContactDto(
+            id = contactId,
+            name = name.trim(),
+            phone = formattedPhone,
+            email = null,
+            relationship = relationship.ifBlank { "Familiar" }
+        )
+        viewModelScope.launch {
+            contactsRepository.updateContact(contactId, dto).collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    android.widget.Toast.makeText(context, "Contacto actualizado exitosamente", android.widget.Toast.LENGTH_SHORT).show()
+                    fetchEmergencyContacts()
+                } else if (resource is Resource.Error) {
+                    android.widget.Toast.makeText(context, resource.message ?: "Error al actualizar contacto", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun moveContactUp(index: Int) {
+        if (index <= 0 || index >= emergencyContacts.size) return
+        val mutableList = emergencyContacts.toMutableList()
+        val item = mutableList.removeAt(index)
+        mutableList.add(index - 1, item)
+        emergencyContacts = mutableList
+        saveContactsOrder()
+    }
+
+    fun moveContactDown(index: Int) {
+        if (index < 0 || index >= emergencyContacts.size - 1) return
+        val mutableList = emergencyContacts.toMutableList()
+        val item = mutableList.removeAt(index)
+        mutableList.add(index + 1, item)
+        emergencyContacts = mutableList
+        saveContactsOrder()
+    }
+
+    private fun saveContactsOrder() {
+        val ids = emergencyContacts.mapNotNull { it.id }
+        if (ids.isNotEmpty()) {
+            viewModelScope.launch {
+                contactsRepository.reorderContacts(ids).collectLatest { }
+            }
+        }
+    }
+
     private suspend fun fetchCircleMembers() {
         circleRepository.getCircles().collectLatest { resource ->
             if (resource is Resource.Success) {
