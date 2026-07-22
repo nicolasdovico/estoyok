@@ -484,6 +484,14 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 5s).
 
+## [2026-07-22] Estoy Ok: Modal de Gestión de Contactos SOS (Alta, Baja y Consulta)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado el modal interactivo `ManageContactsModal` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) accesible al presionar **"Contactos SOS 👥"** en la tarjeta de resumen de la solapa *"Estoy ok"*.
+    - Soportada la visualización diferenciada de miembros del Círculo (automáticos) y contactos externos (SMS/WhatsApp).
+    - Habilitadas las funciones directas de **Dar de Baja (eliminar contacto con icono 🗑️)** y **Dar de Alta (guardar nuevo contacto)** directamente desde la solapa principal sin necesidad de buscar en Ajustes.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 12s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).

@@ -10,6 +10,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
+import androidx.compose.foundation.clickable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -42,6 +45,8 @@ fun PanelScreen(
         checkInHistory = viewModel.checkInHistory,
         circleMembers = viewModel.circleMembers,
         contactsCount = viewModel.totalAlertRecipients,
+        emergencyContacts = viewModel.emergencyContacts,
+        showManageContactsModal = viewModel.showManageContactsModal,
         intervalHours = viewModel.user?.checkinIntervalHours ?: 24,
         wifiAutoCheckinActive = viewModel.user?.wifiAutoCheckinEnabled == true,
         isCheckingIn = viewModel.isCheckingIn,
@@ -50,6 +55,10 @@ fun PanelScreen(
         onRefresh = { viewModel.refreshDashboard() },
         onCheckIn = { viewModel.performCheckIn() },
         onDismissSuccessDialog = { viewModel.dismissSuccessDialog() },
+        onOpenManageContactsModal = { viewModel.openManageContactsModal() },
+        onDismissManageContactsModal = { viewModel.dismissManageContactsModal() },
+        onAddContact = { name, phone, rel -> viewModel.addContact(name, phone, rel, context) },
+        onDeleteContact = { id -> viewModel.deleteContact(id) },
         onSos = { ctx -> viewModel.triggerSos(ctx) },
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings
@@ -64,6 +73,8 @@ fun PanelContent(
     checkInHistory: List<CheckInDto>,
     circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
     contactsCount: Int,
+    emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
+    showManageContactsModal: Boolean,
     intervalHours: Int,
     wifiAutoCheckinActive: Boolean,
     isCheckingIn: Boolean,
@@ -72,6 +83,10 @@ fun PanelContent(
     onRefresh: () -> Unit,
     onCheckIn: () -> Unit,
     onDismissSuccessDialog: () -> Unit,
+    onOpenManageContactsModal: () -> Unit,
+    onDismissManageContactsModal: () -> Unit,
+    onAddContact: (String, String, String) -> Unit,
+    onDeleteContact: (Int) -> Unit,
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit
@@ -91,6 +106,16 @@ fun PanelContent(
     ) {
         if (showSuccessDialog) {
             CheckInSuccessDialog(onDismiss = onDismissSuccessDialog)
+        }
+
+        if (showManageContactsModal) {
+            ManageContactsModal(
+                circleMembers = circleMembers,
+                emergencyContacts = emergencyContacts,
+                onDismiss = onDismissManageContactsModal,
+                onAddContact = onAddContact,
+                onDeleteContact = onDeleteContact
+            )
         }
 
         LazyColumn(
@@ -172,7 +197,8 @@ fun PanelContent(
                     intervalHours = intervalHours,
                     contactsCount = contactsCount,
                     wifiAutoCheckinActive = wifiAutoCheckinActive,
-                    onNavigateToSettings = onNavigateToSettings
+                    onNavigateToSettings = onNavigateToSettings,
+                    onManageContacts = onOpenManageContactsModal
                 )
             }
 
@@ -676,7 +702,8 @@ fun ProtectionSummaryCard(
     intervalHours: Int,
     contactsCount: Int,
     wifiAutoCheckinActive: Boolean,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onManageContacts: () -> Unit
 ) {
     Card(
         modifier = Modifier
@@ -727,8 +754,12 @@ fun ProtectionSummaryCard(
                     Text("${intervalHours}h Activo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
+                Column(
+                    modifier = Modifier
+                        .weight(1f)
+                        .clickable { onManageContacts() }
+                ) {
+                    Text("Contactos SOS 👥", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 }
@@ -797,6 +828,195 @@ fun CheckInSuccessDialog(
     )
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ManageContactsModal(
+    circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
+    emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
+    onDismiss: () -> Unit,
+    onAddContact: (String, String, String) -> Unit,
+    onDeleteContact: (Int) -> Unit
+) {
+    var newName by remember { mutableStateOf("") }
+    var newPhone by remember { mutableStateOf("") }
+    var newRelationship by remember { mutableStateOf("") }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = onDismiss,
+                colors = ButtonDefaults.buttonColors(containerColor = CardBackground, contentColor = TextPrimary),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.dp, BorderColor),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Cerrar", fontWeight = FontWeight.Bold)
+            }
+        },
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text("👥 ", fontSize = 20.sp)
+                Text(
+                    text = "Contactos de Alerta SOS",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextPrimary
+                )
+            }
+        },
+        text = {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(max = 420.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                item {
+                    Text(
+                        text = "Miembros del Círculo (Automáticos)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryEmerald
+                    )
+                }
+
+                if (circleMembers.isEmpty()) {
+                    item {
+                        Text("Sin otros miembros en el núcleo.", fontSize = 11.sp, color = TextMuted)
+                    }
+                } else {
+                    items(circleMembers) { member ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column {
+                                Text(member.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                Text(member.email, fontSize = 11.sp, color = TextSecondary)
+                            }
+                            Text("🛡️ Núcleo", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    HorizontalDivider(color = BorderColor)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "Contactos Externos (SMS / WhatsApp)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+
+                if (emergencyContacts.isEmpty()) {
+                    item {
+                        Text("No has registrado contactos externos aún.", fontSize = 11.sp, color = TextMuted)
+                    }
+                } else {
+                    items(emergencyContacts) { contact ->
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
+                                .padding(10.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                Text("${contact.phone} • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
+                            }
+                            contact.id?.let { contactId ->
+                                IconButton(
+                                    onClick = { onDeleteContact(contactId) },
+                                    modifier = Modifier.size(32.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Delete,
+                                        contentDescription = "Eliminar contacto",
+                                        tint = PrimaryRed
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+
+                item {
+                    Spacer(modifier = Modifier.height(6.dp))
+                    HorizontalDivider(color = BorderColor)
+                    Spacer(modifier = Modifier.height(6.dp))
+                    Text(
+                        text = "➕ Agregar Nuevo Contacto Externo",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = newName,
+                        onValueChange = { newName = it },
+                        label = { Text("Nombre", fontSize = 11.sp) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = newPhone,
+                        onValueChange = { newPhone = it },
+                        label = { Text("Teléfono (+549...)", fontSize = 11.sp) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
+                        value = newRelationship,
+                        onValueChange = { newRelationship = it },
+                        label = { Text("Parentesco (Ej. Hermana)", fontSize = 11.sp) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            onAddContact(newName, newPhone, newRelationship)
+                            newName = ""
+                            newPhone = ""
+                            newRelationship = ""
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Guardar Contacto", fontWeight = FontWeight.Bold, fontSize = 12.sp)
+                    }
+                }
+            }
+        },
+        containerColor = CardBackground,
+        shape = RoundedCornerShape(20.dp)
+    )
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PanelScreenPreview() {
@@ -845,6 +1065,8 @@ fun PanelScreenPreview() {
                 )
             ),
             contactsCount = 2,
+            emergencyContacts = emptyList(),
+            showManageContactsModal = false,
             intervalHours = 24,
             wifiAutoCheckinActive = true,
             isCheckingIn = false,
@@ -853,6 +1075,10 @@ fun PanelScreenPreview() {
             onRefresh = {},
             onCheckIn = {},
             onDismissSuccessDialog = {},
+            onOpenManageContactsModal = {},
+            onDismissManageContactsModal = {},
+            onAddContact = { _, _, _ -> },
+            onDeleteContact = {},
             onSos = {},
             onSendReminder = {},
             onNavigateToSettings = {}

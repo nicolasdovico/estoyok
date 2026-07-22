@@ -21,6 +21,7 @@ import com.estoyok.app.features.wellbeing.domain.repository.CheckInRepository
 import com.estoyok.app.features.wellbeing.domain.repository.EmergencyContactsRepository
 import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
 import com.estoyok.app.features.tracking.domain.repository.SosRepository
+import com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto
 import com.estoyok.app.features.tracking.data.model.CircleMemberDto
 import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.services.TrackingService
@@ -63,6 +64,12 @@ class PanelViewModel @Inject constructor(
     var contactsCount by mutableStateOf(0)
         private set
 
+    var emergencyContacts by mutableStateOf<List<EmergencyContactDto>>(emptyList())
+        private set
+
+    var showManageContactsModal by mutableStateOf(false)
+        private set
+
     val totalAlertRecipients: Int
         get() = circleMembers.size + contactsCount
 
@@ -88,6 +95,14 @@ class PanelViewModel @Inject constructor(
         refreshDashboard()
     }
 
+    fun openManageContactsModal() {
+        showManageContactsModal = true
+    }
+
+    fun dismissManageContactsModal() {
+        showManageContactsModal = false
+    }
+
     fun refreshDashboard() {
         viewModelScope.launch {
             isRefreshing = true
@@ -96,15 +111,53 @@ class PanelViewModel @Inject constructor(
             launch { fetchUserProfile() }
             launch { fetchCheckInHistory() }
             launch { fetchCircleMembers() }
-            launch { fetchEmergencyContacts() }
+            fetchEmergencyContacts()
         }
     }
 
-    private suspend fun fetchEmergencyContacts() {
-        contactsRepository.getContacts().collectLatest { resource ->
-            if (resource is Resource.Success) {
-                val contacts = resource.data ?: emptyList()
-                contactsCount = contacts.count { it.isActive }
+    fun fetchEmergencyContacts() {
+        viewModelScope.launch {
+            contactsRepository.getContacts().collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    val contacts = resource.data ?: emptyList()
+                    emergencyContacts = contacts
+                    contactsCount = contacts.count { it.isActive }
+                }
+            }
+        }
+    }
+
+    fun deleteContact(contactId: Int) {
+        viewModelScope.launch {
+            contactsRepository.deleteContact(contactId).collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    fetchEmergencyContacts()
+                }
+            }
+        }
+    }
+
+    fun addContact(name: String, phone: String, relationship: String, context: android.content.Context) {
+        if (name.isBlank() || phone.isBlank()) {
+            android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
+        val formattedPhone = if (phone.trim().startsWith("+")) phone.trim() else "+${phone.trim()}"
+        val dto = EmergencyContactDto(
+            id = null,
+            name = name.trim(),
+            phone = formattedPhone,
+            email = null,
+            relationship = relationship.ifBlank { "Familiar" }
+        )
+        viewModelScope.launch {
+            contactsRepository.createContact(dto).collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    android.widget.Toast.makeText(context, "Contacto agregado exitosamente", android.widget.Toast.LENGTH_SHORT).show()
+                    fetchEmergencyContacts()
+                } else if (resource is Resource.Error) {
+                    android.widget.Toast.makeText(context, resource.message ?: "Error al agregar contacto", android.widget.Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
