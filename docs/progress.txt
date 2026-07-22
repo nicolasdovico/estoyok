@@ -459,8 +459,9 @@
     - Corregida la falla de parseo de fechas ISO con microsegundos (formato `.SSSSSS'Z'` entregado por la API de Laravel) en [PanelViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), evitando que la pantalla caiga en estado fallback por excepción.
     - Removida la multiplicación acelerada por minutos en builds de debug para usar la duración real en horas del intervalo (`checkinIntervalHours * 3600_000L`).
     - Modificado `StatusBanner` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) para renderizar de forma garantizada y permanente la caja de **⏱️ Tiempo Restante** con su barra de progreso y cronómetro dinámico en todos los estados (`Safe`, `Expired` y `NoReports`).
+    - Simplificada la descripción del banner "Protegido y a Salvo", removiendo el texto redundante *"Tu temporizador está activo."*.
 - **Validación:**
-    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 13s).
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 7s).
 
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**

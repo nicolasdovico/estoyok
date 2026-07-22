@@ -266,7 +266,7 @@ fun StatusBanner(status: WellbeingStatus) {
         is WellbeingStatus.Safe -> {
             containerColor = PrimaryEmerald.copy(alpha = 0.12f)
             title = "Protegido y a Salvo"
-            desc = "Tu temporizador está activo. Debes reportarte antes de:\n${status.nextReportAt}"
+            desc = "Debes reportarte antes de:\n${status.nextReportAt}"
             emoji = "🛡️"
         }
         is WellbeingStatus.Expired -> {
