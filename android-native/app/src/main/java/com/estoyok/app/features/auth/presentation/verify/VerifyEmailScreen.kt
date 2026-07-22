@@ -171,6 +171,7 @@ fun VerifyEmailScreen(
                             .height(50.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = TextOnPrimary,
                             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         ),
                         shape = RoundedCornerShape(12.dp)

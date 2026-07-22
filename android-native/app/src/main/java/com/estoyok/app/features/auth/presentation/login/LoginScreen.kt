@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.PrimaryEmerald
 import com.estoyok.app.core.theme.PrimaryTeal
+import com.estoyok.app.core.theme.TextOnPrimary
 import com.estoyok.app.core.util.rememberWindowInfo
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -188,6 +189,7 @@ fun LoginScreen(
                             .height(50.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = TextOnPrimary,
                             disabledContainerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
                         ),
                         shape = RoundedCornerShape(12.dp)
@@ -237,10 +239,10 @@ fun LoginScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                                    contentColor = if (isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    containerColor = if (isLocalSelected) PrimaryEmerald else Color.Transparent,
+                                    contentColor = if (isLocalSelected) TextOnPrimary else PrimaryEmerald
                                 ),
-                                border = BorderStroke(1.dp, if (isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, if (isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
                             ) {
                                 Text("💻 Local (USB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
@@ -253,10 +255,10 @@ fun LoginScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (!isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                                    contentColor = if (!isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    containerColor = if (!isLocalSelected) PrimaryEmerald else Color.Transparent,
+                                    contentColor = if (!isLocalSelected) TextOnPrimary else PrimaryEmerald
                                 ),
-                                border = BorderStroke(1.dp, if (!isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, if (!isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
                             ) {
                                 Text("🌐 Railway", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
@@ -275,10 +277,10 @@ fun LoginScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                                    contentColor = if (isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    containerColor = if (isLocalSelected) PrimaryEmerald else Color.Transparent,
+                                    contentColor = if (isLocalSelected) TextOnPrimary else PrimaryEmerald
                                 ),
-                                border = BorderStroke(1.dp, if (isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, if (isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
                             ) {
                                 Text("💻 Local (USB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }
@@ -291,10 +293,10 @@ fun LoginScreen(
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(8.dp),
                                 colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (!isLocalSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
-                                    contentColor = if (!isLocalSelected) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurface
+                                    containerColor = if (!isLocalSelected) PrimaryEmerald else Color.Transparent,
+                                    contentColor = if (!isLocalSelected) TextOnPrimary else PrimaryEmerald
                                 ),
-                                border = BorderStroke(1.dp, if (!isLocalSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline.copy(alpha = 0.5f))
+                                border = BorderStroke(1.dp, if (!isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
                             ) {
                                 Text("🌐 Railway", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                             }

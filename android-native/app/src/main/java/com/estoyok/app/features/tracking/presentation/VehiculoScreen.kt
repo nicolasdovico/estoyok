@@ -219,7 +219,7 @@ fun VehiculoScreen(
                                 ) {
                                     Text(
                                         text = week.label,
-                                        color = if (isSelected) Color.White else TextPrimary,
+                                        color = if (isSelected) TextOnPrimary else PrimaryEmerald,
                                         fontSize = 12.sp,
                                         fontWeight = FontWeight.Bold,
                                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)

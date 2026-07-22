@@ -2233,7 +2233,7 @@ fun MemberDetailsSheetContent(
                                 text = dayText,
                                 fontSize = 16.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = if (isSelected) Color.White else TextPrimary
+                                color = if (isSelected) TextOnPrimary else PrimaryEmerald
                             )
                             Spacer(modifier = Modifier.height(4.dp))
                             val monthText = displayStr.split(" ").lastOrNull() ?: ""
@@ -2241,7 +2241,7 @@ fun MemberDetailsSheetContent(
                                 text = monthText,
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.SemiBold,
-                                color = if (isSelected) Color.White.copy(alpha = 0.8f) else TextMuted
+                                color = if (isSelected) TextOnPrimary.copy(alpha = 0.85f) else PrimaryEmerald.copy(alpha = 0.8f)
                             )
                         }
                     }

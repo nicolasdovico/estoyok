@@ -185,10 +185,10 @@ fun PremiumScreen(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !viewModel.checkoutLoading,
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                         ) {
                             if (viewModel.checkoutLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = Color.White)
+                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = TextOnPrimary)
                             } else {
                                 Text("Suscribirse ahora ($4.99/mes)", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
                             }
