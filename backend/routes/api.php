@@ -47,6 +47,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Tracking
     Route::post('/locations/update', [LocationController::class, 'update']);
     Route::put('/locations/sensor-status', [LocationController::class, 'updateSensorStatus']);
+    Route::post('/locations/cleanup-history', [LocationController::class, 'cleanupHistory']);
 
     // Circles
     Route::get('/circles', [CircleController::class, 'index']);

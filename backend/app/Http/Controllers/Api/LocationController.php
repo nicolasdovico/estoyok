@@ -300,4 +300,85 @@ class LocationController extends Controller
             'current_location' => $currentLocation,
         ]);
     }
+
+    public function cleanupHistory(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required|integer',
+            'date' => 'nullable|date',
+        ]);
+
+        $userId = $request->user_id;
+        $dateInput = $request->date ?? \Carbon\Carbon::yesterday()->toDateString();
+
+        $user = User::find($userId);
+        if (!$user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $start = \Carbon\Carbon::parse($dateInput)->startOfDay();
+        $end = \Carbon\Carbon::parse($dateInput)->endOfDay();
+
+        $points = DB::table('location_histories')
+            ->select('id', 'recorded_at', 'is_driving', 'location')
+            ->where('user_id', $userId)
+            ->whereBetween('recorded_at', [$start, $end])
+            ->orderBy('recorded_at', 'asc')
+            ->get();
+
+        $totalPoints = $points->count();
+        if ($totalPoints <= 2) {
+            return response()->json([
+                'message' => 'Nothing to clean up',
+                'total_points' => $totalPoints,
+            ]);
+        }
+
+        $keptIds = [];
+        $lastKeptPoint = null;
+
+        foreach ($points as $index => $pt) {
+            if ($index === 0 || $index === $totalPoints - 1) {
+                $keptIds[] = $pt->id;
+                $lastKeptPoint = $pt;
+                continue;
+            }
+
+            $timeDiff = abs(\Carbon\Carbon::parse($pt->recorded_at)->diffInSeconds(\Carbon\Carbon::parse($lastKeptPoint->recorded_at)));
+            $drivingChanged = ((bool)$pt->is_driving !== (bool)$lastKeptPoint->is_driving);
+
+            $isNear = DB::selectOne("
+                SELECT ST_DWithin(
+                    :pt_loc,
+                    :last_loc,
+                    15
+                ) as is_near
+            ", [
+                'pt_loc' => $pt->location,
+                'last_loc' => $lastKeptPoint->location,
+            ]);
+
+            $isWithin15m = $isNear ? (bool)$isNear->is_near : false;
+
+            if (!$isWithin15m || $drivingChanged || $timeDiff >= 30) {
+                $keptIds[] = $pt->id;
+                $lastKeptPoint = $pt;
+            }
+        }
+
+        $deletedCount = DB::table('location_histories')
+            ->where('user_id', $userId)
+            ->whereBetween('recorded_at', [$start, $end])
+            ->whereNotIn('id', $keptIds)
+            ->delete();
+
+        return response()->json([
+            'message' => 'Downsampled location history successfully',
+            'user' => $user->email,
+            'date' => $dateInput,
+            'original_points' => $totalPoints,
+            'kept_points' => count($keptIds),
+            'deleted_points' => $deletedCount,
+        ]);
+    }
 }
