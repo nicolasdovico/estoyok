@@ -150,7 +150,13 @@ fun MainScreen(
                 }
 
                 // Main Screens
-                composable(Screen.EstoyOk.route) { PanelScreen() }
+                composable(Screen.EstoyOk.route) {
+                    PanelScreen(
+                        onNavigateToSettings = {
+                            navController.navigate(Screen.Ajustes.route)
+                        }
+                    )
+                }
                 composable(Screen.Mapa.route) { MapaScreen(navController = navController) }
                 composable(Screen.Vehiculo.route) { VehiculoScreen(navController = navController) }
                 composable(Screen.Familia.route) { FamiliaScreen() }

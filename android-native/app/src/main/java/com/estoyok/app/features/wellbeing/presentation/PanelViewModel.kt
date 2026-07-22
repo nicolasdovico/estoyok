@@ -60,6 +60,9 @@ class PanelViewModel @Inject constructor(
     var circleMembers by mutableStateOf<List<CircleMemberDto>>(emptyList())
         private set
 
+    var contactsCount by mutableStateOf(0)
+        private set
+
     var isCheckingIn by mutableStateOf(false)
         private set
 
@@ -87,6 +90,16 @@ class PanelViewModel @Inject constructor(
             launch { fetchUserProfile() }
             launch { fetchCheckInHistory() }
             launch { fetchCircleMembers() }
+            launch { fetchEmergencyContacts() }
+        }
+    }
+
+    private suspend fun fetchEmergencyContacts() {
+        contactsRepository.getContacts().collectLatest { resource ->
+            if (resource is Resource.Success) {
+                val contacts = resource.data ?: emptyList()
+                contactsCount = contacts.count { it.isActive }
+            }
         }
     }
 

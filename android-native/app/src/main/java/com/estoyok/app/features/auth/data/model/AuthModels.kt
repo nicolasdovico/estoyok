@@ -11,6 +11,7 @@ data class UserDto(
     @SerializedName("is_premium") val isPremium: Boolean,
     @SerializedName("checkin_interval_hours") val checkinIntervalHours: Int,
     @SerializedName("allow_sms_whatsapp_checkin") val allowSmsWhatsappCheckin: Boolean,
+    @SerializedName("wifi_auto_checkin_enabled") val wifiAutoCheckinEnabled: Boolean? = false,
     @SerializedName("last_check_in_at") val lastCheckInAt: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,
     @SerializedName("created_at") val createdAt: String

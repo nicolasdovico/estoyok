@@ -32,6 +32,7 @@ import java.util.*
 
 @Composable
 fun PanelScreen(
+    onNavigateToSettings: () -> Unit = {},
     viewModel: PanelViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -40,12 +41,16 @@ fun PanelScreen(
         status = viewModel.status,
         checkInHistory = viewModel.checkInHistory,
         circleMembers = viewModel.circleMembers,
+        contactsCount = viewModel.contactsCount,
+        intervalHours = viewModel.user?.checkinIntervalHours ?: 24,
+        wifiAutoCheckinActive = viewModel.user?.wifiAutoCheckinEnabled == true,
         isCheckingIn = viewModel.isCheckingIn,
         isSosTriggered = viewModel.isSosTriggered,
         onRefresh = { viewModel.refreshDashboard() },
         onCheckIn = { viewModel.performCheckIn() },
         onSos = { ctx -> viewModel.triggerSos(ctx) },
-        onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) }
+        onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
+        onNavigateToSettings = onNavigateToSettings
     )
 }
 
@@ -56,12 +61,16 @@ fun PanelContent(
     status: WellbeingStatus,
     checkInHistory: List<CheckInDto>,
     circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
+    contactsCount: Int,
+    intervalHours: Int,
+    wifiAutoCheckinActive: Boolean,
     isCheckingIn: Boolean,
     isSosTriggered: Boolean,
     onRefresh: () -> Unit,
     onCheckIn: () -> Unit,
     onSos: (android.content.Context) -> Unit,
-    onSendReminder: (Int) -> Unit
+    onSendReminder: (Int) -> Unit,
+    onNavigateToSettings: () -> Unit
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -149,6 +158,14 @@ fun PanelContent(
                 Spacer(modifier = Modifier.height(spacingHeaderToBanner))
                 // 1. Wellbeing Status Banner
                 StatusBanner(status = status)
+                Spacer(modifier = Modifier.height(10.dp))
+                // 1.5 Protection Summary Card
+                ProtectionSummaryCard(
+                    intervalHours = intervalHours,
+                    contactsCount = contactsCount,
+                    wifiAutoCheckinActive = wifiAutoCheckinActive,
+                    onNavigateToSettings = onNavigateToSettings
+                )
             }
 
             item {
@@ -574,6 +591,83 @@ fun CircleMemberWellbeingCard(
     }
 }
 
+@Composable
+fun ProtectionSummaryCard(
+    intervalHours: Int,
+    contactsCount: Int,
+    wifiAutoCheckinActive: Boolean,
+    onNavigateToSettings: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        shape = RoundedCornerShape(16.dp),
+        border = BorderStroke(1.dp, BorderColor)
+    ) {
+        Column(modifier = Modifier.padding(14.dp)) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text("🛡️ ", fontSize = 14.sp)
+                    Text(
+                        text = "Configuración de Protección",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                }
+
+                Button(
+                    onClick = onNavigateToSettings,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryEmerald.copy(alpha = 0.15f),
+                        contentColor = PrimaryEmerald
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text("Configurar ⚙️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(10.dp))
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Intervalo", fontSize = 10.sp, color = TextMuted)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("${intervalHours}h Activo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text("$contactsCount Alertas", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                }
+
+                Column(modifier = Modifier.weight(1f)) {
+                    Text("Auto-Checkin", fontSize = 10.sp, color = TextMuted)
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (wifiAutoCheckinActive) "Wi-Fi Activo 📶" else "Manual 🟢",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PrimaryEmerald
+                    )
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PanelScreenPreview() {
@@ -591,12 +685,16 @@ fun PanelScreenPreview() {
                 CheckInDto(3, "movement", "2026-07-06T10:15:00Z")
             ),
             circleMembers = emptyList(),
+            contactsCount = 2,
+            intervalHours = 24,
+            wifiAutoCheckinActive = true,
             isCheckingIn = false,
             isSosTriggered = false,
             onRefresh = {},
             onCheckIn = {},
             onSos = {},
-            onSendReminder = {}
+            onSendReminder = {},
+            onNavigateToSettings = {}
         )
     }
 }
