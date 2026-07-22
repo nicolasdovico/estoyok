@@ -1,6 +1,7 @@
 package com.estoyok.app.features.wellbeing.presentation
 
 import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
@@ -33,15 +34,18 @@ import java.util.*
 fun PanelScreen(
     viewModel: PanelViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     PanelContent(
         userName = viewModel.user?.name ?: "Usuario",
         status = viewModel.status,
         checkInHistory = viewModel.checkInHistory,
+        circleMembers = viewModel.circleMembers,
         isCheckingIn = viewModel.isCheckingIn,
         isSosTriggered = viewModel.isSosTriggered,
         onRefresh = { viewModel.refreshDashboard() },
         onCheckIn = { viewModel.performCheckIn() },
-        onSos = { ctx -> viewModel.triggerSos(ctx) }
+        onSos = { ctx -> viewModel.triggerSos(ctx) },
+        onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) }
     )
 }
 
@@ -51,11 +55,13 @@ fun PanelContent(
     userName: String,
     status: WellbeingStatus,
     checkInHistory: List<CheckInDto>,
+    circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
     isCheckingIn: Boolean,
     isSosTriggered: Boolean,
     onRefresh: () -> Unit,
     onCheckIn: () -> Unit,
-    onSos: (android.content.Context) -> Unit
+    onSos: (android.content.Context) -> Unit,
+    onSendReminder: (Int) -> Unit
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -159,6 +165,23 @@ fun PanelContent(
                         onClick = onCheckIn,
                         size = buttonSize
                     )
+                }
+            }
+
+            if (circleMembers.isNotEmpty()) {
+                item {
+                    Spacer(modifier = Modifier.height(20.dp))
+                    Text(
+                        text = "Tranquilidad del Núcleo",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                items(circleMembers) { member ->
+                    CircleMemberWellbeingCard(member = member, onSendReminder = { onSendReminder(member.id) })
                 }
             }
 
@@ -473,6 +496,84 @@ fun CheckInItemRow(checkIn: CheckInDto) {
     }
 }
 
+@Composable
+fun CircleMemberWellbeingCard(
+    member: com.estoyok.app.features.tracking.data.model.CircleMemberDto,
+    onSendReminder: () -> Unit
+) {
+    val isOffline = member.currentLocation?.isOffline == true
+    val isSafe = !isOffline && member.currentLocation?.recordedAt != null
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
+        colors = CardDefaults.cardColors(containerColor = CardBackground),
+        shape = RoundedCornerShape(14.dp),
+        border = BorderStroke(1.dp, if (isSafe) PrimaryEmerald.copy(alpha = 0.3f) else PrimaryOrange.copy(alpha = 0.3f))
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(42.dp)
+                        .clip(CircleShape)
+                        .background(if (isSafe) PrimaryEmerald.copy(alpha = 0.2f) else PrimaryOrange.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = member.name.take(2).uppercase(),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (isSafe) PrimaryEmerald else PrimaryOrange
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(12.dp))
+
+                Column {
+                    Text(
+                        text = member.name,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (isSafe) "🛡️ Protegido/a (A salvo)" else "⚠️ Sin reporte activo",
+                        fontSize = 11.sp,
+                        color = if (isSafe) PrimaryEmerald else PrimaryOrange,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            if (!isSafe) {
+                Button(
+                    onClick = onSendReminder,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PrimaryOrange.copy(alpha = 0.15f),
+                        contentColor = PrimaryOrange
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun PanelScreenPreview() {
@@ -489,11 +590,13 @@ fun PanelScreenPreview() {
                 CheckInDto(2, "wifi", "2026-07-06T15:20:00Z"),
                 CheckInDto(3, "movement", "2026-07-06T10:15:00Z")
             ),
+            circleMembers = emptyList(),
             isCheckingIn = false,
             isSosTriggered = false,
             onRefresh = {},
             onCheckIn = {},
-            onSos = {}
+            onSos = {},
+            onSendReminder = {}
         )
     }
 }

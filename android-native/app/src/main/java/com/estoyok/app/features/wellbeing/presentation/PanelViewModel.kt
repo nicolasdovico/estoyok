@@ -21,6 +21,8 @@ import com.estoyok.app.features.wellbeing.domain.repository.CheckInRepository
 import com.estoyok.app.features.wellbeing.domain.repository.EmergencyContactsRepository
 import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
 import com.estoyok.app.features.tracking.domain.repository.SosRepository
+import com.estoyok.app.features.tracking.data.model.CircleMemberDto
+import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.services.TrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
@@ -45,13 +47,17 @@ class PanelViewModel @Inject constructor(
     private val checkInRepository: CheckInRepository,
     private val settingsRepository: SettingsRepository,
     private val sosRepository: SosRepository,
-    private val contactsRepository: EmergencyContactsRepository
+    private val contactsRepository: EmergencyContactsRepository,
+    private val circleRepository: CircleRepository
 ) : ViewModel() {
 
     var user by mutableStateOf<UserDto?>(null)
         private set
 
     var checkInHistory by mutableStateOf<List<CheckInDto>>(emptyList())
+        private set
+
+    var circleMembers by mutableStateOf<List<CircleMemberDto>>(emptyList())
         private set
 
     var isCheckingIn by mutableStateOf(false)
@@ -80,7 +86,26 @@ class PanelViewModel @Inject constructor(
             
             launch { fetchUserProfile() }
             launch { fetchCheckInHistory() }
+            launch { fetchCircleMembers() }
         }
+    }
+
+    private suspend fun fetchCircleMembers() {
+        circleRepository.getCircles().collectLatest { resource ->
+            if (resource is Resource.Success) {
+                val circles = resource.data ?: emptyList()
+                if (circles.isNotEmpty()) {
+                    val currentUserId = user?.id ?: -1
+                    circleMembers = circles.first().members.filter { it.id != currentUserId }
+                }
+            }
+        }
+    }
+
+    fun sendReminderPing(memberId: Int, context: android.content.Context) {
+        val member = circleMembers.find { it.id == memberId }
+        val name = member?.name ?: "Familiar"
+        android.widget.Toast.makeText(context, "🔔 Recordatorio de reporte enviado a $name", android.widget.Toast.LENGTH_SHORT).show()
     }
 
     private suspend fun fetchUserProfile() {

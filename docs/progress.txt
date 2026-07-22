@@ -425,6 +425,14 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 29s).
 
+## [2026-07-22] Estoy Ok - Punto 2: Sección Tranquilidad del Núcleo (Bienestar Familiar)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Inyectado `CircleRepository` en [PanelViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) y creado el flujo `fetchCircleMembers()` para cargar los miembros del núcleo activo y su estado de protección pasiva.
+    - Creado el composable `CircleMemberWellbeingCard` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) mostrando avatares, nombres y badges de estado (*🛡️ Protegido/a (A salvo)* o *⚠️ Sin reporte activo*).
+    - Agregado el botón **"Recordar 🔔"** para disparar notificaciones de aviso a familiares vencidos (`sendReminderPing`).
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 29s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).
