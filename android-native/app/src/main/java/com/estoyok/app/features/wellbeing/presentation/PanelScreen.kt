@@ -757,11 +757,30 @@ fun ProtectionSummaryCard(
                 Column(
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { onManageContacts() }
+                        .clickable { onManageContacts() },
+                    horizontalAlignment = Alignment.Start
                 ) {
-                    Text("Contactos SOS 👥", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.SemiBold)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                    Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
+                    Spacer(modifier = Modifier.height(3.dp))
+                    Surface(
+                        color = PrimaryEmerald.copy(alpha = 0.15f),
+                        shape = RoundedCornerShape(8.dp),
+                        border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryEmerald
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("✏️", fontSize = 10.sp)
+                        }
+                    }
                 }
 
                 Column(modifier = Modifier.weight(1f)) {

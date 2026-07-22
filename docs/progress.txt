@@ -507,6 +507,12 @@
 - **Validación:**
     - Pruebas backend ejecutadas con éxito al 100% (`5 passed` en `GeofencingTest` y `119 passed` totales).
 
+## [2026-07-22] UI UX: Transformación del Contador de Contactos SOS en Badge Interactivo con Ícono de Edición
+- **App Móvil Nativa (Android/Kotlin):**
+    - Transformada la métrica de "Contactos SOS" en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) en un badge/chip interactivo estilizado (`[ 1 Asignado ✏️ ]`) con fondo sutil turquesa y micro-ícono de edición.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 15s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).
