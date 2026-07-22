@@ -167,7 +167,8 @@ fun MainScreen(
             val isSubScreen = currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route
             val showTopIconButton = isAuthenticated && 
                 (items.any { it.route == currentRoute } || isSubScreen) && 
-                currentRoute != Screen.EstoyOk.route
+                currentRoute != Screen.EstoyOk.route &&
+                currentRoute != Screen.Vehiculo.route
 
             if (showTopIconButton) {
                 IconButton(
