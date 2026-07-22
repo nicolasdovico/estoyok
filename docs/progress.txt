@@ -448,6 +448,12 @@
     - Suite de 119 pruebas de backend de Laravel ejecutadas exitosamente (119/119 passed).
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 8s).
 
+## [2026-07-22] Optimización UI: Redundancia de Icono de Ajustes en "Estoy Ok"
+- **App Móvil Nativa (Android/Kotlin):**
+    - Eliminada la renderización del botón flotante redundante de engranaje (Ajustes) en la esquina superior izquierda al navegar en la pestaña "Estoy ok" en [NavGraph.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt), ya que dicha pestaña ahora cuenta con su propio botón dedicado **"Configurar ⚙️"** dentro de la tarjeta `ProtectionSummaryCard`.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 6s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).
