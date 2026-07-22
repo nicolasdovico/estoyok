@@ -498,6 +498,15 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 11s).
 
+## [2026-07-22] Geofencing: Implementación de Histeresis de Doble Umbral y Cooldown Estilo Life360
+- **Backend (Laravel):**
+    - Actualizado `ProcessGeofencing.php` en [ProcessGeofencing.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/ProcessGeofencing.php) utilizando la función PostGIS `ST_Distance(center, geography)` para calcular distancias métricas exactas.
+    - Implementado un margen de histeresis de doble umbral: Ingreso a $\le R$ (ej. $50\text{m}$) y Salida a $> R + \text{Buffer}$ (ej. $> 80\text{m}$), eliminando los falsos disparos por rebote o drift de señal GPS en interiores.
+    - Agregada una ventana de cooldown/debounce de 3 minutos entre notificaciones opuestas del mismo perímetro.
+    - Agregado test automatizado `test_geofencing_job_applies_hysteresis_and_cooldown_to_prevent_false_exit_alerts` en [GeofencingTest.php](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/GeofencingTest.php).
+- **Validación:**
+    - Pruebas backend ejecutadas con éxito al 100% (`5 passed` en `GeofencingTest` y `119 passed` totales).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).

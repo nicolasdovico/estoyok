@@ -145,4 +145,38 @@ class GeofencingTest extends TestCase
         $this->assertEquals(1, GeofenceEvent::count());
         Http::assertNothingSent();
     }
+
+    public function test_geofencing_job_applies_hysteresis_and_cooldown_to_prevent_false_exit_alerts()
+    {
+        $owner = User::factory()->create(['name' => 'Owner', 'expo_push_token' => 'token-1']);
+        $member = User::factory()->create(['name' => 'Member']);
+
+        $circle = Circle::create(['name' => 'Test Circle', 'owner_id' => $owner->id]);
+        $circle->users()->attach([$owner->id, $member->id]);
+
+        $geofence = Geofence::create([
+            'circle_id' => $circle->id,
+            'name' => 'Casa',
+            'radius' => 50,
+            'center' => DB::raw("ST_GeomFromText('POINT(-59.14591 -34.59382)', 4326)"),
+        ]);
+
+        // Pre-record an ENTRY event 1 minute ago (cooldown active)
+        GeofenceEvent::create([
+            'user_id' => $member->id,
+            'geofence_id' => $geofence->id,
+            'type' => 'entry',
+            'occurred_at' => now()->subMinute(),
+        ]);
+
+        Http::fake();
+
+        // Slight drift (60m away - inside hysteresis buffer of 50m + 30m = 80m, and inside 3-min cooldown)
+        $job = new ProcessGeofencing($member, -34.5943, -59.1465);
+        $job->handle();
+
+        // No new event or notification sent
+        $this->assertEquals(1, GeofenceEvent::count());
+        Http::assertNothingSent();
+    }
 }

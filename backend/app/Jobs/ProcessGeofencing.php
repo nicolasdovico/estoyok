@@ -49,10 +49,12 @@ class ProcessGeofencing implements ShouldQueue
         $pointWkt = "POINT({$this->longitude} {$this->latitude})";
 
         foreach ($allGeofences as $geofence) {
-            $isInside = DB::selectOne(
-                'SELECT ST_DWithin(center, ST_GeomFromText(?, 4326), ?) as inside FROM geofences WHERE id = ?',
-                [$pointWkt, $geofence->radius, $geofence->id]
-            )->inside;
+            $distResult = DB::selectOne(
+                'SELECT ST_Distance(center, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) as distance FROM geofences WHERE id = ?',
+                [$this->longitude, $this->latitude, $geofence->id]
+            );
+
+            $distanceMeters = $distResult ? (float) $distResult->distance : 9999999.0;
 
             $lastEvent = GeofenceEvent::where('user_id', $this->user->id)
                 ->where('geofence_id', $geofence->id)
@@ -61,10 +63,22 @@ class ProcessGeofencing implements ShouldQueue
 
             $lastType = $lastEvent ? $lastEvent->type : 'exit';
 
-            if ($isInside && $lastType === 'exit') {
+            // Cooldown check: Require at least 3 minutes between state transition alerts for the same geofence
+            $cooldownActive = $lastEvent && $lastEvent->occurred_at && $lastEvent->occurred_at->diffInMinutes(now()) < 3;
+            if ($cooldownActive) {
+                continue;
+            }
+
+            // Life360 Hysteresis Dual-Threshold Buffer:
+            // Entry threshold: distance <= radius
+            // Exit threshold: distance > (radius + hysteresisBuffer)
+            $radius = (float) $geofence->radius;
+            $hysteresisBuffer = max(30.0, $radius * 0.3); // 30 meters or 30% of radius
+
+            if ($distanceMeters <= $radius && $lastType === 'exit') {
                 $this->recordEvent($geofence, 'entry');
                 $this->sendGeofenceAlert($geofence, 'ingresado a');
-            } elseif (! $isInside && $lastType === 'entry') {
+            } elseif ($distanceMeters > ($radius + $hysteresisBuffer) && $lastType === 'entry') {
                 $this->recordEvent($geofence, 'exit');
                 $this->sendGeofenceAlert($geofence, 'salido de');
             }
