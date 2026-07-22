@@ -470,6 +470,13 @@
 - **Validación:**
     - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 8s).
 
+## [2026-07-22] Estoy Ok: Cálculo Consolidado de Destinatarios de Alertas SOS
+- **App Móvil Nativa (Android/Kotlin):**
+    - Actualizado `PanelViewModel.kt` para calcular la propiedad `totalAlertRecipients`, sumando la totalidad de integrantes activos del Círculo (`circleMembers`, ej. Analía) más los contactos de emergencia externos configurados (`contactsCount`).
+    - Actualizada la tarjeta `ProtectionSummaryCard` en [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) para mostrar la cantidad consolidada de destinatarios (`1 Asignado` cuando se cuenta con Analía en el núcleo).
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 12s).
+
 ## [2026-06-25] Issue 1: Planes y Pasarelas de Pago en la Web
 - **Web Frontend (Next.js):**
     - Creado el componente [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) para comparar características de planes (Gratis vs Premium PRO) y gestionar el selector de pasarelas de pago (Stripe, Mercado Pago y PayPal).

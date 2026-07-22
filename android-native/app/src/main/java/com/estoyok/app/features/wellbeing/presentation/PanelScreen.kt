@@ -41,7 +41,7 @@ fun PanelScreen(
         status = viewModel.status,
         checkInHistory = viewModel.checkInHistory,
         circleMembers = viewModel.circleMembers,
-        contactsCount = viewModel.contactsCount,
+        contactsCount = viewModel.totalAlertRecipients,
         intervalHours = viewModel.user?.checkinIntervalHours ?: 24,
         wifiAutoCheckinActive = viewModel.user?.wifiAutoCheckinEnabled == true,
         isCheckingIn = viewModel.isCheckingIn,
@@ -730,7 +730,7 @@ fun ProtectionSummaryCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
                     Spacer(modifier = Modifier.height(2.dp))
-                    Text("$contactsCount Alertas", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                    Text(if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
                 }
 
                 Column(modifier = Modifier.weight(1f)) {

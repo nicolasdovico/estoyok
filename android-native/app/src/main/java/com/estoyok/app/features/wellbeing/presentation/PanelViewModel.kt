@@ -63,6 +63,9 @@ class PanelViewModel @Inject constructor(
     var contactsCount by mutableStateOf(0)
         private set
 
+    val totalAlertRecipients: Int
+        get() = circleMembers.size + contactsCount
+
     var isCheckingIn by mutableStateOf(false)
         private set
 
