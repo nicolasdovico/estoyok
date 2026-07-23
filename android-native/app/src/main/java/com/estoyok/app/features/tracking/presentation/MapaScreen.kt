@@ -50,6 +50,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.DpOffset
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
 import com.estoyok.app.core.util.rememberWindowInfo
@@ -1021,15 +1022,16 @@ fun MapaScreen(
                 DropdownMenu(
                     expanded = isCircleDropdownExpanded,
                     onDismissRequest = { isCircleDropdownExpanded = false },
+                    offset = DpOffset(x = (-20).dp, y = 4.dp),
                     modifier = Modifier
                         .background(CardBackground)
                         .border(1.dp, PrimaryEmerald.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-                        .widthIn(min = 280.dp, max = 340.dp)
+                        .widthIn(min = 290.dp, max = 340.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .background(CardBackground)
-                            .padding(10.dp),
+                            .padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
@@ -1113,7 +1115,7 @@ fun MapaScreen(
 
                         Row(
                             modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Surface(
@@ -1127,11 +1129,11 @@ fun MapaScreen(
                                 border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    modifier = Modifier.padding(vertical = 9.dp, horizontal = 8.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("➕ Crear", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
+                                    Text("➕ Crear Núcleo", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
                                 }
                             }
 
@@ -1146,30 +1148,11 @@ fun MapaScreen(
                                 border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
                             ) {
                                 Row(
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    modifier = Modifier.padding(vertical = 9.dp, horizontal = 8.dp),
                                     horizontalArrangement = Arrangement.Center,
                                     verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Text("🔗 Unirse", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
-                                }
-                            }
-
-                            Surface(
-                                onClick = {
-                                    isCircleDropdownExpanded = false
-                                    navController?.navigate(Screen.Familia.route)
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(10.dp),
-                                color = PrimaryEmerald.copy(alpha = 0.15f),
-                                border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
-                            ) {
-                                Row(
-                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
-                                    horizontalArrangement = Arrangement.Center,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text("⚙️ Gestionar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
+                                    Text("🔗 Unirse a Núcleo", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
                                 }
                             }
                         }

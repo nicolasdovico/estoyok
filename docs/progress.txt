@@ -1145,9 +1145,10 @@
 - **Validación:**
 ## [2026-07-23] Rediseño Compacto del Selector de Núcleos en el Mapa (Estilo Vehículo)
 - **App Móvil Nativa (Android/Kotlin):**
-    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1021): reemplazado el desplegable alto por una tarjeta flotante estilizada (`CardBackground`) con borde turquesa (`PrimaryEmerald`).
+    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1021): reemplazado el desplegable alto por una tarjeta flotante estilizada (`CardBackground`) centrada mediante `DpOffset` respecto a la pastilla del encabezado y borde turquesa (`PrimaryEmerald`).
     - Lista Vertical de Núcleos: muestra los núcleos activos del usuario en vertical con avatar circular, nombre resaltado en turquesa para el núcleo seleccionado e indicador `✓` a la derecha.
-    - Fila Horizontal de Pastillas de Acción: agrupadas en una única fila horizontal con fondo turquesa translúcido (`PrimaryEmerald 15%`) y bordes redondeados (`10.dp`), ofreciendo acceso directo a `➕ Crear`, `🔗 Unirse` y `⚙️ Gestionar` en un diseño ultra-compacto que despeja la visibilidad del mapa.
+    - Fila Horizontal de 2 Pastillas de Acción: reducida a las 2 opciones principales (`➕ Crear Núcleo` y `🔗 Unirse a Núcleo`) con fondo turquesa translúcido (`PrimaryEmerald 15%`), ofreciendo mayor área táctil y un diseño centrado y despejado.
 - **Validación:**
-    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 33s`).
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 31s`).
+
 
