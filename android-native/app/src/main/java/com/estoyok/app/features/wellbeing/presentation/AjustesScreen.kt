@@ -84,9 +84,19 @@ fun AjustesScreen(
         }
     }
     
-    // Clear messages when user leaves screen or on start
+    // Display feedback messages via Toast
+    LaunchedEffect(viewModel.messageSuccess, viewModel.errorMessage) {
+        viewModel.messageSuccess?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_SHORT).show()
+            viewModel.clearMessages()
+        }
+        viewModel.errorMessage?.let { err ->
+            Toast.makeText(context, err, Toast.LENGTH_LONG).show()
+            viewModel.clearMessages()
+        }
+    }
+
     LaunchedEffect(key1 = true) {
-        viewModel.clearMessages()
         viewModel.refreshServiceStatus()
     }
 
@@ -364,15 +374,34 @@ fun AjustesScreen(
                     }
 
                     if (viewModel.wifiCheckinEnabled) {
-                        OutlinedTextField(
-                            value = viewModel.safeWifiSsid,
-                            onValueChange = { viewModel.safeWifiSsid = it },
-                            label = { Text("SSID de Wi-Fi de Confianza") },
-                            placeholder = { Text("Ej. MiCasaWiFi_5G") },
-                            singleLine = true,
+                        Row(
                             modifier = Modifier.fillMaxWidth(),
-                            shape = RoundedCornerShape(12.dp)
-                        )
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            OutlinedTextField(
+                                value = viewModel.safeWifiSsid,
+                                onValueChange = { viewModel.safeWifiSsid = it },
+                                label = { Text("SSID de Wi-Fi de Confianza") },
+                                placeholder = { Text("Ej. MiCasaWiFi_5G") },
+                                singleLine = true,
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            Button(
+                                onClick = {
+                                    viewModel.saveAutomationSettings(
+                                        true,
+                                        viewModel.safeWifiSsid.trim(),
+                                        viewModel.sensorCheckinEnabled
+                                    )
+                                },
+                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
+                                shape = RoundedCornerShape(10.dp)
+                            ) {
+                                Text("Guardar Wi-Fi", fontWeight = FontWeight.Bold, color = TextOnPrimary, fontSize = 12.sp)
+                            }
+                        }
                     }
 
                     HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))

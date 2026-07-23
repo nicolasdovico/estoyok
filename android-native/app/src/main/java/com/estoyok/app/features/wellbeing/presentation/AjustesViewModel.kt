@@ -93,8 +93,12 @@ class AjustesViewModel @Inject constructor(
                             userProfile = data
                             checkinIntervalHours = data.checkinIntervalHours
                             allowSmsWhatsappCheckin = data.allowSmsWhatsappCheckin
-                            // Note: Quiet hours, WiFi settings are populated below from endpoint, or default to mock/db
-                            // To map with userDto quiet hours properties if defined, we retrieve them
+                            quietHoursEnabled = data.quietHoursEnabled ?: false
+                            quietHoursStart = data.quietHoursStart ?: "22:00"
+                            quietHoursEnd = data.quietHoursEnd ?: "08:00"
+                            wifiCheckinEnabled = data.wifiCheckinEnabled ?: false
+                            safeWifiSsid = data.safeWifiSsid ?: ""
+                            sensorCheckinEnabled = data.sensorCheckinEnabled ?: false
                         }
                     }
                     else -> {}
@@ -119,20 +123,26 @@ class AjustesViewModel @Inject constructor(
                 if (resource is Resource.Success) {
                     checkinIntervalHours = hours
                     messageSuccess = "Intervalo de reporte actualizado."
+                } else if (resource is Resource.Error) {
+                    errorMessage = resource.message ?: "No se pudo actualizar el intervalo."
                 }
             }
         }
     }
 
     fun saveQuietHoursSettings(enabled: Boolean, start: String, end: String) {
-        val canonicalTimezone = TimeZone.getDefault().id
+        val formattedStart = if (start.contains(":")) start else "22:00"
+        val formattedEnd = if (end.contains(":")) end else "08:00"
+        val sysTz = TimeZone.getDefault().id
+        val canonicalTimezone = if (sysTz.contains("/")) sysTz else "America/Argentina/Buenos_Aires"
+
         viewModelScope.launch {
-            settingsRepository.updateQuietHours(enabled, start, end, canonicalTimezone).collectLatest { resource ->
+            settingsRepository.updateQuietHours(enabled, formattedStart, formattedEnd, canonicalTimezone).collectLatest { resource ->
                 if (resource is Resource.Success) {
                     quietHoursEnabled = enabled
-                    quietHoursStart = start
-                    quietHoursEnd = end
-                    messageSuccess = "Modo Sueño actualizado."
+                    quietHoursStart = formattedStart
+                    quietHoursEnd = formattedEnd
+                    messageSuccess = if (enabled) "Modo Sueño guardado ($formattedStart - $formattedEnd)." else "Modo Sueño desactivado."
                 } else if (resource is Resource.Error) {
                     errorMessage = resource.message ?: "No se pudo guardar Modo Sueño."
                 }

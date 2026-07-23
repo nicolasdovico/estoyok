@@ -77,33 +77,20 @@ class SettingsController extends Controller
         }
 
         $timezone = $request->input('timezone');
-        if ($timezone) {
-            // First check if it is already a canonical identifier
-            if (!in_array($timezone, \DateTimeZone::listIdentifiers())) {
-                // Try to resolve it by matching the city part
-                $parts = explode('/', $timezone);
-                $city = end($parts);
-                if ($city) {
-                    $resolved = null;
-                    foreach (\DateTimeZone::listIdentifiers() as $id) {
-                        if (str_ends_with($id, '/' . $city)) {
-                            $resolved = $id;
-                            break;
-                        }
-                    }
-                    if ($resolved) {
-                        $timezone = $resolved;
-                        $request->merge(['timezone' => $timezone]);
+        if ($timezone && !in_array($timezone, \DateTimeZone::listIdentifiers())) {
+            $parts = explode('/', $timezone);
+            $city = end($parts);
+            $resolved = null;
+            if ($city && $city !== $timezone) {
+                foreach (\DateTimeZone::listIdentifiers() as $id) {
+                    if (str_ends_with($id, '/' . $city)) {
+                        $resolved = $id;
+                        break;
                     }
                 }
             }
-
-            // Verify with PHP DateTimeZone construction
-            try {
-                new \DateTimeZone($timezone);
-            } catch (\Exception $e) {
-                $request->merge(['timezone' => 'America/Argentina/Buenos_Aires']);
-            }
+            $timezone = $resolved ?: 'America/Argentina/Buenos_Aires';
+            $request->merge(['timezone' => $timezone]);
         }
 
         $validated = $request->validate([

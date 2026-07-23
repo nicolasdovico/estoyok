@@ -91,8 +91,19 @@
 - **Enhanced Emergency Contacts:** Added `relationship` and `is_active` fields to `emergency_contacts`.
 - **Mailable Implementation:** Created `InactivityAlertMail` with professional Markdown design and integration with Mailpit.
 - **Dev-Testing Mode:** Added a mechanism to treat intervals as minutes and run the scheduler every minute in the `local` environment for rapid testing.
-- **UI Modularization:** 
-    - **Web:** Refactored Dashboard into two distinct modules: "Mi Bienestar Diario" (Check-in, Contacts, Settings) and "Rastreo y Círculos" (Map, Circles).
+- **UI Modularization:**
+
+## [2026-07-23] Reparación y Persistencia del Modo Sueño y Ajustes de Seguridad
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [AuthModels.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt#L14): agregados los campos de backend `quiet_hours_enabled`, `quiet_hours_start`, `quiet_hours_end`, `wifi_checkin_enabled`, `safe_wifi_ssid` y `sensor_checkin_enabled` al `UserDto`.
+    - Modificado [AjustesViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt#L86): vinculada la carga de los parámetros de Modo Sueño y Auto Check-in en `loadSettings()` para reflejar las preferencias guardadas del usuario al abrir la pantalla.
+    - Modificado [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L88): añadido `LaunchedEffect` para desplegar mensajes Toast de confirmación inmediata al guardar o modificar cualquier ajuste (`"Modo Sueño guardado..."`, etc.).
+- **Backend (Laravel API):**
+    - Modificado [SettingsController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php#L79): asegurada la resolución de zona horaria canónica antes de `$request->validate()`, resolviendo el error 422 en peticiones desde clientes Android con offsets GMT.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 57s`).
+
+- **Web:** Refactored Dashboard into two distinct modules: "Mi Bienestar Diario" (Check-in, Contacts, Settings) and "Rastreo y Círculos" (Map, Circles).
     - **Mobile:** Redesigned Home screen with independent cards for Wellbeing and Tracking, including embedded configuration buttons.
 - **Bug Fixes:** Resolved timezone discrepancies in web reports by implementing client-side date formatting.
 - **Verification:** Verified end-to-end alert flow with logs, Mailpit, and automated feature tests.
