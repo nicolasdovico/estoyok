@@ -139,62 +139,126 @@ fun PanelContent(
         ) {
             item {
                 // Header
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text(
-                            text = "Mi Bienestar",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = userName,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                        )
-                    }
-
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Button(
-                            onClick = onRefresh,
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-                            shape = RoundedCornerShape(8.dp),
-                            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                        ) {
-                            Text("Actualizar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                        Column {
+                            Text(
+                                text = "Mi Bienestar",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Text(
+                                text = userName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
                         }
 
-                        // Silent SOS long-press trigger button
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (isSosTriggered) PrimaryRed.copy(alpha = 0.5f) else PrimaryRed)
-                                .pointerInput(Unit) {
-                                    detectTapGestures(
-                                        onLongPress = {
-                                            onSos(context)
-                                            Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
-                                        },
-                                        onTap = {
-                                            Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
-                                        }
-                                    )
-                                }
-                                .padding(horizontal = 14.dp, vertical = 10.dp)
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.End,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Button(
+                                onClick = onRefresh,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Actualizar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+
+                            Spacer(modifier = Modifier.width(8.dp))
+
+                            // Silent SOS long-press trigger button
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSosTriggered) PrimaryRed.copy(alpha = 0.5f) else PrimaryRed)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onLongPress = {
+                                                onSos(context)
+                                                Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
+                                            },
+                                            onTap = {
+                                                Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    text = if (isSosTriggered) "SOS... 🚨" else "SOS",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = if (isSosTriggered) "SOS... 🚨" else "SOS",
-                                color = Color.White,
-                                fontSize = 12.sp,
-                                fontWeight = FontWeight.Bold
+                                text = "Mi Bienestar",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary
                             )
+                            Text(
+                                text = userName,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                            )
+                        }
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Button(
+                                onClick = onRefresh,
+                                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+                                shape = RoundedCornerShape(8.dp),
+                                contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
+                            ) {
+                                Text("Actualizar", fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurface)
+                            }
+
+                            // Silent SOS long-press trigger button
+                            Box(
+                                modifier = Modifier
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(if (isSosTriggered) PrimaryRed.copy(alpha = 0.5f) else PrimaryRed)
+                                    .pointerInput(Unit) {
+                                        detectTapGestures(
+                                            onLongPress = {
+                                                onSos(context)
+                                                Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
+                                            },
+                                            onTap = {
+                                                Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
+                                            }
+                                        )
+                                    }
+                                    .padding(horizontal = 14.dp, vertical = 10.dp)
+                            ) {
+                                Text(
+                                    text = if (isSosTriggered) "SOS... 🚨" else "SOS",
+                                    color = Color.White,
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -508,6 +572,8 @@ fun CheckInButton(
 
 @Composable
 fun CheckInItemRow(checkIn: CheckInDto) {
+    val windowInfo = rememberWindowInfo()
+
     val userFriendlySource = when (checkIn.source) {
         "manual" -> "Vía Manual"
         "wifi" -> "Vía Wi-Fi Seguro"
@@ -544,41 +610,82 @@ fun CheckInItemRow(checkIn: CheckInDto) {
         checkIn.createdAt
     }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .background(DarkSurfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
-            .padding(12.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = sourceEmoji,
-                fontSize = 18.sp,
-                modifier = Modifier.padding(end = 10.dp)
-            )
-            Column {
+    if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkSurfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                .padding(12.dp),
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = sourceEmoji,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(end = 10.dp)
+                )
                 Text(
                     text = userFriendlySource,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
                 )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Text(
                     text = "Reporte procesado",
                     fontSize = 11.sp,
                     color = TextMuted
                 )
+                Text(
+                    text = formattedDate,
+                    fontSize = 12.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.Medium
+                )
             }
         }
+    } else {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(DarkSurfaceVariant.copy(alpha = 0.4f), RoundedCornerShape(8.dp))
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = sourceEmoji,
+                    fontSize = 18.sp,
+                    modifier = Modifier.padding(end = 10.dp)
+                )
+                Column {
+                    Text(
+                        text = userFriendlySource,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "Reporte procesado",
+                        fontSize = 11.sp,
+                        color = TextMuted
+                    )
+                }
+            }
 
-        Text(
-            text = formattedDate,
-            fontSize = 12.sp,
-            color = TextSecondary,
-            fontWeight = FontWeight.Medium
-        )
+            Text(
+                text = formattedDate,
+                fontSize = 12.sp,
+                color = TextSecondary,
+                fontWeight = FontWeight.Medium
+            )
+        }
     }
 }
 
@@ -587,6 +694,8 @@ fun CircleMemberWellbeingCard(
     member: com.estoyok.app.features.tracking.data.model.CircleMemberDto,
     onSendReminder: () -> Unit
 ) {
+    val windowInfo = rememberWindowInfo()
+
     val recordedAtStr = member.currentLocation?.recordedAt ?: member.currentLocation?.lastSeenAt
     val isOffline = member.currentLocation?.isOffline == true
 
@@ -648,63 +757,120 @@ fun CircleMemberWellbeingCard(
         shape = RoundedCornerShape(14.dp),
         border = BorderStroke(1.dp, statusColor.copy(alpha = 0.3f))
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(14.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+        if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(CircleShape)
-                        .background(statusColor.copy(alpha = 0.2f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = member.name.take(2).uppercase(),
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = statusColor
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(statusColor.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = member.name.take(2).uppercase(),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = statusColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Text(
+                            text = member.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = statusText,
+                            fontSize = 11.sp,
+                            color = statusColor,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 }
 
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Column {
-                    Text(
-                        text = member.name,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = statusText,
-                        fontSize = 11.sp,
-                        color = statusColor,
-                        fontWeight = FontWeight.Medium
-                    )
+                Button(
+                    onClick = onSendReminder,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isSafe) PrimaryEmerald.copy(alpha = 0.15f) else PrimaryOrange.copy(alpha = 0.2f),
+                        contentColor = if (isSafe) PrimaryEmerald else PrimaryOrange
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
                 }
             }
-
-            Spacer(modifier = Modifier.width(8.dp))
-
-            Button(
-                onClick = onSendReminder,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSafe) PrimaryEmerald.copy(alpha = 0.15f) else PrimaryOrange.copy(alpha = 0.2f),
-                    contentColor = if (isSafe) PrimaryEmerald else PrimaryOrange
-                ),
-                shape = RoundedCornerShape(8.dp),
-                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+        } else {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(42.dp)
+                            .clip(CircleShape)
+                            .background(statusColor.copy(alpha = 0.2f)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = member.name.take(2).uppercase(),
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = statusColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Text(
+                            text = member.name,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = statusText,
+                            fontSize = 11.sp,
+                            color = statusColor,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Button(
+                    onClick = onSendReminder,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isSafe) PrimaryEmerald.copy(alpha = 0.15f) else PrimaryOrange.copy(alpha = 0.2f),
+                        contentColor = if (isSafe) PrimaryEmerald else PrimaryOrange
+                    ),
+                    shape = RoundedCornerShape(8.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                ) {
+                    Text("Recordar 🔔", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
@@ -718,6 +884,8 @@ fun ProtectionSummaryCard(
     onNavigateToSettings: () -> Unit,
     onManageContacts: () -> Unit
 ) {
+    val windowInfo = rememberWindowInfo()
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -757,54 +925,111 @@ fun ProtectionSummaryCard(
 
             Spacer(modifier = Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Intervalo", fontSize = 10.sp, color = TextMuted)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("${intervalHours}h Activo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                }
-
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .clickable { onManageContacts() },
-                    horizontalAlignment = Alignment.Start
-                ) {
-                    Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
-                    Spacer(modifier = Modifier.height(3.dp))
-                    Surface(
-                        color = PrimaryEmerald.copy(alpha = 0.15f),
-                        shape = RoundedCornerShape(8.dp),
-                        border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+            if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Intervalo", fontSize = 10.sp, color = TextMuted)
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text("${intervalHours}h Activo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                        }
+
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text("Auto-Checkin", fontSize = 10.sp, color = TextMuted)
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
-                                fontSize = 11.sp,
+                                text = if (wifiAutoCheckinActive) "Wi-Fi Activo 📶" else "Manual 🟢",
+                                fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = PrimaryEmerald
                             )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("✏️", fontSize = 10.sp)
+                        }
+                    }
+
+                    HorizontalDivider(color = BorderColor.copy(alpha = 0.4f), thickness = 0.5.dp)
+
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onManageContacts() },
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text("Contactos SOS", fontSize = 11.sp, color = TextMuted)
+                        Surface(
+                            color = PrimaryEmerald.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryEmerald
+                                )
+                                Spacer(modifier = Modifier.width(6.dp))
+                                Text("✏️ Configurar", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.SemiBold)
+                            }
                         }
                     }
                 }
+            } else {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Intervalo", fontSize = 10.sp, color = TextMuted)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("${intervalHours}h Activo", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                    }
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Text("Auto-Checkin", fontSize = 10.sp, color = TextMuted)
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = if (wifiAutoCheckinActive) "Wi-Fi Activo 📶" else "Manual 🟢",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryEmerald
-                    )
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .clickable { onManageContacts() },
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Text("Contactos SOS", fontSize = 10.sp, color = TextMuted)
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Surface(
+                            color = PrimaryEmerald.copy(alpha = 0.15f),
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
+                                    fontSize = 11.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryEmerald
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("✏️", fontSize = 10.sp)
+                            }
+                        }
+                    }
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Auto-Checkin", fontSize = 10.sp, color = TextMuted)
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = if (wifiAutoCheckinActive) "Wi-Fi Activo 📶" else "Manual 🟢",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryEmerald
+                        )
+                    }
                 }
             }
         }

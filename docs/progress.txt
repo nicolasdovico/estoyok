@@ -1135,6 +1135,12 @@
     - Modificado [MainActivity.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/MainActivity.kt): trasladado el auto-inicio de `TrackingService` al callback global `onResume()` de la actividad principal. Si el usuario cuenta con sesión activa y permisos otorgados, la aplicación inicia el servicio de rastreo en segundo plano de forma inmediata al abrir la app, sin depender de ingresar a la pestaña del Mapa o interactuar con diálogos condicionales.
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
-
-
-
+## [2026-07-23] Adaptabilidad por Fuentes Agrandadas y Pantallas Estrechas en Solapa Estoy OK
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): integrado `rememberWindowInfo()` para ofrecer adaptabilidad reactiva en toda la solapa "Estoy OK" (Bienestar).
+    - Encabezado: si la pantalla es estrecha (< 365dp) o la fuente está escalada (> 1.2x), el título y subtítulo se apilan arriba y los botones de acción ("Actualizar" y "SOS") se reordenan en una fila dedicada con ancho completo.
+    - [ProtectionSummaryCard](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L778): reestructuradas las 3 columnas horizontales apretadas en dos filas holgadas (Intervalo y Auto-Checkin en fila superior, Contactos SOS con pill interactivo en fila inferior), previniendo saltos de línea verticales en etiquetas como "Wi-Fi Activo 📶" o "1 Asignado ✏️".
+    - [CircleMemberWellbeingCard](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L650): adaptado el diseño para apilar el avatar y nombre arriba y expandir el botón "Recordar 🔔" a ancho completo en la parte inferior bajo pantallas pequeñas/fuentes grandes.
+    - [CheckInItemRow](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L573): re-ordenada la fila del historial para posicionar la fecha y estado procesado sin colisionar con el título de la vía de reporte.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 23s`).
