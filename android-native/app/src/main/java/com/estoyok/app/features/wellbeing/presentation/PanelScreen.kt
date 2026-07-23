@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -900,15 +901,22 @@ fun ProtectionSummaryCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f, fill = false),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text("🛡️ ", fontSize = 14.sp)
                     Text(
                         text = "Configuración de Protección",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = TextPrimary,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
+
+                Spacer(modifier = Modifier.width(6.dp))
 
                 Button(
                     onClick = onNavigateToSettings,
@@ -919,7 +927,7 @@ fun ProtectionSummaryCard(
                     shape = RoundedCornerShape(8.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
                 ) {
-                    Text("Configurar ⚙️", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                    Text("Configurar ⚙️", fontSize = 11.sp, fontWeight = FontWeight.Bold, maxLines = 1, softWrap = false)
                 }
             }
 
@@ -969,13 +977,13 @@ fun ProtectionSummaryCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (contactsCount == 1) "1 Contacto" else "$contactsCount Contactos",
+                                    text = if (contactsCount == 1) "1 Contacto ✏️" else "$contactsCount Contactos ✏️",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PrimaryEmerald
+                                    color = PrimaryEmerald,
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("✏️ Configurar", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.SemiBold)
                             }
                         }
                     }
@@ -993,7 +1001,7 @@ fun ProtectionSummaryCard(
 
                     Column(
                         modifier = Modifier
-                            .weight(1f)
+                            .weight(1.2f)
                             .clickable { onManageContacts() },
                         horizontalAlignment = Alignment.Start
                     ) {
@@ -1009,13 +1017,13 @@ fun ProtectionSummaryCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (contactsCount == 1) "1 Contacto" else "$contactsCount Contactos",
+                                    text = if (contactsCount == 1) "1 Contacto ✏️" else "$contactsCount Contactos ✏️",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
-                                    color = PrimaryEmerald
+                                    color = PrimaryEmerald,
+                                    maxLines = 1,
+                                    softWrap = false
                                 )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("✏️", fontSize = 10.sp)
                             }
                         }
                     }
