@@ -1129,4 +1129,12 @@
     - Compilación nativa Kotlin finalizada exitosamente (`BUILD SUCCESSFUL` en 19s).
     - Suite de 119 pruebas unitarias y de integración de Laravel completada exitosamente sin regresiones (`119 passed`).
 
+## [2026-07-23] Auto-Recuperación e Inmunización de Rastreo en Segundo Plano (Estilo Life360)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [LocationSyncWorker.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/LocationSyncWorker.kt): incorporada comprobación activa de la sesión del usuario (`sessionManager.authTokenFlow`) y auto-recuperación (*Auto-Healing*) de `TrackingService`. Si el servicio fue matado por optimización de batería del sistema operativo Android, el worker de 15 minutos de WorkManager verifica permisos de localización y revive automáticamente `TrackingService` en segundo plano.
+    - Modificado [MainActivity.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/MainActivity.kt): trasladado el auto-inicio de `TrackingService` al callback global `onResume()` de la actividad principal. Si el usuario cuenta con sesión activa y permisos otorgados, la aplicación inicia el servicio de rastreo en segundo plano de forma inmediata al abrir la app, sin depender de ingresar a la pestaña del Mapa o interactuar con diálogos condicionales.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL`).
+
+
 
