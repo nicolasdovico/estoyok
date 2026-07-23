@@ -242,6 +242,8 @@
         - [x] Carga Automática y Renderizado de Rutas de Historial (Android Native):
         - [x] Corrección de Apilamiento Vertical de Texto por Escala de Fuentes en Solapa Estoy OK (Android Native):
           - [x] `PanelScreen.kt`: Corregido el empaquetado vertical letra por letra del botón "Configurar ⚙️" y la píldora de "Contactos SOS" en `ProtectionSummaryCard` agregando `Modifier.weight(1f, fill = false)` al título, `maxLines = 1` y `softWrap = false` en los textos de botones para impedir el salto de línea vertical en fuentes grandes.
+        - [x] Integración de Control Global de Alertas de Proximidad en Ajustes (Android Native):
+          - [x] `AjustesScreen.kt`, `AjustesViewModel.kt`, `AuthModels.kt`: Creada e integrada la tarjeta de configuración "Alertas de Proximidad y Zonas" con interruptor (Switch) para activar/desactivar notificaciones globales de entrada y salida a perímetros de zonas seguras.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

@@ -336,7 +336,37 @@ fun AjustesScreen(
                 }
             }
 
-            // 5. Passive Auto-Check-in
+            // 5. Alertas de Proximidad y Zonas
+            SettingsCard(title = "Alertas de Proximidad y Zonas") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Notificaciones de Entrada/Salida",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Recibe avisos automáticos cuando los miembros de tus grupos entren o salgan de las Zonas Seguras configuradas.",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 15.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = viewModel.proximityAlertsEnabled,
+                        onCheckedChange = { viewModel.toggleProximityAlerts(it) }
+                    )
+                }
+            }
+
+            // 6. Passive Auto-Check-in
             SettingsCard(title = "Auto-Check-in Pasivo") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(

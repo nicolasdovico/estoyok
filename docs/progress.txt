@@ -1170,6 +1170,10 @@
 - **App Móvil Nativa (Android/Kotlin):**
     - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L315): añadida detección reactiva de desplazamientos manuales del mapa (`CameraMoveStartedReason.GESTURE`). La mira de centrado permanece 100% oculta cuando la vista del mapa está centrada sobre los miembros. La mira sólo aparece si el usuario arrastra libremente el mapa para explorar otras zonas.
     - Reducción de Tamaño: reemplazado el `FloatingActionButton` estándar (56dp) por un `SmallFloatingActionButton` compacto (40dp x 40dp con icono turquesa de 18dp sobre tarjeta oscura), optimizando la visibilidad del mapa.
+## [2026-07-23] Integración de Control Global de Alertas de Proximidad en Ajustes
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [AuthModels.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt#L18): añadido `proximity_alerts_enabled` al modelo `UserDto`.
+    - Modificado [AjustesViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt#L165): agregada la función `toggleProximityAlerts(enabled)` comunicada con la API backend (`PUT /api/settings/proximity-alerts`).
+    - Modificado [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L340): agregada la tarjeta de configuración "Alertas de Proximidad y Zonas" con interruptor en tiempo real.
 - **Validación:**
-    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 32s`).
-
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 53s`).

@@ -17,6 +17,7 @@ data class UserDto(
     @SerializedName("wifi_checkin_enabled") val wifiCheckinEnabled: Boolean? = false,
     @SerializedName("safe_wifi_ssid") val safeWifiSsid: String? = null,
     @SerializedName("sensor_checkin_enabled") val sensorCheckinEnabled: Boolean? = false,
+    @SerializedName("proximity_alerts_enabled") val proximityAlertsEnabled: Boolean? = true,
     @SerializedName("wifi_auto_checkin_enabled") val wifiAutoCheckinEnabled: Boolean? = false,
     @SerializedName("last_check_in_at") val lastCheckInAt: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,

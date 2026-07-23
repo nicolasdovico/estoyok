@@ -57,6 +57,9 @@ class AjustesViewModel @Inject constructor(
     var sensorCheckinEnabled by mutableStateOf(false)
         private set
 
+    var proximityAlertsEnabled by mutableStateOf(true)
+        private set
+
     // Emergency Contacts list state
     var contacts by mutableStateOf<List<EmergencyContactDto>>(emptyList())
         private set
@@ -99,6 +102,7 @@ class AjustesViewModel @Inject constructor(
                             wifiCheckinEnabled = data.wifiCheckinEnabled ?: false
                             safeWifiSsid = data.safeWifiSsid ?: ""
                             sensorCheckinEnabled = data.sensorCheckinEnabled ?: false
+                            proximityAlertsEnabled = data.proximityAlertsEnabled ?: true
                         }
                     }
                     else -> {}
@@ -156,6 +160,19 @@ class AjustesViewModel @Inject constructor(
                 if (resource is Resource.Success) {
                     allowSmsWhatsappCheckin = enabled
                     messageSuccess = "Ajustes de Twilio actualizados."
+                }
+            }
+        }
+    }
+
+    fun toggleProximityAlerts(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.updateProximityAlerts(enabled).collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    proximityAlertsEnabled = enabled
+                    messageSuccess = if (enabled) "Alertas de proximidad activadas." else "Alertas de proximidad desactivadas."
+                } else if (resource is Resource.Error) {
+                    errorMessage = resource.message ?: "No se pudo actualizar alertas de proximidad."
                 }
             }
         }
