@@ -335,6 +335,15 @@ fun MapaScreen(
         }
     }
 
+    // Auto-load location history when a member is selected
+    LaunchedEffect(viewModel.selectedMember?.id) {
+        viewModel.selectedMember?.let { member ->
+            val sdf = SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val todayStr = sdf.format(java.util.Date())
+            viewModel.loadMemberHistory(member.id, todayStr)
+        }
+    }
+
     LaunchedEffect(viewModel.historyPoints, viewModel.selectedTripIndex) {
         if (viewModel.historyPoints.isNotEmpty()) {
             val segments = segmentHistoryPoints(viewModel.historyPoints)
@@ -506,13 +515,26 @@ fun MapaScreen(
                         icon = BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)
                     )
                 } else {
-                    segments.forEach { segment ->
-                        val path = segment.points.map { LatLng(it.latitude, it.longitude) }
-                        Polyline(
-                            points = path,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                            width = 6f
-                        )
+                    if (segments.isNotEmpty()) {
+                        segments.forEach { segment ->
+                            val path = segment.points.map { LatLng(it.latitude, it.longitude) }
+                            if (path.size >= 2) {
+                                Polyline(
+                                    points = path,
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                    width = 8f
+                                )
+                            }
+                        }
+                    } else {
+                        val rawPath = viewModel.historyPoints.sortedBy { it.recordedAt }.map { LatLng(it.latitude, it.longitude) }
+                        if (rawPath.size >= 2) {
+                            Polyline(
+                                points = rawPath,
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f),
+                                width = 8f
+                            )
+                        }
                     }
                 }
             }
@@ -2829,8 +2851,10 @@ fun segmentHistoryPoints(points: List<com.estoyok.app.features.tracking.data.mod
         !(segment.transportMode == "caminando" && segment.distanceKm < 0.15)
     }
 
+    val finalSegments = if (filteredSegments.isNotEmpty()) filteredSegments else allSegments
+
     // Re-index remaining segments to be sequential (0, 1, 2...) for UI selection consistency
-    return filteredSegments.mapIndexed { newIdx, segment ->
+    return finalSegments.mapIndexed { newIdx, segment ->
         segment.copy(index = newIdx)
     }
 }

@@ -239,6 +239,8 @@
           - [x] `SettingsController.php`: Normalizado el campo `timezone` antes del middleware de validación `$request->validate()` en el backend PHP, garantizando guardado persistente exitoso desde Android.
         - [x] Optimización de la Mira/Boton de Centrado en Mapa (Android Native):
           - [x] `MapaScreen.kt`: Condicionada la visibilidad del botón de centrado ("la mira") para que solo se muestre cuando el usuario ha desplazado manualmente el mapa (`isCameraMovedByUser`), ocultándolo por completo cuando la vista está centrada. Reducido su tamaño a `SmallFloatingActionButton` (40dp x 40dp con icono turquesa de 18dp) y elevada su posición a `bottom = 200.dp` para volar holgadamente por encima del panel desplegable inferior de miembros.
+        - [x] Carga Automática y Renderizado de Rutas de Historial (Android Native):
+          - [x] `MapaScreen.kt`: Añadida carga automática en `LaunchedEffect(viewModel.selectedMember?.id)` para solicitar el historial de puntos al seleccionar cualquier miembro. Eliminado el descarte de micro-recorridos (< 150m) en `segmentHistoryPoints` mediante un fallback preventivo y agregado trazado de `Polyline` directo sobre el mapa para visualizar siempre la trayectoria exacta del miembro.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
