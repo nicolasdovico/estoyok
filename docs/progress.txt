@@ -1143,12 +1143,13 @@
     - [CircleMemberWellbeingCard](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L650): adaptado el diseño para apilar el avatar y nombre arriba y expandir el botón "Recordar 🔔" a ancho completo en la parte inferior bajo pantallas pequeñas/fuentes grandes.
     - [CheckInItemRow](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L573): re-ordenada la fila del historial para posicionar la fecha y estado procesado sin colisionar con el título de la vía de reporte.
 - **Validación:**
-## [2026-07-23] Rediseño Compacto del Selector de Núcleos en el Mapa (Estilo Vehículo)
+## [2026-07-23] Perfeccionamiento de Alineación Centrada y Esquinas del Selector de Núcleos en el Mapa
 - **App Móvil Nativa (Android/Kotlin):**
-    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1021): reemplazado el desplegable alto por una tarjeta flotante estilizada (`CardBackground`) centrada mediante `DpOffset` respecto a la pastilla del encabezado y borde turquesa (`PrimaryEmerald`).
-    - Lista Vertical de Núcleos: muestra los núcleos activos del usuario en vertical con avatar circular, nombre resaltado en turquesa para el núcleo seleccionado e indicador `✓` a la derecha.
-    - Fila Horizontal de 2 Pastillas de Acción: reducida a las 2 opciones principales (`➕ Crear Núcleo` y `🔗 Unirse a Núcleo`) con fondo turquesa translúcido (`PrimaryEmerald 15%`), ofreciendo mayor área táctil y un diseño centrado y despejado.
+    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1021): reemplazada la implementación de `DropdownMenu` nativo por un `Popup` directo con `alignment = Alignment.TopCenter` y contenedor `Card` exclusivo.
+    - Centrado Absoluto: garantiza el centrado horizontal 100% simétrico en la pantalla sin importar el ancho o modelo del teléfono.
+    - Eliminación de Halo/Líneas de Fondo: al renderizar una `Card` limpia dentro del `Popup`, se eliminó el contenedor `Surface` nativo de Material 3 que provocaba líneas o sombras superpuestas en las esquinas redondeadas (`16.dp`).
 - **Validación:**
-    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 31s`).
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 29s`).
+
 
 

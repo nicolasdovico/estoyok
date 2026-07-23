@@ -51,6 +51,9 @@ import androidx.compose.ui.text.PlatformTextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.window.Popup
+import androidx.compose.ui.window.PopupProperties
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
 import com.estoyok.app.core.util.rememberWindowInfo
@@ -1019,19 +1022,27 @@ fun MapaScreen(
                     modifier = Modifier.size(20.dp).padding(start = 2.dp)
                 )
 
-                DropdownMenu(
-                    expanded = isCircleDropdownExpanded,
-                    onDismissRequest = { isCircleDropdownExpanded = false },
-                    offset = DpOffset(x = (-20).dp, y = 4.dp),
+            }
+        }
+
+        if (isCircleDropdownExpanded) {
+            Popup(
+                alignment = Alignment.TopCenter,
+                offset = IntOffset(0, 160),
+                onDismissRequest = { isCircleDropdownExpanded = false },
+                properties = PopupProperties(focusable = true)
+            ) {
+                Card(
                     modifier = Modifier
-                        .background(CardBackground)
-                        .border(1.dp, PrimaryEmerald.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-                        .widthIn(min = 290.dp, max = 340.dp)
+                        .fillMaxWidth(0.92f)
+                        .widthIn(max = 360.dp),
+                    colors = CardDefaults.cardColors(containerColor = CardBackground),
+                    shape = RoundedCornerShape(16.dp),
+                    border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.5f)),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
                 ) {
                     Column(
-                        modifier = Modifier
-                            .background(CardBackground)
-                            .padding(12.dp),
+                        modifier = Modifier.padding(12.dp),
                         verticalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
                         Text(
