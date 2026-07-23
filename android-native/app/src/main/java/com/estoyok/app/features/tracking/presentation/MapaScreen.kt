@@ -19,6 +19,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.MyLocation
@@ -60,9 +63,6 @@ import java.util.*
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.foundation.border
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import coil.compose.AsyncImage
 import coil.compose.SubcomposeAsyncImage
 import coil.compose.rememberAsyncImagePainter
@@ -1020,41 +1020,160 @@ fun MapaScreen(
 
                 DropdownMenu(
                     expanded = isCircleDropdownExpanded,
-                    onDismissRequest = { isCircleDropdownExpanded = false }
+                    onDismissRequest = { isCircleDropdownExpanded = false },
+                    modifier = Modifier
+                        .background(CardBackground)
+                        .border(1.dp, PrimaryEmerald.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                        .widthIn(min = 280.dp, max = 340.dp)
                 ) {
-                    viewModel.circles.forEach { circle ->
-                        DropdownMenuItem(
-                            text = { Text(circle.name, color = PrimaryEmerald, fontWeight = FontWeight.Bold) },
-                            onClick = {
-                                viewModel.selectCircle(circle)
-                                isCircleDropdownExpanded = false
-                            }
+                    Column(
+                        modifier = Modifier
+                            .background(CardBackground)
+                            .padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Text(
+                            text = "MIS NÚCLEOS",
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextMuted,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
                         )
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(max = 140.dp)
+                                .verticalScroll(rememberScrollState())
+                        ) {
+                            viewModel.circles.forEach { circle ->
+                                val isSelected = viewModel.selectedCircle?.id == circle.id
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(
+                                            if (isSelected) PrimaryEmerald.copy(alpha = 0.15f) else Color.Transparent
+                                        )
+                                        .clickable {
+                                            viewModel.selectCircle(circle)
+                                            isCircleDropdownExpanded = false
+                                        }
+                                        .padding(horizontal = 10.dp, vertical = 8.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(26.dp)
+                                                .clip(CircleShape)
+                                                .background(if (isSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.2f)),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(
+                                                text = circle.name.take(2).uppercase(),
+                                                fontSize = 10.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = if (isSelected) TextOnPrimary else PrimaryEmerald
+                                            )
+                                        }
+                                        Spacer(modifier = Modifier.width(10.dp))
+                                        Text(
+                                            text = circle.name,
+                                            fontSize = 13.sp,
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                            color = if (isSelected) PrimaryEmerald else TextPrimary,
+                                            maxLines = 1,
+                                            overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis
+                                        )
+                                    }
+
+                                    if (isSelected) {
+                                        Text(
+                                            text = "✓",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.ExtraBold,
+                                            color = PrimaryEmerald
+                                        )
+                                    }
+                                }
+                            }
+                        }
+
+                        HorizontalDivider(
+                            color = BorderColor.copy(alpha = 0.6f),
+                            thickness = 0.5.dp,
+                            modifier = Modifier.padding(vertical = 4.dp)
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Surface(
+                                onClick = {
+                                    isCircleDropdownExpanded = false
+                                    navController?.navigate(Screen.Familia.route)
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = PrimaryEmerald.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("➕ Crear", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
+                                }
+                            }
+
+                            Surface(
+                                onClick = {
+                                    isCircleDropdownExpanded = false
+                                    navController?.navigate(Screen.Familia.route)
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = PrimaryEmerald.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("🔗 Unirse", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
+                                }
+                            }
+
+                            Surface(
+                                onClick = {
+                                    isCircleDropdownExpanded = false
+                                    navController?.navigate(Screen.Familia.route)
+                                },
+                                modifier = Modifier.weight(1f),
+                                shape = RoundedCornerShape(10.dp),
+                                color = PrimaryEmerald.copy(alpha = 0.15f),
+                                border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 4.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text("⚙️ Gestionar", fontSize = 11.sp, fontWeight = FontWeight.Bold, color = PrimaryEmerald)
+                                }
+                            }
+                        }
                     }
-                    if (viewModel.circles.isNotEmpty()) {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
-                    }
-                    DropdownMenuItem(
-                        text = { Text("➕ Crear un núcleo", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
-                        onClick = {
-                            isCircleDropdownExpanded = false
-                            navController?.navigate(Screen.Familia.route)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("🔗 Unirse a un núcleo", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
-                        onClick = {
-                            isCircleDropdownExpanded = false
-                            navController?.navigate(Screen.Familia.route)
-                        }
-                    )
-                    DropdownMenuItem(
-                        text = { Text("⚙️ Administrar núcleos", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
-                        onClick = {
-                            isCircleDropdownExpanded = false
-                            navController?.navigate(Screen.Familia.route)
-                        }
-                    )
                 }
             }
         }
