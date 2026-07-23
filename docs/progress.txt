@@ -1149,7 +1149,13 @@
     - Centrado Absoluto: garantiza el centrado horizontal 100% simétrico en la pantalla sin importar el ancho o modelo del teléfono.
     - Eliminación de Halo/Líneas de Fondo: al renderizar una `Card` limpia dentro del `Popup`, se eliminó el contenedor `Surface` nativo de Material 3 que provocaba líneas o sombras superpuestas en las esquinas redondeadas (`16.dp`).
 - **Validación:**
-    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 29s`).
+## [2026-07-23] Corrección de Color de Texto Oscuro en Botón de Código de Invitación (FamiliaScreen)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [FamiliaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaScreen.kt#L182): asignado el color de texto oscuro azul marino (`TextOnPrimary` = `0xFF0F172A`) y `tint = TextOnPrimary` al botón de copiar código de invitación del núcleo activo.
+    - Modificados los botones de "Unirse al Núcleo" y "Crear Núcleo" para usar `contentColor = TextOnPrimary` sobre fondo turquesa `PrimaryEmerald`, cumpliendo la regla global del sistema de diseño de Estoy OK.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 12s`).
+
 
 
 

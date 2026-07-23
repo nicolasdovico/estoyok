@@ -185,17 +185,22 @@ fun FamiliaScreen(
                                 clipboardManager.setPrimaryClip(clip)
                                 Toast.makeText(context, "Código copiado: ${circle.inviteCode}", Toast.LENGTH_SHORT).show()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryEmerald,
+                                contentColor = TextOnPrimary
+                            ),
                             shape = RoundedCornerShape(8.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.ContentCopy,
                                 contentDescription = "Copiar",
+                                tint = TextOnPrimary,
                                 modifier = Modifier.size(16.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = circle.inviteCode,
+                                color = TextOnPrimary,
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold
                             )
@@ -364,9 +369,14 @@ fun FamiliaScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = inviteCodeInput.length == 10 && !viewModel.isActionInProgress,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryEmerald,
+                            contentColor = TextOnPrimary,
+                            disabledContainerColor = PrimaryEmerald.copy(alpha = 0.5f)
+                        ),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("Unirse al Núcleo", fontWeight = FontWeight.Bold)
+                        Text("Unirse al Núcleo", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -402,9 +412,14 @@ fun FamiliaScreen(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = newCircleName.isNotBlank() && !viewModel.isActionInProgress,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryEmerald,
+                            contentColor = TextOnPrimary,
+                            disabledContainerColor = PrimaryEmerald.copy(alpha = 0.5f)
+                        ),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Text("Crear Núcleo", fontWeight = FontWeight.Bold)
+                        Text("Crear Núcleo", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                     }
                 }
             }

@@ -233,8 +233,8 @@
           - [x] Implementada autorrecuperación en `LocationSyncWorker.kt` (WorkManager cada 15 min) que comprueba la sesión activa del usuario y levanta automáticamente el `TrackingService` si Android lo cerró por optimización de memoria/batería.
           - [x] Implementado auto-inicio global de `TrackingService` en `MainActivity.kt` (`onResume()`), garantizando el arranque del servicio de rastreo al abrir o volver a la app sin importar qué solapa o pantalla esté seleccionada.
         - [x] Adaptabilidad por Escala de Fuentes y Pantallas Estrechas en Solapa Estoy OK (Android Native): Reestructurada `PanelScreen.kt` utilizando `rememberWindowInfo()` para re-organizar de forma fluida el encabezado (Header), la tarjeta resumen de protección (`ProtectionSummaryCard`), las tarjetas de miembros (`CircleMemberWellbeingCard`) y las filas del historial (`CheckInItemRow`). Cuando la pantalla es estrecha (ancho < 365dp) o la fuente del sistema está aumentada (> 1.2x), los elementos se reorganizan en dos filas verticales con botones a ancho completo, evitando encabalgamientos, textos recortados o palabras apiladas verticalmente.
-        - [x] Rediseño de Selector de Núcleos en Mapa (Android Native):
-          - [x] Reemplazado el `DropdownMenu` nativo en `MapaScreen.kt` por un `Popup` directo con alineación `Alignment.TopCenter` y `Card` dedicado. Se eliminaron los halos/líneas de fondo en las esquinas redondeadas y se garantizó el centrado 100% perfecto horizontal en cualquier modelo de pantalla. La sección inferior agrupa únicamente las 2 acciones principales (`➕ Crear Núcleo` y `🔗 Unirse a Núcleo`).
+        - [x] Homogeneidad de Color en Botones Turquesa (Android Native):
+          - [x] `FamiliaScreen.kt`: Aplicado el color de texto oscuro (`TextOnPrimary` = `0xFF0F172A`) en el botón de copiar código de invitación del núcleo, en el icono de copiar y en los botones principales ("Unirse al Núcleo", "Crear Núcleo") sobre fondo turquesa (`PrimaryEmerald`), garantizando consistencia absoluta con las reglas del sistema de diseño de Estoy OK.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
