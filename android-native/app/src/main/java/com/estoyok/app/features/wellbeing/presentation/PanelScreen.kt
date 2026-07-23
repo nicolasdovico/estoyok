@@ -827,7 +827,11 @@ fun CheckInSuccessDialog(
                 shape = RoundedCornerShape(10.dp),
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Text("Entendido 👍", fontWeight = FontWeight.Bold)
+                Text(
+                    text = "Entendido 👍",
+                    fontWeight = FontWeight.Bold,
+                    color = TextOnPrimary
+                )
             }
         },
         title = {

@@ -287,10 +287,10 @@ fun AjustesScreen(
                                 )
                             },
                             modifier = Modifier.fillMaxWidth(),
-                            colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
                             shape = RoundedCornerShape(10.dp)
                         ) {
-                            Text("Guardar Horas", fontWeight = FontWeight.Bold)
+                            Text("Guardar Horas", fontWeight = FontWeight.Bold, color = TextOnPrimary)
                         }
                     }
                 }

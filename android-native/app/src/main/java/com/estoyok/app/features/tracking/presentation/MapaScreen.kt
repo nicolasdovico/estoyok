@@ -1432,9 +1432,9 @@ fun MapaScreen(
                                 Toast.makeText(context, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                     ) {
-                        Text("Crear", color = Color.White)
+                        Text("Crear", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -1563,9 +1563,9 @@ fun MapaScreen(
                                 Toast.makeText(context, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
                             }
                         },
-                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                     ) {
-                        Text("Guardar", color = Color.White)
+                        Text("Guardar", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -1989,9 +1989,9 @@ fun MemberDetailsSheetContent(
                         viewModel.selectedMember = null
                         navController?.navigate(Screen.Premium.route)
                     },
-                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                 ) {
-                    Text("Ver Planes Premium", color = Color.White)
+                    Text("Ver Planes Premium", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
