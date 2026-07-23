@@ -1333,7 +1333,7 @@ fun MapaScreen(
                 onClick = { fitAllMembers() },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 16.dp, bottom = 145.dp),
+                    .padding(end = 16.dp, bottom = 200.dp),
                 containerColor = CardBackground,
                 contentColor = PrimaryEmerald,
                 shape = CircleShape,
