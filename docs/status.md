@@ -233,6 +233,9 @@
           - [x] Implementada autorrecuperación en `LocationSyncWorker.kt` (WorkManager cada 15 min) que comprueba la sesión activa del usuario y levanta automáticamente el `TrackingService` si Android lo cerró por optimización de memoria/batería.
           - [x] Implementado auto-inicio global de `TrackingService` en `MainActivity.kt` (`onResume()`), garantizando el arranque del servicio de rastreo al abrir o volver a la app sin importar qué solapa o pantalla esté seleccionada.
         - [x] Adaptabilidad por Escala de Fuentes y Pantallas Estrechas en Solapa Estoy OK (Android Native): Reestructurada `PanelScreen.kt` utilizando `rememberWindowInfo()` para re-organizar de forma fluida el encabezado (Header), la tarjeta resumen de protección (`ProtectionSummaryCard`), las tarjetas de miembros (`CircleMemberWellbeingCard`) y las filas del historial (`CheckInItemRow`). Cuando la pantalla es estrecha (ancho < 365dp) o la fuente del sistema está aumentada (> 1.2x), los elementos se reorganizan en dos filas verticales con botones a ancho completo, evitando encabalgamientos, textos recortados o palabras apiladas verticalmente.
+        - [x] Ajustes de Estilo de Menú Desplegable y Microcopy (Android Native):
+          - [x] `MapaScreen.kt`: Aplicado color turquesa oficial (`PrimaryEmerald`) y fuente resaltada a todas las opciones del menú desplegable de núcleos (`DropdownMenu`), unificando el menú con el selector del núcleo activo.
+          - [x] `PanelScreen.kt`: Corregido el microcopy en el botón/pill de "Contactos SOS" en `ProtectionSummaryCard` cambiando la etiqueta de `"xx Alertas"` a `"xx Contactos"` para evitar confusión con alertas pendientes.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

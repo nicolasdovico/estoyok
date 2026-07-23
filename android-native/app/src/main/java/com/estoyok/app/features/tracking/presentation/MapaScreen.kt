@@ -1024,7 +1024,7 @@ fun MapaScreen(
                 ) {
                     viewModel.circles.forEach { circle ->
                         DropdownMenuItem(
-                            text = { Text(circle.name) },
+                            text = { Text(circle.name, color = PrimaryEmerald, fontWeight = FontWeight.Bold) },
                             onClick = {
                                 viewModel.selectCircle(circle)
                                 isCircleDropdownExpanded = false
@@ -1035,21 +1035,21 @@ fun MapaScreen(
                         HorizontalDivider(color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f))
                     }
                     DropdownMenuItem(
-                        text = { Text("➕ Crear un núcleo") },
+                        text = { Text("➕ Crear un núcleo", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
                         onClick = {
                             isCircleDropdownExpanded = false
                             navController?.navigate(Screen.Familia.route)
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("🔗 Unirse a un núcleo") },
+                        text = { Text("🔗 Unirse a un núcleo", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
                         onClick = {
                             isCircleDropdownExpanded = false
                             navController?.navigate(Screen.Familia.route)
                         }
                     )
                     DropdownMenuItem(
-                        text = { Text("⚙️ Administrar núcleos") },
+                        text = { Text("⚙️ Administrar núcleos", color = PrimaryEmerald, fontWeight = FontWeight.SemiBold) },
                         onClick = {
                             isCircleDropdownExpanded = false
                             navController?.navigate(Screen.Familia.route)

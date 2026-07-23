@@ -1143,4 +1143,9 @@
     - [CircleMemberWellbeingCard](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L650): adaptado el diseño para apilar el avatar y nombre arriba y expandir el botón "Recordar 🔔" a ancho completo en la parte inferior bajo pantallas pequeñas/fuentes grandes.
     - [CheckInItemRow](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L573): re-ordenada la fila del historial para posicionar la fecha y estado procesado sin colisionar con el título de la vía de reporte.
 - **Validación:**
-    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 23s`).
+## [2026-07-23] Corrección de Color en Selector de Núcleos y Microcopy de Contactos SOS
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1025): asignado el color turquesa oficial (`PrimaryEmerald`) y peso tipográfico a los elementos del menú desplegable (`DropdownMenuItem`) de selección de núcleos ("➕ Crear un núcleo", "🔗 Unirse a un núcleo", "⚙️ Administrar núcleos" y lista de núcleos), unificando el menú flotante con la estética del pill principal del mapa.
+    - Modificado [PanelScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L972): actualizado el microcopy de la pastilla de "Contactos SOS" en `ProtectionSummaryCard` cambiando la etiqueta de `"xx Alertas"` a `"xx Contactos"` (o `"1 Contacto"` en singular), clarificando que la pastilla gestiona los contactos de emergencia y no alertas activas pendientes.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 40s`).

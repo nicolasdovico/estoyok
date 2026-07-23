@@ -969,7 +969,7 @@ fun ProtectionSummaryCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
+                                    text = if (contactsCount == 1) "1 Contacto" else "$contactsCount Contactos",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryEmerald
@@ -1009,7 +1009,7 @@ fun ProtectionSummaryCard(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Text(
-                                    text = if (contactsCount == 1) "1 Asignado" else "$contactsCount Alertas",
+                                    text = if (contactsCount == 1) "1 Contacto" else "$contactsCount Contactos",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryEmerald
