@@ -237,6 +237,8 @@
           - [x] `UserDto.kt`: Agregados los campos de backend `quiet_hours_enabled`, `quiet_hours_start`, `quiet_hours_end`, `wifi_checkin_enabled`, `safe_wifi_ssid` y `sensor_checkin_enabled` al modelo de datos del perfil de usuario.
           - [x] `AjustesViewModel.kt`: Vinculados todos los parámetros del perfil en `loadSettings()`. Corregida la función `saveQuietHoursSettings()` resolviendo timezones canónicas para prevenir errores 422 de Laravel y agregadas notificaciones flotantes (Toast) para confirmación inmediata al usuario.
           - [x] `SettingsController.php`: Normalizado el campo `timezone` antes del middleware de validación `$request->validate()` en el backend PHP, garantizando guardado persistente exitoso desde Android.
+        - [x] Optimización de la Mira/Boton de Centrado en Mapa (Android Native):
+          - [x] `MapaScreen.kt`: Condicionada la visibilidad del botón de centrado ("la mira") para que solo se muestre cuando el usuario ha desplazado manualmente el mapa (`isCameraMovedByUser`), ocultándolo por completo cuando la vista está centrada. Reducido su tamaño a `SmallFloatingActionButton` (40dp x 40dp con icono turquesa de 18dp), despejando el área del mapa.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

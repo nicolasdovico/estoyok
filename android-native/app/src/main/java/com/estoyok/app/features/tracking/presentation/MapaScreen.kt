@@ -314,10 +314,20 @@ fun MapaScreen(
         position = CameraPosition.fromLatLngZoom(defaultCenter, 11f)
     }
 
+    // Track if camera was dragged away by user gesture
+    var isCameraMovedByUser by remember { mutableStateOf(false) }
+
+    LaunchedEffect(cameraPositionState.isMoving) {
+        if (cameraPositionState.isMoving && cameraPositionState.cameraMoveStartedReason == CameraMoveStartedReason.GESTURE) {
+            isCameraMovedByUser = true
+        }
+    }
+
     // Reactively center map on selected member if requested
     var selectedMemberForMap by remember { mutableStateOf<CircleMemberDto?>(null) }
     LaunchedEffect(selectedMemberForMap) {
         selectedMemberForMap?.currentLocation?.let { loc ->
+            isCameraMovedByUser = false
             cameraPositionState.position = CameraPosition.fromLatLngZoom(
                 LatLng(loc.latitude, loc.longitude),
                 15.5f
@@ -355,6 +365,7 @@ fun MapaScreen(
     var lastFittedCircleId by remember { mutableStateOf<Int?>(null) }
 
     val fitAllMembers: () -> Unit = {
+        isCameraMovedByUser = false
         val membersWithLocation = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
         if (membersWithLocation.isNotEmpty()) {
             scope.launch {
@@ -1316,20 +1327,23 @@ fun MapaScreen(
             }
         }
 
-        if (!isExpanded) {
-            // 2c. Floating Action Button: Centrar Grupo (Fit All Members)
-            FloatingActionButton(
+        if (!isExpanded && isCameraMovedByUser) {
+            // 2c. Small Floating Action Button: Centrar Grupo (Fit All Members)
+            SmallFloatingActionButton(
                 onClick = { fitAllMembers() },
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 16.dp, bottom = 145.dp),
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                shape = CircleShape
+                containerColor = CardBackground,
+                contentColor = PrimaryEmerald,
+                shape = CircleShape,
+                elevation = FloatingActionButtonDefaults.elevation(defaultElevation = 4.dp)
             ) {
                 Icon(
                     imageVector = Icons.Default.MyLocation,
-                    contentDescription = "Centrar Grupo"
+                    contentDescription = "Centrar Grupo",
+                    modifier = Modifier.size(18.dp),
+                    tint = PrimaryEmerald
                 )
             }
         }

@@ -1166,7 +1166,10 @@
     - Modificados los botones de "Unirse al Núcleo" y "Crear Núcleo" para usar `contentColor = TextOnPrimary` sobre fondo turquesa `PrimaryEmerald`, cumpliendo la regla global del sistema de diseño de Estoy OK.
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 12s`).
-
-
-
+## [2026-07-23] Optimización de Visibilidad y Tamaño de la Mira de Centrado en Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L315): añadida detección reactiva de desplazamientos manuales del mapa (`CameraMoveStartedReason.GESTURE`). La mira de centrado permanece 100% oculta cuando la vista del mapa está centrada sobre los miembros. La mira sólo aparece si el usuario arrastra libremente el mapa para explorar otras zonas.
+    - Reducción de Tamaño: reemplazado el `FloatingActionButton` estándar (56dp) por un `SmallFloatingActionButton` compacto (40dp x 40dp con icono turquesa de 18dp sobre tarjeta oscura), optimizando la visibilidad del mapa.
+- **Validación:**
+    - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 32s`).
 
