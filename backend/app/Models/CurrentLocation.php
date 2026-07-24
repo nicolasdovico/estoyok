@@ -23,6 +23,7 @@ class CurrentLocation extends Model
         'last_seen_at',
         'speed',
         'is_driving',
+        'stationary_since',
     ];
 
     protected $appends = ['latitude', 'longitude', 'is_offline'];
@@ -42,6 +43,7 @@ class CurrentLocation extends Model
             'last_seen_at' => 'datetime',
             'speed' => 'float',
             'is_driving' => 'boolean',
+            'stationary_since' => 'datetime',
         ];
     }
 

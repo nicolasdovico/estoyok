@@ -99,6 +99,31 @@ class LocationController extends Controller
                 if ($request->has('gps_enabled')) {
                     $updateData['gps_enabled'] = (bool) $request->gps_enabled;
                 }
+                // Calculate stationary_since (Life360 style persistent arrival timestamp)
+                $existingLoc = CurrentLocation::where('user_id', $user->id)->first();
+                $isMoving = $isDriving || ($speedKmh !== null && $speedKmh >= 2.0);
+
+                $stationarySince = null;
+                if ($isMoving) {
+                    $stationarySince = null;
+                } else if ($existingLoc && $existingLoc->latitude !== null && $existingLoc->longitude !== null) {
+                    $distMeters = DB::selectOne("
+                        SELECT ST_Distance(
+                            ST_GeomFromText('POINT($lng $lat)', 4326)::geography,
+                            ST_GeomFromText('POINT({$existingLoc->longitude} {$existingLoc->latitude})', 4326)::geography
+                        ) as dist
+                    ")->dist ?? 0;
+
+                    if ($distMeters > 40.0) {
+                        $stationarySince = $recordedAt;
+                    } else {
+                        $stationarySince = $existingLoc->stationary_since ?: ($existingLoc->recorded_at ?: $recordedAt);
+                    }
+                } else {
+                    $stationarySince = $recordedAt;
+                }
+
+                $updateData['stationary_since'] = $stationarySince;
 
                 CurrentLocation::updateOrCreate(
                     ['user_id' => $user->id],

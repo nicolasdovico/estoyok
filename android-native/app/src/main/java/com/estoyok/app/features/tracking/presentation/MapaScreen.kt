@@ -301,16 +301,21 @@ fun MapaScreen(
                 if (isMoving) {
                     stayTracker.remove(member.id)
                 } else {
-                    val lastTrack = stayTracker[member.id]
-                    if (lastTrack == null) {
-                        stayTracker[member.id] = Pair(latLng, now)
+                    val serverStationaryMs = loc.stationarySince?.let { parseIsoDate(it)?.time }
+                    if (serverStationaryMs != null) {
+                        stayTracker[member.id] = Pair(latLng, serverStationaryMs)
                     } else {
-                        val dist = haversineDistance(
-                            lastTrack.first.latitude, lastTrack.first.longitude,
-                            latLng.latitude, latLng.longitude
-                        )
-                        if (dist > 0.03) { // 30 meters
+                        val lastTrack = stayTracker[member.id]
+                        if (lastTrack == null) {
                             stayTracker[member.id] = Pair(latLng, now)
+                        } else {
+                            val dist = haversineDistance(
+                                lastTrack.first.latitude, lastTrack.first.longitude,
+                                latLng.latitude, latLng.longitude
+                            )
+                            if (dist > 0.03) { // 30 meters
+                                stayTracker[member.id] = Pair(latLng, now)
+                            }
                         }
                     }
                 }
@@ -759,10 +764,11 @@ fun MapaScreen(
                             val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
                                 haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
                             }
+                            val parsedStationarySince = loc.stationarySince?.let { parseIsoDate(it)?.time }
                             val parsedRecordedAt = loc.recordedAt?.let { parseIsoDate(it)?.time }
                             val parsedLastSeenAt = loc.lastSeenAt?.let { parseIsoDate(it)?.time }
                             val durationStr = run {
-                                val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt ?: parsedLastSeenAt
+                                val startTime = parsedStationarySince ?: stayTracker[member.id]?.second ?: parsedRecordedAt ?: parsedLastSeenAt
                                 if (startTime != null) {
                                     val durationMs = System.currentTimeMillis() - startTime
                                     val durationMins = durationMs / 60000L

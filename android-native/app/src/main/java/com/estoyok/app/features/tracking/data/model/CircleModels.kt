@@ -14,7 +14,8 @@ data class MemberLocationDto(
     @SerializedName("speed") val speed: Float?, // in km/h from backend
     @SerializedName("is_driving") val isDriving: Boolean?,
     @SerializedName("is_offline") val isOffline: Boolean?,
-    @SerializedName("last_seen_at") val lastSeenAt: String?
+    @SerializedName("last_seen_at") val lastSeenAt: String?,
+    @SerializedName("stationary_since") val stationarySince: String? = null
 )
 
 data class CircleMemberDto(
