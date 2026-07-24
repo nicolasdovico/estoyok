@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.Directions
 import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Sensors
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.navigation.NavHostController
@@ -275,6 +277,15 @@ fun MapaScreen(
     var longClickedLatLng by remember { mutableStateOf<LatLng?>(null) }
     var showEditGeofenceDialog by remember { mutableStateOf(false) }
     var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
+    var showRadarDialogForMember by remember { mutableStateOf<CircleMemberDto?>(null) }
+    var selectedRadarRadiusMeters by remember { mutableStateOf(50) }
+
+    LaunchedEffect(viewModel.radarMessage) {
+        viewModel.radarMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+            viewModel.clearRadarMessage()
+        }
+    }
 
     val stayTracker = remember { mutableStateMapOf<Int, Pair<LatLng, Long>>() }
     val lastUpdateTimes = remember { mutableStateMapOf<Int, Long>() }
@@ -549,6 +560,30 @@ fun MapaScreen(
                     strokeColor = MaterialTheme.colorScheme.primary,
                     strokeWidth = 3f
                 )
+            }
+
+            // Render active dynamic geofences (proximidad relativa)
+            viewModel.activeDynamicGeofences.forEach { dynGf ->
+                val initiatorMember = viewModel.selectedCircleMembers.find { it.id == dynGf.initiatorId }
+                val targetMember = viewModel.selectedCircleMembers.find { it.id == dynGf.targetId }
+                val initLoc = initiatorMember?.currentLocation
+                val targLoc = targetMember?.currentLocation
+                if (initLoc != null && targLoc != null) {
+                    val p1 = LatLng(initLoc.latitude, initLoc.longitude)
+                    val p2 = LatLng(targLoc.latitude, targLoc.longitude)
+                    Polyline(
+                        points = listOf(p1, p2),
+                        color = PrimaryEmerald,
+                        width = 6f
+                    )
+                    Circle(
+                        center = p1,
+                        radius = dynGf.safeRadiusMeters.toDouble(),
+                        fillColor = PrimaryEmerald.copy(alpha = 0.12f),
+                        strokeColor = PrimaryEmerald.copy(alpha = 0.8f),
+                        strokeWidth = 2f
+                    )
+                }
             }
 
             // Render markers for all nucleus members with valid location coordinates (using Option A: Dispersion / Spiderfying)
@@ -1301,7 +1336,8 @@ fun MapaScreen(
                                         selectedMemberForMap = member
                                         viewModel.selectedMember = member
                                         isExpanded = false
-                                    }
+                                    },
+                                    onRadarClick = { showRadarDialogForMember = it }
                                 )
                             }
 
@@ -1341,7 +1377,8 @@ fun MapaScreen(
                                 onClick = {
                                     selectedMemberForMap = member
                                     viewModel.selectedMember = member
-                                }
+                                },
+                                onRadarClick = { showRadarDialogForMember = it }
                             )
                         }
                     }
@@ -1739,6 +1776,74 @@ fun MapaScreen(
             }
         }
 
+        if (showRadarDialogForMember != null) {
+            val member = showRadarDialogForMember!!
+            val radiusOptions = listOf(30, 50, 100, 200, 500)
+
+            AlertDialog(
+                onDismissRequest = { showRadarDialogForMember = null },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(text = "📡 ", fontSize = 18.sp)
+                        Text(text = "Radar de Proximidad Relativa", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "Selecciona el radio máximo seguro para monitorear la distancia con ${member.name} en tiempo real mientras se desplazan.",
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+
+                        Text(
+                            text = "Radio de distancia seguro:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            radiusOptions.forEach { radius ->
+                                val isSelected = selectedRadarRadiusMeters == radius
+                                FilterChip(
+                                    selected = isSelected,
+                                    onClick = { selectedRadarRadiusMeters = radius },
+                                    label = { Text("${radius}m", fontSize = 11.sp, fontWeight = FontWeight.Bold) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = TextOnPrimary
+                                    )
+                                )
+                            }
+                        }
+                    }
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            viewModel.createDynamicGeofence(member.id, selectedRadarRadiusMeters)
+                            showRadarDialogForMember = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
+                    ) {
+                        Text("ACTIVAR RADAR", color = TextOnPrimary, fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showRadarDialogForMember = null }) {
+                        Text("Cancelar", color = TextMuted)
+                    }
+                }
+            )
+        }
+
         if (showBackgroundLocationDialog) {
             AlertDialog(
                 onDismissRequest = { showBackgroundLocationDialog = false },
@@ -1861,6 +1966,7 @@ fun MapaScreen(
 fun MemberRowItem(
     member: CircleMemberDto,
     onClick: () -> Unit,
+    onRadarClick: ((CircleMemberDto) -> Unit)? = null,
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -2014,25 +2120,78 @@ fun MemberRowItem(
                 }
             }
 
+            // Radar Button for relative proximity geofencing
+            val currentUserId = viewModel.currentUserProfile?.id
+            val isSelf = currentUserId != null && member.id == currentUserId
+
+            if (!isSelf) {
+                val activeRadar = viewModel.activeDynamicGeofences.find {
+                    (it.initiatorId == currentUserId && it.targetId == member.id) ||
+                    (it.initiatorId == member.id && it.targetId == currentUserId)
+                }
+
+                if (activeRadar != null) {
+                    Surface(
+                        onClick = { viewModel.deactivateDynamicGeofence(activeRadar.id) },
+                        shape = RoundedCornerShape(14.dp),
+                        color = PrimaryEmerald.copy(alpha = 0.2f),
+                        border = BorderStroke(1.dp, PrimaryEmerald)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "📡 ${activeRadar.safeRadiusMeters}m",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryEmerald
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Default.Close,
+                                contentDescription = "Desactivar radar",
+                                tint = PrimaryEmerald,
+                                modifier = Modifier.size(12.dp)
+                            )
+                        }
+                    }
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .clip(CircleShape)
+                            .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                            .clickable { onRadarClick?.invoke(member) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(text = "📡", fontSize = 12.sp)
+                    }
+                }
+                Spacer(modifier = Modifier.width(6.dp))
+            }
+
             // Direction Intent button
             if (loc != null) {
-                IconButton(
-                    onClick = {
-                        val gmmIntentUri = Uri.parse("google.navigation:q=${loc.latitude},${loc.longitude}")
-                        val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
-                            setPackage("com.google.android.apps.maps")
-                        }
-                        context.startActivity(mapIntent)
-                    },
+                Box(
                     modifier = Modifier
-                        .size(36.dp)
-                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape)
+                        .size(32.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.12f))
+                        .clickable {
+                            val gmmIntentUri = Uri.parse("google.navigation:q=${loc.latitude},${loc.longitude}")
+                            val mapIntent = Intent(Intent.ACTION_VIEW, gmmIntentUri).apply {
+                                setPackage("com.google.android.apps.maps")
+                            }
+                            context.startActivity(mapIntent)
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = Icons.Default.Directions,
                         contentDescription = "Cómo llegar",
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }

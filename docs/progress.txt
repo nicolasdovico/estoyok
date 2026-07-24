@@ -1,5 +1,18 @@
 # Progress Log
 
+## [2026-07-24] Integración de Alertas de Proximidad Relativa (Radar Móvil) en App Nativa Android
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creados modelos `DynamicGeofenceDto` y `CreateDynamicGeofenceRequest` en [CircleModels.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/CircleModels.kt).
+    - Agregadas firmas Retrofit en `CircleApiService.kt` y métodos en `CircleRepository` / `CircleRepositoryImpl` para listar geocercas activas (`GET /dynamic-geofences/active`), crear radares (`POST /dynamic-geofences`) y desactivarlos (`POST /dynamic-geofences/{id}/deactivate`).
+    - Actualizado `MapaViewModel.kt` con estados reactivos (`activeDynamicGeofences`, `isRadarLoading`, `radarMessage`) y refresco periódico por polling cada 10s.
+    - Integrado el botón de Radar (**📡**) y chip distintivo activo (`[ 📡 50m ✖ ]`) en el listado de miembros de [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt).
+    - Creado el modal `RadarDialog` para seleccionar el radio seguro (30m, 50m, 100m, 200m, 500m) e iniciar el seguimiento dinámico.
+    - Implementado el renderizado dinámico en tiempo real en el mapa de Google Maps (`Polyline` conectora y `Circle` del radio seguro).
+    - **Ajuste UI de Botones:** Reemplazados los contenedores de `IconButton` por `Box` circulares simétricos (`32.dp`) con padding delimitado en `MemberRowItem`, eliminando la sobreposición del área de toque del botón de Radar con el icono de dirección de Google Maps.
+- **Validación:**
+    - Compilación nativa completada exitosamente (`BUILD SUCCESSFUL` en 31s).
+    - Suite de 120 pruebas de backend de Laravel ejecutadas exitosamente (120/120 passed).
+
 ## [2026-06-04] Phase 1 Completed
 - Set up Docker infrastructure with isolated services: backend, nginx, postgres (postgis), redis, frontend, worker, and scheduler.
 - Configured PHP 8.4-FPM with necessary extensions.

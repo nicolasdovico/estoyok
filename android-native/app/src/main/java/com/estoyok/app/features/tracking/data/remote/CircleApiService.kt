@@ -60,4 +60,17 @@ interface CircleApiService {
         @Path("circleId") circleId: Int,
         @Path("memberId") memberId: Int
     ): Response<MemberDrivesResponse>
+
+    @GET("dynamic-geofences/active")
+    suspend fun getActiveDynamicGeofences(): Response<List<DynamicGeofenceDto>>
+
+    @POST("dynamic-geofences")
+    suspend fun createDynamicGeofence(
+        @Body request: CreateDynamicGeofenceRequest
+    ): Response<DynamicGeofenceDto>
+
+    @POST("dynamic-geofences/{id}/deactivate")
+    suspend fun deactivateDynamicGeofence(
+        @Path("id") id: Int
+    ): Response<MessageResponse>
 }

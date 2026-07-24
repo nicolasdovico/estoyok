@@ -100,11 +100,20 @@ class MapaViewModel @Inject constructor(
     var uploadAvatarSuccessMessage by mutableStateOf<String?>(null)
     var uploadAvatarErrorMessage by mutableStateOf<String?>(null)
 
+    var activeDynamicGeofences by mutableStateOf<List<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>>(emptyList())
+        private set
+
+    var isRadarLoading by mutableStateOf(false)
+        private set
+
+    var radarMessage by mutableStateOf<String?>(null)
+
     private var pollingJob: Job? = null
 
     init {
         isServiceRunning = TrackingService.isRunning
         refreshCircles()
+        fetchActiveDynamicGeofences()
         loadUserProfile()
         startPolling()
         viewModelScope.launch {
@@ -153,6 +162,7 @@ class MapaViewModel @Inject constructor(
         pollingJob = viewModelScope.launch {
             while (isActive) {
                 delay(10000L) // Poll every 10 seconds
+                fetchActiveDynamicGeofences()
                 circleRepository.getCircles().collectLatest { resource ->
                     if (resource is Resource.Success) {
                         circles = resource.data ?: emptyList()
@@ -419,6 +429,64 @@ class MapaViewModel @Inject constructor(
     fun clearGeofenceMessages() {
         geofenceSuccessMessage = null
         geofenceErrorMessage = null
+    }
+
+    fun fetchActiveDynamicGeofences() {
+        viewModelScope.launch {
+            circleRepository.getActiveDynamicGeofences().collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    activeDynamicGeofences = resource.data ?: emptyList()
+                }
+            }
+        }
+    }
+
+    fun createDynamicGeofence(targetId: Int, radiusMeters: Int) {
+        viewModelScope.launch {
+            circleRepository.createDynamicGeofence(targetId, radiusMeters).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isRadarLoading = true
+                        radarMessage = null
+                    }
+                    is Resource.Success -> {
+                        isRadarLoading = false
+                        radarMessage = "📡 Radar de Proximidad activado (${radiusMeters}m)."
+                        fetchActiveDynamicGeofences()
+                    }
+                    is Resource.Error -> {
+                        isRadarLoading = false
+                        radarMessage = resource.message ?: "No se pudo activar el radar de proximidad."
+                    }
+                }
+            }
+        }
+    }
+
+    fun deactivateDynamicGeofence(id: Int) {
+        viewModelScope.launch {
+            circleRepository.deactivateDynamicGeofence(id).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isRadarLoading = true
+                        radarMessage = null
+                    }
+                    is Resource.Success -> {
+                        isRadarLoading = false
+                        radarMessage = "📡 Radar de Proximidad desactivado."
+                        fetchActiveDynamicGeofences()
+                    }
+                    is Resource.Error -> {
+                        isRadarLoading = false
+                        radarMessage = resource.message ?: "No se pudo desactivar el radar."
+                    }
+                }
+            }
+        }
+    }
+
+    fun clearRadarMessage() {
+        radarMessage = null
     }
 
     override fun onCleared() {

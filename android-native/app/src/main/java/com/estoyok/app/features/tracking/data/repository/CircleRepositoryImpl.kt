@@ -77,6 +77,23 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.getMemberDrives(circleId, memberId)
     }
 
+    override fun getActiveDynamicGeofences(): Flow<Resource<List<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>>> = safeApiCall {
+        apiService.getActiveDynamicGeofences()
+    }
+
+    override fun createDynamicGeofence(
+        targetId: Int,
+        safeRadiusMeters: Int
+    ): Flow<Resource<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>> = safeApiCall {
+        apiService.createDynamicGeofence(com.estoyok.app.features.tracking.data.model.CreateDynamicGeofenceRequest(targetId, safeRadiusMeters))
+    }
+
+    override fun deactivateDynamicGeofence(
+        id: Int
+    ): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.deactivateDynamicGeofence(id)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

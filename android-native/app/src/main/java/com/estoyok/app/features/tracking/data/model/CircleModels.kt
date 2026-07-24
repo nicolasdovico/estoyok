@@ -38,6 +38,21 @@ data class GeofenceDto(
     @SerializedName("longitude") val longitude: Double
 )
 
+data class DynamicGeofenceDto(
+    @SerializedName("id") val id: Int,
+    @SerializedName("initiator_id") val initiatorId: Int,
+    @SerializedName("target_id") val targetId: Int,
+    @SerializedName("safe_radius_meters") val safeRadiusMeters: Int,
+    @SerializedName("is_active") val isActive: Boolean,
+    @SerializedName("initiator") val initiator: CircleMemberDto? = null,
+    @SerializedName("target") val target: CircleMemberDto? = null
+)
+
+data class CreateDynamicGeofenceRequest(
+    @SerializedName("target_id") val targetId: Int,
+    @SerializedName("safe_radius_meters") val safeRadiusMeters: Int
+)
+
 data class CircleDto(
     @SerializedName("id") val id: Int,
     @SerializedName("name") val name: String,
