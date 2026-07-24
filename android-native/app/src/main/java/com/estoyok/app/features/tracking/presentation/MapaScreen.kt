@@ -588,183 +588,56 @@ fun MapaScreen(
                 }
             }
 
-            // Render markers for all nucleus members with valid location coordinates (using Option A: Dispersion / Spiderfying)
-            val dispersedMembers = getDispersedMembers(viewModel.selectedCircleMembers)
-            dispersedMembers.forEach { (member, latLng) ->
-                val loc = member.currentLocation
-                if (loc != null) {
-                    val titleText = member.name
-                    val snippetText = buildString {
-                        append("Batería: ${loc.batteryLevel?.let { (it * 100).toInt() } ?: 100}%")
-                        if (loc.isDriving == true) {
-                            append(" • Conduciendo: ${loc.speed?.toInt() ?: 0} km/h")
-                        }
+            // Render markers for all nucleus members (Life360 Style Clustering & Zoom-Aware Dispersion)
+            val currentZoom = cameraPositionState.position.zoom
+            val validMembers = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
+            val memberGroups = mutableListOf<MutableList<com.estoyok.app.features.tracking.data.model.CircleMemberDto>>()
+
+            for (member in validMembers) {
+                val loc = member.currentLocation!!
+                var addedToGroup = false
+                for (group in memberGroups) {
+                    val firstLoc = group.first().currentLocation!!
+                    val distance = haversineDistance(loc.latitude, loc.longitude, firstLoc.latitude, firstLoc.longitude) * 1000.0
+                    if (distance < 30.0) { // Group members within 30 meters
+                        group.add(member)
+                        addedToGroup = true
+                        break
                     }
+                }
+                if (!addedToGroup) {
+                    memberGroups.add(mutableListOf(member))
+                }
+            }
 
-                    val isOffline = loc.isOffline == true
-                    val isTrackingOff = loc.isTrackingActive == false
-                    val isGpsOff = loc.gpsEnabled == false
-
-                    val borderColor = when {
-                        isTrackingOff || isOffline -> TextMuted
-                        isGpsOff -> PrimaryOrange
-                        else -> PrimaryEmerald
-                    }
-
-                    val movementEmoji = if (isOffline || isTrackingOff || isGpsOff) {
-                        null
-                    } else {
-                        getMovementEmoji(loc.speed, loc.isDriving)
-                    }
-
+            memberGroups.forEach { group ->
+                if (group.size > 1 && currentZoom < 15.5f) {
+                    // MODE 1: Render Single Grouped Cluster Marker (Zoom Out View)
+                    val centerLat = group.map { it.currentLocation!!.latitude }.average()
+                    val centerLng = group.map { it.currentLocation!!.longitude }.average()
+                    val groupNames = group.joinToString(" y ") { it.name.split(" ").first() }
                     val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
-                        haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
+                        haversineDistance(centerLat, centerLng, gf.latitude, gf.longitude) * 1000 <= gf.radius
                     }
-                    val parsedRecordedAt = loc.recordedAt?.let { parseIsoDate(it)?.time }
-                    val parsedLastSeenAt = loc.lastSeenAt?.let { parseIsoDate(it)?.time }
-                    val durationStr = run {
-                        val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt ?: parsedLastSeenAt
-                        if (startTime != null) {
-                            val durationMs = System.currentTimeMillis() - startTime
-                            val durationMins = durationMs / 60000L
-                            if (durationMins > 0) {
-                                if (durationMins >= 1440) {
-                                    val days = durationMins / 1440
-                                    "${days} d"
-                                } else if (durationMins >= 60) {
-                                    val hours = durationMins / 60
-                                    val mins = durationMins % 60
-                                    if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
-                                } else {
-                                    "${durationMins} min"
-                                }
-                            } else {
-                                null
-                            }
-                        } else {
-                            null
-                        }
-                    }
+                    val clusterLabelText = matchingGeofence?.name?.let { "$it (${group.size})" } ?: "$groupNames (${group.size})"
 
-                    val subtitleText = run {
-                        when {
-                            isTrackingOff -> "Rastreo Apagado"
-                            isGpsOff -> "GPS Apagado"
-                            isOffline -> {
-                                val place = matchingGeofence?.name ?: "Aquí"
-                                if (durationStr != null) "$place • Sin Señal (hace $durationStr)" else "$place • Sin Señal"
-                            }
-                            else -> {
-                                val isD = loc.isDriving == true
-                                val speedKmh = loc.speed ?: 0.0f
-                                if (isD || speedKmh >= 15.0f) {
-                                    "${speedKmh.toInt()} km/h"
-                                } else {
-                                    val place = matchingGeofence?.name
-                                    if (place != null) {
-                                        if (durationStr != null) "En $place desde hace $durationStr" else "En $place"
-                                    } else {
-                                        if (durationStr != null) "Aquí desde hace $durationStr" else "Aquí"
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    key(member.id) {
-                        val markerState = rememberMarkerState(position = latLng)
-                        LaunchedEffect(latLng) {
-                            val startLatLng = markerState.position
-                            val endLatLng = latLng
-                            
-                            if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
-                                 val now = System.currentTimeMillis()
-                                 val prevTime = lastUpdateTimes[member.id]
-                                 lastUpdateTimes[member.id] = now
-                                 
-                                 val speed = loc.speed ?: 0.0f
-                                 val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
-                                 val isDriving = isMoving && (loc.isDriving == true || speed >= 15.0f)
-                                 
-                                 // Calcular distancia en metros usando la API de Android
-                                 val results = FloatArray(1)
-                                 android.location.Location.distanceBetween(
-                                     startLatLng.latitude, startLatLng.longitude,
-                                     endLatLng.latitude, endLatLng.longitude,
-                                     results
-                                 )
-                                 val distance = results[0]
-                                 val speedMps = speed / 3.6f
-                                 
-                                 // Calcular delta de tiempo real entre actualizaciones del servidor
-                                 val timeDelta = if (prevTime != null) now - prevTime else 0L
-                                 
-                                 val physicalDuration = if (isMoving && speedMps > 0.1f) {
-                                     (distance / speedMps * 1000).toLong()
-                                 } else {
-                                     0L
-                                 }
-                                 
-                                 // Duración calculada de forma dinámica usando el tiempo entre updates reales como base principal
-                                 val duration = if (isMoving) {
-                                     val baseDuration = if (timeDelta in 2500L..45000L) {
-                                         timeDelta
-                                     } else if (physicalDuration > 0L) {
-                                         physicalDuration
-                                     } else {
-                                         if (isDriving) 5000L else 30000L
-                                     }
-                                     // Buffer factor de 1.25x (125%) para estirar la animación de forma que
-                                     // la nueva posición llegue ANTES de que el marcador se detenga en el destino.
-                                     val buffered = (baseDuration * 1.25f).toLong()
-                                     if (isDriving) {
-                                         buffered.coerceIn(3500L, 9000L) // updates vehiculares cada ~5s
-                                     } else {
-                                         buffered.coerceIn(8000L, 45000L) // updates de caminata cada ~30s
-                                     }
-                                 } else {
-                                     if (isDriving) 2200L else 1000L // Fallback estacionario
-                                 }
-
-                                val startTime = System.currentTimeMillis()
-                                while (true) {
-                                    val elapsed = System.currentTimeMillis() - startTime
-                                    val t = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
-                                    
-                                    // Interpolación lineal pura para velocidad y deslizamiento constante (estilo Life360)
-                                    val easedT = t
-                                    
-                                    val lat = startLatLng.latitude + (endLatLng.latitude - startLatLng.latitude) * easedT
-                                    val lng = startLatLng.longitude + (endLatLng.longitude - startLatLng.longitude) * easedT
-                                    markerState.position = LatLng(lat, lng)
-                                    
-                                    if (t >= 1f) break
-                                    kotlinx.coroutines.delay(16)
-                                }
-                            } else {
-                                markerState.position = latLng
-                            }
-                        }
-
-                        var composableWidthPx by remember { mutableIntStateOf(0) }
+                    key("cluster_" + group.joinToString("_") { it.id.toString() }) {
+                        val clusterMarkerState = rememberMarkerState(position = LatLng(centerLat, centerLng))
+                        var clusterWidthPx by remember { mutableIntStateOf(0) }
                         val displayDensity = LocalContext.current.resources.displayMetrics.density
                         val pinCenterXPx = 28f * displayDensity
-                        val computedAnchorX = if (composableWidthPx > 0) (pinCenterXPx / composableWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
+                        val computedClusterAnchorX = if (clusterWidthPx > 0) (pinCenterXPx / clusterWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
 
                         MarkerComposable(
-                            state = markerState,
-                            anchor = Offset(computedAnchorX, 1.0f),
-                            title = titleText,
-                            snippet = snippetText,
-                            keys = arrayOf(
-                                subtitleText,
-                                borderColor,
-                                movementEmoji ?: "",
-                                markerBitmaps[member.id] ?: Unit
-                            ),
+                            state = clusterMarkerState,
+                            anchor = Offset(computedClusterAnchorX, 1.0f),
+                            title = clusterLabelText,
+                            snippet = "Toca para acercar y ver integrantes",
+                            keys = arrayOf(clusterLabelText, group.map { it.id }),
                             onClick = {
-                                selectedMemberForMap = member
-                                viewModel.selectedMember = member
+                                scope.launch {
+                                    cameraPositionState.animate(CameraUpdateFactory.newLatLngZoom(LatLng(centerLat, centerLng), 17.5f))
+                                }
                                 true
                             }
                         ) {
@@ -772,26 +645,23 @@ fun MapaScreen(
                                 modifier = Modifier
                                     .wrapContentSize()
                                     .onGloballyPositioned { coordinates ->
-                                        composableWidthPx = coordinates.size.width
+                                        clusterWidthPx = coordinates.size.width
                                     }
                             ) {
-                                // 1. Unified Pin shape container (Avatar + Pointer Tail + Movement Badge)
                                 Box(
                                     modifier = Modifier
                                         .padding(top = 10.dp)
                                         .size(width = 56.dp, height = 66.dp),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
-                                    // Pointer tail (rotated square / triángulo) centered at the bottom
                                     Box(
                                         modifier = Modifier
                                             .padding(bottom = 6.dp)
                                             .size(16.dp)
                                             .graphicsLayer(rotationZ = 45f)
-                                            .background(borderColor)
+                                            .background(PrimaryEmerald)
                                     )
 
-                                    // Avatar rounded square container
                                     Box(
                                         modifier = Modifier
                                             .padding(bottom = 10.dp)
@@ -801,89 +671,331 @@ fun MapaScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(borderColor, RoundedCornerShape(20.dp))
-                                                .padding(3.5.dp), // 100% solid borderColor matching label border
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            val initials = member.name.split(" ")
-                                                .mapNotNull { it.firstOrNull()?.toString() }
-                                                .take(2)
-                                                .joinToString("")
-                                                .uppercase()
-
-                                            val bitmapToDraw = markerBitmaps[member.id]
-                                            if (bitmapToDraw != null) {
-                                                Image(
-                                                    bitmap = bitmapToDraw.asImageBitmap(),
-                                                    contentDescription = member.name,
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .clip(RoundedCornerShape(16.dp)),
-                                                    contentScale = ContentScale.Crop
-                                                )
-                                            } else {
-                                                Box(
-                                                    modifier = Modifier
-                                                        .fillMaxSize()
-                                                        .background(CardBackground, RoundedCornerShape(16.dp)),
-                                                    contentAlignment = Alignment.Center
-                                                ) {
-                                                    Text(
-                                                        text = initials,
-                                                        color = Color.White,
-                                                        fontWeight = FontWeight.ExtraBold,
-                                                        fontSize = 15.sp
-                                                    )
-                                                }
-                                            }
-                                        }
-                                    }
-
-                                    // Movement badge overlay aligned at bottom right
-                                    if (movementEmoji != null) {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(24.dp)
-                                                .align(Alignment.BottomEnd)
-                                                .background(MaterialTheme.colorScheme.primary, CircleShape)
-                                                .border(1.5.dp, Color.White, CircleShape),
+                                                .background(PrimaryEmerald, RoundedCornerShape(20.dp))
+                                                .padding(3.5.dp),
                                             contentAlignment = Alignment.Center
                                         ) {
                                             Text(
-                                                text = movementEmoji,
-                                                fontSize = 13.sp,
-                                                textAlign = TextAlign.Center,
-                                                style = TextStyle(
-                                                    platformStyle = PlatformTextStyle(
-                                                        includeFontPadding = false
-                                                    )
-                                                )
+                                                text = "👥 ${group.size}",
+                                                color = Color.White,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                fontSize = 15.sp
                                             )
                                         }
                                     }
                                 }
 
-                                // 2. Subtitle Label Badge attached to Top-Right of Avatar (overlapping)
-                                if (!subtitleText.isNullOrEmpty()) {
-                                    Card(
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = DarkSurface.copy(alpha = 0.95f)
-                                        ),
-                                        shape = RoundedCornerShape(10.dp),
-                                        border = BorderStroke(1.5.dp, borderColor), // Exact 100% solid borderColor match
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-                                        modifier = Modifier
-                                            .padding(start = 40.dp, top = 0.dp) // Overlaps top-right corner of 56.dp avatar
-                                    ) {
-                                        Text(
-                                            text = subtitleText,
-                                            fontSize = 9.5.sp,
-                                            color = borderColor, // Exact 100% solid borderColor match
-                                            fontWeight = FontWeight.ExtraBold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
-                                            maxLines = 1,
-                                            softWrap = false
+                                Card(
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = DarkSurface.copy(alpha = 0.95f)
+                                    ),
+                                    shape = RoundedCornerShape(10.dp),
+                                    border = BorderStroke(1.5.dp, PrimaryEmerald),
+                                    elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                    modifier = Modifier.padding(start = 40.dp, top = 0.dp)
+                                ) {
+                                    Text(
+                                        text = clusterLabelText,
+                                        fontSize = 9.5.sp,
+                                        color = PrimaryEmerald,
+                                        fontWeight = FontWeight.ExtraBold,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
+                                        maxLines = 1,
+                                        softWrap = false
+                                    )
+                                }
+                            }
+                        }
+                    }
+                } else {
+                    // MODE 2: Render Individual Member Markers (Zoom In or Isolated Members)
+                    val dispersedPositions = if (group.size > 1) {
+                        val centerLat = group.map { it.currentLocation!!.latitude }.average()
+                        val centerLng = group.map { it.currentLocation!!.longitude }.average()
+                        val cosLat = Math.cos(Math.toRadians(centerLat))
+                        val metersPerPixel = (156543.03392 * if (cosLat > 0.1) cosLat else 1.0) / Math.pow(2.0, currentZoom.toDouble().coerceIn(3.0, 21.0))
+                        val targetMetersOffset = 48.0 * metersPerPixel
+                        val clampedMetersOffset = targetMetersOffset.coerceIn(14.0, 42.0)
+                        val radiusDegrees = clampedMetersOffset / 111000.0
+
+                        group.mapIndexed { index, member ->
+                            val angle = (2.0 * Math.PI * index) / group.size
+                            val offsetLat = radiusDegrees * Math.cos(angle)
+                            val offsetLng = radiusDegrees * Math.sin(angle) / if (cosLat > 0.1) cosLat else 1.0
+                            Pair(member, LatLng(centerLat + offsetLat, centerLng + offsetLng))
+                        }
+                    } else {
+                        group.map { Pair(it, LatLng(it.currentLocation!!.latitude, it.currentLocation!!.longitude)) }
+                    }
+
+                    dispersedPositions.forEach { (member, latLng) ->
+                        val loc = member.currentLocation
+                        if (loc != null) {
+                            val titleText = member.name
+                            val snippetText = buildString {
+                                append("Batería: ${loc.batteryLevel?.let { (it * 100).toInt() } ?: 100}%")
+                                if (loc.isDriving == true) {
+                                    append(" • Conduciendo: ${loc.speed?.toInt() ?: 0} km/h")
+                                }
+                            }
+
+                            val isOffline = loc.isOffline == true
+                            val isTrackingOff = loc.isTrackingActive == false
+                            val isGpsOff = loc.gpsEnabled == false
+
+                            val borderColor = when {
+                                isTrackingOff || isOffline -> TextMuted
+                                isGpsOff -> PrimaryOrange
+                                else -> PrimaryEmerald
+                            }
+
+                            val movementEmoji = if (isOffline || isTrackingOff || isGpsOff) {
+                                null
+                            } else {
+                                getMovementEmoji(loc.speed, loc.isDriving)
+                            }
+
+                            val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
+                                haversineDistance(loc.latitude, loc.longitude, gf.latitude, gf.longitude) * 1000 <= gf.radius
+                            }
+                            val parsedRecordedAt = loc.recordedAt?.let { parseIsoDate(it)?.time }
+                            val parsedLastSeenAt = loc.lastSeenAt?.let { parseIsoDate(it)?.time }
+                            val durationStr = run {
+                                val startTime = stayTracker[member.id]?.second ?: parsedRecordedAt ?: parsedLastSeenAt
+                                if (startTime != null) {
+                                    val durationMs = System.currentTimeMillis() - startTime
+                                    val durationMins = durationMs / 60000L
+                                    if (durationMins > 0) {
+                                        if (durationMins >= 1440) {
+                                            val days = durationMins / 1440
+                                            "${days} d"
+                                        } else if (durationMins >= 60) {
+                                            val hours = durationMins / 60
+                                            val mins = durationMins % 60
+                                            if (mins > 0) "${hours} h ${mins} min" else "${hours} h"
+                                        } else {
+                                            "${durationMins} min"
+                                        }
+                                    } else {
+                                        null
+                                    }
+                                } else {
+                                    null
+                                }
+                            }
+
+                            val subtitleText = run {
+                                when {
+                                    isTrackingOff -> "Rastreo Apagado"
+                                    isGpsOff -> "GPS Apagado"
+                                    isOffline -> {
+                                        val place = matchingGeofence?.name ?: "Aquí"
+                                        if (durationStr != null) "$place • Sin Señal (hace $durationStr)" else "$place • Sin Señal"
+                                    }
+                                    else -> {
+                                        val isD = loc.isDriving == true
+                                        val speedKmh = loc.speed ?: 0.0f
+                                        if (isD || speedKmh >= 15.0f) {
+                                            "${speedKmh.toInt()} km/h"
+                                        } else {
+                                            val place = matchingGeofence?.name
+                                            if (place != null) {
+                                                if (durationStr != null) "En $place desde hace $durationStr" else "En $place"
+                                            } else {
+                                                if (durationStr != null) "Aquí desde hace $durationStr" else "Aquí"
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            key(member.id) {
+                                val markerState = rememberMarkerState(position = latLng)
+                                LaunchedEffect(latLng) {
+                                    val startLatLng = markerState.position
+                                    val endLatLng = latLng
+
+                                    if (startLatLng.latitude != endLatLng.latitude || startLatLng.longitude != endLatLng.longitude) {
+                                        val now = System.currentTimeMillis()
+                                        val prevTime = lastUpdateTimes[member.id]
+                                        lastUpdateTimes[member.id] = now
+
+                                        val speed = loc.speed ?: 0.0f
+                                        val isMoving = !isOffline && !isTrackingOff && !isGpsOff && speed >= 1.5f
+
+                                        val results = FloatArray(1)
+                                        android.location.Location.distanceBetween(
+                                            startLatLng.latitude, startLatLng.longitude,
+                                            endLatLng.latitude, endLatLng.longitude,
+                                            results
                                         )
+                                        val distance = results[0]
+                                        val speedMps = speed / 3.6f
+
+                                        val timeDelta = if (prevTime != null) now - prevTime else 0L
+
+                                        val physicalDuration = if (isMoving && speedMps > 0.1f) {
+                                            ((distance / speedMps) * 1000).toLong().coerceIn(1000L, 5000L)
+                                        } else if (timeDelta in 500L..10000L) {
+                                            timeDelta
+                                        } else {
+                                            2000L
+                                        }
+
+                                        val duration = physicalDuration.coerceAtMost(3000L)
+                                        val startTime = System.currentTimeMillis()
+
+                                        while (true) {
+                                            val elapsed = System.currentTimeMillis() - startTime
+                                            val t = (elapsed.toFloat() / duration).coerceIn(0f, 1f)
+
+                                            val lat = startLatLng.latitude + t * (endLatLng.latitude - startLatLng.latitude)
+                                            val lng = startLatLng.longitude + t * (endLatLng.longitude - startLatLng.longitude)
+                                            markerState.position = LatLng(lat, lng)
+
+                                            if (t >= 1f) break
+                                            kotlinx.coroutines.delay(16)
+                                        }
+                                    } else {
+                                        markerState.position = latLng
+                                    }
+                                }
+
+                                var composableWidthPx by remember { mutableIntStateOf(0) }
+                                val displayDensity = LocalContext.current.resources.displayMetrics.density
+                                val pinCenterXPx = 28f * displayDensity
+                                val computedAnchorX = if (composableWidthPx > 0) (pinCenterXPx / composableWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
+
+                                MarkerComposable(
+                                    state = markerState,
+                                    anchor = Offset(computedAnchorX, 1.0f),
+                                    title = titleText,
+                                    snippet = snippetText,
+                                    keys = arrayOf(
+                                        subtitleText,
+                                        borderColor,
+                                        movementEmoji ?: "",
+                                        markerBitmaps[member.id] ?: Unit
+                                    ),
+                                    onClick = {
+                                        selectedMemberForMap = member
+                                        viewModel.selectedMember = member
+                                        true
+                                    }
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .wrapContentSize()
+                                            .onGloballyPositioned { coordinates ->
+                                                composableWidthPx = coordinates.size.width
+                                            }
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .padding(top = 10.dp)
+                                                .size(width = 56.dp, height = 66.dp),
+                                            contentAlignment = Alignment.BottomCenter
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(bottom = 6.dp)
+                                                    .size(16.dp)
+                                                    .graphicsLayer(rotationZ = 45f)
+                                                    .background(borderColor)
+                                            )
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .padding(bottom = 10.dp)
+                                                    .size(56.dp)
+                                                    .align(Alignment.TopCenter)
+                                            ) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .fillMaxSize()
+                                                        .background(borderColor, RoundedCornerShape(20.dp))
+                                                        .padding(3.5.dp),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    val initials = member.name.split(" ")
+                                                        .mapNotNull { it.firstOrNull()?.toString() }
+                                                        .take(2)
+                                                        .joinToString("")
+                                                        .uppercase()
+
+                                                    val bitmapToDraw = markerBitmaps[member.id]
+                                                    if (bitmapToDraw != null) {
+                                                        Image(
+                                                            bitmap = bitmapToDraw.asImageBitmap(),
+                                                            contentDescription = member.name,
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .clip(RoundedCornerShape(16.dp)),
+                                                            contentScale = ContentScale.Crop
+                                                        )
+                                                    } else {
+                                                        Box(
+                                                            modifier = Modifier
+                                                                .fillMaxSize()
+                                                                .background(CardBackground, RoundedCornerShape(16.dp)),
+                                                            contentAlignment = Alignment.Center
+                                                        ) {
+                                                            Text(
+                                                                text = initials,
+                                                                color = Color.White,
+                                                                fontWeight = FontWeight.ExtraBold,
+                                                                fontSize = 15.sp
+                                                            )
+                                                        }
+                                                    }
+                                                }
+                                            }
+
+                                            if (movementEmoji != null) {
+                                                Box(
+                                                    modifier = Modifier
+                                                        .size(24.dp)
+                                                        .align(Alignment.BottomEnd)
+                                                        .background(MaterialTheme.colorScheme.primary, CircleShape)
+                                                        .border(1.5.dp, Color.White, CircleShape),
+                                                    contentAlignment = Alignment.Center
+                                                ) {
+                                                    Text(
+                                                        text = movementEmoji,
+                                                        fontSize = 13.sp,
+                                                        textAlign = TextAlign.Center,
+                                                        style = TextStyle(
+                                                            platformStyle = PlatformTextStyle(
+                                                                includeFontPadding = false
+                                                            )
+                                                        )
+                                                    )
+                                                }
+                                            }
+                                        }
+
+                                        if (!subtitleText.isNullOrEmpty()) {
+                                            Card(
+                                                colors = CardDefaults.cardColors(
+                                                    containerColor = DarkSurface.copy(alpha = 0.95f)
+                                                ),
+                                                shape = RoundedCornerShape(10.dp),
+                                                border = BorderStroke(1.5.dp, borderColor),
+                                                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                                modifier = Modifier
+                                                    .padding(start = 40.dp, top = 0.dp)
+                                            ) {
+                                                Text(
+                                                    text = subtitleText,
+                                                    fontSize = 9.5.sp,
+                                                    color = borderColor,
+                                                    fontWeight = FontWeight.ExtraBold,
+                                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
+                                                    maxLines = 1,
+                                                    softWrap = false
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -3412,7 +3524,10 @@ fun AddressText(
     )
 }
 
-fun getDispersedMembers(members: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>): List<Pair<com.estoyok.app.features.tracking.data.model.CircleMemberDto, LatLng>> {
+fun getDispersedMembers(
+    members: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
+    zoom: Float = 15f
+): List<Pair<com.estoyok.app.features.tracking.data.model.CircleMemberDto, LatLng>> {
     val results = mutableListOf<Pair<com.estoyok.app.features.tracking.data.model.CircleMemberDto, LatLng>>()
     val validMembers = members.filter { it.currentLocation != null }
     val groups = mutableListOf<MutableList<com.estoyok.app.features.tracking.data.model.CircleMemberDto>>()
@@ -3424,7 +3539,7 @@ fun getDispersedMembers(members: List<com.estoyok.app.features.tracking.data.mod
             val first = group.first()
             val firstLoc = first.currentLocation!!
             val distance = haversineDistance(loc.latitude, loc.longitude, firstLoc.latitude, firstLoc.longitude) * 1000.0 // in meters
-            if (distance < 20.0) { // Group if within 20 meters
+            if (distance < 25.0) { // Group if within 25 meters
                 group.add(member)
                 addedToGroup = true
                 break
@@ -3444,14 +3559,19 @@ fun getDispersedMembers(members: List<com.estoyok.app.features.tracking.data.mod
         } else {
             val centerLat = group.map { it.currentLocation!!.latitude }.average()
             val centerLng = group.map { it.currentLocation!!.longitude }.average()
-            val radius = 0.00015 // approx 15 meters offset
+            
+            // Calculate screen-space zoom-aware radius in degrees (Life360 style)
+            val cosLat = Math.cos(Math.toRadians(centerLat))
+            val metersPerPixel = (156543.03392 * if (cosLat > 0.1) cosLat else 1.0) / Math.pow(2.0, zoom.toDouble().coerceIn(3.0, 21.0))
+            val targetMetersOffset = 48.0 * metersPerPixel // 48dp visual separation on screen
+            val clampedMetersOffset = targetMetersOffset.coerceIn(14.0, 42.0) // Natural physical offset (14m to 42m)
+            val radiusDegrees = clampedMetersOffset / 111000.0
             
             for (index in 0 until size) {
                 val member = group[index]
                 val angle = (2.0 * Math.PI * index) / size
-                val cosLat = Math.cos(Math.toRadians(centerLat))
-                val offsetLat = radius * Math.cos(angle)
-                val offsetLng = radius * Math.sin(angle) / if (cosLat > 0.1) cosLat else 1.0
+                val offsetLat = radiusDegrees * Math.cos(angle)
+                val offsetLng = radiusDegrees * Math.sin(angle) / if (cosLat > 0.1) cosLat else 1.0
                 
                 results.add(Pair(member, LatLng(centerLat + offsetLat, centerLng + offsetLng)))
             }
