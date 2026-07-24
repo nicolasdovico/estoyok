@@ -104,6 +104,7 @@
   - [x] feat(geofencing): Implementar geocercas móviles y alertas de proximidad relativas (Next.js, Expo, Android Kotlin Nativo, Laravel y tests).
     - [x] Backend: Creadas tablas, modelo, job de cálculo de distancia geodésica PostGIS y endpoints de geocercas móviles con suite de tests.
     - [x] Mobile (Android Kotlin Nativo): Integrado el botón de radar (📡) en la lista de familiares de MapaScreen.kt, modal de selección de radio seguro (30m, 50m, 100m, 200m, 500m), consumo de la API /dynamic-geofences, desactivación interactiva y renderizado de Polyline/Circle dinámico sobre Google Maps.
+    - [x] Anti-Falsas Alertas (Life360 Anti-Spam): Implementada Ventana de Confirmación de Salida (*Pending Exit Dwell Time* 2-3 min), Cancelación en Silencio por Rebote, Histeresis Adaptativa según Precisión GPS (`accuracy`), Supresión por Wi-Fi Seguro (`safe_wifi_ssid`) y botón intuitivo "📶 Usar Wi-Fi Actual" en Ajustes.
     - [x] Web: Renderizado de círculo punteado, línea de trayectoria y tooltip dinámico en Leaflet.
   - [x] feat(ux): Rediseño y redistribución del layout móvil en 4 pestañas (Panel, Mapa, Núcleo, Ajustes) utilizando navegación basada en estados para preservar el rastreo de fondo.
   - [x] **Estabilización de Túnel ngrok y Depuración de Errores de Red:**

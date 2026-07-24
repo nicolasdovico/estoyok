@@ -248,14 +248,21 @@ class TrackingService : Service(), SensorEventListener {
             return
         }
 
-        // 2. GPS Drift Filter: if the user is stationary (speed < 3 km/h) and displacement is small (< 15m), discard it (if not in emergency/driving)
+        // 2. Indoor Stationary GPS Drift Filter:
+        // If user is stationary (speed < 3 km/h and not driving/emergency) and displacement is medium (< 45m) with accuracy >= 20m, discard point to avoid indoor jitter
         lastSentLocation?.let { lastLoc ->
             val distance = lastLoc.distanceTo(location)
             val speedKmh = lastSpeedMps * 3.6f
             
-            if (distance < 15f && speedKmh < 3.0f && !isEmergencyMode && !isDriving) {
-                android.util.Log.d("TrackingService", "Discarding location update as drift: distance=$distance m, speed=$speedKmh km/h")
-                return
+            if (speedKmh < 3.0f && !isEmergencyMode && !isDriving) {
+                if (distance < 15f) {
+                    android.util.Log.d("TrackingService", "Discarding indoor drift (stationary): distance=$distance m")
+                    return
+                }
+                if (distance < 45f && location.hasAccuracy() && location.accuracy >= 20f) {
+                    android.util.Log.d("TrackingService", "Discarding indoor drift (bounce with low accuracy): distance=$distance m, acc=${location.accuracy}m")
+                    return
+                }
             }
         }
 
@@ -264,6 +271,7 @@ class TrackingService : Service(), SensorEventListener {
         serviceScope.launch {
             val batteryStatus = getBatteryStatus()
             val isOnline = checkInternetConnection()
+            val wifiSsid = getConnectedWifiSsid()
 
             val isoFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
@@ -278,7 +286,8 @@ class TrackingService : Service(), SensorEventListener {
                 gpsEnabled = true,
                 recordedAt = isoFormat.format(Date(location.time)),
                 speed = lastSpeedMps,
-                isDriving = isDriving
+                isDriving = isDriving,
+                currentWifiSsid = wifiSsid
             )
 
             android.util.Log.d("TrackingService", "Calling locationRepository.updateLocation. isOnline: $isOnline")
@@ -645,6 +654,30 @@ class TrackingService : Service(), SensorEventListener {
             .addOnFailureListener { e ->
                 android.util.Log.e("TrackingService", "Failed to unregister stay geofence: ${e.message}", e)
             }
+    }
+
+    private fun getConnectedWifiSsid(): String? {
+        return try {
+            val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = connectivityManager.activeNetwork ?: return null
+            val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
+            if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+                val wifiInfo = wifiManager.connectionInfo
+                if (wifiInfo != null && wifiInfo.ssid != null) {
+                    var ssid = wifiInfo.ssid
+                    if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                        ssid = ssid.substring(1, ssid.length - 1)
+                    }
+                    if (ssid != "<unknown ssid>") {
+                        return ssid
+                    }
+                }
+            }
+            null
+        } catch (e: Exception) {
+            null
+        }
     }
 
     override fun onDestroy() {

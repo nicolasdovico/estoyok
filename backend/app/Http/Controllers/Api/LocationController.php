@@ -226,7 +226,8 @@ class LocationController extends Controller
                 }
 
                 // 5. Dispatch Geofencing processing
-                ProcessGeofencing::dispatch($user, $lat, $lng);
+                $wifiSsid = $request->input('current_wifi_ssid') ?? $request->input('safe_wifi_ssid') ?? null;
+                ProcessGeofencing::dispatch($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
                 ProcessDynamicGeofencing::dispatch($user, $lat, $lng);
             });
 

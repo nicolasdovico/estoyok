@@ -11,7 +11,8 @@ data class LocationUpdateRequest(
     @SerializedName("gps_enabled") val gpsEnabled: Boolean? = null,
     @SerializedName("recorded_at") val recordedAt: String? = null,
     @SerializedName("speed") val speed: Float? = null, // in m/s
-    @SerializedName("is_driving") val isDriving: Boolean? = null
+    @SerializedName("is_driving") val isDriving: Boolean? = null,
+    @SerializedName("current_wifi_ssid") val currentWifiSsid: String? = null
 )
 
 data class LocationUpdateResponse(

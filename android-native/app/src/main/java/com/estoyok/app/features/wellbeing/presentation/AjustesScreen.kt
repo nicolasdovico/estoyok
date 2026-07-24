@@ -1,5 +1,8 @@
 package com.estoyok.app.features.wellbeing.presentation
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
@@ -8,6 +11,7 @@ import android.content.pm.PackageManager
 import android.os.Build
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -81,6 +85,29 @@ fun AjustesScreen(
             }
         } else {
             Toast.makeText(context, "Se necesitan permisos de ubicación y notificaciones para el rastreo", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    val wifiPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val fineGranted = permissions[Manifest.permission.ACCESS_FINE_LOCATION] ?: false
+        val coarseGranted = permissions[Manifest.permission.ACCESS_COARSE_LOCATION] ?: false
+        if (fineGranted || coarseGranted) {
+            val detectedSsid = detectConnectedWifiSsid(context)
+            if (!detectedSsid.isNullOrBlank()) {
+                viewModel.safeWifiSsid = detectedSsid
+                viewModel.saveAutomationSettings(
+                    true,
+                    detectedSsid,
+                    viewModel.sensorCheckinEnabled
+                )
+                Toast.makeText(context, "Wi-Fi detectado y guardado: $detectedSsid", Toast.LENGTH_SHORT).show()
+            } else {
+                Toast.makeText(context, "Asegúrate de estar conectado a Wi-Fi y tener la ubicación GPS activada.", Toast.LENGTH_LONG).show()
+            }
+        } else {
+            Toast.makeText(context, "Se requieren permisos de ubicación para leer el nombre de la red Wi-Fi.", Toast.LENGTH_LONG).show()
         }
     }
     
@@ -404,32 +431,72 @@ fun AjustesScreen(
                     }
 
                     if (viewModel.wifiCheckinEnabled) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            OutlinedTextField(
-                                value = viewModel.safeWifiSsid,
-                                onValueChange = { viewModel.safeWifiSsid = it },
-                                label = { Text("SSID de Wi-Fi de Confianza") },
-                                placeholder = { Text("Ej. MiCasaWiFi_5G") },
-                                singleLine = true,
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(12.dp)
-                            )
-                            Button(
-                                onClick = {
-                                    viewModel.saveAutomationSettings(
-                                        true,
-                                        viewModel.safeWifiSsid.trim(),
-                                        viewModel.sensorCheckinEnabled
-                                    )
-                                },
-                                colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
-                                shape = RoundedCornerShape(10.dp)
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text("Guardar Wi-Fi", fontWeight = FontWeight.Bold, color = TextOnPrimary, fontSize = 12.sp)
+                                OutlinedTextField(
+                                    value = viewModel.safeWifiSsid,
+                                    onValueChange = { viewModel.safeWifiSsid = it },
+                                    label = { Text("SSID de Wi-Fi de Confianza") },
+                                    placeholder = { Text("Ej. MiCasaWiFi_5G") },
+                                    singleLine = true,
+                                    modifier = Modifier.weight(1f),
+                                    shape = RoundedCornerShape(12.dp)
+                                )
+                                Button(
+                                    onClick = {
+                                        viewModel.saveAutomationSettings(
+                                            true,
+                                            viewModel.safeWifiSsid.trim(),
+                                            viewModel.sensorCheckinEnabled
+                                        )
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
+                                    shape = RoundedCornerShape(10.dp)
+                                ) {
+                                    Text("Guardar", fontWeight = FontWeight.Bold, color = TextOnPrimary, fontSize = 12.sp)
+                                }
+                            }
+
+                            OutlinedButton(
+                                onClick = {
+                                    val hasFineLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED
+                                    val hasCoarseLocation = ContextCompat.checkSelfPermission(context, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED
+
+                                    val permissionsToRequest = mutableListOf<String>()
+                                    if (!hasFineLocation) permissionsToRequest.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                                    if (!hasCoarseLocation) permissionsToRequest.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+                                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                                        if (ContextCompat.checkSelfPermission(context, Manifest.permission.NEARBY_WIFI_DEVICES) != PackageManager.PERMISSION_GRANTED) {
+                                            permissionsToRequest.add(Manifest.permission.NEARBY_WIFI_DEVICES)
+                                        }
+                                    }
+
+                                    if (permissionsToRequest.isNotEmpty()) {
+                                        wifiPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+                                    } else {
+                                        val detectedSsid = detectConnectedWifiSsid(context)
+                                        if (!detectedSsid.isNullOrBlank()) {
+                                            viewModel.safeWifiSsid = detectedSsid
+                                            viewModel.saveAutomationSettings(
+                                                true,
+                                                detectedSsid,
+                                                viewModel.sensorCheckinEnabled
+                                            )
+                                            Toast.makeText(context, "Wi-Fi detectado y guardado: $detectedSsid", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "No se pudo leer la Wi-Fi. Asegúrate de estar conectado a Wi-Fi y tener el GPS activado.", Toast.LENGTH_LONG).show()
+                                        }
+                                    }
+                                },
+                                modifier = Modifier.fillMaxWidth(),
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                            ) {
+                                Text("📶 Usar Wi-Fi Actual", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                             }
                         }
                     }
@@ -646,6 +713,43 @@ fun SettingsCard(
             HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
             content()
         }
+    }
+}
+
+fun detectConnectedWifiSsid(context: Context): String? {
+    return try {
+        val wifiManager = context.applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+        val wifiInfo = wifiManager.connectionInfo
+        if (wifiInfo != null && !wifiInfo.ssid.isNullOrBlank()) {
+            var ssid = wifiInfo.ssid
+            if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                ssid = ssid.substring(1, ssid.length - 1)
+            }
+            if (ssid != "<unknown ssid>" && ssid.isNotBlank()) {
+                return ssid
+            }
+        }
+
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val network = connectivityManager.activeNetwork ?: return null
+        val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
+        if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+            val transportInfo = capabilities.transportInfo
+            if (transportInfo is android.net.wifi.WifiInfo) {
+                var ssid = transportInfo.ssid
+                if (!ssid.isNullOrBlank()) {
+                    if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                        ssid = ssid.substring(1, ssid.length - 1)
+                    }
+                    if (ssid != "<unknown ssid>" && ssid.isNotBlank()) {
+                        return ssid
+                    }
+                }
+            }
+        }
+        null
+    } catch (e: Exception) {
+        null
     }
 }
 

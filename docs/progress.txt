@@ -1,5 +1,19 @@
 # Progress Log
 
+## [2026-07-24] Eliminación de Falsas Alertas de Geocercas por Rebote de GPS (Estilo Life360)
+- **Backend (Laravel):**
+    - Implementada la **Ventana de Confirmación de Salida (*Pending Exit / Dwell Time*)** de 2 a 3 minutos en `ProcessGeofencing.php`. Las salidas ya no se notifican en el primer punto de GPS sino tras mantener la ubicación fuera de la zona durante reportes sostenidos.
+    - Implementada la **Cancelación en Silencio por Rebote de GPS**: Si la ubicación vuelve a la casa durante la ventana de confirmación, la salida pendiente se elimina sin enviar alertas a los familiares.
+    - Incorporada la **Histeresis Adaptativa por Precisión Real (`Accuracy Padding`)**: El umbral de salida se expande automáticamente si el celular reporta imprecisión de señal bajo techo.
+    - Integrada la **Supresión de Salida por Wi-Fi Seguro (`safe_wifi_ssid`)**: Mientras el celular reporte estar conectado a la red Wi-Fi declarada como segura para esa zona, cualquier intento de evento de salida es bloqueado en backend.
+- **App Móvil Nativa (Android/Kotlin):**
+    - Actualizado [LocationModels.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/LocationModels.kt) y [TrackingService.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt) para transmitir el nombre de la red Wi-Fi conectada (`current_wifi_ssid`) al backend en segundo plano.
+    - Agregado en [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) el botón **"📶 Usar Wi-Fi Actual"** con integración del modal nativo de permisos de ubicación de Android (`wifiPermissionLauncher` para `ACCESS_FINE_LOCATION` / `NEARBY_WIFI_DEVICES`), leyendo el SSID mediante fallback dual (`WifiManager` y `TransportInfo`).
+    - Mejorado el **Filtro de Inmovilidad Estática**: Se descartan desplazamientos espurios en reposo ($< 45\text{m}$ a baja precisión sin movimiento físico) previniendo que el celular envíe puntos de rebote al servidor.
+- **Validación:**
+    - Compilación nativa Android en Kotlin completada exitosamente (`BUILD SUCCESSFUL` en 13s).
+    - Agregados y ejecutados exitosamente 3 nuevos tests unitarios en `GeofencingTest.php` (Total: 123/123 tests pasando).
+
 ## [2026-07-24] Integración de Alertas de Proximidad Relativa (Radar Móvil) en App Nativa Android
 - **App Móvil Nativa (Android/Kotlin):**
     - Creados modelos `DynamicGeofenceDto` y `CreateDynamicGeofenceRequest` en [CircleModels.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/CircleModels.kt).

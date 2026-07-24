@@ -21,10 +21,16 @@ class ProcessGeofencing implements ShouldQueue
     /**
      * Create a new job instance.
      */
+    /**
+     * Create a new job instance.
+     */
     public function __construct(
         public User $user,
         public float $latitude,
-        public float $longitude
+        public float $longitude,
+        public ?float $accuracy = null,
+        public ?string $currentWifiSsid = null,
+        public ?float $speedKmh = null
     ) {}
 
     /**
@@ -46,8 +52,6 @@ class ProcessGeofencing implements ShouldQueue
             })
             ->get();
 
-        $pointWkt = "POINT({$this->longitude} {$this->latitude})";
-
         foreach ($allGeofences as $geofence) {
             $distResult = DB::selectOne(
                 'SELECT ST_Distance(center, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) as distance FROM geofences WHERE id = ?',
@@ -63,24 +67,76 @@ class ProcessGeofencing implements ShouldQueue
 
             $lastType = $lastEvent ? $lastEvent->type : 'exit';
 
+            // Safe Wi-Fi Suppression: If user is connected to their designated safe Wi-Fi SSID, any exit is suppressed
+            $isSafeWifiConnected = !empty($this->user->safe_wifi_ssid) && 
+                !empty($this->currentWifiSsid) && 
+                strcasecmp(trim($this->user->safe_wifi_ssid), trim($this->currentWifiSsid)) === 0;
+
+            $pendingExitKey = "geofence_pending_exit_{$this->user->id}_{$geofence->id}";
+
+            if ($isSafeWifiConnected) {
+                // If safe wifi is connected, clear any pending exit and ignore exit attempts
+                if (cache()->has($pendingExitKey)) {
+                    cache()->forget($pendingExitKey);
+                }
+                if ($lastType === 'exit') {
+                    // Record entry if last type was exit
+                    $this->recordEvent($geofence, 'entry');
+                    $this->sendGeofenceAlert($geofence, 'ingresado a');
+                }
+                continue;
+            }
+
             // Cooldown check: Require at least 3 minutes between state transition alerts for the same geofence
             $cooldownActive = $lastEvent && $lastEvent->occurred_at && $lastEvent->occurred_at->diffInMinutes(now()) < 3;
             if ($cooldownActive) {
                 continue;
             }
 
-            // Life360 Hysteresis Dual-Threshold Buffer:
-            // Entry threshold: distance <= radius
-            // Exit threshold: distance > (radius + hysteresisBuffer)
+            // Life360 Hysteresis Dual-Threshold Buffer with Accuracy Padding:
             $radius = (float) $geofence->radius;
-            $hysteresisBuffer = max(30.0, $radius * 0.3); // 30 meters or 30% of radius
+            $accuracyPadding = max(0.0, (float) ($this->accuracy ?? 0.0) - 15.0);
+            $hysteresisBuffer = max(35.0, $radius * 0.25) + $accuracyPadding;
+            $exitThreshold = $radius + $hysteresisBuffer;
 
-            if ($distanceMeters <= $radius && $lastType === 'exit') {
-                $this->recordEvent($geofence, 'entry');
-                $this->sendGeofenceAlert($geofence, 'ingresado a');
-            } elseif ($distanceMeters > ($radius + $hysteresisBuffer) && $lastType === 'entry') {
-                $this->recordEvent($geofence, 'exit');
-                $this->sendGeofenceAlert($geofence, 'salido de');
+            if ($distanceMeters <= $radius) {
+                // User is INSIDE geofence
+                if (cache()->has($pendingExitKey)) {
+                    // Cancel pending exit on GPS rebound inside
+                    Log::info("Geofence exit pending cancelled for user {$this->user->name} (GPS rebound inside {$geofence->name})");
+                    cache()->forget($pendingExitKey);
+                }
+
+                if ($lastType === 'exit') {
+                    $this->recordEvent($geofence, 'entry');
+                    $this->sendGeofenceAlert($geofence, 'ingresado a');
+                }
+            } elseif ($distanceMeters > $exitThreshold && $lastType === 'entry') {
+                // User is OUTSIDE geofence
+                // If high-speed driving (>= 15 km/h) or very large distance (> 5x radius or > 10km), exit is confirmed immediately
+                $isFastMoving = ($this->speedKmh !== null && $this->speedKmh >= 15.0) || $distanceMeters > max(2000.0, $radius * 5);
+
+                if ($isFastMoving) {
+                    cache()->forget($pendingExitKey);
+                    $this->recordEvent($geofence, 'exit');
+                    $this->sendGeofenceAlert($geofence, 'salido de');
+                } else {
+                    // Dwell Time Confirmation Window (Pending Exit)
+                    if (!cache()->has($pendingExitKey)) {
+                        cache()->put($pendingExitKey, now()->timestamp, now()->addMinutes(10));
+                        Log::info("Geofence exit pending for user {$this->user->name} at geofence {$geofence->name} ({$distanceMeters}m)");
+                    } else {
+                        $firstSeenTimestamp = (int) cache()->get($pendingExitKey);
+                        $elapsedSeconds = now()->timestamp - $firstSeenTimestamp;
+
+                        // Confirm exit after 2 minutes (120 seconds) of sustained coordinates outside
+                        if ($elapsedSeconds >= 120) {
+                            cache()->forget($pendingExitKey);
+                            $this->recordEvent($geofence, 'exit');
+                            $this->sendGeofenceAlert($geofence, 'salido de');
+                        }
+                    }
+                }
             }
         }
     }
