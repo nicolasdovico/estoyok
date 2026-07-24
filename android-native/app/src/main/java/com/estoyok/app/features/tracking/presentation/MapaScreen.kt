@@ -43,6 +43,8 @@ import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.model.LatLngBounds
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -744,8 +746,14 @@ fun MapaScreen(
                             }
                         }
 
+                        var composableWidthPx by remember { mutableIntStateOf(0) }
+                        val displayDensity = LocalContext.current.resources.displayMetrics.density
+                        val pinCenterXPx = 28f * displayDensity
+                        val computedAnchorX = if (composableWidthPx > 0) (pinCenterXPx / composableWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
+
                         MarkerComposable(
                             state = markerState,
+                            anchor = Offset(computedAnchorX, 1.0f),
                             title = titleText,
                             snippet = snippetText,
                             keys = arrayOf(
@@ -760,47 +768,30 @@ fun MapaScreen(
                                 true
                             }
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.wrapContentSize()
-                            ) {
-                                if (!subtitleText.isNullOrEmpty()) {
-                                    Card(
-                                        colors = CardDefaults.cardColors(
-                                            containerColor = DarkSurface.copy(alpha = 0.95f)
-                                        ),
-                                        shape = RoundedCornerShape(12.dp),
-                                        border = BorderStroke(1.dp, borderColor.copy(alpha = 0.8f)),
-                                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
-                                    ) {
-                                        Text(
-                                            text = subtitleText,
-                                            fontSize = 9.sp,
-                                            color = MaterialTheme.colorScheme.primary,
-                                            fontWeight = FontWeight.ExtraBold,
-                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
-                                            maxLines = 1
-                                        )
+                            Box(
+                                modifier = Modifier
+                                    .wrapContentSize()
+                                    .onGloballyPositioned { coordinates ->
+                                        composableWidthPx = coordinates.size.width
                                     }
-                                    Spacer(modifier = Modifier.height(3.dp))
-                                }
-
-                                // Unified Pin shape container (Avatar + Pointer Tail + Movement Badge) - Redesigned to rounded square (Life360 style)
+                            ) {
+                                // 1. Unified Pin shape container (Avatar + Pointer Tail + Movement Badge)
                                 Box(
                                     modifier = Modifier
-                                        .size(width = 66.dp, height = 66.dp),
+                                        .padding(top = 10.dp)
+                                        .size(width = 56.dp, height = 66.dp),
                                     contentAlignment = Alignment.BottomCenter
                                 ) {
-                                    // 1. Pointer tail (rotated square) centered at the bottom
+                                    // Pointer tail (rotated square / triángulo) centered at the bottom
                                     Box(
                                         modifier = Modifier
-                                            .padding(bottom = 7.dp)
+                                            .padding(bottom = 6.dp)
                                             .size(16.dp)
                                             .graphicsLayer(rotationZ = 45f)
                                             .background(borderColor)
                                     )
 
-                                    // 2. Avatar rounded square container pushed to the top
+                                    // Avatar rounded square container
                                     Box(
                                         modifier = Modifier
                                             .padding(bottom = 10.dp)
@@ -810,8 +801,8 @@ fun MapaScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxSize()
-                                                .background(borderColor, RoundedCornerShape(22.dp))
-                                                .padding(3.5.dp), // Solid 3.5dp thick border
+                                                .background(borderColor, RoundedCornerShape(20.dp))
+                                                .padding(3.5.dp), // 100% solid borderColor matching label border
                                             contentAlignment = Alignment.Center
                                         ) {
                                             val initials = member.name.split(" ")
@@ -827,14 +818,14 @@ fun MapaScreen(
                                                     contentDescription = member.name,
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .clip(RoundedCornerShape(18.dp)),
+                                                        .clip(RoundedCornerShape(16.dp)),
                                                     contentScale = ContentScale.Crop
                                                 )
                                             } else {
                                                 Box(
                                                     modifier = Modifier
                                                         .fillMaxSize()
-                                                        .background(CardBackground, RoundedCornerShape(18.dp)),
+                                                        .background(CardBackground, RoundedCornerShape(16.dp)),
                                                     contentAlignment = Alignment.Center
                                                 ) {
                                                     Text(
@@ -848,7 +839,7 @@ fun MapaScreen(
                                         }
                                     }
 
-                                    // 3. Movement badge overlay (larger and clearer) aligned at bottom right
+                                    // Movement badge overlay aligned at bottom right
                                     if (movementEmoji != null) {
                                         Box(
                                             modifier = Modifier
@@ -869,6 +860,30 @@ fun MapaScreen(
                                                 )
                                             )
                                         }
+                                    }
+                                }
+
+                                // 2. Subtitle Label Badge attached to Top-Right of Avatar (overlapping)
+                                if (!subtitleText.isNullOrEmpty()) {
+                                    Card(
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = DarkSurface.copy(alpha = 0.95f)
+                                        ),
+                                        shape = RoundedCornerShape(10.dp),
+                                        border = BorderStroke(1.5.dp, borderColor), // Exact 100% solid borderColor match
+                                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+                                        modifier = Modifier
+                                            .padding(start = 40.dp, top = 0.dp) // Overlaps top-right corner of 56.dp avatar
+                                    ) {
+                                        Text(
+                                            text = subtitleText,
+                                            fontSize = 9.5.sp,
+                                            color = borderColor, // Exact 100% solid borderColor match
+                                            fontWeight = FontWeight.ExtraBold,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.5.dp),
+                                            maxLines = 1,
+                                            softWrap = false
+                                        )
                                     }
                                 }
                             }
