@@ -615,11 +615,12 @@ fun MapaScreen(
                     // MODE 1: Render Single Grouped Cluster Marker (Zoom Out View)
                     val centerLat = group.map { it.currentLocation!!.latitude }.average()
                     val centerLng = group.map { it.currentLocation!!.longitude }.average()
-                    val groupNames = group.joinToString(" y ") { it.name.split(" ").first() }
-                    val matchingGeofence = viewModel.selectedCircle?.geofences?.find { gf ->
-                        haversineDistance(centerLat, centerLng, gf.latitude, gf.longitude) * 1000 <= gf.radius
+                    val names = group.map { it.name.split(" ").first() }
+                    val clusterLabelText = if (names.size == 2) {
+                        "${names[0]} y ${names[1]}"
+                    } else {
+                        names.dropLast(1).joinToString(", ") + " y " + names.last()
                     }
-                    val clusterLabelText = matchingGeofence?.name?.let { "$it (${group.size})" } ?: "$groupNames (${group.size})"
 
                     key("cluster_" + group.joinToString("_") { it.id.toString() }) {
                         val clusterMarkerState = rememberMarkerState(position = LatLng(centerLat, centerLng))
@@ -1025,10 +1026,10 @@ fun MapaScreen(
             val mx = screenPoint.x.toFloat()
             val my = screenPoint.y.toFloat()
             
-            // Draw indicators ONLY if the member is actually off-screen (outside safety margins)
-            val insetX = with(density) { 22.dp.toPx() }
-            val insetY = with(density) { 22.dp.toPx() }
-            val isOffScreen = mx < insetX || mx > width - insetX || my < topMargin + insetY || my > height - bottomMargin - insetY
+            // Draw indicators ONLY when the main avatar marker has actually exited the screen boundary
+            val exitMarginX = with(density) { 10.dp.toPx() }
+            val exitMarginY = with(density) { 10.dp.toPx() }
+            val isOffScreen = mx < -exitMarginX || mx > width + exitMarginX || my < topMargin - exitMarginY || my > height - bottomMargin + exitMarginY
             
             if (isOffScreen) {
                 val dx = mx - cx
