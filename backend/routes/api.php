@@ -42,6 +42,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Subscriptions
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
+    Route::post('/subscriptions/start-trial', [SubscriptionController::class, 'startTrial']);
     Route::get('/subscriptions/callback/{provider}', [SubscriptionController::class, 'callback'])->name('subscription.callback');
 
     // Tracking

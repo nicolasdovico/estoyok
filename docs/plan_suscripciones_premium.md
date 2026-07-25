@@ -163,11 +163,11 @@ ALTER TABLE users ADD COLUMN trial_reminder_sent_at TIMESTAMP NULL;
   - [x] Agregar Paywall contextual en la solapa `VehiculoScreen.kt` al intentar ver trayectos pasados.
   - [x] Agregar Paywall contextual en `AjustesScreen.kt` con tarjeta descriptiva de suscripción y acceso a la prueba de 7 días.
 
-- [ ] **Tarea 1.3: Sincronizar Comunicación de Planes y Ventajas en la Plataforma Web (`frontend-web`)**
-  - [ ] Actualizar la página comercial de planes (`/pricing` / `/premium` en Next.js) con la tabla comparativa interactiva Free vs PRO.
-  - [ ] Integrar el banner promocional de 7 días gratis en el header y footer de la Landing Page (`page.tsx`).
-  - [ ] Actualizar las FAQs con acordeón interactivo respondiendo las dudas frecuentes sobre el periodo de prueba y cancelación.
-  - [ ] Agregar el badge de estado "Plan Free" y botón promocional "Mejorar a PRO" en la barra lateral del Dashboard Web (`Dashboard.tsx`).
+- [x] **Tarea 1.3: Sincronizar Comunicación de Planes y Ventajas en la Plataforma Web (`frontend-web`)**
+  - [x] Actualizar la página comercial de planes (`/pricing` / `/premium` en Next.js) with la tabla comparativa interactiva Free vs PRO.
+  - [x] Integrar el banner promocional de 7 días gratis en el header y footer de la Landing Page (`page.tsx`).
+  - [x] Actualizar las FAQs con acordeón interactivo respondiendo las dudas frecuentes sobre el periodo de prueba y cancelación.
+  - [x] Agregar la comunicación del 7-Day Free Trial ($0.00 hoy, cobro desde Día 8) en `BillingSection.tsx`.
 
 ---
 

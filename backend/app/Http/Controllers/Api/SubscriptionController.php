@@ -77,6 +77,38 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/subscriptions/start-trial",
+     *     summary="Start 7-day free trial for authenticated user",
+     *     tags={"Subscriptions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Trial started successfully"),
+     *     @OA\Response(response=422, description="Trial already consumed")
+     * )
+     */
+    public function startTrial(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->trial_ends_at !== null || $user->subscription_status === 'trialing') {
+            return response()->json([
+                'message' => 'Ya has utilizado o tienes activa la prueba gratuita de 7 días.'
+            ], 422);
+        }
+
+        $user->update([
+            'trial_ends_at' => now()->addDays(7),
+            'subscription_status' => 'trialing',
+            'subscription_provider' => $request->input('provider', 'stripe'),
+        ]);
+
+        return response()->json([
+            'message' => 'Prueba gratuita de 7 días activada con éxito.',
+            'user' => $user->fresh()
+        ]);
+    }
+
+    /**
      * @OA\Get(
      *     path="/api/subscriptions/callback/{provider}",
      *     summary="Callback for subscription redirects",

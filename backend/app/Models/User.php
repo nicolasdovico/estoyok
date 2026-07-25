@@ -52,6 +52,13 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'last_battery_alert_sent_at',
         'proximity_alerts_enabled',
         'avatar_path',
+        'trial_ends_at',
+        'subscription_provider',
+        'subscription_id',
+        'subscription_status',
+        'billing_cycle_ends_at',
+        'trial_reminder_sent_at',
+        'grace_period_ends_at',
     ];
 
     /**
@@ -71,6 +78,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
      */
     protected $appends = [
         'avatar_url',
+        'is_on_trial',
+        'trial_days_left',
     ];
 
     /**
@@ -97,6 +106,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'low_battery_alerts_enabled' => 'boolean',
             'last_battery_alert_sent_at' => 'datetime',
             'proximity_alerts_enabled' => 'boolean',
+            'trial_ends_at' => 'datetime',
+            'billing_cycle_ends_at' => 'datetime',
+            'trial_reminder_sent_at' => 'datetime',
+            'grace_period_ends_at' => 'datetime',
         ];
     }
 
@@ -186,11 +199,33 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     }
 
     /**
-     * Determine if the user has an active premium subscription.
+     * Determine if user is currently in their 7-day free trial.
+     */
+    public function getIsOnTrialAttribute(): bool
+    {
+        return $this->trial_ends_at !== null && $this->trial_ends_at->isFuture();
+    }
+
+    /**
+     * Get remaining trial days.
+     */
+    public function getTrialDaysLeftAttribute(): int
+    {
+        if (!$this->is_on_trial || !$this->trial_ends_at) {
+            return 0;
+        }
+
+        return (int) max(0, ceil(now()->diffInSeconds($this->trial_ends_at, false) / 86400));
+    }
+
+    /**
+     * Determine if the user has an active premium subscription or active trial.
      */
     public function hasPremiumAccess(): bool
     {
         return $this->is_premium ||
+               $this->is_on_trial ||
+               in_array($this->subscription_status, ['active', 'trialing', 'grace_period']) ||
                $this->subscribed('default') ||
                in_array($this->mp_status, ['authorized', 'active']) ||
                in_array($this->paypal_status, ['active', 'approved']);
