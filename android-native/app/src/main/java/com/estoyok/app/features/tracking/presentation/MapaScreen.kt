@@ -598,13 +598,18 @@ fun MapaScreen(
             val validMembers = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
             val memberGroups = mutableListOf<MutableList<com.estoyok.app.features.tracking.data.model.CircleMemberDto>>()
 
+            val sampleLat = validMembers.firstOrNull()?.currentLocation?.latitude ?: -34.6
+            val cosLatSample = Math.cos(Math.toRadians(sampleLat))
+            val metersPerPxSample = (156543.03392 * if (cosLatSample > 0.1) cosLatSample else 1.0) / Math.pow(2.0, currentZoom.toDouble().coerceIn(3.0, 21.0))
+            val groupingThresholdMeters = (44.0 * metersPerPxSample).coerceIn(30.0, 1500.0)
+
             for (member in validMembers) {
                 val loc = member.currentLocation!!
                 var addedToGroup = false
                 for (group in memberGroups) {
                     val firstLoc = group.first().currentLocation!!
                     val distance = haversineDistance(loc.latitude, loc.longitude, firstLoc.latitude, firstLoc.longitude) * 1000.0
-                    if (distance < 30.0) { // Group members within 30 meters
+                    if (distance < groupingThresholdMeters) { // Group members overlapping on screen
                         group.add(member)
                         addedToGroup = true
                         break
@@ -721,7 +726,7 @@ fun MapaScreen(
                         val cosLat = Math.cos(Math.toRadians(centerLat))
                         val metersPerPixel = (156543.03392 * if (cosLat > 0.1) cosLat else 1.0) / Math.pow(2.0, currentZoom.toDouble().coerceIn(3.0, 21.0))
                         val targetMetersOffset = 48.0 * metersPerPixel
-                        val clampedMetersOffset = targetMetersOffset.coerceIn(14.0, 42.0)
+                        val clampedMetersOffset = targetMetersOffset.coerceAtLeast(18.0)
                         val radiusDegrees = clampedMetersOffset / 111000.0
 
                         group.mapIndexed { index, member ->
@@ -839,17 +844,15 @@ fun MapaScreen(
                                         val distance = results[0]
                                         val speedMps = speed / 3.6f
 
-                                        val timeDelta = if (prevTime != null) now - prevTime else 0L
+                                        val timeDelta = if (prevTime != null && prevTime > 0L) now - prevTime else 0L
 
-                                        val physicalDuration = if (isMoving && speedMps > 0.1f) {
-                                            ((distance / speedMps) * 1000).toLong().coerceIn(1000L, 5000L)
-                                        } else if (timeDelta in 500L..10000L) {
-                                            timeDelta
+                                        val duration = if (timeDelta in 1000L..30000L) {
+                                            (timeDelta * 1.25f).toLong().coerceIn(2000L, 15000L)
+                                        } else if (isMoving && speedMps > 0.1f) {
+                                            ((distance / speedMps) * 1250L).toLong().coerceIn(2000L, 10000L)
                                         } else {
-                                            2000L
+                                            5000L
                                         }
-
-                                        val duration = physicalDuration.coerceAtMost(3000L)
                                         val startTime = System.currentTimeMillis()
 
                                         while (true) {

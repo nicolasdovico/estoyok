@@ -245,6 +245,8 @@
           - [x] `PanelScreen.kt`: Corregido el empaquetado vertical letra por letra del botón "Configurar ⚙️" y la píldora de "Contactos SOS" en `ProtectionSummaryCard` agregando `Modifier.weight(1f, fill = false)` al título, `maxLines = 1` y `softWrap = false` en los textos de botones para impedir el salto de línea vertical en fuentes grandes.
         - [x] Integración de Control Global de Alertas de Proximidad en Ajustes (Android Native):
           - [x] `AjustesScreen.kt`, `AjustesViewModel.kt`, `AuthModels.kt`: Creada e integrada la tarjeta de configuración "Alertas de Proximidad y Zonas" con interruptor (Switch) para activar/desactivar notificaciones globales de entrada y salida a perímetros de zonas seguras.
+        - [x] Restauración de Deslizamiento Continuo Desfasado en Marcadores de Mapa (Android Native):
+          - [x] `MapaScreen.kt`: Eliminada la restricción rígida de 3s (`coerceAtMost(3000L)`) y restaurado el cálculo dinámico basado en `timeDelta * 1.25f`, garantizando el movimiento lineal continuo sin estancamientos intermediarios ni tirones en el seguimiento en vivo.
 
 ### In Progress:
 - [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**

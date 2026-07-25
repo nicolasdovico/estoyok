@@ -1213,3 +1213,14 @@
     - Modificado [AjustesScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L340): agregada la tarjeta de configuración "Alertas de Proximidad y Zonas" con interruptor en tiempo real.
 - **Validación:**
     - Verificación exitosa de compilación nativa Kotlin (`BUILD SUCCESSFUL in 53s`).
+
+## [2026-07-25] Restauración de Deslizamiento Continuo Desfasado en Marcadores de Mapa
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L842-L853): removida la restricción estática de 3 segundos (`coerceAtMost(3000L)`) que causaba que la animación finalizara prematuramente y el marcador permaneciera congelado/estancado en pantalla esperando la siguiente actualización.
+    - Se restauró el cálculo de duración dinámica basado en el tiempo delta real transcurrido entre reportes consecutivos (`timeDelta`) escalado por un buffer de seguridad de `1.25x` (`1.25f`), asegurando un deslizamiento continuo y fluido sin pausas intermediarias ni tirones bruscos.
+    - Actualizado el umbral de agrupación a distancia visual dinámica en pantalla (`groupingThresholdMeters = 44dp * metersPerPixel`). Al alejar el mapa, cualquier familiar cuyo avatar se solape visualmente en pantalla se agrupa de forma automática en el indicador `👥 N`, y al acercar el zoom o tocar la burbuja, los avatares se despliegan en abanico circular sin encimarse.
+    - Preservadas al 100% todas las funcionalidades visuales alcanzadas: anclajes y solapamiento de etiquetas, indicadores de borde fuera de mapa (*Off-Screen Edge Indicators*), agrupadore de clusters, zonas seguras y marcas de tiempo estáticas (`stationarySince`).
+- **Validación:**
+    - Compilación nativa Android Kotlin completada de forma exitosa (`BUILD SUCCESSFUL in 34s`).
+    - Suite de 66 pruebas de backend de Laravel superada con éxito (66/66 passed).
+

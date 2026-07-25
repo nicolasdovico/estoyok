@@ -63,6 +63,11 @@ Las instrucciones a continuación son válidas para el entorno de desarrollo y p
 9. **Garantía de No Regresión (CRITICAL):**
    - Ejecutar `./test.sh` antes de finalizar cualquier tarea. Prioridad absoluta a corregir regresiones.
 
+10. **Preservación Estricta de Funcionalidades Logradas (CRITICAL):**
+    - Queda estrictamente PROHIBIDO eliminar, simplificar, sobreescribir o degradar cualquier funcionalidad lógica o visual previamente alcanzada (animaciones de deslizamiento, comportamientos de marcadores, labels, abanicos, resiliencia offline, etc.) al implementar una nueva mejora o corrección.
+    - Toda modificación debe ser puramente aditiva o de corrección aislada.
+    - Antes de modificar código existente, el agente DEBE auditar el bloque completo para asegurar que no se alteren efectos secundarios ni características logradas.
+
 ## Key Documentation
 - `docs/prd.md`: Product Requirements Document (MVP).
 - `docs/metodologia.md`: "Agent-First" development workflow.
