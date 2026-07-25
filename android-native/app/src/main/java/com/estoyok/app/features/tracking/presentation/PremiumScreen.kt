@@ -7,12 +7,18 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -34,6 +40,7 @@ fun PremiumScreen(
     val context = LocalContext.current
     val scrollState = rememberScrollState()
     var selectedPayProvider by remember { mutableStateOf("stripe") }
+    var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isPremium == true
 
     Box(
@@ -45,23 +52,25 @@ fun PremiumScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(scrollState)
-                .padding(start = 20.dp, end = 20.dp, bottom = 80.dp, top = 60.dp),
+                .padding(start = 20.dp, end = 20.dp, bottom = 80.dp, top = 50.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Header Title
             Text(
                 text = "👑 Suscripción Premium",
-                fontSize = 22.sp,
+                fontSize = 24.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = MaterialTheme.colorScheme.primary
             )
 
-            // Subscription status card
+            // Subscription status card or Hero Paywall Card
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = if (isPremium) DarkSurfaceVariant else Color(0xFF0F1E15)),
-                border = if (isPremium) null else BorderStroke(1.dp, PrimaryEmerald)
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = if (isPremium) DarkSurfaceVariant else Color(0xFF0C241D)
+                ),
+                border = BorderStroke(1.5.dp, PrimaryEmerald)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -72,100 +81,160 @@ fun PremiumScreen(
                             imageVector = Icons.Default.Star,
                             contentDescription = "Premium",
                             tint = Color(0xFFFFD700),
-                            modifier = Modifier.size(36.dp)
+                            modifier = Modifier.size(44.dp)
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
                             text = "¡Eres Socio Premium! ⭐",
-                            fontSize = 18.sp,
+                            fontSize = 20.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = Color(0xFFFFD700)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tienes habilitado el acceso completo a alertas ilimitadas de WhatsApp y SMS, grabación ambiental S.O.S, telemetría vehicular y detección inteligente de impactos.",
-                            fontSize = 12.sp,
+                            text = "Tu núcleo familiar cuenta con la máxima protección: alertas ilimitadas por WhatsApp/SMS, S.O.S con grabación de audio ambiental, telemetría vehicular e historial de 30 días.",
+                            fontSize = 13.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center,
                             lineHeight = 18.sp
                         )
                     } else {
+                        // Hero Header
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(12.dp))
+                                .background(PrimaryEmerald.copy(alpha = 0.15f))
+                                .padding(horizontal = 12.dp, vertical = 6.dp)
+                        ) {
+                            Text(
+                                text = "✨ OFERTA EXCLUSIVA DE LANZAMIENTO",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PrimaryEmerald
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
                         Text(
-                            text = "Mejorar a Premium PRO 👑",
-                            fontSize = 18.sp,
+                            text = "Prueba Estoy Ok PRO gratis por 7 días 👑",
+                            fontSize = 19.sp,
                             fontWeight = FontWeight.ExtraBold,
-                            color = PrimaryEmerald
+                            color = TextPrimary,
+                            textAlign = TextAlign.Center
                         )
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Protege a tu núcleo familiar sin límites con la máxima tecnología de Estoy Ok.",
+                            text = "Protección familiar sin límites. Desbloquea SOS ambiental, telemetría vehicular y rastro completo.",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center,
-                            lineHeight = 18.sp
+                            lineHeight = 17.sp
                         )
-                        Spacer(modifier = Modifier.height(16.dp))
-
-                        // Features List
-                        Column(
-                            horizontalAlignment = Alignment.Start,
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = 8.dp)
-                        ) {
-                            listOf(
-                                "WhatsApp & SMS ilimitados para alertas de emergencia.",
-                                "S.O.S. Silencioso con 15 segundos de grabación ambiente.",
-                                "Detección vehicular y sensores (GPS, batería baja, conducción).",
-                                "Detección de accidentes de auto mediante acelerómetro.",
-                                "Historial de trayectos del núcleo por 30 días."
-                            ).forEach { benefit ->
-                                Row(
-                                    verticalAlignment = Alignment.Top,
-                                    horizontalArrangement = Arrangement.spacedBy(6.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Shield,
-                                        contentDescription = "Shield",
-                                        tint = PrimaryEmerald,
-                                        modifier = Modifier.size(16.dp).padding(top = 2.dp)
-                                    )
-                                    Text(
-                                        text = benefit,
-                                        fontSize = 12.sp,
-                                        color = TextPrimary
-                                    )
-                                }
-                            }
-                        }
 
                         Spacer(modifier = Modifier.height(20.dp))
 
-                        // Payment selector chips
+                        // 7-Day Trial Timeline Breakdown Card
                         Text(
-                            text = "Seleccionar Medio de Pago:",
-                            fontSize = 11.sp,
-                            color = TextMuted,
-                            fontWeight = FontWeight.Bold
+                            text = "📅 ¿Cómo funciona tu prueba gratis?",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = PrimaryEmerald,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            TimelineStepItem(
+                                number = "1",
+                                title = "Hoy (Día 1)",
+                                subtitle = "Acceso inmediato e ilimitado a todas las funciones PRO por $0.00.",
+                                isFirst = true
+                            )
+                            TimelineStepItem(
+                                number = "5",
+                                title = "Día 5 (Recordatorio)",
+                                subtitle = "Te enviamos una notificación push. Puedes cancelar en 1 toque sin cobro.",
+                                isFirst = false
+                            )
+                            TimelineStepItem(
+                                number = "7",
+                                title = "Día 7 (Final del Trial)",
+                                subtitle = if (selectedBillingCycle == "annual") "Comienza la facturación anual ($35.99/año • $2.99/mes)." else "Comienza la facturación mensual ($4.99/mes).",
+                                isFirst = false
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(22.dp))
+
+                        // Billing Cycle Selector (Monthly vs Annual 40% OFF)
+                        Text(
+                            text = "💳 Selecciona tu Plan:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            modifier = Modifier.align(Alignment.Start)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            BillingPlanCard(
+                                title = "Anual (Ahorra 40%)",
+                                price = "$2.99",
+                                unit = "/ mes",
+                                detail = "$35.99 facturado al año",
+                                isSelected = selectedBillingCycle == "annual",
+                                badgeText = "POPULAR 🔥",
+                                onClick = { selectedBillingCycle = "annual" },
+                                modifier = Modifier.weight(1f)
+                            )
+                            BillingPlanCard(
+                                title = "Mensual",
+                                price = "$4.99",
+                                unit = "/ mes",
+                                detail = "Facturación mensual flexible",
+                                isSelected = selectedBillingCycle == "monthly",
+                                badgeText = null,
+                                onClick = { selectedBillingCycle = "monthly" },
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(22.dp))
+
+                        // Payment Provider Selector
+                        Text(
+                            text = "🏦 Medio de Pago para el Alta:",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            modifier = Modifier.align(Alignment.Start)
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            listOf("stripe" to "Stripe", "mercadopago" to "MercadoPago", "paypal" to "PayPal").forEach { (id, label) ->
+                            listOf("stripe" to "Stripe / Google Pay", "mercadopago" to "MercadoPago", "paypal" to "PayPal").forEach { (id, label) ->
                                 val selected = selectedPayProvider == id
                                 Box(
                                     modifier = Modifier
                                         .weight(1f)
-                                        .clip(RoundedCornerShape(8.dp))
-                                        .background(if (selected) MaterialTheme.colorScheme.primary else DarkSurfaceVariant)
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(if (selected) PrimaryEmerald else DarkSurfaceVariant)
                                         .clickable { selectedPayProvider = id }
-                                        .padding(vertical = 8.dp),
+                                        .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
                                     Text(
                                         text = label,
-                                        color = if (selected) Color.White else TextPrimary,
+                                        color = if (selected) TextOnPrimary else TextPrimary,
                                         fontSize = 11.sp,
                                         fontWeight = FontWeight.Bold
                                     )
@@ -173,9 +242,9 @@ fun PremiumScreen(
                             }
                         }
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        Spacer(modifier = Modifier.height(22.dp))
 
-                        // Subscribe CTA Button
+                        // CTA Button
                         Button(
                             onClick = {
                                 viewModel.checkoutSubscription(selectedPayProvider) { checkoutUrl ->
@@ -183,16 +252,140 @@ fun PremiumScreen(
                                     context.startActivity(intent)
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(52.dp),
                             enabled = !viewModel.checkoutLoading,
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryEmerald,
+                                contentColor = TextOnPrimary
+                            )
                         ) {
                             if (viewModel.checkoutLoading) {
-                                CircularProgressIndicator(modifier = Modifier.size(20.dp), color = TextOnPrimary)
+                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = TextOnPrimary)
                             } else {
-                                Text("Suscribirse ahora ($4.99/mes)", fontWeight = FontWeight.ExtraBold, fontSize = 14.sp)
+                                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                                    Text(
+                                        text = "Iniciar Prueba Gratis (7 Días)",
+                                        fontWeight = FontWeight.ExtraBold,
+                                        fontSize = 15.sp,
+                                        color = TextOnPrimary
+                                    )
+                                    Text(
+                                        text = "Hoy $0.00 • Cancela en cualquier momento",
+                                        fontSize = 10.sp,
+                                        color = TextOnPrimary.copy(alpha = 0.85f)
+                                    )
+                                }
                             }
                         }
+                    }
+                }
+            }
+
+            // Feature Comparison Matrix (Free vs PRO)
+            Text(
+                text = "📊 Comparativa de Planes (Free vs PRO)",
+                fontSize = 17.sp,
+                fontWeight = FontWeight.Bold,
+                color = MaterialTheme.colorScheme.primary
+            )
+
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    // Header Row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Característica",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextMuted,
+                            modifier = Modifier.weight(1.8f)
+                        )
+                        Text(
+                            text = "Free 🛡️",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextMuted,
+                            modifier = Modifier.weight(1f),
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "PRO 👑",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = PrimaryEmerald,
+                            modifier = Modifier.weight(1.2f),
+                            textAlign = TextAlign.Center
+                        )
+                    }
+
+                    HorizontalDivider(color = CardBackground)
+
+                    // Matrix Items
+                    val featureMatrix = listOf(
+                        Triple("Historial de Recorridos", "24 Horas", "30 Días"),
+                        Triple("Rastreo GPS en Vehículo", "Estándar (30s)", "Alta Frecuencia (5s)"),
+                        Triple("Zonas Seguras (Geocercas)", "Hasta 2", "Ilimitadas"),
+                        Triple("Alertas por WhatsApp / SMS", "Desactivado", "Ilimitadas"),
+                        Triple("S.O.S. con Audio Ambiente", "Solo Push", "Grabación 15s + 5s GPS"),
+                        Triple("Detección de Accidentes (Crash)", "Desactivado", "Acelerómetro + Sirena"),
+                        Triple("Telemetría de Conducción", "Básica", "Frenadas / Excesos / Celular"),
+                        Triple("Alertas Batería Baja / Sensores", "Básica", "Prioritarias (<15%)"),
+                        Triple("Radar Móvil de Proximidad", "Desactivado", "Activo")
+                    )
+
+                    featureMatrix.forEach { (feature, freeVal, proVal) ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = feature,
+                                fontSize = 11.5.sp,
+                                color = TextPrimary,
+                                modifier = Modifier.weight(1.8f)
+                            )
+                            Text(
+                                text = freeVal,
+                                fontSize = 10.5.sp,
+                                color = TextMuted,
+                                modifier = Modifier.weight(1f),
+                                textAlign = TextAlign.Center
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1.2f)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(PrimaryEmerald.copy(alpha = 0.15f))
+                                    .padding(vertical = 4.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = proVal,
+                                    fontSize = 10.5.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryEmerald,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+                        HorizontalDivider(color = CardBackground.copy(alpha = 0.5f))
                     }
                 }
             }
@@ -212,6 +405,128 @@ fun PremiumScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TimelineStepItem(
+    number: String,
+    title: String,
+    subtitle: String,
+    isFirst: Boolean
+) {
+    Row(
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Box(
+            modifier = Modifier
+                .size(24.dp)
+                .background(if (isFirst) PrimaryEmerald else DarkSurfaceVariant, CircleShape),
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                text = number,
+                color = if (isFirst) TextOnPrimary else PrimaryEmerald,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Bold
+            )
+        }
+        Column {
+            Text(
+                text = title,
+                fontSize = 12.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Text(
+                text = subtitle,
+                fontSize = 11.sp,
+                color = TextSecondary,
+                lineHeight = 15.sp
+            )
+        }
+    }
+}
+
+@Composable
+private fun BillingPlanCard(
+    title: String,
+    price: String,
+    unit: String,
+    detail: String,
+    isSelected: Boolean,
+    badgeText: String?,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.clickable { onClick() },
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isSelected) PrimaryEmerald.copy(alpha = 0.15f) else DarkSurfaceVariant
+        ),
+        border = BorderStroke(
+            width = if (isSelected) 2.dp else 1.dp,
+            color = if (isSelected) PrimaryEmerald else DarkSurfaceVariant
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            badgeText?.let { badge ->
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(PrimaryEmerald)
+                        .padding(horizontal = 6.dp, vertical = 2.dp)
+                ) {
+                    Text(
+                        text = badge,
+                        fontSize = 9.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = TextOnPrimary
+                    )
+                }
+                Spacer(modifier = Modifier.height(4.dp))
+            }
+
+            Text(
+                text = title,
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = if (isSelected) PrimaryEmerald else TextPrimary,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(4.dp))
+
+            Row(verticalAlignment = Alignment.Bottom) {
+                Text(
+                    text = price,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextPrimary
+                )
+                Text(
+                    text = unit,
+                    fontSize = 10.sp,
+                    color = TextMuted,
+                    modifier = Modifier.padding(bottom = 2.dp, start = 2.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(2.dp))
+
+            Text(
+                text = detail,
+                fontSize = 9.5.sp,
+                color = TextSecondary,
+                textAlign = TextAlign.Center
+            )
         }
     }
 }
