@@ -129,17 +129,20 @@ export default function BillingSection({
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-neutral-800 pb-5">
               <div>
                 <div className="flex items-center gap-2">
-                  <span className="text-[9px] bg-yellow-500/20 text-yellow-400 font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider font-sans">
-                    Plan PRO recomendado
+                  <span className="text-[9px] bg-emerald-500/20 text-emerald-400 font-extrabold uppercase px-2.5 py-1 rounded-full tracking-wider font-sans">
+                    ✨ 7 Días de Prueba Gratis
                   </span>
                   <span className="text-xs">⭐</span>
                 </div>
                 <h3 className="text-xl font-black text-white mt-2 font-sans">Premium PRO</h3>
-                <p className="text-[10px] text-gray-400 mt-1 font-sans">Suscripción mensual familiar recurrente</p>
+                <p className="text-[10px] text-emerald-400 font-semibold mt-1 font-sans">Hoy $0.00 • Cancela en cualquier momento sin costo</p>
               </div>
-              <div className="flex items-baseline gap-1 text-white font-sans bg-neutral-850 px-4 py-2.5 rounded-2xl border border-neutral-800">
-                <span className="text-3xl font-black text-yellow-400">$4.99</span>
-                <span className="text-[10px] text-gray-400 font-medium">/ mes</span>
+              <div className="flex flex-col items-end gap-1 text-white font-sans bg-neutral-850 px-4 py-2.5 rounded-2xl border border-neutral-800">
+                <div className="flex items-baseline gap-1">
+                  <span className="text-3xl font-black text-emerald-400">$4.99</span>
+                  <span className="text-[10px] text-gray-400 font-medium">/ mes</span>
+                </div>
+                <span className="text-[9px] text-gray-400">A partir del Día 8</span>
               </div>
             </div>
 

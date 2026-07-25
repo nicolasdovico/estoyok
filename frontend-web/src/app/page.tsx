@@ -693,6 +693,10 @@ export default function Home() {
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
                   a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp y SMS."
+                },
+                {
+                  q: "¿Cómo funciona la prueba gratuita de 7 días y la cancelación?",
+                  a: "Al iniciar tu registro o seleccionar el Plan PRO, obtienes 7 días de acceso completo por $0.00. El día 5 te enviamos una notificación preventiva por push e email. Al finalizar los 7 días (día 8), comienza la suscripción mensual flexible de $4.99/mes. Puedes cancelar en cualquier momento durante los 7 días desde tus Ajustes o tiendas de aplicaciones sin que se te efectúe ningún cobro."
                 }
               ].map((faq, index) => {
                 const isOpen = openFaqIndex === index;

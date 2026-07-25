@@ -158,10 +158,10 @@ ALTER TABLE users ADD COLUMN trial_reminder_sent_at TIMESTAMP NULL;
   - [x] Crear el selector de facturación (Anual con 40% OFF vs Mensual).
   - [x] Implementar la lista/matriz comparativa interactiva de características Free vs PRO con íconos turquesa.
 
-- [ ] **Tarea 1.2: Rediseñar Paywalls Contextuales en la App (Triggers)**
-  - [ ] Actualizar el diálogo promocional de Historial en `MapaScreen.kt` con botón directo *"Iniciar Prueba Gratis por 7 Días"*.
-  - [ ] Agregar Paywall contextual en la solapa `VehiculoScreen.kt` al intentar ver trayectos pasados.
-  - [ ] Agregar Paywall contextual en `AjustesScreen.kt` al intentar agregar más de 2 Zonas Seguras.
+- [x] **Tarea 1.2: Rediseñar Paywalls Contextuales en la App (Triggers)**
+  - [x] Actualizar el diálogo promocional de Historial en `MapaScreen.kt` con botón directo *"Iniciar Prueba Gratis por 7 Días"*.
+  - [x] Agregar Paywall contextual en la solapa `VehiculoScreen.kt` al intentar ver trayectos pasados.
+  - [x] Agregar Paywall contextual en `AjustesScreen.kt` con tarjeta descriptiva de suscripción y acceso a la prueba de 7 días.
 
 - [ ] **Tarea 1.3: Sincronizar Comunicación de Planes y Ventajas en la Plataforma Web (`frontend-web`)**
   - [ ] Actualizar la página comercial de planes (`/pricing` / `/premium` en Next.js) con la tabla comparativa interactiva Free vs PRO.
