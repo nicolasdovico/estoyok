@@ -208,11 +208,11 @@ ALTER TABLE users ADD COLUMN trial_reminder_sent_at TIMESTAMP NULL;
 ### FASE 4: Notificaciones Preventivas del Trial y Retención
 > **Objetivo:** Notificar proactivamente al usuario antes del cobro para construir confianza y reducir contracargos.
 
-- [ ] **Tarea 4.1: Comando de Scheduler `subscriptions:send-trial-reminders`**
-  - [ ] Buscar usuarios en estado `trialing` cuyo `trial_ends_at` venza en exactamente 2 días (Día 5 de la prueba).
-  - [ ] Enviar Notificación Push prioritaria y Email `TrialExpiringSoonMail`.
-  - [ ] Marcar `trial_reminder_sent_at = now()` para evitar duplicados.
-  - [ ] Programar la ejecución diaria en el Scheduler de Laravel.
+- [x] **Tarea 4.1: Comando de Scheduler `subscriptions:send-trial-reminders`**
+  - [x] Buscar usuarios en estado `trialing` cuyo `trial_ends_at` venza en exactamente 2 días (Día 5 de la prueba).
+  - [x] Enviar Notificación Push prioritaria y Email `TrialExpiringSoonMail`.
+  - [x] Marcar `trial_reminder_sent_at = now()` para evitar duplicados.
+  - [x] Programar la ejecución diaria en el Scheduler de Laravel (`routes/console.php`).
 
 - [ ] **Tarea 4.2: Centro de Gestión de Suscripción en Ajustes (`AjustesScreen.kt`)**
   - [ ] Diseñar la tarjeta de estado de facturación activa:
