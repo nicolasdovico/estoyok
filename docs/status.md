@@ -249,8 +249,9 @@
           - [x] `MapaScreen.kt`: Eliminada la restricción rígida de 3s (`coerceAtMost(3000L)`) y restaurado el cálculo dinámico basado en `timeDelta * 1.25f`, garantizando el movimiento lineal continuo sin estancamientos intermediarios ni tirones en el seguimiento en vivo.
 
 ### In Progress:
-- [ ] **FASE 12: Configuración de Entornos de Despliegue y Validación Final**
-- [ ] **FASE 13: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
+- [ ] **FASE 12: Rediseño de Monetización, Paywalls y Suscripciones Nativas (Estilo Life360)** (Plan de Trabajo en [plan_suscripciones_premium.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_suscripciones_premium.md))
+- [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
+- [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
 - Refine background location frequency vs battery consumption in Mobile (Fase 9).
