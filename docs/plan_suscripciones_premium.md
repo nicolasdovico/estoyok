@@ -235,27 +235,27 @@ stateDiagram-v2
     Canceled --> Active: Reactivación Manual / Nuevo Pago Exitoso
 ```
 
-- [ ] **Tarea 5.1: Captura de Webhooks de Falla (Stripe, Google Play & Mercado Pago)**
-  - [ ] Capturar `invoice.payment_failed` y `customer.subscription.past_due` en Stripe Webhook.
-  - [ ] Capturar `SUBSCRIPTION_IN_GRACE_PERIOD` y `SUBSCRIPTION_ON_HOLD` en Google Play Developer Notifications.
-  - [ ] Capturar estado de preapproval rechazado en Mercado Pago Webhook.
-  - [ ] Actualizar estado del usuario a `subscription_status = 'grace_period'` y registrar `grace_period_ends_at = now()->addDays(5)`.
+- [x] **Tarea 5.1: Captura de Webhooks de Falla (Stripe, Google Play & Mercado Pago)**
+  - [x] Capturar `invoice.payment_failed` y `customer.subscription.past_due` en Stripe Webhook.
+  - [x] Capturar `SUBSCRIPTION_IN_GRACE_PERIOD` y `SUBSCRIPTION_ON_HOLD` en Google Play Developer Notifications.
+  - [x] Capturar estado de preapproval rechazado en Mercado Pago Webhook.
+  - [x] Actualizar estado del usuario a `subscription_status = 'grace_period'` y registrar `grace_period_ends_at = now()->addDays(5)`.
 
-- [ ] **Tarea 5.2: Notificaciones y Reintentos Inteligentes en Periodo de Gracia**
-  - [ ] Despachar Notificación Push inmediata + Email `PaymentFailedGracePeriodMail`:
+- [x] **Tarea 5.2: Notificaciones y Reintentos Inteligentes en Periodo de Gracia**
+  - [x] Despachar Notificación Push inmediata + Email `PaymentFailedGracePeriodMail`:
     * *"Tu pago mensual no pudo procesarse. Tu grupo familiar seguirá protegido durante 5 días de gracia. Toca aquí para actualizar tu tarjeta."*
-  - [ ] Programar Push de recordatorio en el Día 3 del Periodo de Gracia.
-  - [ ] El accesor `is_premium` se mantiene en `true` durante los 5 días de gracia para no dejar desprotegida a la familia.
+  - [x] Programar Push de recordatorio en el Día 3 del Periodo de Gracia.
+  - [x] El accesor `is_premium` se mantiene en `true` durante los 5 días de gracia para no dejar desprotegida a la familia.
 
-- [ ] **Tarea 5.3: Expiración de Gracia y Reversión Automática a Plan Free**
-  - [ ] Comando de Scheduler `subscriptions:check-expired-grace-periods`.
-  - [ ] Buscar usuarios en `grace_period` cuyo `grace_period_ends_at` haya vencido.
-  - [ ] Transicionar estado a `subscription_status = 'canceled'` y `is_premium = false`.
-  - [ ] Enviar Notificación Push + Email `SubscriptionSuspendedMail`: *"Tu suscripción ha vencido y los beneficios PRO se han pausado. Tu familia cuenta ahora con el Plan Gratuito. Toca para reactivar."*
+- [x] **Tarea 5.3: Expiración de Gracia y Reversión Automática a Plan Free**
+  - [x] Comando de Scheduler `subscriptions:check-expired-grace-periods`.
+  - [x] Buscar usuarios en `grace_period` cuyo `grace_period_ends_at` haya vencido.
+  - [x] Transicionar estado a `subscription_status = 'canceled'` y `is_premium = false`.
+  - [x] Enviar Notificación Push + Email `SubscriptionSuspendedMail`: *"Tu suscripción ha vencido y los beneficios PRO se han pausado. Tu familia cuenta ahora con el Plan Gratuito. Toca para reactivar."*
 
-- [ ] **Tarea 5.4: Flujo de Reactivación Instantánea**
-  - [ ] Al ingresar a Ajustes o tocar la notificación de suspensión, desplegar la tarjeta *"Reactivar Estoy Ok PRO"* pre-completada.
-  - [ ] Al actualizar tarjeta o pagar, transicionar de inmediato a `subscription_status = 'active'`, `is_premium = true` y restablecer el tracking continuo, SOS y telemetría.
+- [x] **Tarea 5.4: Flujo de Reactivación Instantánea**
+  - [x] Al ingresar a Ajustes o tocar la notificación de suspensión, desplegar la tarjeta *"Reactivar Estoy Ok PRO"* pre-completada.
+  - [x] Al actualizar tarjeta o pagar, transicionar de inmediato a `subscription_status = 'active'`, `is_premium = true` y restablecer el tracking continuo, SOS y telemetría.
 
 ---
 
