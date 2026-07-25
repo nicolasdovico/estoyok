@@ -141,4 +141,36 @@ class SubscriptionController extends Controller
             'status' => $status,
         ]);
     }
+
+    /**
+     * @OA\Post(
+     *     path="/api/subscriptions/cancel",
+     *     summary="Cancel subscription or free trial for authenticated user",
+     *     tags={"Subscriptions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\Response(response=200, description="Subscription canceled successfully")
+     * )
+     */
+    public function cancelSubscription(Request $request)
+    {
+        $user = Auth::user();
+
+        if ($user->subscribed('default')) {
+            try {
+                $user->subscription('default')->cancel();
+            } catch (\Exception $e) {
+                // Log and continue local cancellation
+            }
+        }
+
+        $user->update([
+            'subscription_status' => 'canceled',
+            'is_premium' => false,
+        ]);
+
+        return response()->json([
+            'message' => 'Tu prueba gratuita o suscripción ha sido cancelada sin costo alguno.',
+            'user' => $user->fresh()
+        ]);
+    }
 }

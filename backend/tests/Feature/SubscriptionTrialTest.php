@@ -58,4 +58,23 @@ class SubscriptionTrialTest extends TestCase
                 'message' => 'Ya has utilizado o tienes activa la prueba gratuita de 7 días.'
             ]);
     }
+
+    public function test_user_can_cancel_free_trial_without_charge()
+    {
+        $user = User::factory()->create([
+            'is_premium' => true,
+            'trial_ends_at' => now()->addDays(4),
+            'subscription_status' => 'trialing',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/cancel');
+
+        $response->assertStatus(200);
+
+        $user->refresh();
+        $this->assertEquals('canceled', $user->subscription_status);
+        $this->assertFalse($user->is_premium);
+    }
 }
