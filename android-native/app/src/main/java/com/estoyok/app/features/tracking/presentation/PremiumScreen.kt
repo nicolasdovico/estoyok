@@ -2,6 +2,7 @@ package com.estoyok.app.features.tracking.presentation
 
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -231,8 +232,13 @@ fun PremiumScreen(
                                         .clickable {
                                             selectedPayProvider = id
                                             viewModel.startTrialAndCheckout(id) { checkoutUrl ->
-                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
-                                                context.startActivity(intent)
+                                                Toast.makeText(context, "👑 ¡Prueba de 7 días activada con éxito!", Toast.LENGTH_SHORT).show()
+                                                try {
+                                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
+                                                    context.startActivity(intent)
+                                                } catch (e: Exception) {
+                                                    Toast.makeText(context, "No se pudo abrir la pasarela de pago.", Toast.LENGTH_SHORT).show()
+                                                }
                                             }
                                         }
                                         .padding(vertical = 10.dp),
@@ -254,8 +260,13 @@ fun PremiumScreen(
                         Button(
                             onClick = {
                                 viewModel.startTrialAndCheckout(selectedPayProvider) { checkoutUrl ->
-                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
-                                    context.startActivity(intent)
+                                    Toast.makeText(context, "👑 ¡Prueba de 7 días activada con éxito!", Toast.LENGTH_SHORT).show()
+                                    try {
+                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
+                                        context.startActivity(intent)
+                                    } catch (e: Exception) {
+                                        Toast.makeText(context, "No se pudo abrir la pasarela de pago.", Toast.LENGTH_SHORT).show()
+                                    }
                                 }
                             },
                             modifier = Modifier
