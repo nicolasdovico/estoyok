@@ -228,7 +228,13 @@ fun PremiumScreen(
                                         .weight(1f)
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(if (selected) PrimaryEmerald else DarkSurfaceVariant)
-                                        .clickable { selectedPayProvider = id }
+                                        .clickable {
+                                            selectedPayProvider = id
+                                            viewModel.startTrialAndCheckout(id) { checkoutUrl ->
+                                                val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
+                                                context.startActivity(intent)
+                                            }
+                                        }
                                         .padding(vertical = 10.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
@@ -247,7 +253,7 @@ fun PremiumScreen(
                         // CTA Button
                         Button(
                             onClick = {
-                                viewModel.checkoutSubscription(selectedPayProvider) { checkoutUrl ->
+                                viewModel.startTrialAndCheckout(selectedPayProvider) { checkoutUrl ->
                                     val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
                                     context.startActivity(intent)
                                 }

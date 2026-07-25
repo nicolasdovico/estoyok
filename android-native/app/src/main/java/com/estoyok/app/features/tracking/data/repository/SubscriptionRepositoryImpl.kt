@@ -3,6 +3,7 @@ package com.estoyok.app.features.tracking.data.repository
 import com.estoyok.app.core.util.Resource
 import com.estoyok.app.features.tracking.data.model.CheckoutRequest
 import com.estoyok.app.features.tracking.data.model.CheckoutResponse
+import com.estoyok.app.features.tracking.data.model.StartTrialResponse
 import com.estoyok.app.features.tracking.data.remote.SubscriptionApiService
 import com.estoyok.app.features.tracking.domain.repository.SubscriptionRepository
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,22 @@ class SubscriptionRepositoryImpl @Inject constructor(
             emit(Resource.Error("Error de conexión. Revisa tu internet."))
         } catch (e: Exception) {
             emit(Resource.Error("Ocurrió un error inesperado al procesar el pago."))
+        }
+    }
+
+    override fun startTrial(provider: String): Flow<Resource<StartTrialResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.startTrial(CheckoutRequest(provider))
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado al activar la prueba."))
         }
     }
 

@@ -2,6 +2,7 @@ package com.estoyok.app.features.tracking.data.remote
 
 import com.estoyok.app.features.tracking.data.model.CheckoutRequest
 import com.estoyok.app.features.tracking.data.model.CheckoutResponse
+import com.estoyok.app.features.tracking.data.model.StartTrialResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.POST
@@ -12,4 +13,9 @@ interface SubscriptionApiService {
     suspend fun checkout(
         @Body request: CheckoutRequest
     ): Response<CheckoutResponse>
+
+    @POST("subscriptions/start-trial")
+    suspend fun startTrial(
+        @Body request: CheckoutRequest
+    ): Response<StartTrialResponse>
 }

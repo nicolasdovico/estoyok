@@ -8,6 +8,7 @@ import androidx.lifecycle.viewModelScope
 import com.estoyok.app.core.util.Resource
 import com.estoyok.app.features.auth.data.model.UserDto
 import com.estoyok.app.features.tracking.data.model.CircleDto
+import com.estoyok.app.features.tracking.data.model.StartTrialResponse
 import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.features.tracking.domain.repository.SubscriptionRepository
 import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
@@ -188,6 +189,7 @@ class FamiliaViewModel @Inject constructor(
                 when (resource) {
                     is Resource.Loading -> {
                         checkoutLoading = true
+                        errorMessage = null
                     }
                     is Resource.Success -> {
                         checkoutLoading = false
@@ -196,6 +198,28 @@ class FamiliaViewModel @Inject constructor(
                     is Resource.Error -> {
                         checkoutLoading = false
                         errorMessage = resource.message ?: "Error al generar enlace de suscripción."
+                    }
+                }
+            }
+        }
+    }
+
+    fun startTrialAndCheckout(provider: String, onUrlReceived: (String) -> Unit) {
+        viewModelScope.launch {
+            subscriptionRepository.startTrial(provider).collectLatest { resource: Resource<StartTrialResponse> ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        checkoutLoading = true
+                        errorMessage = null
+                    }
+                    is Resource.Success -> {
+                        // Trial activated in backend! Refresh profile and proceed to checkout link
+                        refreshData()
+                        checkoutSubscription(provider, onUrlReceived)
+                    }
+                    is Resource.Error -> {
+                        // If trial was already consumed or errored, attempt direct checkout link
+                        checkoutSubscription(provider, onUrlReceived)
                     }
                 }
             }

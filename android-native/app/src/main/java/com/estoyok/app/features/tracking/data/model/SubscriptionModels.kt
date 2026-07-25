@@ -10,3 +10,7 @@ data class CheckoutRequest(
 data class CheckoutResponse(
     @SerializedName("checkout_url") val checkoutUrl: String
 )
+
+data class StartTrialResponse(
+    @SerializedName("message") val message: String
+)
