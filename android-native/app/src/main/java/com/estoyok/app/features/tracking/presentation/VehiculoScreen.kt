@@ -853,11 +853,11 @@ fun VehiculoScreen(
                                                 },
                                                 colors = ButtonDefaults.buttonColors(
                                                     containerColor = PrimaryEmerald,
-                                                    contentColor = DarkBackground
+                                                    contentColor = TextOnPrimary
                                                 ),
                                                 shape = RoundedCornerShape(8.dp)
                                             ) {
-                                                Text("Ver Planes Premium", fontWeight = FontWeight.Bold)
+                                                Text("Iniciar Prueba Gratis (7 Días)", fontWeight = FontWeight.Bold, color = TextOnPrimary)
                                             }
                                         }
                                     }

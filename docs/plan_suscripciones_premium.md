@@ -149,14 +149,14 @@ ALTER TABLE users ADD COLUMN trial_reminder_sent_at TIMESTAMP NULL;
 ### FASE 1: Paywall Rediseñado y Promoción del Trial de 7 Días (Nativo & Web)
 > **Objetivo:** Transformar la pantalla Premium en un embudo de alta conversión con prueba gratis por 7 días y propuesta de valor emocional.
 
-- [ ] **Tarea 1.1: Diseñar la UI del Paywall Estilo Life360 en Android Native (`PremiumScreen.kt`)**
-  - [ ] Agregar cabecera hero animada: *"Prueba Estoy Ok PRO gratis por 7 días"*.
-  - [ ] Diseñar el desglose del timeline de prueba:
+- [x] **Tarea 1.1: Diseñar la UI del Paywall Estilo Life360 en Android Native (`PremiumScreen.kt`)**
+  - [x] Agregar cabecera hero animada: *"Prueba Estoy Ok PRO gratis por 7 días"*.
+  - [x] Diseñar el desglose del timeline de prueba:
     * **Hoy:** Acceso inmediato a todas las características PRO ($0.00).
     * **Día 5:** Te enviamos un recordatorio por notificación push.
     * **Día 7:** Comienza el cobro mensual ($4.99/mes). Cancela cuando quieras.
-  - [ ] Crear el selector de facturación (Anual con 40% OFF vs Mensual).
-  - [ ] Implementar la lista/matriz comparativa interactiva de características Free vs PRO con íconos turquesa.
+  - [x] Crear el selector de facturación (Anual con 40% OFF vs Mensual).
+  - [x] Implementar la lista/matriz comparativa interactiva de características Free vs PRO con íconos turquesa.
 
 - [ ] **Tarea 1.2: Rediseñar Paywalls Contextuales en la App (Triggers)**
   - [ ] Actualizar el diálogo promocional de Historial en `MapaScreen.kt` con botón directo *"Iniciar Prueba Gratis por 7 Días"*.

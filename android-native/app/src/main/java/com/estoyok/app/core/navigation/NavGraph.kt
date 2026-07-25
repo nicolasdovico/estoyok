@@ -161,7 +161,7 @@ fun MainScreen(
                 composable(Screen.Vehiculo.route) { VehiculoScreen(navController = navController) }
                 composable(Screen.Familia.route) { FamiliaScreen() }
                 composable(Screen.Premium.route) { PremiumScreen() }
-                composable(Screen.Ajustes.route) { AjustesScreen() }
+                composable(Screen.Ajustes.route) { AjustesScreen(navController = navController) }
             }
 
             val isSubScreen = currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route

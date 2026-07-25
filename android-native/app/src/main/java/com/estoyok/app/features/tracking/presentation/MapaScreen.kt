@@ -2425,8 +2425,8 @@ fun MemberDetailsSheetContent(
     if (showPremiumPromoDialog) {
         AlertDialog(
             onDismissRequest = { showPremiumPromoDialog = false },
-            title = { Text("🔒 Historial Extendido") },
-            text = { Text("El acceso al historial de recorridos de los últimos 30 días es exclusivo para cuentas Premium. ¡Mejora tu plan para proteger a los tuyos!") },
+            title = { Text("🔒 Historial Extendido de 30 Días") },
+            text = { Text("El historial de trayectos pasadas las 24hs es exclusivo de Estoy Ok PRO. Disfruta de 7 días de prueba gratis por $0.00 y cancela cuando quieras.") },
             confirmButton = {
                 Button(
                     onClick = {
@@ -2436,12 +2436,12 @@ fun MemberDetailsSheetContent(
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                 ) {
-                    Text("Ver Planes Premium", color = TextOnPrimary, fontWeight = FontWeight.Bold)
+                    Text("Iniciar Prueba Gratis (7 Días)", color = TextOnPrimary, fontWeight = FontWeight.Bold)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showPremiumPromoDialog = false }) {
-                    Text("Cancelar")
+                    Text("Ahora no")
                 }
             }
         )
@@ -2634,12 +2634,13 @@ fun MemberDetailsSheetContent(
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
+                            containerColor = MaterialTheme.colorScheme.primary,
+                            contentColor = TextOnPrimary
                         )
                     ) {
                         Text(
                             text = "Ver Planes Premium",
-                            color = Color.White,
+                            color = TextOnPrimary,
                             fontWeight = FontWeight.Bold,
                             fontSize = 13.sp
                         )

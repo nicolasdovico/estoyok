@@ -32,12 +32,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
+import androidx.navigation.NavHostController
+import com.estoyok.app.core.navigation.Screen
 import com.estoyok.app.features.auth.presentation.AuthViewModel
 import com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AjustesScreen(
+    navController: NavHostController? = null,
     viewModel: AjustesViewModel = hiltViewModel(),
     authViewModel: AuthViewModel = hiltViewModel()
 ) {
@@ -214,17 +217,50 @@ fun AjustesScreen(
                         if (viewModel.userProfile?.isPremium == true) {
                             Spacer(modifier = Modifier.height(4.dp))
                             Surface(
-                                color = PrimaryOrange.copy(alpha = 0.2f),
-                                contentColor = PrimaryOrange,
+                                color = PrimaryEmerald.copy(alpha = 0.2f),
+                                contentColor = PrimaryEmerald,
                                 shape = RoundedCornerShape(6.dp)
                             ) {
                                 Text(
-                                    text = "⭐️ Premium PRO",
+                                    text = "👑 Socio Premium PRO",
                                     fontSize = 11.sp,
                                     fontWeight = FontWeight.Bold,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
                                 )
                             }
+                        }
+                    }
+                }
+            }
+
+            // Subscription & Free Trial Promo Card
+            SettingsCard(title = if (viewModel.userProfile?.isPremium == true) "Suscripción Premium 👑" else "Estado de tu Plan 🛡️") {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    if (viewModel.userProfile?.isPremium == true) {
+                        Text(
+                            text = "Tu cuenta cuenta con protección completa PRO activa: WhatsApp/SMS, SOS ambiental, telemetría vehicular e historial por 30 días.",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            lineHeight = 16.sp
+                        )
+                    } else {
+                        Text(
+                            text = "Actualmente estás en el Plan Gratuito (Limitado). Obtén Zonas Seguras ilimitadas, alertas por WhatsApp/SMS y SOS con grabación de audio.",
+                            fontSize = 12.sp,
+                            color = TextSecondary,
+                            lineHeight = 16.sp
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Button(
+                            onClick = { navController?.navigate(Screen.Premium.route) },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryEmerald,
+                                contentColor = TextOnPrimary
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Text("Iniciar Prueba Gratis (7 Días)", fontWeight = FontWeight.Bold, color = TextOnPrimary)
                         }
                     }
                 }
