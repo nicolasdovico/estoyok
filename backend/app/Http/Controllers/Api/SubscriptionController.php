@@ -54,6 +54,7 @@ class SubscriptionController extends Controller
         switch ($provider) {
             case 'stripe':
                 $checkoutUrl = $user->newSubscription('default', config('services.stripe.premium_price_id'))
+                    ->trialDays(7)
                     ->checkout([
                         'success_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'success']),
                         'cancel_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'cancel']),
@@ -121,12 +122,23 @@ class SubscriptionController extends Controller
      */
     public function callback(Request $request, $provider)
     {
-        // Here you would normally redirect to the frontend with a success/error message
-        // For now, we'll return a JSON or a simple view
+        $status = $request->query('status', 'unknown');
+
+        if ($status === 'success') {
+            $user = Auth::user();
+            if ($user && $user->trial_ends_at === null) {
+                $user->update([
+                    'trial_ends_at' => now()->addDays(7),
+                    'subscription_status' => 'trialing',
+                    'subscription_provider' => $provider,
+                ]);
+            }
+        }
+
         return response()->json([
             'message' => 'Subscription process finished',
             'provider' => $provider,
-            'status' => $request->query('status', 'unknown'),
+            'status' => $status,
         ]);
     }
 }
