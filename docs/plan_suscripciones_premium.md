@@ -174,18 +174,18 @@ ALTER TABLE users ADD COLUMN trial_reminder_sent_at TIMESTAMP NULL;
 ### FASE 2: Backend & Lógica de Ciclo de Vida del Trial de 7 Días
 > **Objetivo:** Extender la API de Laravel para gestionar el estado de prueba, cálculo de días restantes y accesores globales.
 
-- [ ] **Tarea 2.1: Migraciones y Accesores del Modelo `User.php`**
-  - [ ] Crear migración `add_subscription_lifecycle_to_users_table`.
-  - [ ] Agregar accesores dinámicos en `User.php`:
+- [x] **Tarea 2.1: Migraciones y Accesores del Modelo `User.php`**
+  - [x] Crear migración `2026_07_25_120000_add_subscription_lifecycle_to_users_table`.
+  - [x] Agregar accesores dinámicos en `User.php`:
     * `is_on_trial`: retorna `true` si `trial_ends_at` es futuro.
     * `is_premium`: retorna `true` si `is_on_trial == true` O `subscription_status == 'active'` O `subscription_status == 'grace_period'`.
     * `trial_days_left`: retorna los días enteros restantes de la prueba.
-  - [ ] Actualizar el endpoint `GET /api/user` (Auth/Me) para retornar estos campos en la respuesta JSON.
+  - [x] Actualizar el endpoint `GET /api/user` (Auth/Me) para retornar estos campos en la respuesta JSON.
 
-- [ ] **Tarea 2.2: Endpoint de Inicio de Trial Gratis (`POST /api/subscriptions/start-trial`)**
-  - [ ] Validar que el usuario no haya consumido previamente una prueba gratis.
-  - [ ] Asignar `trial_ends_at = now()->addDays(7)` y `subscription_status = 'trialing'`.
-  - [ ] Escribir tests de integración en `SubscriptionTrialTest.php`.
+- [x] **Tarea 2.2: Endpoint de Inicio de Trial Gratis (`POST /api/subscriptions/start-trial`)**
+  - [x] Validar que el usuario no haya consumido previamente una prueba gratis.
+  - [x] Asignar `trial_ends_at = now()->addDays(7)` y `subscription_status = 'trialing'`.
+  - [x] Escribir tests de integración en `SubscriptionTrialTest.php`.
 
 ---
 
