@@ -110,9 +110,9 @@ class SubscriptionController extends Controller
     {
         $user = Auth::user();
 
-        if ($user->hasPremiumAccess()) {
+        if ($user->subscribed('default') || ($user->getRawOriginal('is_premium') && $user->subscription_status === 'active')) {
             return response()->json([
-                'message' => 'Ya cuentas con acceso a la suscripción Premium o prueba activa.'
+                'message' => 'Ya cuentas con una suscripción Premium activa.'
             ], 422);
         }
 
