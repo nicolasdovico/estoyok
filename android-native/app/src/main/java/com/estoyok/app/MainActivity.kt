@@ -23,14 +23,22 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import kotlinx.coroutines.flow.MutableStateFlow
+
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var sessionManager: SessionManager
 
+    private val deepLinkFlow = MutableStateFlow<String?>(null)
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleDeepLink(intent)
+
         setContent {
             EstoyOkTheme {
                 // A surface container using the 'background' color from the theme
@@ -38,9 +46,26 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    val deepLinkUrl by deepLinkFlow.collectAsState()
+                    MainScreen(
+                        deepLinkUrl = deepLinkUrl,
+                        onDeepLinkHandled = { deepLinkFlow.value = null }
+                    )
                 }
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleDeepLink(intent)
+    }
+
+    private fun handleDeepLink(intent: Intent?) {
+        val data = intent?.dataString
+        if (!data.isNullOrEmpty() && (data.contains("estoyok") || data.contains("subscription"))) {
+            deepLinkFlow.value = data
         }
     }
 

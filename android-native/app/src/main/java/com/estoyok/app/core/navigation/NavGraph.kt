@@ -35,7 +35,9 @@ import com.estoyok.app.features.wellbeing.presentation.PanelScreen
 @Composable
 fun MainScreen(
     navController: NavHostController = rememberNavController(),
-    authViewModel: AuthViewModel = hiltViewModel()
+    authViewModel: AuthViewModel = hiltViewModel(),
+    deepLinkUrl: String? = null,
+    onDeepLinkHandled: () -> Unit = {}
 ) {
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     
@@ -51,6 +53,19 @@ fun MainScreen(
 
     // Check if bottom bar should be visible (only for authenticated, main tab screens)
     val showBottomBar = isAuthenticated && (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route)
+
+    // Deep link navigation logic
+    LaunchedEffect(deepLinkUrl, isAuthenticated) {
+        if (isAuthenticated && !deepLinkUrl.isNullOrEmpty()) {
+            navController.navigate(Screen.Premium.route) {
+                popUpTo(navController.graph.findStartDestination().id) {
+                    saveState = true
+                }
+                launchSingleTop = true
+            }
+            onDeepLinkHandled()
+        }
+    }
 
     // Redirect logic: whenever auth state changes, enforce correct routes
     LaunchedEffect(isAuthenticated) {
@@ -70,7 +85,7 @@ fun MainScreen(
                                currentRoute == Screen.Login.route || 
                                currentRoute == Screen.Register.route || 
                                currentRoute.startsWith("verify_email")
-            if (isAuthScreen) {
+            if (isAuthScreen && deepLinkUrl.isNullOrEmpty()) {
                 navController.navigate(Screen.Mapa.route) {
                     popUpTo(Screen.Login.route) { inclusive = true }
                 }
