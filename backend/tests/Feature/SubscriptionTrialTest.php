@@ -36,17 +36,18 @@ class SubscriptionTrialTest extends TestCase
     {
         $user = User::factory()->create([
             'is_premium' => true,
-            'trial_ends_at' => now()->addDays(5),
-            'subscription_status' => 'trialing',
+            'subscription_status' => 'active',
         ]);
 
         $this->actingAs($user);
 
-        $response = $this->postJson('/api/subscriptions/start-trial');
+        $response = $this->postJson('/api/subscriptions/start-trial', [
+            'provider' => 'stripe'
+        ]);
 
         $response->assertStatus(422)
             ->assertJson([
-                'message' => 'Ya cuentas con acceso a la suscripción Premium o prueba activa.'
+                'message' => 'Ya cuentas con una suscripción Premium activa.'
             ]);
     }
 

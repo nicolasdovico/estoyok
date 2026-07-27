@@ -203,6 +203,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
      */
     public function getIsPremiumAttribute($value): bool
     {
+        if ($this->subscription_status === 'canceled') {
+            return false;
+        }
+
         return (bool) ($value || $this->is_on_trial || in_array($this->subscription_status, ['active', 'trialing', 'grace_period']) || $this->subscribed('default'));
     }
 
