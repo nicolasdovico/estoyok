@@ -66,8 +66,8 @@ class SubscriptionController extends Controller
                             $checkoutUrl = $user->newSubscription('default', $priceId)
                                 ->trialDays(7)
                                 ->checkout([
-                                    'success_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'success']),
-                                    'cancel_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'cancel']),
+                                    'success_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'success', 'user_id' => $user->id]),
+                                    'cancel_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'cancel', 'user_id' => $user->id]),
                                 ])->url;
                         }
                     }
@@ -133,16 +133,16 @@ class SubscriptionController extends Controller
     public function callback(Request $request, $provider)
     {
         $status = $request->query('status', 'unknown');
+        $userId = $request->query('user_id');
+        $user = ($userId ? User::find($userId) : null) ?? Auth::user();
 
-        if ($status === 'success') {
-            $user = Auth::user();
-            if ($user && $user->trial_ends_at === null) {
-                $user->update([
-                    'trial_ends_at' => now()->addDays(7),
-                    'subscription_status' => 'trialing',
-                    'subscription_provider' => $provider,
-                ]);
-            }
+        if ($status === 'success' && $user) {
+            $user->update([
+                'trial_ends_at' => now()->addDays(7),
+                'subscription_status' => 'trialing',
+                'subscription_provider' => $provider,
+                'is_premium' => true,
+            ]);
         }
 
         if ($request->wantsJson()) {

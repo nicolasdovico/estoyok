@@ -31,6 +31,9 @@ Route::post('/webhooks/twilio/message', [WebhookController::class, 'twilioMessag
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);
 Route::post('/emergency-alerts/{id}/respond', [EmergencyAlertController::class, 'respond']);
 
+// Public Subscription Callbacks
+Route::get('/subscriptions/callback/{provider}', [SubscriptionController::class, 'callback'])->name('subscription.callback');
+
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::post('/check-in', [CheckInController::class, 'store']);
@@ -44,7 +47,6 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
     Route::post('/subscriptions/start-trial', [SubscriptionController::class, 'startTrial']);
     Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancelSubscription']);
-    Route::get('/subscriptions/callback/{provider}', [SubscriptionController::class, 'callback'])->name('subscription.callback');
 
     // Tracking
     Route::post('/locations/update', [LocationController::class, 'update']);
