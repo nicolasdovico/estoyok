@@ -232,6 +232,10 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
      */
     public function hasPremiumAccess(): bool
     {
+        if (in_array($this->subscription_status, ['inactive', 'canceled'])) {
+            return (bool) $this->is_premium;
+        }
+
         return $this->is_premium ||
                $this->is_on_trial ||
                in_array($this->subscription_status, ['active', 'trialing', 'grace_period']) ||
