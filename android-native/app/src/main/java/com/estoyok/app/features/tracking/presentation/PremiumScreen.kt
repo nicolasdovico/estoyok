@@ -34,6 +34,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.*
 
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.compose.ui.platform.LocalLifecycleOwner
+
 @Composable
 fun PremiumScreen(
     viewModel: FamiliaViewModel = hiltViewModel()
@@ -44,8 +48,17 @@ fun PremiumScreen(
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isUserPremium == true
 
-    LaunchedEffect(Unit) {
-        viewModel.refreshData()
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.refreshData()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
     }
 
     Box(

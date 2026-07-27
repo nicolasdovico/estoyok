@@ -59,7 +59,7 @@ fun MainScreen(
         if (isAuthenticated && !deepLinkUrl.isNullOrEmpty()) {
             navController.navigate(Screen.Premium.route) {
                 popUpTo(navController.graph.findStartDestination().id) {
-                    saveState = true
+                    saveState = false
                 }
                 launchSingleTop = true
             }
