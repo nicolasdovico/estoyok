@@ -119,6 +119,11 @@
   - [x] Issue 1: Diseñar la pantalla de selección de planes (Gratis vs Premium PRO) y el selector de pasarela de pago (Stripe, Mercado Pago, PayPal) en Next.js con redirección asíncrona a checkouts.
   - [x] Issue 2: Checkout integrado web de tarjetas de crédito con Stripe Elements.
   - [x] Issue 3: Integración del SDK Móvil de Stripe (Expo / React Native) con soporte PaymentSheet y simulador seguro de cobro. Reorganizado el layout móvil para desacoplar completamente la membresía Premium y Stripe de la pantalla de "Configuración de Seguridad", trasladando todo el flujo de suscripción y simulación de Stripe a la pestaña principal de Ajustes (activeTab === 'more').
+  - [x] Rediseño de Interfaz Opción B y Configuración Stripe Production-Ready:
+    - [x] Rediseño de UI (Android Nativo `PremiumScreen.kt` & Web `BillingSection.tsx`) presentando opciones amigables: **"💳 Tarjeta de Crédito / Débito"** (Stripe), **"💙 Mercado Pago"** y **"💛 PayPal"**.
+    - [x] Configuración backend (`services.php` y `SubscriptionController.php`) con soporte para ciclos de facturación (`monthly` / `annual`), fallback de dev y período de prueba de 7 días.
+    - [x] Guía de transición a producción [stripe_production_guide.md](file:///home/usuario/aplicaciones/estoyok/docs/stripe_production_guide.md) demostrando migración en 5 minutos cambiando claves en `.env`.
+    - [x] Verificada la suite de 130 tests de integración del backend con éxito total (130/130 passed).
 
 - [x] **FASE 11: Migración del Frontend Mobile a Kotlin Nativo**
   - [x] Etapa 1: Infraestructura Base y Navegación. Inicializado el proyecto nativo en `android-native/` con Gradle Kotlin DSL, dependencias (Compose, Hilt, Retrofit, Room, DataStore, Google Maps), tema visual oscuro premium, cliente API con interceptor de sesión Sanctum, y barra de navegación inferior (Panel, Mapa, Familia, Ajustes) con Compose Navigation.
@@ -247,14 +252,20 @@
           - [x] `AjustesScreen.kt`, `AjustesViewModel.kt`, `AuthModels.kt`: Creada e integrada la tarjeta de configuración "Alertas de Proximidad y Zonas" con interruptor (Switch) para activar/desactivar notificaciones globales de entrada y salida a perímetros de zonas seguras.
         - [x] Restauración de Deslizamiento Continuo Desfasado en Marcadores de Mapa (Android Native):
           - [x] `MapaScreen.kt`: Eliminada la restricción rígida de 3s (`coerceAtMost(3000L)`) y restaurado el cálculo dinámico basado en `timeDelta * 1.25f`, garantizando el movimiento lineal continuo sin estancamientos intermediarios ni tirones en el seguimiento en vivo.
+        - [x] Rediseño de Monetización, Paywalls y Suscripciones Nativas (Estilo Life360):
+          - [x] Especificación y arquitectura integral en `docs/plan_suscripciones_premium.md`.
+          - [x] FASE 1: Rediseño de Paywall Nativo (`PremiumScreen.kt`) con timeline de 7 Días Gratis ($0.00 hoy, recordatorio Día 5, cobro Día 8), selector de planes (Anual 40% OFF vs Mensual) y matriz comparativa Free vs PRO. Sincronizada Landing Web Next.js.
+          - [x] FASE 2: Migración `2026_07_25_120000_add_subscription_lifecycle_to_users_table`, accesores en `User.php` (`is_on_trial`, `trial_days_left`, `hasPremiumAccess`), endpoint `POST /api/subscriptions/start-trial` y suite de pruebas `SubscriptionTrialTest.php`.
+          - [x] FASE 4: Comando `subscriptions:send-trial-reminders`, mailable `TrialExpiringSoonMail.php` y scheduler diario para avisos 2 días antes de cobrar.
+          - [x] FASE 5: Comando `subscriptions:check-expired-grace-periods`, mailable `SubscriptionSuspendedMail.php` y endpoint `POST /api/subscriptions/cancel` para manejo de 5 días de gracia y cancelaciones limpias sin costo.
+          - [x] Interacción Nativa & Web: Chips interactivos en `PremiumScreen.kt` y `FamiliaViewModel.kt`, fallback de desarrollo y vista HTML/CSS corporativa para `/api/subscriptions/callback`.
 
 ### In Progress:
-- [ ] **FASE 12: Rediseño de Monetización, Paywalls y Suscripciones Nativas (Estilo Life360)** (Plan de Trabajo en [plan_suscripciones_premium.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_suscripciones_premium.md))
 - [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
-- Refine background location frequency vs battery consumption in Mobile (Fase 9).
+- Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
 

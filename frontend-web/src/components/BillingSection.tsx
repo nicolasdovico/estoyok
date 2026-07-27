@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { Elements, useStripe, useElements, CardNumberElement, CardExpiryElement, CardCvcElement } from '@stripe/react-stripe-js';
 
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 'pk_test_TYooMQauvdEDq54NiTphI7jx');
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || '');
 
 import { UserData } from './Dashboard';
 
@@ -624,10 +624,10 @@ export default function BillingSection({
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-gray-800 font-sans">Tarjeta de Crédito</span>
+              <span className="text-xs font-bold text-gray-800 font-sans">Tarjeta de Crédito / Débito</span>
               <span className="text-lg">💳</span>
             </div>
-            <p className="text-[9px] text-gray-400 mt-1.5 font-medium font-sans leading-relaxed">Conexión internacional y pasarela segura integrada.</p>
+            <p className="text-[9px] text-gray-400 mt-1.5 font-medium font-sans leading-relaxed">Procesamiento seguro internacional (Visa, Mastercard, Amex, Google Pay).</p>
           </button>
 
           {/* Opción Mercado Pago */}

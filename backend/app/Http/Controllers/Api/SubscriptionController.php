@@ -43,27 +43,39 @@ class SubscriptionController extends Controller
         $request->validate([
             'provider' => 'required|in:stripe,mercadopago,paypal',
             'plan' => 'string',
+            'billing_cycle' => 'nullable|in:monthly,annual',
         ]);
 
         $user = Auth::user();
         $provider = $request->provider;
         $plan = $request->plan ?? 'premium';
+        $billingCycle = $request->input('billing_cycle', 'monthly');
 
         $checkoutUrl = null;
 
         switch ($provider) {
             case 'stripe':
                 try {
-                    if (config('services.stripe.secret')) {
-                        $checkoutUrl = $user->newSubscription('default', config('services.stripe.premium_price_id'))
-                            ->trialDays(7)
-                            ->checkout([
-                                'success_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'success']),
-                                'cancel_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'cancel']),
-                            ])->url;
+                    $secretKey = config('services.stripe.secret') ?? config('cashier.secret');
+                    if ($secretKey) {
+                        $priceId = ($billingCycle === 'annual')
+                            ? (config('services.stripe.premium_price_id_annual') ?? env('STRIPE_PRICE_ID_ANNUAL'))
+                            : (config('services.stripe.premium_price_id') ?? env('STRIPE_PRICE_ID_MONTHLY'));
+
+                        if ($priceId) {
+                            $checkoutUrl = $user->newSubscription('default', $priceId)
+                                ->trialDays(7)
+                                ->checkout([
+                                    'success_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'success']),
+                                    'cancel_url' => route('subscription.callback', ['provider' => 'stripe', 'status' => 'cancel']),
+                                ])->url;
+                        }
                     }
                 } catch (\Exception $e) {
                     \Log::error('Stripe Checkout Error: ' . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Error de conexión con Stripe: ' . $e->getMessage()
+                    ], 422);
                 }
                 break;
 
@@ -77,8 +89,9 @@ class SubscriptionController extends Controller
         }
 
         if (! $checkoutUrl) {
-            // Fallback for development / demo environments when live credentials are not set
-            $checkoutUrl = route('subscription.callback', ['provider' => $provider, 'status' => 'success']);
+            return response()->json([
+                'message' => 'No se pudo generar el enlace de pago. Verifica que las claves de la pasarela (' . $provider . ') y el Price ID estén configurados en el servidor.'
+            ], 422);
         }
 
         return response()->json(['checkout_url' => $checkoutUrl]);
@@ -87,33 +100,23 @@ class SubscriptionController extends Controller
     /**
      * @OA\Post(
      *     path="/api/subscriptions/start-trial",
-     *     summary="Start 7-day free trial for authenticated user",
+     *     summary="Start 7-day free trial for authenticated user via payment gateway",
      *     tags={"Subscriptions"},
      *     security={{"sanctum":{}}},
-     *     @OA\Response(response=200, description="Trial started successfully"),
-     *     @OA\Response(response=422, description="Trial already consumed")
+     *     @OA\Response(response=200, description="Redirects to payment gateway checkout")
      * )
      */
-    public function startTrial(Request $request)
+    public function startTrial(Request $request, MercadoPagoService $mpService, PayPalService $paypalService)
     {
         $user = Auth::user();
 
-        if ($user->trial_ends_at !== null || $user->subscription_status === 'trialing') {
+        if ($user->hasPremiumAccess()) {
             return response()->json([
-                'message' => 'Ya has utilizado o tienes activa la prueba gratuita de 7 días.'
+                'message' => 'Ya cuentas con acceso a la suscripción Premium o prueba activa.'
             ], 422);
         }
 
-        $user->update([
-            'trial_ends_at' => now()->addDays(7),
-            'subscription_status' => 'trialing',
-            'subscription_provider' => $request->input('provider', 'stripe'),
-        ]);
-
-        return response()->json([
-            'message' => 'Prueba gratuita de 7 días activada con éxito.',
-            'user' => $user->fresh()
-        ]);
+        return $this->checkout($request, $mpService, $paypalService);
     }
 
     /**
@@ -142,11 +145,79 @@ class SubscriptionController extends Controller
             }
         }
 
-        return response()->json([
-            'message' => 'Subscription process finished',
-            'provider' => $provider,
-            'status' => $status,
-        ]);
+        if ($request->wantsJson()) {
+            return response()->json([
+                'message' => 'Subscription process finished',
+                'provider' => $provider,
+                'status' => $status,
+            ]);
+        }
+
+        $isSuccess = $status === 'success';
+        $title = $isSuccess ? '¡Prueba Gratuita Activada!' : 'Proceso de Suscripción';
+        $message = $isSuccess
+            ? 'Tu prueba de 7 días de <strong>Estoy Ok PRO</strong> se ha registrado correctamente. Tu familia ya cuenta con la máxima protección.'
+            : 'El proceso de suscripción se ha completado. Puedes volver a la aplicación.';
+
+        $html = "
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Estoy Ok — Suscripción</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #0F172A;
+            color: #FFFFFF;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+        .card {
+            background-color: #1E293B;
+            border: 1px solid #00E5D9;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 440px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
+        }
+        .icon { font-size: 48px; margin-bottom: 16px; }
+        h1 { color: #00E5D9; font-size: 22px; margin-bottom: 8px; margin-top: 0; }
+        p { color: #94A3B8; font-size: 14px; line-height: 1.5; margin-bottom: 24px; }
+        .btn {
+            display: inline-block;
+            background-color: #00E5D9;
+            color: #0F172A;
+            font-weight: bold;
+            text-decoration: none;
+            padding: 14px 28px;
+            border-radius: 10px;
+            font-size: 15px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+    </style>
+</head>
+<body>
+    <div class='card'>
+        <div class='icon'>👑</div>
+        <h1>{$title}</h1>
+        <p>{$message}</p>
+        <a href='javascript:history.back()' class='btn' onclick='window.close()'>Volver a Estoy Ok</a>
+    </div>
+</body>
+</html>
+        ";
+
+        return response($html, 200)->header('Content-Type', 'text/html');
     }
 
     /**

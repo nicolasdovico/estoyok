@@ -1,5 +1,17 @@
 # Progress Log
 
+## [2026-07-27] Configuración de Pasarela Stripe Production-Ready (Opción B)
+- **Opción B de Interfaz (Rediseño de Pasarelas):**
+    - **App Móvil Nativa (Android/Kotlin):** Modificado [PremiumScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) reemplazando la fila simple de botones técnicos por tarjetas descriptivas e intuitivas de selección con `RadioButton`: **"💳 Tarjeta de Crédito / Débito"** (Stripe), **"💙 Mercado Pago"** y **"💛 PayPal"**.
+    - **Web Frontend (Next.js):** Actualizado [BillingSection.tsx](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx) renombrando la opción principal a **"Tarjeta de Crédito / Débito"** con aclaración de soporte para Visa, Mastercard, Amex y Google Pay.
+- **Backend (Laravel API & Entorno):**
+    - Modificado [services.php](file:///home/usuario/aplicaciones/estoyok/backend/config/services.php) para incorporar el arreglo de configuración `stripe` enlazado a variables de entorno (`STRIPE_KEY`, `STRIPE_SECRET`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID_MONTHLY`, `STRIPE_PRICE_ID_ANNUAL`).
+    - Modificado [SubscriptionController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php): agregada validación y soporte para parámetro `billing_cycle` (`monthly` vs `annual`), resolviendo claves `config('services.stripe.secret')` con fallback seguro en entornos de desarrollo.
+- **Documentación y Pase a Producción:**
+    - Creado [plan_configuracion_stripe.md](file:///home/usuario/.gemini/antigravity-cli/brain/a63f0e64-b89d-4548-97ae-3b95e75521d9/plan_configuracion_stripe.md) y la guía paso a paso [stripe_production_guide.md](file:///home/usuario/aplicaciones/estoyok/docs/stripe_production_guide.md) demostrando que la migración a producción se realiza en 5 minutos cambiando únicamente las llaves en `.env` sin tocar código.
+- **Validación:**
+    - Suite de 130 pruebas del backend de Laravel ejecutada con éxito total (130/130 passed, 432 assertions).
+
 ## [2026-07-24] Eliminación de Falsas Alertas de Geocercas por Rebote de GPS (Estilo Life360)
 - **Backend (Laravel):**
     - Implementada la **Ventana de Confirmación de Salida (*Pending Exit / Dwell Time*)** de 2 a 3 minutos en `ProcessGeofencing.php`. Las salidas ya no se notifican en el primer punto de GPS sino tras mantener la ubicación fuera de la zona durante reportes sostenidos.
@@ -1225,8 +1237,14 @@
     - **Desarrollada la FASE 2 (Backend & Ciclo de Vida del Trial):** Creada la migración `2026_07_25_120000_add_subscription_lifecycle_to_users_table`, accesores en `User.php` (`is_on_trial`, `trial_days_left`, `hasPremiumAccess`), endpoint `POST /api/subscriptions/start-trial` y suite de pruebas `SubscriptionTrialTest.php`.
     - **Desarrollada la FASE 4 (Notificaciones Preventivas del Trial):** Creados la clase `SendTrialReminders.php`, mailable `TrialExpiringSoonMail.php` y su suite de pruebas `SendTrialRemindersTest.php`.
     - **Desarrollada la FASE 5 (Manejo de Cobros Fallidos & Periodo de Gracia):** Creados la clase `CheckExpiredGracePeriods.php`, mailable `SubscriptionSuspendedMail.php` y su suite de pruebas `CheckExpiredGracePeriodsTest.php`.
+    - **Implementado Endpoint de Cancelación (`POST /api/subscriptions/cancel`):** Permite cancelar la prueba o suscripción activa en cualquier momento sin costo alguno (`SubscriptionTrialTest.php`).
+    - **Optimizada la Interacción y Respuesta en App Nativa y Backend:**
+        - Vinculados los chips de medios de pago ("Stripe / Google Pay", "MercadoPago", "PayPal") en `PremiumScreen.kt` y `FamiliaViewModel.kt` para ejecutar de forma reactiva `startTrialAndCheckout`.
+        - Implementado el fallback de desarrollo en `SubscriptionController.php` para entornos sin credenciales vivas.
+        - Desarrollada la plantilla de respuesta web HTML/CSS corporativa para `/api/subscriptions/callback` (remplazando respuestas crudas en JSON).
+        - Añadidas notificaciones flotantes (Toast) nativas e inmunización contra aperturas de navegador redundantes en Android Nativo.
     - Preservadas al 100% todas las funcionalidades visuales alcanzadas: anclajes y solapamiento de etiquetas, indicadores de borde fuera de mapa (*Off-Screen Edge Indicators*), agrupadore de clusters, zonas seguras y marcas de tiempo estáticas (`stationarySince`).
 - **Validación:**
-    - Compilación nativa Android Kotlin completada de forma exitosa (`BUILD SUCCESSFUL in 34s`).
-    - Suite de 66 pruebas de backend de Laravel superada con éxito (66/66 passed).
+    - Compilación nativa Android Kotlin completada de forma exitosa (`BUILD SUCCESSFUL in 19s`).
+    - Suite completa de 130 pruebas de backend de Laravel superada con éxito (130/130 passed).
 

@@ -61,7 +61,7 @@ function RootLayoutNav() {
 export default function RootLayout() {
   return (
     <StripeProvider
-      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || "pk_test_TYooMQauvdEDq54NiTphI7jx"}
+      publishableKey={process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY || ""}
       merchantIdentifier="merchant.estoyok.com"
     >
       <AuthProvider>

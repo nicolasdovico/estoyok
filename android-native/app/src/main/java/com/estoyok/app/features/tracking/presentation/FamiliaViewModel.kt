@@ -213,13 +213,17 @@ class FamiliaViewModel @Inject constructor(
                         errorMessage = null
                     }
                     is Resource.Success -> {
-                        // Trial activated in backend! Refresh profile and proceed to checkout link
-                        refreshData()
-                        checkoutSubscription(provider, onUrlReceived)
+                        checkoutLoading = false
+                        val url = resource.data?.checkoutUrl
+                        if (!url.isNullOrBlank()) {
+                            onUrlReceived(url)
+                        } else {
+                            errorMessage = "No se recibió la URL de pago desde el servidor."
+                        }
                     }
                     is Resource.Error -> {
-                        // If trial was already consumed or errored, attempt direct checkout link
-                        checkoutSubscription(provider, onUrlReceived)
+                        checkoutLoading = false
+                        errorMessage = resource.message ?: "No se pudo generar el enlace de pago."
                     }
                 }
             }

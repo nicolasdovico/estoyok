@@ -34,6 +34,14 @@ return [
         'app_id' => env('MERCADOPAGO_APP_ID'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+        'webhook_secret' => env('STRIPE_WEBHOOK_SECRET'),
+        'premium_price_id' => env('STRIPE_PRICE_ID_MONTHLY', 'price_monthly_test_estoyok'),
+        'premium_price_id_annual' => env('STRIPE_PRICE_ID_ANNUAL', 'price_annual_test_estoyok'),
+    ],
+
     'slack' => [
         'notifications' => [
             'bot_user_oauth_token' => env('SLACK_BOT_USER_OAUTH_TOKEN'),
