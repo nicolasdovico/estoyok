@@ -19,6 +19,33 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     use Billable, HasApiTokens, HasFactory, Notifiable;
 
     /**
+     * The "booted" method of the model.
+     */
+    protected static function booted(): void
+    {
+        static::saving(function (User $user) {
+            if ($user->subscription_status === 'inactive' || ($user->isDirty('is_premium') && !$user->is_premium)) {
+                $user->is_premium = false;
+                $user->subscription_status = 'inactive';
+                $user->trial_ends_at = null;
+                $user->billing_cycle_ends_at = null;
+                $user->trial_reminder_sent_at = null;
+                $user->grace_period_ends_at = null;
+                $user->mp_subscription_id = null;
+                $user->mp_status = null;
+                $user->paypal_subscription_id = null;
+                $user->paypal_status = null;
+            }
+        });
+
+        static::saved(function (User $user) {
+            if ($user->subscription_status === 'inactive' && method_exists($user, 'subscriptions')) {
+                $user->subscriptions()->delete();
+            }
+        });
+    }
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var array<int, string>
