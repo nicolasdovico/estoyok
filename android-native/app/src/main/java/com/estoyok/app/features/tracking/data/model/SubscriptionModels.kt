@@ -12,5 +12,6 @@ data class CheckoutResponse(
 )
 
 data class StartTrialResponse(
-    @SerializedName("message") val message: String
+    @SerializedName("message") val message: String? = null,
+    @SerializedName("checkout_url") val checkoutUrl: String? = null
 )
