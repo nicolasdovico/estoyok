@@ -24,15 +24,34 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('email')->email()->required(),
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\DateTimePicker::make('last_check_in_at'),
-                Forms\Components\Toggle::make('is_premium'),
+                Forms\Components\Toggle::make('is_premium')->label('Socio Premium (Acceso Total)'),
                 Forms\Components\Toggle::make('allow_sms_whatsapp_checkin'),
                 Forms\Components\TextInput::make('expo_push_token'),
-                Forms\Components\Section::make('Subscriptions')
+                Forms\Components\Section::make('Suscripción y Prueba (Stripe / Mercado Pago / PayPal)')
                     ->schema([
-                        Forms\Components\TextInput::make('mp_subscription_id'),
-                        Forms\Components\TextInput::make('mp_status'),
-                        Forms\Components\TextInput::make('paypal_subscription_id'),
-                        Forms\Components\TextInput::make('paypal_status'),
+                        Forms\Components\Select::make('subscription_status')
+                            ->label('Estado de Suscripción')
+                            ->options([
+                                'inactive' => 'Inactivo / Gratis',
+                                'trialing' => 'Prueba Gratis (7 Días)',
+                                'active' => 'Activo (Suscrito)',
+                                'canceled' => 'Cancelado',
+                                'grace_period' => 'Período de Gracia',
+                            ])
+                            ->default('inactive'),
+                        Forms\Components\Select::make('subscription_provider')
+                            ->label('Pasarela de Pago')
+                            ->options([
+                                'stripe' => 'Stripe (Tarjeta)',
+                                'mercadopago' => 'Mercado Pago',
+                                'paypal' => 'PayPal',
+                            ]),
+                        Forms\Components\DateTimePicker::make('trial_ends_at')->label('Fin de Prueba Gratuita'),
+                        Forms\Components\DateTimePicker::make('billing_cycle_ends_at')->label('Fin del Período de Facturación'),
+                        Forms\Components\TextInput::make('mp_subscription_id')->label('MP Subscription ID'),
+                        Forms\Components\TextInput::make('mp_status')->label('MP Status'),
+                        Forms\Components\TextInput::make('paypal_subscription_id')->label('PayPal Subscription ID'),
+                        Forms\Components\TextInput::make('paypal_status')->label('PayPal Status'),
                     ])->columns(2),
             ]);
     }
@@ -43,16 +62,32 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->searchable(),
                 Tables\Columns\TextColumn::make('email')->searchable(),
+                Tables\Columns\IconColumn::make('is_premium')->boolean()->label('Premium'),
+                Tables\Columns\TextColumn::make('subscription_status')
+                    ->label('Estado Suscripción')
+                    ->badge()
+                    ->color(fn (string $state): string => match ($state) {
+                        'active' => 'success',
+                        'trialing' => 'warning',
+                        'canceled' => 'danger',
+                        'grace_period' => 'info',
+                        default => 'gray',
+                    }),
+                Tables\Columns\TextColumn::make('subscription_provider')->label('Pasarela')->badge(),
+                Tables\Columns\TextColumn::make('trial_ends_at')->dateTime()->label('Fin Prueba')->sortable(),
                 Tables\Columns\TextColumn::make('phone'),
                 Tables\Columns\TextColumn::make('last_check_in_at')->dateTime()->sortable(),
-                Tables\Columns\IconColumn::make('is_premium')->boolean(),
-                Tables\Columns\IconColumn::make('allow_sms_whatsapp_checkin')->boolean(),
-                Tables\Columns\TextColumn::make('mp_status')->label('MP Status')->badge(),
-                Tables\Columns\TextColumn::make('paypal_status')->label('PayPal Status')->badge(),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable()->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
                 Tables\Filters\TernaryFilter::make('is_premium'),
+                Tables\Filters\SelectFilter::make('subscription_status')
+                    ->options([
+                        'inactive' => 'Inactivo / Gratis',
+                        'trialing' => 'Prueba Gratis (7 Días)',
+                        'active' => 'Activo (Suscrito)',
+                        'canceled' => 'Cancelado',
+                    ]),
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
