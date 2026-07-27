@@ -123,6 +123,8 @@
     - [x] Rediseño de UI (Android Nativo `PremiumScreen.kt` & Web `BillingSection.tsx`) presentando opciones amigables: **"💳 Tarjeta de Crédito / Débito"** (Stripe), **"💙 Mercado Pago"** y **"💛 PayPal"**.
     - [x] Configuración backend (`services.php` y `SubscriptionController.php`) con soporte para ciclos de facturación (`monthly` / `annual`), fallback de dev y período de prueba de 7 días.
     - [x] Guía de transición a producción [stripe_production_guide.md](file:///home/usuario/aplicaciones/estoyok/docs/stripe_production_guide.md) demostrando migración en 5 minutos cambiando claves en `.env`.
+    - [x] Requisito de Tarjeta para Prueba Gratis: Eliminada la auto-activación sin tarjeta. El trial exige checkout obligatorio con Stripe en `SubscriptionController.php` y Android Nativo (`PremiumScreen.kt` & `FamiliaViewModel.kt`).
+    - [x] Gestión de Suscripciones en Filament Admin (`UserResource.php`): Incorporados controles interactivos de estado (`subscription_status`, `subscription_provider`, `trial_ends_at`, `is_premium`) con reactividad en vivo para alternar entre Free y Premium con 1 clic.
     - [x] Verificada la suite de 130 tests de integración del backend con éxito total (130/130 passed).
 
 - [x] **FASE 11: Migración del Frontend Mobile a Kotlin Nativo**
