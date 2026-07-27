@@ -48,6 +48,12 @@ fun PremiumScreen(
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isUserPremium == true
 
+    LaunchedEffect(isPremium) {
+        if (isPremium) {
+            scrollState.animateScrollTo(0)
+        }
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
