@@ -24,7 +24,17 @@ class UserResource extends Resource
                 Forms\Components\TextInput::make('email')->email()->required(),
                 Forms\Components\TextInput::make('phone'),
                 Forms\Components\DateTimePicker::make('last_check_in_at'),
-                Forms\Components\Toggle::make('is_premium')->label('Socio Premium (Acceso Total)'),
+                Forms\Components\Toggle::make('is_premium')
+                    ->label('Socio Premium (Acceso Total)')
+                    ->live()
+                    ->afterStateUpdated(function ($state, Forms\Set $set) {
+                        if (! $state) {
+                            $set('subscription_status', 'inactive');
+                            $set('trial_ends_at', null);
+                        } else {
+                            $set('subscription_status', 'active');
+                        }
+                    }),
                 Forms\Components\Toggle::make('allow_sms_whatsapp_checkin'),
                 Forms\Components\TextInput::make('expo_push_token'),
                 Forms\Components\Section::make('Suscripción y Prueba (Stripe / Mercado Pago / PayPal)')
@@ -38,7 +48,16 @@ class UserResource extends Resource
                                 'canceled' => 'Cancelado',
                                 'grace_period' => 'Período de Gracia',
                             ])
-                            ->default('inactive'),
+                            ->default('inactive')
+                            ->live()
+                            ->afterStateUpdated(function ($state, Forms\Set $set) {
+                                if (in_array($state, ['inactive', 'canceled'])) {
+                                    $set('is_premium', false);
+                                    $set('trial_ends_at', null);
+                                } elseif (in_array($state, ['active', 'trialing'])) {
+                                    $set('is_premium', true);
+                                }
+                            }),
                         Forms\Components\Select::make('subscription_provider')
                             ->label('Pasarela de Pago')
                             ->options([

@@ -80,6 +80,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'avatar_url',
         'is_on_trial',
         'trial_days_left',
+        'has_premium_access',
     ];
 
     /**
@@ -199,15 +200,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     }
 
     /**
-     * Accessor for is_premium attribute to include active trial or subscription states.
+     * Determine if user has premium access via explicit setting, active trial, or active subscription.
      */
-    public function getIsPremiumAttribute($value): bool
+    public function getHasPremiumAccessAttribute(): bool
     {
-        if ($this->subscription_status === 'canceled') {
-            return false;
-        }
-
-        return (bool) ($value || $this->is_on_trial || in_array($this->subscription_status, ['active', 'trialing', 'grace_period']) || $this->subscribed('default'));
+        return $this->hasPremiumAccess();
     }
 
     /**

@@ -9,6 +9,7 @@ data class UserDto(
     @SerializedName("phone") val phone: String?,
     @SerializedName("email_verified_at") val emailVerifiedAt: String?,
     @SerializedName("is_premium") val isPremium: Boolean,
+    @SerializedName("has_premium_access") val hasPremiumAccess: Boolean? = false,
     @SerializedName("checkin_interval_hours") val checkinIntervalHours: Int,
     @SerializedName("allow_sms_whatsapp_checkin") val allowSmsWhatsappCheckin: Boolean,
     @SerializedName("quiet_hours_enabled") val quietHoursEnabled: Boolean? = false,
@@ -22,7 +23,10 @@ data class UserDto(
     @SerializedName("last_check_in_at") val lastCheckInAt: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,
     @SerializedName("created_at") val createdAt: String
-)
+) {
+    val isUserPremium: Boolean
+        get() = isPremium || (hasPremiumAccess == true)
+}
 
 data class LoginRequest(
     @SerializedName("email") val email: String,

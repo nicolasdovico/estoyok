@@ -42,7 +42,7 @@ fun PremiumScreen(
     val scrollState = rememberScrollState()
     var selectedPayProvider by remember { mutableStateOf("stripe") }
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
-    val isPremium = viewModel.user?.isPremium == true
+    val isPremium = viewModel.user?.isUserPremium == true
 
     Box(
         modifier = Modifier
