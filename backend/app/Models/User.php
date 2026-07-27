@@ -24,9 +24,8 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
     protected static function booted(): void
     {
         static::saving(function (User $user) {
-            if ($user->subscription_status === 'inactive' || ($user->isDirty('is_premium') && !$user->is_premium)) {
+            if ($user->subscription_status === 'inactive') {
                 $user->is_premium = false;
-                $user->subscription_status = 'inactive';
                 $user->trial_ends_at = null;
                 $user->billing_cycle_ends_at = null;
                 $user->trial_reminder_sent_at = null;
@@ -39,7 +38,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         });
 
         static::saved(function (User $user) {
-            if ($user->subscription_status === 'inactive' && method_exists($user, 'subscriptions')) {
+            if (in_array($user->subscription_status, ['inactive', 'canceled']) && method_exists($user, 'subscriptions')) {
                 $user->subscriptions()->delete();
             }
         });

@@ -42,7 +42,7 @@ class SubscriptionTrialTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->postJson('/api/subscriptions/start-trial', [
-            'provider' => 'stripe'
+            'provider' => 'mercadopago'
         ]);
 
         $response->assertStatus(422)
