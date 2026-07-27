@@ -44,6 +44,10 @@ fun PremiumScreen(
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isUserPremium == true
 
+    LaunchedEffect(Unit) {
+        viewModel.refreshData()
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()

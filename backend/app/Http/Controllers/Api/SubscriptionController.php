@@ -168,6 +168,11 @@ class SubscriptionController extends Controller
     <meta charset='UTF-8'>
     <meta name='viewport' content='width=device-width, initial-scale=1.0'>
     <title>Estoy Ok — Suscripción</title>
+    <script>
+        setTimeout(function() {
+            window.location.href = 'estoyok://subscription-success';
+        }, 1000);
+    </script>
     <style>
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -213,7 +218,7 @@ class SubscriptionController extends Controller
         <div class='icon'>👑</div>
         <h1>{$title}</h1>
         <p>{$message}</p>
-        <a href='javascript:history.back()' class='btn' onclick='window.close()'>Volver a Estoy Ok</a>
+        <a href='estoyok://subscription-success' class='btn'>Volver a la App Estoy Ok</a>
     </div>
 </body>
 </html>
