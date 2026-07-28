@@ -34,16 +34,12 @@ class MercadoPagoService
         }
 
         $request = [
-            'reason' => 'Suscripción Estoy Ok PRO (Prueba 7 días)',
+            'reason' => 'Suscripción Estoy Ok PRO',
             'auto_recurring' => [
                 'frequency' => 1,
                 'frequency_type' => 'months',
-                'transaction_amount' => 4990, // Monto en ARS (ej: $4.990 ARS)
+                'transaction_amount' => 4990, // Monto en ARS
                 'currency_id' => 'ARS',
-                'free_trial' => [
-                    'frequency' => 7,
-                    'frequency_type' => 'days',
-                ],
             ],
             'back_url' => $backUrl,
         ];
