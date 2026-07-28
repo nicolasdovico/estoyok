@@ -10,41 +10,50 @@ class PayPalService
 
     public function __construct()
     {
-        if (config('paypal.sandbox.client_id') || config('paypal.live.client_id')) {
-            $this->provider = new PayPalClient;
-            $this->provider->getAccessToken();
-        }
+        $this->provider = new PayPalClient;
+        $this->provider->setApiCredentials(config('paypal'));
+        $token = $this->provider->getAccessToken();
+        $this->provider->setAccessToken($token);
     }
 
-    public function createSubscriptionLink($user, $planId = 'P-PREMIUM-PLAN-ID')
+    public function createSubscriptionLink($user, $planId = 'premium')
     {
-        // $planId should be the ID created in PayPal dashboard
+        $successUrl = route('subscription.callback', ['provider' => 'paypal', 'status' => 'success', 'user_id' => $user->id]);
+        $cancelUrl = route('subscription.callback', ['provider' => 'paypal', 'status' => 'cancel', 'user_id' => $user->id]);
+
+        // Fallback back_urls if localhost/127.0.0.1
+        if (str_contains($successUrl, 'localhost') || str_contains($successUrl, '127.0.0.1')) {
+            $successUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/paypal?status=success&user_id=' . $user->id;
+            $cancelUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/paypal?status=cancel&user_id=' . $user->id;
+        }
 
         $data = [
-            'plan_id' => $planId,
-            'quantity' => '1',
-            'subscriber' => [
-                'name' => [
-                    'given_name' => $user->name,
+            'intent' => 'CAPTURE',
+            'purchase_units' => [
+                [
+                    'amount' => [
+                        'currency_code' => 'USD',
+                        'value' => '4.99',
+                    ],
+                    'description' => 'Suscripción Estoy Ok PRO (Mensual)',
                 ],
-                'email_address' => $user->email,
             ],
             'application_context' => [
-                'brand_name' => config('app.name'),
-                'locale' => 'en-US',
+                'brand_name' => 'Estoy Ok PRO',
+                'locale' => 'es-ES',
                 'shipping_preference' => 'NO_SHIPPING',
-                'user_action' => 'SUBSCRIBE_NOW',
-                'return_url' => route('subscription.callback', ['provider' => 'paypal', 'status' => 'success']),
-                'cancel_url' => route('subscription.callback', ['provider' => 'paypal', 'status' => 'cancel']),
+                'user_action' => 'PAY_NOW',
+                'return_url' => $successUrl,
+                'cancel_url' => $cancelUrl,
             ],
         ];
 
         try {
-            $response = $this->provider->createSubscription($data);
+            $response = $this->provider->createOrder($data);
 
             if (isset($response['links'])) {
                 foreach ($response['links'] as $link) {
-                    if ($link['rel'] == 'approve') {
+                    if ($link['rel'] === 'approve') {
                         return $link['href'];
                     }
                 }
@@ -52,9 +61,10 @@ class PayPalService
 
             return null;
         } catch (\Exception $e) {
-            \Log::error('PayPal Subscription Error: '.$e->getMessage());
+            \Log::error('PayPal Subscription Error: ' . $e->getMessage());
 
-            return null;
+            throw $e;
         }
     }
 }
+
