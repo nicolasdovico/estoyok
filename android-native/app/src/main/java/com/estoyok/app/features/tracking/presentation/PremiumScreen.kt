@@ -253,8 +253,8 @@ fun PremiumScreen(
                         ) {
                             listOf(
                                 Triple("stripe", "💳 Tarjeta de Crédito / Débito", "Procesamiento seguro internacional (Visa, Mastercard, Amex)"),
-                                Triple("mercadopago", "💙 Mercado Pago", "Suscripción mensual en pesos (ARS) para Argentina"),
-                                Triple("paypal", "💛 PayPal", "Débito automático en dólares (USD) para el resto del mundo")
+                                Triple("mercadopago", "Mercado Pago", "Suscripción mensual en pesos (ARS) para Argentina"),
+                                Triple("paypal", "PayPal", "Débito automático en dólares (USD) para el resto del mundo")
                             ).forEach { (id, label, subtext) ->
                                 val selected = selectedPayProvider == id
                                 Card(
