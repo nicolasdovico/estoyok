@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use MercadoPago\Client\PreApproval\PreApprovalClient;
+use MercadoPago\Client\PreApprovalPlan\PreApprovalPlanClient;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 
@@ -24,7 +24,7 @@ class MercadoPagoService
         }
 
         MercadoPagoConfig::setAccessToken($accessToken);
-        $client = new PreApprovalClient();
+        $client = new PreApprovalPlanClient();
 
         $backUrl = route('subscription.callback', ['provider' => 'mercadopago', 'user_id' => $user->id]);
 
@@ -34,21 +34,24 @@ class MercadoPagoService
         }
 
         $request = [
-            'back_url' => $backUrl,
-            'reason' => 'Suscripción Estoy Ok PRO',
+            'reason' => 'Suscripción Estoy Ok PRO (Prueba 7 días)',
             'auto_recurring' => [
                 'frequency' => 1,
                 'frequency_type' => 'months',
-                'transaction_amount' => 4990, // Monto en ARS
+                'transaction_amount' => 4990, // Monto en ARS (ej: $4.990 ARS)
                 'currency_id' => 'ARS',
+                'free_trial' => [
+                    'frequency' => 7,
+                    'frequency_type' => 'days',
+                ],
             ],
-            'payer_email' => $user->email,
+            'back_url' => $backUrl,
         ];
 
         try {
-            $preapproval = $client->create($request);
+            $plan = $client->create($request);
 
-            return $preapproval->init_point ?? $preapproval->sandbox_init_point;
+            return $plan->init_point ?? $plan->sandbox_init_point;
         } catch (MPApiException $e) {
             $apiResponse = $e->getApiResponse();
             $content = $apiResponse ? json_encode($apiResponse->getContent()) : $e->getMessage();
@@ -60,4 +63,5 @@ class MercadoPagoService
         }
     }
 }
+
 
