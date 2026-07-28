@@ -66,7 +66,6 @@ class SubscriptionController extends Controller
                         if ($priceId) {
                             $checkoutUrl = $user->newSubscription('default', $priceId)
                                 ->checkout([
-                                    'payment_method_types' => ['card'],
                                     'subscription_data' => [
                                         'trial_period_days' => 7,
                                     ],
