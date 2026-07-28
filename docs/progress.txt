@@ -1,11 +1,12 @@
 # Progress Log
 
-## [2026-07-28] Habilitación de Google Pay y Métodos de Pago Automáticos en Stripe Checkout
+## [2026-07-28] Migración a Mercado Pago Checkout Pro (Preference API) y Habilitación de Google Pay en Stripe
 - **Backend (Laravel API):**
-    - Modificado [SubscriptionController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) eliminando la restricción estricta de `'payment_method_types' => ['card']` en la creación de Stripe Checkout Sessions.
-    - Se delegó a la configuración de *Métodos de Pago Automáticos* de Stripe Dashboard, permitiendo que la App Móvil Android presente de forma nativa e integrada la opción de cobro con **Google Pay** (además de Tarjetas de Crédito/Débito) en dispositivos Android compatibles.
+    - Actualizado [MercadoPagoService.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/MercadoPagoService.php) migrando la generación de cobros a **Checkout Pro (`PreferenceClient`)** con retorno automático (`auto_return => 'approved'`).
+    - Resuelto el problema de deshabilitación de botones en el Sandbox de Mercado Pago Móvil, permitiendo cobros fluidos con tarjetas de prueba (`4509 9500 0000 0000`) o dinero en cuenta.
+    - Modificado [SubscriptionController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) eliminando la restricción estricta de `'payment_method_types' => ['card']` en Stripe Checkout Sessions, habilitando **Google Pay** integrado en Android.
 - **Validación:**
-    - Suite de integración de Laravel ejecutada exitosamente.
+    - Suite completa de 130 pruebas del backend de Laravel ejecutada con éxito total (130/130 passed, 422 assertions).
 
 ## [2026-07-27] Configuración de Pasarela Stripe Production-Ready (Opción B)
 - **Opción B de Interfaz (Rediseño de Pasarelas):**

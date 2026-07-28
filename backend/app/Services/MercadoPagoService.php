@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use MercadoPago\Client\PreApprovalPlan\PreApprovalPlanClient;
+use MercadoPago\Client\Preference\PreferenceClient;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 
@@ -24,30 +24,39 @@ class MercadoPagoService
         }
 
         MercadoPagoConfig::setAccessToken($accessToken);
-        $client = new PreApprovalPlanClient();
+        $client = new PreferenceClient();
 
-        $backUrl = route('subscription.callback', ['provider' => 'mercadopago', 'user_id' => $user->id]);
+        $successUrl = route('subscription.callback', ['provider' => 'mercadopago', 'status' => 'success', 'user_id' => $user->id]);
+        $cancelUrl = route('subscription.callback', ['provider' => 'mercadopago', 'status' => 'cancel', 'user_id' => $user->id]);
 
-        // Fallback back_url if localhost/127.0.0.1 (Mercado Pago rejects localhost back_urls)
-        if (str_contains($backUrl, 'localhost') || str_contains($backUrl, '127.0.0.1')) {
-            $backUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/mercadopago';
+        // Fallback back_urls if localhost/127.0.0.1 (Mercado Pago rejects localhost back_urls)
+        if (str_contains($successUrl, 'localhost') || str_contains($successUrl, '127.0.0.1')) {
+            $successUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/mercadopago?status=success&user_id=' . $user->id;
+            $cancelUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/mercadopago?status=cancel&user_id=' . $user->id;
         }
 
         $request = [
-            'reason' => 'Suscripción Estoy Ok PRO',
-            'auto_recurring' => [
-                'frequency' => 1,
-                'frequency_type' => 'months',
-                'transaction_amount' => 4990, // Monto en ARS
-                'currency_id' => 'ARS',
+            'items' => [
+                [
+                    'title' => 'Suscripción Estoy Ok PRO (Mensual)',
+                    'quantity' => 1,
+                    'unit_price' => 4990.0,
+                    'currency_id' => 'ARS',
+                ]
             ],
-            'back_url' => $backUrl,
+            'back_urls' => [
+                'success' => $successUrl,
+                'failure' => $cancelUrl,
+                'pending' => $successUrl,
+            ],
+            'auto_return' => 'approved',
+            'external_reference' => (string) $user->id,
         ];
 
         try {
-            $plan = $client->create($request);
+            $preference = $client->create($request);
 
-            return $plan->init_point ?? $plan->sandbox_init_point;
+            return $preference->init_point ?? $preference->sandbox_init_point;
         } catch (MPApiException $e) {
             $apiResponse = $e->getApiResponse();
             $content = $apiResponse ? json_encode($apiResponse->getContent()) : $e->getMessage();
@@ -59,5 +68,6 @@ class MercadoPagoService
         }
     }
 }
+
 
 
