@@ -2,7 +2,7 @@
 
 namespace App\Services;
 
-use MercadoPago\Client\Preapproval\PreapprovalClient;
+use MercadoPago\Client\PreApproval\PreApprovalClient;
 use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 
@@ -19,12 +19,12 @@ class MercadoPagoService
     public function createSubscriptionLink($user, $planId = 'premium')
     {
         $accessToken = config('services.mercadopago.access_token');
-        if (!$accessToken) {
+        if (! $accessToken) {
             throw new \Exception('Falta la variable MERCADOPAGO_ACCESS_TOKEN en el servidor.');
         }
 
         MercadoPagoConfig::setAccessToken($accessToken);
-        $client = new PreapprovalClient();
+        $client = new PreApprovalClient();
 
         $backUrl = route('subscription.callback', ['provider' => 'mercadopago', 'user_id' => $user->id]);
 

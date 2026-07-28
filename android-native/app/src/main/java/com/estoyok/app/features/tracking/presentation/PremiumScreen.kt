@@ -54,6 +54,12 @@ fun PremiumScreen(
         }
     }
 
+    LaunchedEffect(viewModel.errorMessage) {
+        viewModel.errorMessage?.let { msg ->
+            Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+        }
+    }
+
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
