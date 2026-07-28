@@ -1,12 +1,12 @@
 # Progress Log
 
-## [2026-07-28] Configuración e Integración de PayPal Sandbox (USD $4.99)
+## [2026-07-28] Integración de Suscripciones PayPal con 7 Días de Prueba Gratis ($0.00 hoy, luego USD $4.99)
 - **Backend (Laravel API):**
-    - Configurado y verificado el servicio [PayPalService.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PayPalService.php) integrado con `srmklive/paypal` v3 en modo Sandbox.
-    - Generación exitosa de órdenes de cobro internacional en USD ($4.99 USD) con retorno automático a la ruta `subscription.callback`.
-    - Actualizada la pasarela Mercado Pago ajustando el valor a $5.990 ARS.
+    - Configurado el plan oficial de suscripción recurrente en [PayPalService.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PayPalService.php) con **Prueba Gratis de 7 Días (`createSubscription`)**.
+    - El cobro inicial al presionar el botón es de **$0.00 USD**, ejecutando el primer cobro mensual de **$4.99 USD** de forma automática a partir del día 8.
+    - La configuración aplica de forma idéntica y transparente tanto en Sandbox como al cambiar a las claves finales de Producción (`PAYPAL_MODE=live`).
 - **Validación:**
-    - Generación directa verificada contra API `api.sandbox.paypal.com` (Order Created).
+    - Generación y autorización probada directamente contra la API de suscripciones de PayPal (`approval_url`).
     - Suite completa de 130 pruebas del backend ejecutada con éxito total (130/130 passed, 422 assertions).
 
 ## [2026-07-27] Configuración de Pasarela Stripe Production-Ready (Opción B)

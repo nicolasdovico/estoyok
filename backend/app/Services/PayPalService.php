@@ -27,29 +27,29 @@ class PayPalService
             $cancelUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/paypal?status=cancel&user_id=' . $user->id;
         }
 
+        // Get or create PayPal Subscription Plan with 7-Day Trial ($0.00 today, then $4.99/mo)
+        $activePlanId = env('PAYPAL_PLAN_ID', 'P-0FK21735X34378619NJUSNGY');
+
         $data = [
-            'intent' => 'CAPTURE',
-            'purchase_units' => [
-                [
-                    'amount' => [
-                        'currency_code' => 'USD',
-                        'value' => '4.99',
-                    ],
-                    'description' => 'Suscripción Estoy Ok PRO (Mensual)',
+            'plan_id' => $activePlanId,
+            'subscriber' => [
+                'name' => [
+                    'given_name' => $user->name,
                 ],
+                'email_address' => $user->email,
             ],
             'application_context' => [
                 'brand_name' => 'Estoy Ok PRO',
                 'locale' => 'es-ES',
                 'shipping_preference' => 'NO_SHIPPING',
-                'user_action' => 'PAY_NOW',
+                'user_action' => 'SUBSCRIBE_NOW',
                 'return_url' => $successUrl,
                 'cancel_url' => $cancelUrl,
             ],
         ];
 
         try {
-            $response = $this->provider->createOrder($data);
+            $response = $this->provider->createSubscription($data);
 
             if (isset($response['links'])) {
                 foreach ($response['links'] as $link) {
@@ -67,4 +67,5 @@ class PayPalService
         }
     }
 }
+
 
