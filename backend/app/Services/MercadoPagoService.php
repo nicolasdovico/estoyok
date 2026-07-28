@@ -50,6 +50,7 @@ class MercadoPagoService
                 'pending' => $successUrl,
             ],
             'auto_return' => 'approved',
+            'binary_mode' => true,
             'external_reference' => (string) $user->id,
         ];
 
