@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use MercadoPago\Client\Preapproval\PreapprovalClient;
+use MercadoPago\Exceptions\MPApiException;
 use MercadoPago\MercadoPagoConfig;
 
 class MercadoPagoService
@@ -17,31 +18,46 @@ class MercadoPagoService
 
     public function createSubscriptionLink($user, $planId = 'premium')
     {
-        $client = new PreapprovalClient;
+        $accessToken = config('services.mercadopago.access_token');
+        if (!$accessToken) {
+            throw new \Exception('Falta la variable MERCADOPAGO_ACCESS_TOKEN en el servidor.');
+        }
 
-        // This is a simplified example. In a real scenario, you'd have plan IDs in MP.
-        // For now, we'll use a generic request structure.
+        MercadoPagoConfig::setAccessToken($accessToken);
+        $client = new PreapprovalClient();
+
+        $backUrl = route('subscription.callback', ['provider' => 'mercadopago', 'user_id' => $user->id]);
+
+        // Fallback back_url if localhost/127.0.0.1 (Mercado Pago rejects localhost back_urls)
+        if (str_contains($backUrl, 'localhost') || str_contains($backUrl, '127.0.0.1')) {
+            $backUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/mercadopago';
+        }
+
         $request = [
-            'back_url' => route('subscription.callback', ['provider' => 'mercadopago']),
-            'reason' => 'Estoy Ok Premium Subscription',
+            'back_url' => $backUrl,
+            'reason' => 'Suscripción Estoy Ok PRO',
             'auto_recurring' => [
                 'frequency' => 1,
                 'frequency_type' => 'months',
-                'transaction_amount' => 1000, // Amount in ARS
+                'transaction_amount' => 4990, // Monto en ARS
                 'currency_id' => 'ARS',
             ],
             'payer_email' => $user->email,
-            'status' => 'pending',
         ];
 
         try {
             $preapproval = $client->create($request);
 
-            return $preapproval->init_point;
+            return $preapproval->init_point ?? $preapproval->sandbox_init_point;
+        } catch (MPApiException $e) {
+            $apiResponse = $e->getApiResponse();
+            $content = $apiResponse ? json_encode($apiResponse->getContent()) : $e->getMessage();
+            \Log::error('Mercado Pago API Exception: ' . $content);
+            throw new \Exception('Mercado Pago API error: ' . $content);
         } catch (\Exception $e) {
-            \Log::error('Mercado Pago Subscription Error: '.$e->getMessage());
-
-            return null;
+            \Log::error('Mercado Pago Subscription Error: ' . $e->getMessage());
+            throw $e;
         }
     }
 }
+

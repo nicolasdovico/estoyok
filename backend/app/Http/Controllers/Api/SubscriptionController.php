@@ -83,11 +83,25 @@ class SubscriptionController extends Controller
                 break;
 
             case 'mercadopago':
-                $checkoutUrl = $mpService->createSubscriptionLink($user, $plan);
+                try {
+                    $checkoutUrl = $mpService->createSubscriptionLink($user, $plan);
+                } catch (\Exception $e) {
+                    \Log::error('Mercado Pago Checkout Error: ' . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Error de conexión con Mercado Pago: ' . $e->getMessage()
+                    ], 422);
+                }
                 break;
 
             case 'paypal':
-                $checkoutUrl = $paypalService->createSubscriptionLink($user, $plan);
+                try {
+                    $checkoutUrl = $paypalService->createSubscriptionLink($user, $plan);
+                } catch (\Exception $e) {
+                    \Log::error('PayPal Checkout Error: ' . $e->getMessage());
+                    return response()->json([
+                        'message' => 'Error de conexión con PayPal: ' . $e->getMessage()
+                    ], 422);
+                }
                 break;
         }
 
