@@ -23,6 +23,7 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
@@ -47,6 +48,7 @@ fun AjustesScreen(
     val scrollState = rememberScrollState()
     val context = LocalContext.current
     var showBackgroundLocationDialog by remember { mutableStateOf(false) }
+    var showDisclaimerDialog by remember { mutableStateOf(false) }
 
     val backgroundPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -322,7 +324,8 @@ fun AjustesScreen(
                             checked = viewModel.quietHoursEnabled,
                             onCheckedChange = {
                                 viewModel.saveQuietHoursSettings(it, viewModel.quietHoursStart, viewModel.quietHoursEnd)
-                            }
+                            },
+                            modifier = Modifier.scale(0.75f)
                         )
                     }
 
@@ -370,7 +373,7 @@ fun AjustesScreen(
             }
 
             // 4. SMS / WhatsApp (Twilio Webhook Toggle)
-            SettingsCard(title = "Método de Reporte Twilio") {
+            SettingsCard(title = "Reporte por SMS / WhatsApp") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -394,7 +397,8 @@ fun AjustesScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Switch(
                         checked = viewModel.allowSmsWhatsappCheckin,
-                        onCheckedChange = { viewModel.toggleSmsWhatsapp(it) }
+                        onCheckedChange = { viewModel.toggleSmsWhatsapp(it) },
+                        modifier = Modifier.scale(0.75f)
                     )
                 }
             }
@@ -424,7 +428,8 @@ fun AjustesScreen(
                     Spacer(modifier = Modifier.width(16.dp))
                     Switch(
                         checked = viewModel.proximityAlertsEnabled,
-                        onCheckedChange = { viewModel.toggleProximityAlerts(it) }
+                        onCheckedChange = { viewModel.toggleProximityAlerts(it) },
+                        modifier = Modifier.scale(0.75f)
                     )
                 }
             }
@@ -462,7 +467,8 @@ fun AjustesScreen(
                             checked = viewModel.wifiCheckinEnabled,
                             onCheckedChange = {
                                 viewModel.saveAutomationSettings(it, viewModel.safeWifiSsid, viewModel.sensorCheckinEnabled)
-                            }
+                            },
+                            modifier = Modifier.scale(0.75f)
                         )
                     }
 
@@ -562,7 +568,8 @@ fun AjustesScreen(
                             checked = viewModel.sensorCheckinEnabled,
                             onCheckedChange = {
                                 viewModel.saveAutomationSettings(viewModel.wifiCheckinEnabled, viewModel.safeWifiSsid, it)
-                            }
+                            },
+                            modifier = Modifier.scale(0.75f)
                         )
                     }
                 }
@@ -635,14 +642,35 @@ fun AjustesScreen(
                                     viewModel.toggleTrackingService(context)
                                 }
                             }
-                        }
+                        },
+                        modifier = Modifier.scale(0.75f)
                     )
                 }
             }
 
 
 
-            // 7. Logout Button
+            // 7. Disclaimer & Operational Terms Card
+            SettingsCard(title = "Condiciones de Servicio y Descargo ℹ️") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Text(
+                        text = "Estoy Ok requiere Datos Móviles / Wi-Fi y ubicación continua ('Permitir todo el tiempo') para enviar alertas de inactividad, SOS y Zonas Seguras. No reemplaza a las líneas públicas de emergencia 911.",
+                        fontSize = 11.sp,
+                        color = TextSecondary,
+                        lineHeight = 15.sp
+                    )
+                    OutlinedButton(
+                        onClick = { showDisclaimerDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                    ) {
+                        Text("Leer Descargo de Responsabilidad 📋", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                    }
+                }
+            }
+
+            // 8. Logout Button
             Button(
                 onClick = { authViewModel.logout() },
                 modifier = Modifier
@@ -718,6 +746,78 @@ fun AjustesScreen(
                 dismissButton = {
                     TextButton(onClick = { showBackgroundLocationDialog = false }) {
                         Text("Ahora no", color = MaterialTheme.colorScheme.outline)
+                    }
+                }
+            )
+        }
+
+        if (showDisclaimerDialog) {
+            AlertDialog(
+                onDismissRequest = { showDisclaimerDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Shield,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Condiciones de Servicio",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Text(
+                            text = "1. Conectividad e Internet\nEstoy Ok requiere datos móviles (4G/5G) o Wi-Fi activo. Si el teléfono pierde conexión, las alertas y la ubicación en tiempo real se pausarán hasta recuperar la señal.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = "2. Permisos y Batería\nRequiere permisos de ubicación 'Permitir todo el tiempo' y exención de ahorro de batería para evitar que el sistema operativo suspenda el rastreo y el check-in pasivo.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = "3. Complemento de Emergencia\nEstoy Ok NO reemplaza al 911, 107 ni a las fuerzas de seguridad públicas. Es una red privada de protección entre familiares.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = "4. Check-in e Inactividad\nLas alertas se disparan al vencer el intervalo configurado (ej. 24h). En Modo Sueño, las notificaciones se pausarán automáticamente.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = "5. Privacidad Consensuada\nTu ubicación solo es visible para los integrantes autorizados del núcleo activo que hayas seleccionado voluntariamente.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                        Text(
+                            text = "6. Privacidad y No Monitoreo Administrativo\nLos administradores de Estoy Ok NO monitorean ni vigilan a los usuarios. Tu ubicación e historial NUNCA serán vendidos ni cedidos a terceros o anunciantes.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            lineHeight = 16.sp
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = { showDisclaimerDialog = false }
+                    ) {
+                        Text("Entendido y Aceptado", fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             )

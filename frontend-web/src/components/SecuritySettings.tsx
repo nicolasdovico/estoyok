@@ -765,9 +765,12 @@ export default function SecuritySettings({
           </p>
         )}
 
-        <div className="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50">
-          <p className="text-[11px] text-blue-800 leading-relaxed">
+        <div className="mt-6 p-4 bg-blue-50/50 rounded-2xl border border-blue-100/50 space-y-2">
+          <p className="text-[11px] text-blue-900 leading-relaxed">
             <strong>Importante:</strong> Si pasan más de {interval} horas sin que confirmes tu bienestar (y no estás en tu Modo Sueño), notificaremos automáticamente a tus contactos con tu última ubicación conocida.
+          </p>
+          <p className="text-[10px] text-blue-700/80 leading-relaxed">
+            🛡️ <strong>Condiciones de Servicio:</strong> Estoy Ok requiere Datos Móviles (4G/5G) o Wi-Fi activo y permisos de ubicación continua (&quot;Permitir todo el tiempo&quot;). No reemplaza a los servicios públicos de emergencia (911/107).
           </p>
         </div>
       </div>

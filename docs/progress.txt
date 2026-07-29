@@ -1,6 +1,14 @@
 # Progress Log
 
-## [2026-07-29] Notificaciones Push de Inactividad a Miembros del Núcleo
+## [2026-07-29] Notificaciones Push de Inactividad a Miembros del Núcleo y Ajustes UI en Estoy OK
+- **App Móvil Nativa (Android/Kotlin):**
+    - Agregado el punto 6 de **Privacidad Absoluta y No Monitoreo Administrativo** en el diálogo modal de Descargo de Responsabilidad de `AjustesScreen.kt`, garantizando formalmente que los administradores no rastrean a los usuarios ni ceden datos a terceros.
+    - Reducido proporcionalmente el tamaño visual de todos los interruptores (toggles `Switch`) en `AjustesScreen.kt` mediante `Modifier.scale(0.75f)` para lograr una interfaz estilizada, equilibrada y alineada con la tipografía del contexto.
+    - Corregida la detección del estado **Auto-Checkin** en `PanelScreen.kt`: `isWifiAutoCheckinActive` ahora evalúa correctamente `wifi_checkin_enabled` (retornado por la API Laravel), reflejando dinámicamente **"Wi-Fi Activo 📶"** en la tarjeta de protección al activar el toggle en Ajustes.
+    - Corregida la navegación del botón "Volver" (flecha superior izquierda) en la pantalla de `AjustesScreen.kt`: ahora regresa de forma directa a la pestaña **"Estoy OK"** (`Screen.EstoyOk.route`) en lugar de redirigir a "Mapa".
+    - Renombrada la tarjeta de configuración de `"Método de Reporte Twilio"` a `"Reporte por SMS / WhatsApp"` en `AjustesScreen.kt` para utilizar un nombre intuitivo centrado en el beneficio del usuario.
+    - Agregado el botón con icono de engranaje (⚙️) en la esquina superior derecha del encabezado en `PanelScreen.kt` ("Estoy OK"), redirigiendo al mismo destino de configuración (`AjustesScreen.kt`) que el botón "Configurar" del panel `ProtectionSummaryCard`.
+    - Agregado el borde turquesa de marca (`PrimaryEmerald`) al botón combo pill selector de núcleos sobre el mapa en `MapaScreen.kt`.
 - **Backend (Laravel):**
     - Actualizado el Job `SendInactivityAlerts.php` para despachar automáticamente notificaciones Push a todos los miembros de los Núcleos (Círculos) a los que pertenece el usuario inactivo.
     - El título de la notificación Push despachada a los familiares del núcleo es `⚠️ Alerta de Inactividad` con el mensaje: `"<Usuario> no ha reportado su estado ('Estoy OK') en el tiempo configurado."`.

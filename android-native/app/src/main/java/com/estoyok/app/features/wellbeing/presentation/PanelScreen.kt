@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,7 @@ fun PanelScreen(
         emergencyContacts = viewModel.emergencyContacts,
         showManageContactsModal = viewModel.showManageContactsModal,
         intervalHours = viewModel.user?.checkinIntervalHours ?: 24,
-        wifiAutoCheckinActive = viewModel.user?.wifiAutoCheckinEnabled == true,
+        wifiAutoCheckinActive = viewModel.user?.isWifiAutoCheckinActive == true,
         isCheckingIn = viewModel.isCheckingIn,
         showSuccessDialog = viewModel.showCheckInSuccessDialog,
         isSosTriggered = viewModel.isSosTriggered,
@@ -145,18 +146,32 @@ fun PanelContent(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        Column {
-                            Text(
-                                text = "Mi Bienestar",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.ExtraBold,
-                                color = MaterialTheme.colorScheme.primary
-                            )
-                            Text(
-                                text = userName,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
-                            )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Mi Bienestar",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    text = userName,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f)
+                                )
+                            }
+
+                            IconButton(onClick = onNavigateToSettings) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Configuración",
+                                    tint = MaterialTheme.colorScheme.primary
+                                )
+                            }
                         }
 
                         Row(
@@ -258,6 +273,14 @@ fun PanelContent(
                                     color = Color.White,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
+                                )
+                            }
+
+                            IconButton(onClick = onNavigateToSettings) {
+                                Icon(
+                                    imageVector = Icons.Default.Settings,
+                                    contentDescription = "Configuración",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             }
                         }

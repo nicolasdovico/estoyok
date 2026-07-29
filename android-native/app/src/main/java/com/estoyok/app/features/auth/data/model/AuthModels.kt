@@ -26,6 +26,9 @@ data class UserDto(
 ) {
     val isUserPremium: Boolean
         get() = isPremium || (hasPremiumAccess == true)
+
+    val isWifiAutoCheckinActive: Boolean
+        get() = (wifiCheckinEnabled == true) || (wifiAutoCheckinEnabled == true)
 }
 
 data class LoginRequest(

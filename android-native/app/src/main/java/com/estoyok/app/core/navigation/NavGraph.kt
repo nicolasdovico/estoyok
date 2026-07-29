@@ -185,16 +185,16 @@ fun MainScreen(
             if (showTopIconButton) {
                 IconButton(
                     onClick = {
-                        if (isSubScreen) {
-                            navController.navigate(Screen.Mapa.route) {
+                        if (currentRoute == Screen.Ajustes.route) {
+                            navController.navigate(Screen.EstoyOk.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }
                                 launchSingleTop = true
                                 restoreState = true
                             }
-                        } else {
-                            navController.navigate(Screen.Ajustes.route) {
+                        } else if (currentRoute == Screen.Familia.route) {
+                            navController.navigate(Screen.Mapa.route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true
                                 }

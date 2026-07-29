@@ -1202,6 +1202,7 @@ fun MapaScreen(
                 .align(Alignment.TopCenter),
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.9f)),
             shape = RoundedCornerShape(20.dp),
+            border = BorderStroke(1.5.dp, PrimaryEmerald),
             elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
         ) {
             Row(
