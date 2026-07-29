@@ -74,7 +74,7 @@ fun PanelScreen(
         onSos = { ctx -> viewModel.triggerSos(ctx) },
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings,
-        disclaimerAcceptedAt = viewModel.user?.disclaimerAcceptedAt,
+        showMandatoryDisclaimer = (viewModel.user != null && viewModel.user?.disclaimerAcceptedAt.isNullOrBlank()),
         onAcceptDisclaimer = { viewModel.acceptDisclaimer() }
     )
 }
@@ -107,7 +107,7 @@ fun PanelContent(
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit,
-    disclaimerAcceptedAt: String? = "accepted",
+    showMandatoryDisclaimer: Boolean = false,
     onAcceptDisclaimer: () -> Unit = {}
 ) {
     val context = LocalContext.current
@@ -123,7 +123,7 @@ fun PanelContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        if (disclaimerAcceptedAt.isNullOrBlank()) {
+        if (showMandatoryDisclaimer) {
             DisclaimerMandatoryDialog(onAccept = onAcceptDisclaimer)
         }
 
