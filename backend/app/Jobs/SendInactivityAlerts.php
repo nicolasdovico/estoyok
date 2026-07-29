@@ -54,9 +54,10 @@ class SendInactivityAlerts implements ShouldQueue
 
             $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'))."/emergencia/{$alert->id}";
 
-            // If index is 0, send push notification to the user themselves
+            // If index is 0, send push notification to the user themselves and to nucleus members
             if ($this->contactIndex === 0) {
                 $this->sendPushNotification();
+                $this->sendPushNotificationToNucleusMembers($alert);
             }
 
             // Check if escalation is enabled
@@ -170,6 +171,38 @@ class SendInactivityAlerts implements ShouldQueue
                 $whatsAppService->sendSMS($contact->phone, $message);
             }
             Log::info("Premium alert sent to contact ID {$contact->id} for user {$this->user->id}");
+        }
+    }
+
+    protected function sendPushNotificationToNucleusMembers(EmergencyAlert $alert): void
+    {
+        $this->user->loadMissing('circles.users');
+
+        $members = [];
+        foreach ($this->user->circles as $circle) {
+            foreach ($circle->users as $member) {
+                if ($member->id !== $this->user->id) {
+                    $members[$member->id] = $member;
+                }
+            }
+        }
+
+        $pushService = app(\App\Services\PushNotificationService::class);
+        foreach ($members as $member) {
+            if ($member->expo_push_token) {
+                $pushService->sendPush(
+                    $member->expo_push_token,
+                    '⚠️ Alerta de Inactividad',
+                    "{$this->user->name} no ha reportado su estado ('Estoy OK') en el tiempo configurado.",
+                    [
+                        'type' => 'inactivity_alert',
+                        'alert_id' => (string) $alert->id,
+                        'user_id' => (string) $this->user->id,
+                        'user_name' => $this->user->name,
+                    ]
+                );
+                Log::info("Inactivity push notification sent to nucleus member ID {$member->id} for user {$this->user->id}");
+            }
         }
     }
 }

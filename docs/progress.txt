@@ -1,5 +1,12 @@
 # Progress Log
 
+## [2026-07-29] Notificaciones Push de Inactividad a Miembros del Núcleo
+- **Backend (Laravel):**
+    - Actualizado el Job `SendInactivityAlerts.php` para despachar automáticamente notificaciones Push a todos los miembros de los Núcleos (Círculos) a los que pertenece el usuario inactivo.
+    - El título de la notificación Push despachada a los familiares del núcleo es `⚠️ Alerta de Inactividad` con el mensaje: `"<Usuario> no ha reportado su estado ('Estoy OK') en el tiempo configurado."`.
+    - Preservado el flujo existente a Contactos de Emergencia (Email / WhatsApp / SMS) y la notificación preventiva Push al propio usuario.
+    - Verificado con la suite completa de pruebas automatizadas del backend.
+
 ## [2026-07-28] Integración de Suscripciones PayPal con 7 Días de Prueba Gratis ($0.00 hoy, luego USD $4.99)
 - **Backend (Laravel API):**
     - Configurado el plan oficial de suscripción recurrente en [PayPalService.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PayPalService.php) con **Prueba Gratis de 7 Días (`createSubscription`)**.
