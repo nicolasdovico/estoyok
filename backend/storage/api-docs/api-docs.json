@@ -1611,6 +1611,80 @@
                     }
                 ]
             }
+        },
+        "/settings/push-token": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar el token de notificaciones push (FCM / Expo)",
+                "operationId": "5591117348b1e4f74618938539bfffe7",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "push_token"
+                                ],
+                                "properties": {
+                                    "push_token": {
+                                        "type": "string",
+                                        "example": "ExponentPushToken[12345]"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Token actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
+        "/settings/accept-disclaimer": {
+            "post": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Registrar la aceptación de términos y descargo de responsabilidad",
+                "operationId": "1d4b4b70ec161f9110b54ca8c36352a7",
+                "responses": {
+                    "200": {
+                        "description": "Descargo de responsabilidad aceptado",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Disclaimer accepted successfully"
+                                        },
+                                        "disclaimer_accepted_at": {
+                                            "type": "string",
+                                            "example": "2026-07-29T11:30:00Z"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [

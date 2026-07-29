@@ -424,4 +424,14 @@ class PanelViewModel @Inject constructor(
             status = WellbeingStatus.NoReports
         }
     }
+
+    fun acceptDisclaimer() {
+        viewModelScope.launch {
+            settingsRepository.acceptDisclaimer().collectLatest { resource ->
+                if (resource is Resource.Success && resource.data != null) {
+                    user = resource.data
+                }
+            }
+        }
+    }
 }

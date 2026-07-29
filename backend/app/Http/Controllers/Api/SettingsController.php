@@ -430,5 +430,39 @@ class SettingsController extends Controller
             'push_token' => $user->expo_push_token,
         ]);
     }
+
+    #[OA\Post(
+        path: '/settings/accept-disclaimer',
+        summary: 'Registrar la aceptación de términos y descargo de responsabilidad',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Descargo de responsabilidad aceptado',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Disclaimer accepted successfully'),
+                        new OA\Property(property: 'disclaimer_accepted_at', type: 'string', example: '2026-07-29T11:30:00Z'),
+                    ]
+                )
+            ),
+        ]
+    )]
+    public function acceptDisclaimer(Request $request)
+    {
+        $user = Auth::user();
+        if (!$user->disclaimer_accepted_at) {
+            $user->update([
+                'disclaimer_accepted_at' => now(),
+            ]);
+        }
+
+        return response()->json([
+            'message' => 'Disclaimer accepted successfully',
+            'disclaimer_accepted_at' => $user->disclaimer_accepted_at?->toISOString(),
+            'user' => $user->fresh(),
+        ]);
+    }
 }
 

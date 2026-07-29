@@ -263,6 +263,7 @@
           - [x] FASE 4: Comando `subscriptions:send-trial-reminders`, mailable `TrialExpiringSoonMail.php` y scheduler diario para avisos 2 días antes de cobrar.
           - [x] FASE 5: Comando `subscriptions:check-expired-grace-periods`, mailable `SubscriptionSuspendedMail.php` y endpoint `POST /api/subscriptions/cancel` para manejo de 5 días de gracia y cancelaciones limpias sin costo.
           - [x] Interacción Nativa & Web: Chips interactivos en `PremiumScreen.kt` y `FamiliaViewModel.kt`, fallback de desarrollo y vista HTML/CSS corporativa para `/api/subscriptions/callback`.
+          - [x] Legal & Privacy Compliance: Migración `2026_07_29_120000_add_disclaimer_accepted_at_to_users_table`, endpoint `POST /api/settings/accept-disclaimer`, test `DisclaimerAcceptanceTest` (131 tests pasando) y modal bloqueante de primer uso `DisclaimerMandatoryDialog` en app nativa. Documentado en `docs/disclaimer_condiciones_servicio.md`.
 
 ### In Progress:
 - [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**

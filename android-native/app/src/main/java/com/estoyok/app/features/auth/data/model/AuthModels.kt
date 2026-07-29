@@ -22,6 +22,7 @@ data class UserDto(
     @SerializedName("wifi_auto_checkin_enabled") val wifiAutoCheckinEnabled: Boolean? = false,
     @SerializedName("last_check_in_at") val lastCheckInAt: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,
+    @SerializedName("disclaimer_accepted_at") val disclaimerAcceptedAt: String? = null,
     @SerializedName("created_at") val createdAt: String
 ) {
     val isUserPremium: Boolean

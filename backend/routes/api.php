@@ -88,6 +88,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/proximity-alerts', [SettingsController::class, 'updateProximityAlerts']);
     Route::put('/settings/push-token', [SettingsController::class, 'updatePushToken']);
     Route::post('/settings/avatar', [SettingsController::class, 'updateAvatar']);
+    Route::post('/settings/accept-disclaimer', [SettingsController::class, 'acceptDisclaimer']);
 
     Route::get('/user', function (Request $request) {
         return $request->user()->load(['currentLocation', 'circles', 'emergencyContacts']);

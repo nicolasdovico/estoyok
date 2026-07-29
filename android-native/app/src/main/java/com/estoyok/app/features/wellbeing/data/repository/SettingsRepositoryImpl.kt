@@ -74,6 +74,10 @@ class SettingsRepositoryImpl @Inject constructor(
         apiService.updatePushToken(PushTokenRequest(pushToken))
     }
 
+    override fun acceptDisclaimer(): Flow<Resource<UserDto>> = safeApiCall {
+        apiService.acceptDisclaimer()
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

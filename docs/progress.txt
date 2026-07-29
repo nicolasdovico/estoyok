@@ -1,7 +1,12 @@
 # Progress Log
 
 ## [2026-07-29] Notificaciones Push de Inactividad a Miembros del Núcleo y Ajustes UI en Estoy OK
+- **Backend (Laravel):**
+    - Agregada la migración `2026_07_29_120000_add_disclaimer_accepted_at_to_users_table.php` para almacenar el timestamp legal de aceptación del descargo de responsabilidad (`disclaimer_accepted_at`).
+    - Creado el endpoint `POST /api/settings/accept-disclaimer` en `SettingsController.php` para registrar la fecha/hora exacta en la base de datos al aceptar las condiciones.
+    - Creado el test de integración `DisclaimerAcceptanceTest.php` y regenerada la especificación Swagger (`131/131 tests pasando`).
 - **App Móvil Nativa (Android/Kotlin):**
+    - Implementada la pantalla modal de onboarding bloqueante `DisclaimerMandatoryDialog` en `PanelScreen.kt`: si el usuario no ha aceptado el descargo (`disclaimer_accepted_at == null`), se muestra la ventana obligatoria exigiendo lectura y confirmación activa mediante el botón *"Entendido y Aceptar Condiciones 🟢"* antes de habilitar el mapa y la app.
     - Agregado el punto 6 de **Privacidad Absoluta y No Monitoreo Administrativo** en el diálogo modal de Descargo de Responsabilidad de `AjustesScreen.kt`, garantizando formalmente que los administradores no rastrean a los usuarios ni ceden datos a terceros.
     - Reducido proporcionalmente el tamaño visual de todos los interruptores (toggles `Switch`) en `AjustesScreen.kt` mediante `Modifier.scale(0.75f)` para lograr una interfaz estilizada, equilibrada y alineada con la tipografía del contexto.
     - Corregida la detección del estado **Auto-Checkin** en `PanelScreen.kt`: `isWifiAutoCheckinActive` ahora evalúa correctamente `wifi_checkin_enabled` (retornado por la API Laravel), reflejando dinámicamente **"Wi-Fi Activo 📶"** en la tarjeta de protección al activar el toggle en Ajustes.

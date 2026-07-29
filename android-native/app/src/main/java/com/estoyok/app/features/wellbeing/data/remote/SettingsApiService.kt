@@ -58,8 +58,11 @@ interface SettingsApiService {
         @Body request: ProximityAlertsRequest
     ): Response<MessageResponse>
 
-    @PUT("settings/push-token")
+    @POST("settings/push-token")
     suspend fun updatePushToken(
         @Body request: PushTokenRequest
     ): Response<MessageResponse>
+
+    @POST("settings/accept-disclaimer")
+    suspend fun acceptDisclaimer(): Response<UserDto>
 }

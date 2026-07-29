@@ -12,12 +12,15 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Shield
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -70,7 +73,9 @@ fun PanelScreen(
         onMoveContactDown = { idx -> viewModel.moveContactDown(idx) },
         onSos = { ctx -> viewModel.triggerSos(ctx) },
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
-        onNavigateToSettings = onNavigateToSettings
+        onNavigateToSettings = onNavigateToSettings,
+        disclaimerAcceptedAt = viewModel.user?.disclaimerAcceptedAt,
+        onAcceptDisclaimer = { viewModel.acceptDisclaimer() }
     )
 }
 
@@ -101,7 +106,9 @@ fun PanelContent(
     onMoveContactDown: (Int) -> Unit,
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    disclaimerAcceptedAt: String? = "accepted",
+    onAcceptDisclaimer: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -116,6 +123,10 @@ fun PanelContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (disclaimerAcceptedAt.isNullOrBlank()) {
+            DisclaimerMandatoryDialog(onAccept = onAcceptDisclaimer)
+        }
+
         if (showSuccessDialog) {
             CheckInSuccessDialog(onDismiss = onDismissSuccessDialog)
         }
@@ -1520,4 +1531,90 @@ fun PanelScreenPreview() {
             onNavigateToSettings = {}
         )
     }
+}
+
+@Composable
+fun DisclaimerMandatoryDialog(
+    onAccept: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = {}, // Modal bloqueante, no se cierra sin aceptar
+        title = {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    imageVector = Icons.Default.Shield,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(26.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Condiciones y Protección",
+                    fontWeight = FontWeight.ExtraBold,
+                    fontSize = 18.sp
+                )
+            }
+        },
+        text = {
+            Column(
+                modifier = Modifier.verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Text(
+                    text = "Bienvenido a Estoy Ok. Para utilizar la plataforma de protección familiar, debes declarar conocer las condiciones operativas y de privacidad:",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
+                Text(
+                    text = "1. Conectividad e Internet\nRequiere datos móviles (4G/5G) o Wi-Fi activo para transmitir tu ubicación y enviar alertas de emergencia.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    text = "2. Permisos y Batería\nRequiere ubicación 'Permitir todo el tiempo' y exención de ahorro de energía para garantizar el rastreo en segundo plano.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    text = "3. Complemento de Emergencia\nEstoy Ok es una red privada familiar y NO sustituye al 911, 107 ni a las fuerzas de seguridad públicas.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    text = "4. Check-in e Inactividad\nLas alertas se disparan al expirar el tiempo configurado. En Modo Sueño, las notificaciones se pausarán.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    text = "5. Privacidad Consensuada\nTu posición solo se comparte con los miembros del núcleo activo que hayas seleccionado voluntariamente.",
+                    fontSize = 11.sp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    lineHeight = 15.sp
+                )
+                Text(
+                    text = "6. Sin Monitoreo ni Venta de Datos\nLos administradores de Estoy Ok NO rastrean ni vigilan a los usuarios. Tu ubicación NUNCA será vendida ni cedida a terceros.",
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = PrimaryEmerald,
+                    lineHeight = 15.sp
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = onAccept,
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
+                shape = RoundedCornerShape(10.dp)
+            ) {
+                Text("Entendido y Aceptar Condiciones 🟢", fontWeight = FontWeight.Bold, color = TextOnPrimary, fontSize = 13.sp)
+            }
+        }
+    )
 }

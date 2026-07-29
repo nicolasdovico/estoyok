@@ -16,4 +16,5 @@ interface SettingsRepository {
     fun updateProximityAlerts(enabled: Boolean): Flow<Resource<MessageResponse>>
     fun updateAvatar(avatar: okhttp3.MultipartBody.Part): Flow<Resource<MessageResponse>>
     fun updatePushToken(pushToken: String): Flow<Resource<MessageResponse>>
+    fun acceptDisclaimer(): Flow<Resource<UserDto>>
 }

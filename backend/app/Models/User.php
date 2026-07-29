@@ -85,6 +85,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'billing_cycle_ends_at',
         'trial_reminder_sent_at',
         'grace_period_ends_at',
+        'disclaimer_accepted_at',
     ];
 
     /**
@@ -137,6 +138,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'billing_cycle_ends_at' => 'datetime',
             'trial_reminder_sent_at' => 'datetime',
             'grace_period_ends_at' => 'datetime',
+            'disclaimer_accepted_at' => 'datetime',
         ];
     }
 
