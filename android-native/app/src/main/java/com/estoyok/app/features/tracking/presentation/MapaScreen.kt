@@ -139,9 +139,30 @@ fun MapaScreen(
         }
     }
     val markerBitmaps = remember { mutableStateMapOf<Int, Bitmap>() }
+    val effectiveMembers by remember(viewModel.selectedCircleMembers, viewModel.currentUserProfile) {
+        derivedStateOf {
+            if (viewModel.selectedCircleMembers.isNotEmpty()) {
+                viewModel.selectedCircleMembers
+            } else if (viewModel.currentUserProfile?.currentLocation != null) {
+                val profile = viewModel.currentUserProfile!!
+                listOf(
+                    CircleMemberDto(
+                        id = profile.id,
+                        name = profile.name,
+                        email = profile.email,
+                        phone = profile.phone ?: "",
+                        avatarUrl = profile.avatarUrl,
+                        currentLocation = profile.currentLocation
+                    )
+                )
+            } else {
+                emptyList()
+            }
+        }
+    }
 
     LaunchedEffect(Unit) {
-        snapshotFlow { Triple(viewModel.selectedCircleMembers, viewModel.avatarVersion, viewModel.currentUserProfile) }
+        snapshotFlow { Triple(effectiveMembers, viewModel.avatarVersion, viewModel.currentUserProfile) }
             .collect { (members, version, profile) ->
                 members.forEach { member ->
                     val url = member.avatarUrl
@@ -291,9 +312,9 @@ fun MapaScreen(
 
     val stayTracker = remember { mutableStateMapOf<Int, Pair<LatLng, Long>>() }
     val lastUpdateTimes = remember { mutableStateMapOf<Int, Long>() }
-    LaunchedEffect(viewModel.selectedCircleMembers) {
+    LaunchedEffect(effectiveMembers) {
         val now = System.currentTimeMillis()
-        viewModel.selectedCircleMembers.forEach { member ->
+        effectiveMembers.forEach { member ->
             val loc = member.currentLocation
             if (loc != null) {
                 val latLng = LatLng(loc.latitude, loc.longitude)
@@ -393,7 +414,7 @@ fun MapaScreen(
 
     val fitAllMembers: () -> Unit = {
         isCameraMovedByUser = false
-        val membersWithLocation = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
+        val membersWithLocation = effectiveMembers.filter { it.currentLocation != null }
         if (membersWithLocation.isNotEmpty()) {
             scope.launch {
                 if (membersWithLocation.size == 1) {
@@ -445,13 +466,20 @@ fun MapaScreen(
         }
     }
 
-    // Auto-fit group coordinates whenever active circle changes
-    LaunchedEffect(viewModel.selectedCircle, viewModel.selectedCircleMembers) {
+    // Auto-fit group coordinates whenever active circle changes or effectiveMembers changes
+    var initialSelfFitDone by remember { mutableStateOf(false) }
+    LaunchedEffect(viewModel.selectedCircle, effectiveMembers) {
         val circleId = viewModel.selectedCircle?.id
-        if (circleId != null && circleId != lastFittedCircleId && viewModel.selectedCircleMembers.isNotEmpty()) {
-            val hasLocation = viewModel.selectedCircleMembers.any { it.currentLocation != null }
+        if (circleId != null && circleId != lastFittedCircleId && effectiveMembers.isNotEmpty()) {
+            val hasLocation = effectiveMembers.any { it.currentLocation != null }
             if (hasLocation) {
                 lastFittedCircleId = circleId
+                fitAllMembers()
+            }
+        } else if (circleId == null && !initialSelfFitDone && effectiveMembers.isNotEmpty()) {
+            val hasLocation = effectiveMembers.any { it.currentLocation != null }
+            if (hasLocation) {
+                initialSelfFitDone = true
                 fitAllMembers()
             }
         }
@@ -466,7 +494,7 @@ fun MapaScreen(
             if (projection == null) {
                 emptyList()
             } else {
-                viewModel.selectedCircleMembers
+                effectiveMembers
                     .filter { it.currentLocation != null }
                     .map { member ->
                         val loc = member.currentLocation!!
@@ -571,8 +599,8 @@ fun MapaScreen(
 
             // Render active dynamic geofences (proximidad relativa)
             viewModel.activeDynamicGeofences.forEach { dynGf ->
-                val initiatorMember = viewModel.selectedCircleMembers.find { it.id == dynGf.initiatorId }
-                val targetMember = viewModel.selectedCircleMembers.find { it.id == dynGf.targetId }
+                val initiatorMember = effectiveMembers.find { it.id == dynGf.initiatorId }
+                val targetMember = effectiveMembers.find { it.id == dynGf.targetId }
                 val initLoc = initiatorMember?.currentLocation
                 val targLoc = targetMember?.currentLocation
                 if (initLoc != null && targLoc != null) {
@@ -595,7 +623,7 @@ fun MapaScreen(
 
             // Render markers for all nucleus members (Life360 Style Clustering & Zoom-Aware Dispersion)
             val currentZoom = cameraPositionState.position.zoom
-            val validMembers = viewModel.selectedCircleMembers.filter { it.currentLocation != null }
+            val validMembers = effectiveMembers.filter { it.currentLocation != null }
             val memberGroups = mutableListOf<MutableList<com.estoyok.app.features.tracking.data.model.CircleMemberDto>>()
 
             val sampleLat = validMembers.firstOrNull()?.currentLocation?.latitude ?: -34.6
@@ -1188,6 +1216,53 @@ fun MapaScreen(
                                 )
                             }
                         }
+                    }
+                }
+            }
+        }
+
+        if (viewModel.circles.isEmpty() && viewModel.currentUserProfile != null) {
+            Card(
+                modifier = Modifier
+                    .align(Alignment.TopCenter)
+                    .padding(top = 64.dp, start = 16.dp, end = 16.dp)
+                    .fillMaxWidth(0.92f)
+                    .widthIn(max = 380.dp),
+                colors = CardDefaults.cardColors(containerColor = DarkSurface.copy(alpha = 0.92f)),
+                shape = RoundedCornerShape(16.dp),
+                border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.5f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 6.dp)
+            ) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Aún no perteneces a ningún Núcleo 🏠",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Text(
+                            text = "Tu ubicación se muestra de forma individual en el mapa.",
+                            fontSize = 10.sp,
+                            color = TextMuted,
+                            lineHeight = 13.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Button(
+                        onClick = { navController?.navigate("familia") },
+                        colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald),
+                        shape = RoundedCornerShape(8.dp),
+                        contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp),
+                        modifier = Modifier.height(30.dp)
+                    ) {
+                        Text("Crear / Unirse", fontSize = 10.5.sp, fontWeight = FontWeight.Bold, color = TextOnPrimary)
                     }
                 }
             }

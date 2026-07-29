@@ -23,6 +23,7 @@ data class UserDto(
     @SerializedName("last_check_in_at") val lastCheckInAt: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,
     @SerializedName("disclaimer_accepted_at") val disclaimerAcceptedAt: String? = null,
+    @SerializedName("current_location") val currentLocation: com.estoyok.app.features.tracking.data.model.MemberLocationDto? = null,
     @SerializedName("created_at") val createdAt: String
 ) {
     val isUserPremium: Boolean

@@ -36,3 +36,6 @@ pass: analia1234
 
 user: emiliana@gmail.com
 pass: emiliana1234
+
+user: tomas@gmail.com
+pass: tomas1234
