@@ -220,7 +220,7 @@ fun PremiumScreen(
                                 unit = "/ mes",
                                 detail = "$35.99 facturado al año",
                                 isSelected = selectedBillingCycle == "annual",
-                                badgeText = "POPULAR 🔥",
+                                badgeText = "OFERTA LANZAMIENTO 🔥",
                                 onClick = { selectedBillingCycle = "annual" },
                                 modifier = Modifier.weight(1f)
                             )

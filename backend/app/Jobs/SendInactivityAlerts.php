@@ -187,9 +187,10 @@ class SendInactivityAlerts implements ShouldQueue
             }
         }
 
+        $userPushToken = $this->user->expo_push_token;
         $pushService = app(\App\Services\PushNotificationService::class);
         foreach ($members as $member) {
-            if ($member->expo_push_token) {
+            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
                 $pushService->sendPush(
                     $member->expo_push_token,
                     '⚠️ Alerta de Inactividad',

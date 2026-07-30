@@ -1,10 +1,20 @@
 # Progress Log
 
+## [2026-07-30] Corrección de Auto-Envío de Notificaciones Push y Unicidad de Dispositivos
+- **Backend (Laravel):**
+    - Modificado `SettingsController.php` (`updatePushToken`) para desvincular el token push (`expo_push_token = null`) de cuentas anteriores cuando un dispositivo registra o actualiza su token de notificaciones, previniendo tokens duplicados entre usuarios.
+    - Actualizado `AuthController.php` (`logout`) para limpiar el `expo_push_token` del usuario que cierra sesión.
+    - Implementada doble salvaguarda en `ProcessGeofencing.php`, `SendBatteryAlertJob.php`, `SendCrashAlertJob.php` y `SendInactivityAlerts.php` para filtrar explícitamente cualquier token de miembro que coincida con el `expo_push_token` del usuario emisor del evento.
+    - Agregados 3 tests de integración en `GeofencingTest.php` verificando la desvinculación de tokens compartidos, la limpieza en logout y el bloqueo de auto-notificaciones (suite completa pasando 134/134 tests).
+
 ## [2026-07-29] Notificaciones Push de Inactividad a Miembros del Núcleo y Ajustes UI en Estoy OK
 - **Backend (Laravel):**
     - Agregada la migración `2026_07_29_120000_add_disclaimer_accepted_at_to_users_table.php` para almacenar el timestamp legal de aceptación del descargo de responsabilidad (`disclaimer_accepted_at`).
     - Creado el endpoint `POST /api/settings/accept-disclaimer` en `SettingsController.php` para registrar la fecha/hora exacta en la base de datos al aceptar las condiciones.
     - Creado el test de integración `DisclaimerAcceptanceTest.php` y regenerada la especificación Swagger (`131/131 tests pasando`).
+- **Estrategia Comercial y Documentación:**
+    - Creada la especificación [`docs/plan_precios_lanzamiento.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_precios_lanzamiento.md) detallando la estructura de precios regulares (20% OFF • $3.99/mes • $47.88/año) y su comparativa frente a Life360 (~16.6% OFF).
+    - Mantenida la promoción activa de **Oferta de Lanzamiento (40% OFF • $2.99/mes • $35.99/año)** en el Paywall nativo (`PremiumScreen.kt`), destacándola mediante el badge *"OFERTA LANZAMIENTO 🔥"*.
 - **App Móvil Nativa (Android/Kotlin):**
     - Implementado el fallback de visualización de **Ubicación Individual de Usuario Recién Registrado (0 Núcleos)** en `MapaScreen.kt`: si el usuario no pertenece a ningún Núcleo (`selectedCircleMembers` está vacío), el mapa se alimenta dinámicamente de `currentUserProfile` reutilizando el pipeline exacto de renderizado de marcadores (borde turquesa/esmeralda, avatar, etiqueta *"Tú (Mi ubicación)"*, estado de batería e inactividad), sin alterar ningún estilo, fluidez ni animación previa. La cámara se centra automáticamente sobre el usuario al abrir la app con zoom `15.5f` y se añade un banner superior glassmorphic indicando *"Aún no perteneces a ningún Núcleo 🏠"* con acceso directo a *"Crear / Unirse"*.
     - Corregido el destello (parpadeo) inicial del diálogo modal de descargo de responsabilidad en `PanelScreen.kt`: ahora `showMandatoryDisclaimer` requiere estrictamente que el objeto `user` haya finalizado de cargar desde la API (`user != null`) y que `disclaimerAcceptedAt` sea nulo. Si el usuario ya lo aceptó, la ventana modal **nunca** se renderiza ni parpadea al abrir la pestaña.

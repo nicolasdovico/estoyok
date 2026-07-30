@@ -302,4 +302,58 @@ class GeofencingTest extends TestCase
         $this->assertEquals(1, GeofenceEvent::count());
         Http::assertNothingSent();
     }
+
+    public function test_update_push_token_clears_token_from_other_users()
+    {
+        $user1 = User::factory()->create(['expo_push_token' => 'shared-device-token']);
+        $user2 = User::factory()->create();
+
+        $this->actingAs($user2);
+
+        $response = $this->putJson('/api/settings/push-token', [
+            'push_token' => 'shared-device-token',
+        ]);
+
+        $response->assertStatus(200);
+
+        $this->assertNull($user1->fresh()->expo_push_token);
+        $this->assertEquals('shared-device-token', $user2->fresh()->expo_push_token);
+    }
+
+    public function test_logout_clears_push_token()
+    {
+        $user = User::factory()->create(['expo_push_token' => 'test-token']);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/logout');
+
+        $response->assertStatus(200);
+        $this->assertNull($user->fresh()->expo_push_token);
+    }
+
+    public function test_geofencing_alert_does_not_send_to_same_push_token_as_initiator()
+    {
+        $owner = User::factory()->create(['name' => 'Owner', 'expo_push_token' => 'same-token']);
+        $member = User::factory()->create(['name' => 'Member', 'expo_push_token' => 'same-token']);
+
+        $circle = Circle::create(['name' => 'Test Circle', 'owner_id' => $owner->id]);
+        $circle->users()->attach([$owner->id, $member->id]);
+
+        $geofence = Geofence::create([
+            'circle_id' => $circle->id,
+            'name' => 'Obelisco',
+            'radius' => 500,
+            'center' => DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)"),
+        ]);
+
+        Http::fake();
+
+        // INSIDE
+        $job = new ProcessGeofencing($member, -34.6037, -58.3816);
+        $job->handle();
+
+        // Should NOT send push because owner has the same push token as member
+        Http::assertNothingSent();
+    }
 }

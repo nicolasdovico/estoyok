@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use OpenApi\Attributes as OA;
@@ -421,6 +422,12 @@ class SettingsController extends Controller
         ]);
 
         $user = Auth::user();
+
+        // Disassociate this push token from any other users to prevent shared token notifications
+        User::where('expo_push_token', $validated['push_token'])
+            ->where('id', '!=', $user->id)
+            ->update(['expo_push_token' => null]);
+
         $user->update([
             'expo_push_token' => $validated['push_token']
         ]);

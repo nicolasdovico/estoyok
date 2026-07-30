@@ -48,8 +48,9 @@ class SendBatteryAlertJob implements ShouldQueue
 
         $percentage = round($this->batteryLevel * 100);
 
+        $userPushToken = $this->user->expo_push_token;
         foreach ($memberIds as $member) {
-            if ($member->expo_push_token) {
+            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
                 app(\App\Services\PushNotificationService::class)->sendPush(
                     $member->expo_push_token,
                     '🔋 Batería baja de un miembro',

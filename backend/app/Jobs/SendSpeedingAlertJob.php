@@ -38,7 +38,8 @@ class SendSpeedingAlertJob implements ShouldQueue
     {
         Log::info("Processing speeding alert for user {$this->user->name} ({$this->user->id}) to owner {$this->owner->name} ({$this->owner->id}), speed: {$this->speed} km/h (limit: {$this->limit} km/h)");
 
-        if ($this->owner->expo_push_token) {
+        $userPushToken = $this->user->expo_push_token;
+        if ($this->owner->expo_push_token && ($userPushToken === null || $this->owner->expo_push_token !== $userPushToken)) {
             $roundedSpeed = round($this->speed);
             app(\App\Services\PushNotificationService::class)->sendPush(
                 $this->owner->expo_push_token,

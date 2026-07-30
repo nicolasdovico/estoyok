@@ -52,8 +52,9 @@ class SendCrashAlertJob implements ShouldQueue
         }
 
         // Send Push Notifications to Nucleus Members
+        $userPushToken = $user->expo_push_token;
         foreach ($members as $member) {
-            if ($member->expo_push_token) {
+            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
                 $gForceStr = $this->crashEvent->g_force ? " de {$this->crashEvent->g_force} G" : "";
                 app(\App\Services\PushNotificationService::class)->sendPush(
                     $member->expo_push_token,

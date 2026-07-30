@@ -49,6 +49,7 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
 - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] Corrección de auto-envío de notificaciones push de geocercas/batería/inactividad a sí mismo mediante desvinculación única de `expo_push_token` en inicio de sesión/registro, limpieza en logout y filtrado de token emisor en el backend.
   - [x] Notificaciones Push de inactividad a miembros de Núcleos (Círculos) al generarse la alerta "Estoy OK".
   - [x] Implementación completa de Alertas de Inactividad ("Estoy Ok") personalizables.
   - [x] Refactorización de UI (Web/Mobile) para separar Bienestar de Rastreo.
