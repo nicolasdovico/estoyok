@@ -11,6 +11,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -1063,9 +1067,9 @@ fun MapaScreen(
             val mx = screenPoint.x.toFloat()
             val my = screenPoint.y.toFloat()
             
-            // Draw indicators ONLY when the main avatar marker has actually exited the screen boundary
-            val exitMarginX = with(density) { 10.dp.toPx() }
-            val exitMarginY = with(density) { 10.dp.toPx() }
+            // Draw indicators when 50% of the main avatar marker leaves the screen boundary
+            val exitMarginX = with(density) { -28.dp.toPx() }
+            val exitMarginY = with(density) { -33.dp.toPx() }
             val isOffScreen = mx < -exitMarginX || mx > width + exitMarginX || my < topMargin - exitMarginY || my > height - bottomMargin + exitMarginY
             
             if (isOffScreen) {
@@ -1135,88 +1139,41 @@ fun MapaScreen(
                     val iyDp = with(density) { iy.toDp() }
                     
                     val boxX = when (edge) {
-                        "left" -> 0.dp
-                        "right" -> with(density) { (width - with(density) { 44.dp.toPx() }).toDp() }
-                        else -> ixDp - 22.dp
+                        "left" -> 2.dp
+                        "right" -> with(density) { (width - with(density) { 48.dp.toPx() }).toDp() }
+                        else -> ixDp - 23.dp
                     }
                     
                     val boxY = when (edge) {
                         "top" -> with(density) { topMargin.toDp() }
-                        "bottom" -> with(density) { (height - bottomMargin - with(density) { 44.dp.toPx() }).toDp() }
-                        else -> iyDp - 22.dp
-                    }
-                    
-                    val cornerRadius = 12.dp
-                    val tabShape = when (edge) {
-                        "left" -> RoundedCornerShape(topStart = 0.dp, bottomStart = 0.dp, topEnd = cornerRadius, bottomEnd = cornerRadius)
-                        "right" -> RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius, topEnd = 0.dp, bottomEnd = 0.dp)
-                        "top" -> RoundedCornerShape(topStart = 0.dp, topEnd = 0.dp, bottomStart = cornerRadius, bottomEnd = cornerRadius)
-                        "bottom" -> RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius, bottomStart = 0.dp, bottomEnd = 0.dp)
-                        else -> CircleShape
+                        "bottom" -> with(density) { (height - bottomMargin - with(density) { 48.dp.toPx() }).toDp() }
+                        else -> iyDp - 23.dp
                     }
                     
                     val loc = member.currentLocation!!
                     val isOffline = loc.isOffline == true
                     val borderColor = if (isOffline) TextMuted else PrimaryEmerald
                     
-                    Box(
-                        modifier = Modifier
-                            .offset(x = boxX, y = boxY)
-                            .size(44.dp)
-                            .background(MaterialTheme.colorScheme.surface, tabShape)
-                            .border(2.dp, borderColor, tabShape)
-                            .clip(tabShape)
-                            .clickable {
-                                scope.launch {
-                                    cameraPositionState.animate(
-                                        CameraUpdateFactory.newLatLngZoom(
-                                            LatLng(loc.latitude, loc.longitude),
-                                            16f
-                                        )
+                    AnimatedEdgeIndicator(
+                        member = member,
+                        edge = edge,
+                        boxX = boxX,
+                        boxY = boxY,
+                        borderColor = borderColor,
+                        bitmapToDraw = markerBitmaps[member.id],
+                        onClick = {
+                            scope.launch {
+                                cameraPositionState.animate(
+                                    CameraUpdateFactory.newLatLngZoom(
+                                        LatLng(loc.latitude, loc.longitude),
+                                        16f
                                     )
-                                    selectedMemberForMap = member
-                                    viewModel.selectedMember = member
-                                }
-                            }
-                    ) {
-                        if (!member.avatarUrl.isNullOrEmpty() && member.avatarUrl != "null") {
-                            SubcomposeAsyncImage(
-                                model = member.avatarUrl,
-                                contentDescription = "Foto de perfil",
-                                modifier = Modifier.fillMaxSize(),
-                                contentScale = ContentScale.Crop,
-                                error = {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .background(MaterialTheme.colorScheme.surfaceVariant),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Text(
-                                            text = member.name.take(2).uppercase(),
-                                            fontSize = 12.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                                        )
-                                    }
-                                }
-                            )
-                        } else {
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .background(MaterialTheme.colorScheme.surfaceVariant),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = member.name.take(2).uppercase(),
-                                    fontSize = 12.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                                selectedMemberForMap = member
+                                viewModel.selectedMember = member
                             }
                         }
-                    }
+                    )
                 }
             }
         }
@@ -3666,4 +3623,121 @@ fun getDispersedMembers(
     }
     
     return results
+}
+
+@Composable
+fun AnimatedEdgeIndicator(
+    member: com.estoyok.app.features.tracking.data.model.CircleMemberDto,
+    edge: String,
+    boxX: Dp,
+    boxY: Dp,
+    borderColor: Color,
+    bitmapToDraw: Bitmap?,
+    onClick: () -> Unit
+) {
+    var isVisible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        isVisible = true
+    }
+
+    val animatedRotationY by animateFloatAsState(
+        targetValue = if (isVisible) 0f else 180f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "rotationY"
+    )
+
+    val animatedScale by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.5f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "scale"
+    )
+
+    val cornerRadius = 14.dp
+    val tabShape = when (edge) {
+        "left" -> RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = cornerRadius, bottomEnd = cornerRadius)
+        "right" -> RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius, topEnd = 4.dp, bottomEnd = 4.dp)
+        "top" -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = cornerRadius, bottomEnd = cornerRadius)
+        "bottom" -> RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius, bottomStart = 4.dp, bottomEnd = 4.dp)
+        else -> CircleShape
+    }
+
+    val arrowIcon = when (edge) {
+        "left" -> "◀"
+        "right" -> "▶"
+        "top" -> "▲"
+        "bottom" -> "▼"
+        else -> "•"
+    }
+
+    Box(
+        modifier = Modifier
+            .offset(x = boxX, y = boxY)
+            .size(46.dp)
+            .graphicsLayer {
+                rotationY = animatedRotationY
+                scaleX = animatedScale
+                scaleY = animatedScale
+                cameraDistance = 12f * density
+            }
+            .background(DarkSurface.copy(alpha = 0.92f), tabShape)
+            .border(2.dp, borderColor, tabShape)
+            .clip(tabShape)
+            .clickable { onClick() }
+    ) {
+        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            if (bitmapToDraw != null) {
+                Image(
+                    bitmap = bitmapToDraw.asImageBitmap(),
+                    contentDescription = member.name,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(2.dp)
+                        .clip(tabShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                val initials = member.name.split(" ")
+                    .mapNotNull { it.firstOrNull()?.toString() }
+                    .take(2)
+                    .joinToString("")
+                    .uppercase()
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(MaterialTheme.colorScheme.surfaceVariant, tabShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = initials,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
+
+            Box(
+                modifier = Modifier
+                    .size(16.dp)
+                    .align(
+                        when (edge) {
+                            "left" -> Alignment.CenterEnd
+                            "right" -> Alignment.CenterStart
+                            "top" -> Alignment.BottomCenter
+                            "bottom" -> Alignment.TopCenter
+                            else -> Alignment.BottomEnd
+                        }
+                    )
+                    .background(borderColor, CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = arrowIcon,
+                    fontSize = 8.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Color.White
+                )
+            }
+        }
+    }
 }

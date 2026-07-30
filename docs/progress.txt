@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-07-30] Mejora Estética de Avatares de Borde (Off-Screen Edge Indicators) con Transición 3D y Umbral 50%
+- **App Móvil Nativa (Android Kotlin):**
+    - Ajustado el guardián `isOffScreen` en `MapaScreen.kt` con umbral del **50% (`-28.dp` en X / `-33.dp` en Y)**. La transición a indicador de borde comienza exactamente al sobrepasar la mitad del marcador.
+    - Creado el componente helper `@Composable AnimatedEdgeIndicator` con animación fluida en `graphicsLayer` (rotación 3D en eje Y de 180° a 0° e interpolación de escala con easing `FastOutSlowIn`).
+    - Diseñado el layout de la **Cápsula Escudo (Shield-Pill)** en modo oscuro (`DarkSurface`) con marco neón esmeralda y badge con flechas direccionales (`◀`, `▶`, `▲`, `▼`) indicando la ubicación del familiar fuera del mapa.
+    - Preservados al 100% el resolvedor de colisiones de bordes, la animación inversa al reingresar al mapa y los click handlers nativos.
+    - Compilación nativa verificada (`BUILD SUCCESSFUL in 28s`). Suite de 137 tests de backend ejecutada con éxito total (137/137 passed).
+
 ## [2026-07-30] Notificaciones Push de Recordatorio de Bienestar ("Recordar 🔔") y Ajustes de Resiliencia GPS
 - **Backend (Laravel API):**
     - Creado el endpoint `POST /api/circles/{circle}/members/{member}/remind` en `CircleController.php` para enviar notificaciones Push directas al dispositivo del familiar solicitando confirmación de bienestar (*"🔔 Recordatorio de Bienestar: [Nombre] te solicita confirmar tu reporte de bienestar ('Estoy OK')"*).
