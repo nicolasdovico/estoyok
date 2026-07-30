@@ -49,8 +49,8 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
 - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] Implementación de migración de base de datos (`cleanup_duplicate_push_tokens`) y filtrado estricto `$sentTokens` en todos los Jobs (`ProcessGeofencing`, `SendBatteryAlertJob`, `SendCrashAlertJob`, `SendInactivityAlerts`, `SendSpeedingAlertJob`) para prevenir auto-notificaciones de geocerca/batería/inactividad cuando un token de dispositivo se compartió entre cuentas en el pasado.
   - [x] Implementación completa de Auto-Check-in Pasivo por Wi-Fi Seguro con notificación push personal de confirmación al usuario (rate-limit inteligente según `checkin_interval_hours`).
-  - [x] Corrección de auto-envío de notificaciones push de geocercas/batería/inactividad a sí mismo mediante desvinculación única de `expo_push_token` en inicio de sesión/registro, limpieza en logout y filtrado de token emisor en el backend.
   - [x] Notificaciones Push de inactividad a miembros de Núcleos (Círculos) al generarse la alerta "Estoy OK".
   - [x] Implementación completa de Alertas de Inactividad ("Estoy Ok") personalizables.
   - [x] Refactorización de UI (Web/Mobile) para separar Bienestar de Rastreo.

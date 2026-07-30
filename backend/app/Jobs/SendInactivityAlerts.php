@@ -188,11 +188,24 @@ class SendInactivityAlerts implements ShouldQueue
         }
 
         $userPushToken = $this->user->expo_push_token;
+        if (!empty($userPushToken)) {
+            User::where('expo_push_token', $userPushToken)
+                ->where('id', '!=', $this->user->id)
+                ->update(['expo_push_token' => null]);
+        }
+
+        $sentTokens = [];
+        if (!empty($userPushToken)) {
+            $sentTokens[$userPushToken] = true;
+        }
+
         $pushService = app(\App\Services\PushNotificationService::class);
         foreach ($members as $member) {
-            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
+            $memberToken = $member->expo_push_token;
+            if (!empty($memberToken) && !isset($sentTokens[$memberToken])) {
+                $sentTokens[$memberToken] = true;
                 $pushService->sendPush(
-                    $member->expo_push_token,
+                    $memberToken,
                     '⚠️ Alerta de Inactividad',
                     "{$this->user->name} no ha reportado su estado ('Estoy OK') en el tiempo configurado.",
                     [

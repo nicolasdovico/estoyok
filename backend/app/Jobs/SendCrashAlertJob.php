@@ -53,11 +53,24 @@ class SendCrashAlertJob implements ShouldQueue
 
         // Send Push Notifications to Nucleus Members
         $userPushToken = $user->expo_push_token;
+        if (!empty($userPushToken)) {
+            User::where('expo_push_token', $userPushToken)
+                ->where('id', '!=', $user->id)
+                ->update(['expo_push_token' => null]);
+        }
+
+        $sentTokens = [];
+        if (!empty($userPushToken)) {
+            $sentTokens[$userPushToken] = true;
+        }
+
         foreach ($members as $member) {
-            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
+            $memberToken = $member->expo_push_token;
+            if (!empty($memberToken) && !isset($sentTokens[$memberToken])) {
+                $sentTokens[$memberToken] = true;
                 $gForceStr = $this->crashEvent->g_force ? " de {$this->crashEvent->g_force} G" : "";
                 app(\App\Services\PushNotificationService::class)->sendPush(
-                    $member->expo_push_token,
+                    $memberToken,
                     '🚨 ¡ALERTA DE ACCIDENTE!',
                     "Se ha detectado un fuerte impacto vehicular{$gForceStr} en el dispositivo de {$user->name}.",
                     [

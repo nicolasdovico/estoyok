@@ -75,6 +75,7 @@ class TrackingService : Service(), SensorEventListener {
     private var lastLongitude = 0.0
     private var lastAccuracy = 0.0f
     private var lastSentLocation: Location? = null
+    private var lastSentTimeMs: Long = 0L
 
     // Significant Motion Sensor for low-power wake-up (Activity Recognition alternative)
     private var significantMotionSensor: Sensor? = null
@@ -242,9 +243,14 @@ class TrackingService : Service(), SensorEventListener {
         evaluateDrivingHysteresis()
         adjustTrackingMode(lastSpeedMps, location)
 
-        // 1. Accuracy Filter: discard noisy updates (accuracy > 40m) if not in emergency mode
-        if (location.hasAccuracy() && location.accuracy > 40f && !isEmergencyMode) {
-            android.util.Log.d("TrackingService", "Discarding location update due to poor accuracy: ${location.accuracy}m")
+        val nowMs = System.currentTimeMillis()
+        val timeSinceLastSentMs = if (lastSentTimeMs > 0) nowMs - lastSentTimeMs else Long.MAX_VALUE
+        val isHeartbeatDue = timeSinceLastSentMs >= 15 * 60 * 1000L
+
+        // 1. Accuracy Filter: discard noisy updates (allow up to 100m for indoor heartbeat, 40m for active tracking)
+        val maxAllowedAccuracy = if (isHeartbeatDue) 100f else 40f
+        if (location.hasAccuracy() && location.accuracy > maxAllowedAccuracy && !isEmergencyMode) {
+            android.util.Log.d("TrackingService", "Discarding location update due to poor accuracy: ${location.accuracy}m (max: ${maxAllowedAccuracy}m)")
             return
         }
 
@@ -255,18 +261,23 @@ class TrackingService : Service(), SensorEventListener {
             val speedKmh = lastSpeedMps * 3.6f
             
             if (speedKmh < 3.0f && !isEmergencyMode && !isDriving) {
-                if (distance < 15f) {
-                    android.util.Log.d("TrackingService", "Discarding indoor drift (stationary): distance=$distance m")
-                    return
-                }
-                if (distance < 45f && location.hasAccuracy() && location.accuracy >= 20f) {
-                    android.util.Log.d("TrackingService", "Discarding indoor drift (bounce with low accuracy): distance=$distance m, acc=${location.accuracy}m")
-                    return
+                if (!isHeartbeatDue) {
+                    if (distance < 15f) {
+                        android.util.Log.d("TrackingService", "Discarding indoor drift (stationary): distance=$distance m")
+                        return
+                    }
+                    if (distance < 45f && location.hasAccuracy() && location.accuracy >= 20f) {
+                        android.util.Log.d("TrackingService", "Discarding indoor drift (bounce with low accuracy): distance=$distance m, acc=${location.accuracy}m")
+                        return
+                    }
+                } else {
+                    android.util.Log.d("TrackingService", "Heartbeat due (stationary for ${timeSinceLastSentMs / 1000}s). Sending periodic update.")
                 }
             }
         }
 
         lastSentLocation = location
+        lastSentTimeMs = nowMs
 
         serviceScope.launch {
             val batteryStatus = getBatteryStatus()
@@ -662,14 +673,30 @@ class TrackingService : Service(), SensorEventListener {
             val network = connectivityManager.activeNetwork ?: return null
             val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
             if (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI)) {
+                // 1. Android 10+ (API 29+) modern WifiInfo retrieval
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    val wifiInfo = capabilities.transportInfo as? android.net.wifi.WifiInfo
+                    if (wifiInfo != null && wifiInfo.ssid != null) {
+                        var ssid = wifiInfo.ssid
+                        if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
+                            ssid = ssid.substring(1, ssid.length - 1)
+                        }
+                        if (ssid != "<unknown ssid>" && ssid.isNotEmpty()) {
+                            return ssid
+                        }
+                    }
+                }
+
+                // 2. Legacy fallback for older Android versions
                 val wifiManager = applicationContext.getSystemService(Context.WIFI_SERVICE) as android.net.wifi.WifiManager
+                @Suppress("DEPRECATION")
                 val wifiInfo = wifiManager.connectionInfo
                 if (wifiInfo != null && wifiInfo.ssid != null) {
                     var ssid = wifiInfo.ssid
                     if (ssid.startsWith("\"") && ssid.endsWith("\"")) {
                         ssid = ssid.substring(1, ssid.length - 1)
                     }
-                    if (ssid != "<unknown ssid>") {
+                    if (ssid != "<unknown ssid>" && ssid.isNotEmpty()) {
                         return ssid
                     }
                 }

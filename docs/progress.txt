@@ -1,11 +1,13 @@
 # Progress Log
 
-## [2026-07-30] Implementación de Auto-Check-in Pasivo por Wi-Fi Seguro con Notificación de Confirmación al Usuario
+## [2026-07-30] Implementación de Auto-Check-in Pasivo por Wi-Fi Seguro con Notificación de Confirmación al Usuario y Heartbeat Periódico Móvil
 - **Backend (Laravel):**
     - Implementado el método `handlePassiveWifiAutoCheckin` en `LocationController.php`. Al recibir reportes de ubicación en `/api/locations/update` transmitiendo la red Wi-Fi actual (`current_wifi_ssid`), si el usuario tiene activado `wifi_checkin_enabled` y coincide con `safe_wifi_ssid`, el backend ejecuta automáticamente el reporte de bienestar con origen `'wifi'`, refresca `last_check_in_at = now()` y resuelve cualquier alerta de emergencia activa.
     - Implementada la notificación push pasiva de confirmación al dispositivo del propio usuario (`$user->expo_push_token`) notificándole *"Tu reporte de bienestar se actualizó automáticamente al conectarte a tu Wi-Fi seguro (SSID)"*.
     - Aplicado rate-limit dinámico guiado por el intervalo del usuario (`checkin_interval_hours`) para evitar notificaciones repetidas o saturación de base de datos durante la permanencia en casa.
     - Creado test de integración en `AutomationSettingsTest.php` (`test_location_update_triggers_passive_wifi_autocheckin_and_notifies_user`). Suite pasando 135/135 tests.
+- **Frontend Mobile Nativo (Android Kotlin):**
+    - Actualizado `TrackingService.kt` agregando un **Heartbeat Periódico (Latido de Red)** cada 15 minutos para usuarios inmóviles en casa (`distancia < 15m`). Esto permite que el celular transmita la señal Wi-Fi a Railway aunque la persona esté quieta en su casa/PC, evitando reportes vencidos por inmovilidad prolongada sin alterar el filtro anti-jitter GPS.
     - Modificado `SettingsController.php` (`updatePushToken`) para desvincular el token push (`expo_push_token = null`) de cuentas anteriores cuando un dispositivo registra o actualiza su token de notificaciones, previniendo tokens duplicados entre usuarios.
     - Actualizado `AuthController.php` (`logout`) para limpiar el `expo_push_token` del usuario que cierra sesión.
     - Implementada doble salvaguarda en `ProcessGeofencing.php`, `SendBatteryAlertJob.php`, `SendCrashAlertJob.php` y `SendInactivityAlerts.php` para filtrar explícitamente cualquier token de miembro que coincida con el `expo_push_token` del usuario emisor del evento.

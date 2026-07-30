@@ -156,12 +156,25 @@ class ProcessGeofencing implements ShouldQueue
         Log::info("User {$this->user->name} {$action} geofence: {$geofence->name}");
 
         $userPushToken = $this->user->expo_push_token;
+        if (!empty($userPushToken)) {
+            User::where('expo_push_token', $userPushToken)
+                ->where('id', '!=', $this->user->id)
+                ->update(['expo_push_token' => null]);
+        }
+
+        $sentTokens = [];
+        if (!empty($userPushToken)) {
+            $sentTokens[$userPushToken] = true;
+        }
+
         $members = $geofence->circle->users()->where('users.id', '!=', $this->user->id)->get();
 
         foreach ($members as $member) {
-            if ($member->expo_push_token && ($userPushToken === null || $member->expo_push_token !== $userPushToken)) {
+            $memberToken = $member->expo_push_token;
+            if (!empty($memberToken) && !isset($sentTokens[$memberToken])) {
+                $sentTokens[$memberToken] = true;
                 app(\App\Services\PushNotificationService::class)->sendPush(
-                    $member->expo_push_token,
+                    $memberToken,
                     'Alerta de Perímetro',
                     "{$this->user->name} ha {$action}: {$geofence->name}",
                     [
