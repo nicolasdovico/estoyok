@@ -1161,15 +1161,15 @@ fun MapaScreen(
                     val iyDp = with(density) { iy.toDp() }
                     
                     val boxX = when (edge) {
-                        "left" -> 2.dp
-                        "right" -> with(density) { (width - with(density) { 48.dp.toPx() }).toDp() }
-                        else -> ixDp - 23.dp
+                        "left" -> 0.dp
+                        "right" -> with(density) { (width - with(density) { 34.dp.toPx() }).toDp() }
+                        else -> ixDp - 17.dp
                     }
                     
                     val boxY = when (edge) {
                         "top" -> with(density) { topMargin.toDp() }
-                        "bottom" -> with(density) { (height - bottomMargin - with(density) { 48.dp.toPx() }).toDp() }
-                        else -> iyDp - 23.dp
+                        "bottom" -> with(density) { (height - bottomMargin - with(density) { 34.dp.toPx() }).toDp() }
+                        else -> iyDp - 17.dp
                     }
                     
                     val loc = member.currentLocation!!

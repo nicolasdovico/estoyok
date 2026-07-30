@@ -1,6 +1,10 @@
 # Progress Log
 
-## [2026-07-30] Corrección del Umbral de Disparo del Avatar de Borde (Strict 50% Off-Screen Check)
+## [2026-07-30] Ajuste Posicional del Avatar de Borde: Adherencia Exacta al Marco de Pantalla
+- **App Móvil Nativa (Android Kotlin):**
+    - Actualizados los cálculos de `boxX` y `boxY` en `MapaScreen.kt` para sincronizar con el tamaño de 34dp de la Cápsula Escudo.
+    - Eliminado el margen residual de 14dp en los bordes derecho e inferior y el padding de 2dp del borde izquierdo: el avatar de borde queda perfectamente adosado y al ras (`0.dp` / `width - 34.dp` / `height - bottomMargin - 34.dp`) del marco de la pantalla.
+    - Compilación nativa verificada (`BUILD SUCCESSFUL in 21s`). Suite de 137 tests de backend pasando al 100%.
 - **App Móvil Nativa (Android Kotlin):**
     - Corregida la condición `isOffScreen` en `MapaScreen.kt`: eliminada la evaluación invertida de margen negativo que activaba prematuramente la pastilla de borde cuando el avatar aún estaba dentro de la pantalla.
     - El indicador de borde únicamente aparece cuando más del **50% del círculo del avatar (`mx < -5f`, `mx > width + 5f`, `avatarCenterY < topMargin - 5f`) ha traspasado formalmente los límites físicos del mapa visible**.
