@@ -908,6 +908,23 @@ fun MapaScreen(
                                 val pinCenterXPx = 28f * displayDensity
                                 val computedAnchorX = if (composableWidthPx > 0) (pinCenterXPx / composableWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
 
+                                var isMarkerMounted by remember { mutableStateOf(false) }
+                                LaunchedEffect(Unit) {
+                                    isMarkerMounted = true
+                                }
+
+                                val mainMarkerRotationY by animateFloatAsState(
+                                    targetValue = if (isMarkerMounted) 0f else 180f,
+                                    animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+                                    label = "mainMarkerRotationY"
+                                )
+
+                                val mainMarkerScale by animateFloatAsState(
+                                    targetValue = if (isMarkerMounted) 1f else 0.4f,
+                                    animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
+                                    label = "mainMarkerScale"
+                                )
+
                                 MarkerComposable(
                                     state = markerState,
                                     anchor = Offset(computedAnchorX, 1.0f),
@@ -928,6 +945,12 @@ fun MapaScreen(
                                     Box(
                                         modifier = Modifier
                                             .wrapContentSize()
+                                            .graphicsLayer {
+                                                rotationY = mainMarkerRotationY
+                                                scaleX = mainMarkerScale
+                                                scaleY = mainMarkerScale
+                                                cameraDistance = 32f
+                                            }
                                             .onGloballyPositioned { coordinates ->
                                                 composableWidthPx = coordinates.size.width
                                             }
@@ -3652,12 +3675,12 @@ fun AnimatedEdgeIndicator(
         label = "scale"
     )
 
-    val cornerRadius = 14.dp
+    val cornerRadius = 10.dp
     val tabShape = when (edge) {
-        "left" -> RoundedCornerShape(topStart = 4.dp, bottomStart = 4.dp, topEnd = cornerRadius, bottomEnd = cornerRadius)
-        "right" -> RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius, topEnd = 4.dp, bottomEnd = 4.dp)
-        "top" -> RoundedCornerShape(topStart = 4.dp, topEnd = 4.dp, bottomStart = cornerRadius, bottomEnd = cornerRadius)
-        "bottom" -> RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius, bottomStart = 4.dp, bottomEnd = 4.dp)
+        "left" -> RoundedCornerShape(topStart = 3.dp, bottomStart = 3.dp, topEnd = cornerRadius, bottomEnd = cornerRadius)
+        "right" -> RoundedCornerShape(topStart = cornerRadius, bottomStart = cornerRadius, topEnd = 3.dp, bottomEnd = 3.dp)
+        "top" -> RoundedCornerShape(topStart = 3.dp, topEnd = 3.dp, bottomStart = cornerRadius, bottomEnd = cornerRadius)
+        "bottom" -> RoundedCornerShape(topStart = cornerRadius, topEnd = cornerRadius, bottomStart = 3.dp, bottomEnd = 3.dp)
         else -> CircleShape
     }
 
@@ -3672,15 +3695,15 @@ fun AnimatedEdgeIndicator(
     Box(
         modifier = Modifier
             .offset(x = boxX, y = boxY)
-            .size(46.dp)
+            .size(34.dp)
             .graphicsLayer {
                 rotationY = animatedRotationY
                 scaleX = animatedScale
                 scaleY = animatedScale
-                cameraDistance = 12f * density
+                cameraDistance = 32f
             }
-            .background(DarkSurface.copy(alpha = 0.92f), tabShape)
-            .border(2.dp, borderColor, tabShape)
+            .background(DarkSurface.copy(alpha = 0.95f), tabShape)
+            .border(1.5.dp, borderColor, tabShape)
             .clip(tabShape)
             .clickable { onClick() }
     ) {
@@ -3691,7 +3714,7 @@ fun AnimatedEdgeIndicator(
                     contentDescription = member.name,
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(2.dp)
+                        .padding(1.5.dp)
                         .clip(tabShape),
                     contentScale = ContentScale.Crop
                 )
@@ -3709,7 +3732,7 @@ fun AnimatedEdgeIndicator(
                 ) {
                     Text(
                         text = initials,
-                        fontSize = 11.sp,
+                        fontSize = 10.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -3718,7 +3741,7 @@ fun AnimatedEdgeIndicator(
 
             Box(
                 modifier = Modifier
-                    .size(16.dp)
+                    .size(13.dp)
                     .align(
                         when (edge) {
                             "left" -> Alignment.CenterEnd
@@ -3733,7 +3756,7 @@ fun AnimatedEdgeIndicator(
             ) {
                 Text(
                     text = arrowIcon,
-                    fontSize = 8.sp,
+                    fontSize = 7.sp,
                     fontWeight = FontWeight.Bold,
                     color = Color.White
                 )
