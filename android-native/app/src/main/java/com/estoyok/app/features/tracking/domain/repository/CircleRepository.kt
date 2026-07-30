@@ -22,4 +22,5 @@ interface CircleRepository {
     fun getActiveDynamicGeofences(): Flow<Resource<List<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>>>
     fun createDynamicGeofence(targetId: Int, safeRadiusMeters: Int): Flow<Resource<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>>
     fun deactivateDynamicGeofence(id: Int): Flow<Resource<MessageResponse>>
+    fun remindMember(circleId: Int, memberId: Int): Flow<Resource<MessageResponse>>
 }

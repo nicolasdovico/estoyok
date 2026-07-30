@@ -651,7 +651,7 @@ fun AjustesScreen(
 
 
             // 7. Disclaimer & Operational Terms Card
-            SettingsCard(title = "Condiciones de Servicio y Descargo ℹ️") {
+            SettingsCard(title = "Condiciones del Servicio ℹ️") {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         text = "Estoy Ok requiere Datos Móviles / Wi-Fi y ubicación continua ('Permitir todo el tiempo') para enviar alertas de inactividad, SOS y Zonas Seguras. No reemplaza a las líneas públicas de emergencia 911.",
@@ -665,7 +665,7 @@ fun AjustesScreen(
                         shape = RoundedCornerShape(10.dp),
                         border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
                     ) {
-                        Text("Leer Descargo de Responsabilidad 📋", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        Text("Condiciones del Servicio 📋", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
                     }
                 }
             }

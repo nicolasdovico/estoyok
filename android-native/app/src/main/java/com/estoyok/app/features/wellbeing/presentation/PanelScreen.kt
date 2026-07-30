@@ -731,14 +731,14 @@ fun CircleMemberWellbeingCard(
 ) {
     val windowInfo = rememberWindowInfo()
 
-    val recordedAtStr = member.currentLocation?.recordedAt ?: member.currentLocation?.lastSeenAt
-    val isOffline = member.currentLocation?.isOffline == true
+    val lastCheckInStr = member.lastCheckInAt
+    val intervalHours = member.checkinIntervalHours ?: 24
 
     var isSafe = false
     var relativeTimeStr = "sin reporte"
-    var timeFormatted: String? = null
+    var expiryText: String? = null
 
-    if (recordedAtStr != null) {
+    if (!lastCheckInStr.isNullOrBlank()) {
         val dateFormats = listOf(
             "yyyy-MM-dd'T'HH:mm:ss.SSSSSS'Z'",
             "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
@@ -750,10 +750,14 @@ fun CircleMemberWellbeingCard(
                 val sdf = SimpleDateFormat(format, Locale.getDefault()).apply {
                     timeZone = TimeZone.getTimeZone("UTC")
                 }
-                val date = sdf.parse(recordedAtStr)
-                if (date != null) {
-                    val diffMs = System.currentTimeMillis() - date.time
-                    val diffMins = (diffMs / 60000L).coerceAtLeast(0L)
+                val checkInDate = sdf.parse(lastCheckInStr)
+                if (checkInDate != null) {
+                    val now = System.currentTimeMillis()
+                    val intervalMs = intervalHours * 3600_000L
+                    val expirationTimeMs = checkInDate.time + intervalMs
+
+                    val diffMs = (now - checkInDate.time).coerceAtLeast(0L)
+                    val diffMins = diffMs / 60000L
                     val diffHours = diffMins / 60L
                     val diffDays = diffHours / 24L
 
@@ -764,11 +768,30 @@ fun CircleMemberWellbeingCard(
                         else -> "hace ${diffDays}d"
                     }
 
-                    val timeFormatter = SimpleDateFormat("HH:mm", Locale.getDefault())
-                    timeFormatted = timeFormatter.format(date)
-
-                    if (!isOffline && diffHours < 24) {
+                    if (expirationTimeMs > now) {
                         isSafe = true
+
+                        val expDate = Date(expirationTimeMs)
+                        val nowCal = Calendar.getInstance()
+                        val expCal = Calendar.getInstance().apply { time = expDate }
+
+                        val isSameDay = nowCal.get(Calendar.YEAR) == expCal.get(Calendar.YEAR) &&
+                                        nowCal.get(Calendar.DAY_OF_YEAR) == expCal.get(Calendar.DAY_OF_YEAR)
+
+                        val tomCal = Calendar.getInstance().apply { add(Calendar.DAY_OF_YEAR, 1) }
+                        val isTomorrow = tomCal.get(Calendar.YEAR) == expCal.get(Calendar.YEAR) &&
+                                         tomCal.get(Calendar.DAY_OF_YEAR) == expCal.get(Calendar.DAY_OF_YEAR)
+
+                        val timeFormatted = SimpleDateFormat("HH:mm", Locale.getDefault()).format(expDate)
+
+                        expiryText = when {
+                            isSameDay -> "Vence hoy a las $timeFormatted hs"
+                            isTomorrow -> "Vence mañana a las $timeFormatted hs"
+                            else -> {
+                                val dateFormatted = SimpleDateFormat("dd/MM 'a las' HH:mm", Locale.getDefault()).format(expDate)
+                                "Vence el $dateFormatted hs"
+                            }
+                        }
                     }
                     break
                 }
@@ -777,9 +800,9 @@ fun CircleMemberWellbeingCard(
     }
 
     val statusText = if (isSafe) {
-        if (timeFormatted != null) "🛡️ Protegido (hasta $timeFormatted • $relativeTimeStr)" else "🛡️ Protegido ($relativeTimeStr)"
+        "🟢 Reportado OK ($relativeTimeStr)"
     } else {
-        "⚠️ Reporte Vencido ($relativeTimeStr)"
+        if (lastCheckInStr.isNullOrBlank()) "⚠️ Sin Reportes" else "⚠️ Reporte Vencido ($relativeTimeStr)"
     }
 
     val statusColor = if (isSafe) PrimaryEmerald else PrimaryOrange
@@ -831,6 +854,15 @@ fun CircleMemberWellbeingCard(
                             color = statusColor,
                             fontWeight = FontWeight.Medium
                         )
+                        if (expiryText != null) {
+                            Spacer(modifier = Modifier.height(1.dp))
+                            Text(
+                                text = expiryText,
+                                fontSize = 10.sp,
+                                color = TextMuted,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
                     }
                 }
 
@@ -890,6 +922,15 @@ fun CircleMemberWellbeingCard(
                             color = statusColor,
                             fontWeight = FontWeight.Medium
                         )
+                        if (expiryText != null) {
+                            Spacer(modifier = Modifier.height(1.dp))
+                            Text(
+                                text = expiryText,
+                                fontSize = 10.sp,
+                                color = TextMuted,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
                     }
                 }
 

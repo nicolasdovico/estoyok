@@ -60,6 +60,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::delete('/circles/{circle}/members/{member}', [CircleController::class, 'removeMember']);
     Route::delete('/circles/{circle}', [CircleController::class, 'destroy']);
     Route::put('/circles/{circle}/speed-limit', [CircleController::class, 'updateSpeedLimit']);
+    Route::post('/circles/{circle}/members/{member}/remind', [CircleController::class, 'remindMember']);
     Route::get('/circles/{circle}/members/{member}/history', [HistoryController::class, 'getHistory']);
     Route::get('/circles/{circle}/members/{member}/drives', [DriveController::class, 'getDrives']);
 

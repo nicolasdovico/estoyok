@@ -24,6 +24,8 @@ data class CircleMemberDto(
     @SerializedName("email") val email: String,
     @SerializedName("phone") val phone: String?,
     @SerializedName("avatar_url") val avatarUrl: String? = null,
+    @SerializedName("last_check_in_at") val lastCheckInAt: String? = null,
+    @SerializedName("checkin_interval_hours") val checkinIntervalHours: Int? = 24,
     @SerializedName("current_location") val currentLocation: MemberLocationDto?
 )
 

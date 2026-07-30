@@ -94,6 +94,13 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.deactivateDynamicGeofence(id)
     }
 
+    override fun remindMember(
+        circleId: Int,
+        memberId: Int
+    ): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.remindMember(circleId, memberId)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {

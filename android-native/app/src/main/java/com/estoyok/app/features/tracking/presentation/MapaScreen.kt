@@ -764,7 +764,7 @@ fun MapaScreen(
                             Pair(member, LatLng(centerLat + offsetLat, centerLng + offsetLng))
                         }
                     } else {
-                        group.map { Pair(it, LatLng(it.currentLocation!!.latitude, it.currentLocation!!.longitude)) }
+                        group.map { Pair(it, LatLng(it.currentLocation?.latitude ?: 0.0, it.currentLocation?.longitude ?: 0.0)) }
                     }
 
                     dispersedPositions.forEach { (member, latLng) ->

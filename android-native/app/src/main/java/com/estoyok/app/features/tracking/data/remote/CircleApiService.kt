@@ -73,4 +73,10 @@ interface CircleApiService {
     suspend fun deactivateDynamicGeofence(
         @Path("id") id: Int
     ): Response<MessageResponse>
+
+    @POST("circles/{circleId}/members/{memberId}/remind")
+    suspend fun remindMember(
+        @Path("circleId") circleId: Int,
+        @Path("memberId") memberId: Int
+    ): Response<MessageResponse>
 }

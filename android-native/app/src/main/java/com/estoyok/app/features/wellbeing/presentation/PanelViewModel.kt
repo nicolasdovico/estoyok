@@ -61,6 +61,9 @@ class PanelViewModel @Inject constructor(
     var circleMembers by mutableStateOf<List<CircleMemberDto>>(emptyList())
         private set
 
+    var activeCircleId by mutableStateOf<Int?>(null)
+        private set
+
     var contactsCount by mutableStateOf(0)
         private set
 
@@ -224,6 +227,7 @@ class PanelViewModel @Inject constructor(
                 val circles = resource.data ?: emptyList()
                 if (circles.isNotEmpty()) {
                     val currentUserId = user?.id ?: -1
+                    activeCircleId = circles.first().id
                     circleMembers = circles.first().members.filter { it.id != currentUserId }
                 }
             }
@@ -233,7 +237,22 @@ class PanelViewModel @Inject constructor(
     fun sendReminderPing(memberId: Int, context: android.content.Context) {
         val member = circleMembers.find { it.id == memberId }
         val name = member?.name ?: "Familiar"
-        android.widget.Toast.makeText(context, "🔔 Recordatorio de reporte enviado a $name", android.widget.Toast.LENGTH_SHORT).show()
+        val circleId = activeCircleId ?: return
+
+        viewModelScope.launch {
+            circleRepository.remindMember(circleId, memberId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        android.widget.Toast.makeText(context, "🔔 Recordatorio enviado a $name", android.widget.Toast.LENGTH_SHORT).show()
+                    }
+                    is Resource.Error -> {
+                        val msg = resource.message ?: "No se pudo enviar el recordatorio."
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
+                    }
+                    is Resource.Loading -> {}
+                }
+            }
+        }
     }
 
     private suspend fun fetchUserProfile() {
@@ -332,7 +351,7 @@ class PanelViewModel @Inject constructor(
             viewModelScope.launch {
                 delay(15000L) // Record for 15 seconds
                 audioRecorder.stopRecording()
-                sosRepository.uploadAudio(alertId, recordedFile).collectLatest { uploadResource ->
+                sosRepository.uploadAudio(alertId, recordedFile).collectLatest { _ ->
                     isSosTriggered = false
                 }
             }
@@ -353,7 +372,12 @@ class PanelViewModel @Inject constructor(
                             Manifest.permission.SEND_SMS
                         ) == PackageManager.PERMISSION_GRANTED
                     ) {
-                        val smsManager = SmsManager.getDefault()
+                        val smsManager: SmsManager = if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+                            context.getSystemService(SmsManager::class.java)
+                        } else {
+                            @Suppress("DEPRECATION")
+                            SmsManager.getDefault()
+                        }
                         for (contact in contacts) {
                             if (contact.isActive) {
                                 try {

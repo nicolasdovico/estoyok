@@ -243,4 +243,65 @@ class CircleController extends Controller
             'circle' => $circle,
         ]);
     }
+
+    #[OA\Post(
+        path: '/circles/{circle}/members/{member}/remind',
+        summary: 'Enviar recordatorio push de bienestar a un miembro del círculo',
+        tags: ['Círculos'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'circle', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+            new OA\Parameter(name: 'member', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Recordatorio enviado exitosamente'),
+            new OA\Response(response: 403, description: 'No tienes permisos en este círculo'),
+            new OA\Response(response: 429, description: 'Debes esperar antes de enviar otro recordatorio a esta persona'),
+        ]
+    )]
+    public function remindMember(Circle $circle, User $member)
+    {
+        $user = Auth::user();
+
+        if (!$circle->users()->where('user_id', $user->id)->exists()) {
+            return response()->json(['message' => 'No perteneces a este círculo'], 403);
+        }
+
+        if (!$circle->users()->where('user_id', $member->id)->exists()) {
+            return response()->json(['message' => 'El miembro no pertenece a este círculo'], 404);
+        }
+
+        if ($user->id === $member->id) {
+            return response()->json(['message' => 'No puedes enviarte un recordatorio a ti mismo'], 400);
+        }
+
+        $cacheKey = "remind_member_cooldown_{$user->id}_{$member->id}";
+        if (cache()->has($cacheKey)) {
+            return response()->json(['message' => 'Ya enviaste un recordatorio recientemente a esta persona. Por favor espera unos minutos.'], 429);
+        }
+
+        cache()->put($cacheKey, true, now()->addMinutes(5));
+
+        if ($user->expo_push_token) {
+            User::where('expo_push_token', $user->expo_push_token)
+                ->where('id', '!=', $user->id)
+                ->update(['expo_push_token' => null]);
+            $member->refresh();
+        }
+
+        if ($member->expo_push_token && $member->expo_push_token !== $user->expo_push_token) {
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $member->expo_push_token,
+                '🔔 Recordatorio de Bienestar',
+                "{$user->name} te solicita confirmar tu reporte de bienestar ('Estoy OK').",
+                [
+                    'type' => 'manual_checkin_reminder',
+                    'sender_id' => (string) $user->id,
+                    'sender_name' => $user->name,
+                ]
+            );
+        }
+
+        return response()->json(['message' => "Recordatorio enviado exitosamente a {$member->name}"]);
+    }
 }
