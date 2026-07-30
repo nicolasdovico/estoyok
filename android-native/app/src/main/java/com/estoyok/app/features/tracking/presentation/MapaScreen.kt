@@ -1090,10 +1090,9 @@ fun MapaScreen(
             val mx = screenPoint.x.toFloat()
             val my = screenPoint.y.toFloat()
             
-            // Draw indicators when 50% of the main avatar marker leaves the screen boundary
-            val exitMarginX = with(density) { -28.dp.toPx() }
-            val exitMarginY = with(density) { -33.dp.toPx() }
-            val isOffScreen = mx < -exitMarginX || mx > width + exitMarginX || my < topMargin - exitMarginY || my > height - bottomMargin + exitMarginY
+            // Draw indicator ONLY when at least 50% of the avatar circle has already crossed out of the screen
+            val avatarCenterY = my - with(density) { 38.dp.toPx() }
+            val isOffScreen = mx < -5f || mx > (width + 5f) || avatarCenterY < (topMargin - 5f) || avatarCenterY > (height - bottomMargin + 5f)
             
             if (isOffScreen) {
                 val dx = mx - cx

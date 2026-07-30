@@ -1,6 +1,10 @@
 # Progress Log
 
-## [2026-07-30] Perfeccionamiento Estético de Avatares de Borde (Off-Screen Edge Indicators): Flip 3D Inverso, Umbral Exacto 50% y Tamaño Reducido
+## [2026-07-30] Corrección del Umbral de Disparo del Avatar de Borde (Strict 50% Off-Screen Check)
+- **App Móvil Nativa (Android Kotlin):**
+    - Corregida la condición `isOffScreen` en `MapaScreen.kt`: eliminada la evaluación invertida de margen negativo que activaba prematuramente la pastilla de borde cuando el avatar aún estaba dentro de la pantalla.
+    - El indicador de borde únicamente aparece cuando más del **50% del círculo del avatar (`mx < -5f`, `mx > width + 5f`, `avatarCenterY < topMargin - 5f`) ha traspasado formalmente los límites físicos del mapa visible**.
+    - Compilación nativa verificado (`BUILD SUCCESSFUL in 28s`). Suite de 137 tests de backend pasando al 100%.
 - **App Móvil Nativa (Android Kotlin):**
     - **Umbral Exacto del 50%:** Calculadas las coordenadas absolutas del centro del avatar circular (`mx`, `my - 38dp`). La transformación se dispara en el píxel exacto en que la mitad del círculo traspasa los límites del mapa visible (`mx < 0f`, `mx > width`, `avatarCenterY < topMargin`, `avatarCenterY > height - bottomMargin`).
     - **Flip 3D Inverso al Regresar al Mapa:** Agregada la animación `graphicsLayer` con `mainMarkerRotationY` y `mainMarkerScale` al `MarkerComposable` principal en `MapaScreen.kt`. Al volver el familiar al mapa visible, el marcador realiza la rotación 3D en sentido inverso (180° ➔ 0°) y la expansión elástica (0.4x ➔ 1.0x) hacia su estado completo.
