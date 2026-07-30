@@ -113,4 +113,45 @@ class AutomationSettingsTest extends TestCase
             ->assertJsonFragment(['source' => 'wifi'])
             ->assertJsonFragment(['source' => 'movement']);
     }
+
+    public function test_location_update_triggers_passive_wifi_autocheckin_and_notifies_user()
+    {
+        \Illuminate\Support\Facades\Http::fake();
+
+        $user = User::factory()->create([
+            'wifi_checkin_enabled' => true,
+            'safe_wifi_ssid' => 'MiWifiDeCasa',
+            'expo_push_token' => 'token-nico',
+            'last_check_in_at' => now()->subHours(25),
+            'checkin_interval_hours' => 24,
+        ]);
+
+        $alert = $user->emergencyAlerts()->create([
+            'status' => 'active',
+            'expires_at' => now()->addHours(2),
+        ]);
+
+        $response = $this->actingAs($user)
+            ->postJson('/api/locations/update', [
+                'latitude' => -34.6037,
+                'longitude' => -58.3816,
+                'current_wifi_ssid' => 'MiWifiDeCasa',
+            ]);
+
+        $response->assertStatus(200);
+
+        // Assert check-in record created
+        $this->assertDatabaseHas('check_ins', [
+            'user_id' => $user->id,
+            'source' => 'wifi',
+        ]);
+
+        // Assert alert resolved
+        $this->assertEquals('resolved', $alert->fresh()->status);
+
+        // Assert push sent to user
+        \Illuminate\Support\Facades\Http::assertSent(function ($request) {
+            return str_contains($request['title'], 'Auto-Check-in') && str_contains($request['body'], 'MiWifiDeCasa');
+        });
+    }
 }

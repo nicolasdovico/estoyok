@@ -250,8 +250,9 @@ class LocationController extends Controller
                     }
                 }
 
-                // 5. Dispatch Geofencing processing
+                // 5. Dispatch Geofencing processing & Passive Wi-Fi Auto Check-in
                 $wifiSsid = $request->input('current_wifi_ssid') ?? $request->input('safe_wifi_ssid') ?? null;
+                $this->handlePassiveWifiAutoCheckin($user, $wifiSsid);
                 ProcessGeofencing::dispatch($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
                 ProcessDynamicGeofencing::dispatch($user, $lat, $lng);
             });
@@ -406,5 +407,60 @@ class LocationController extends Controller
             'kept_points' => count($keptIds),
             'deleted_points' => $deletedCount,
         ]);
+    }
+
+    protected function handlePassiveWifiAutoCheckin(User $user, ?string $currentWifiSsid): void
+    {
+        if (!$user->wifi_checkin_enabled || empty($user->safe_wifi_ssid) || empty($currentWifiSsid)) {
+            return;
+        }
+
+        if (strcasecmp(trim($user->safe_wifi_ssid), trim($currentWifiSsid)) !== 0) {
+            return;
+        }
+
+        $intervalHours = max(1, (int) ($user->checkin_interval_hours ?? 24));
+        $cacheKey = "auto_checkin_wifi_{$user->id}";
+
+        // If auto-checkin was already performed recently within the configured interval, skip
+        if (cache()->has($cacheKey)) {
+            return;
+        }
+
+        // Check if user last checkin was recent (within 50% of interval to avoid unnecessary early checkins if they just manually checked in 5 minutes ago)
+        $minIntervalHours = max(1, (int) floor($intervalHours / 2));
+        if ($user->last_check_in_at && $user->last_check_in_at->copy()->addHours($minIntervalHours)->isFuture()) {
+            return;
+        }
+
+        // Perform auto check-in
+        $user->update([
+            'last_check_in_at' => now(),
+        ]);
+
+        $user->checkIns()->create([
+            'source' => 'wifi',
+        ]);
+
+        $user->emergencyAlerts()->where('status', 'active')->update([
+            'status' => 'resolved',
+        ]);
+
+        // Lock auto-checkin push for intervalHours
+        cache()->put($cacheKey, true, now()->addHours($intervalHours));
+
+        // Send confirmation push notification to user
+        if ($user->expo_push_token) {
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $user->expo_push_token,
+                '🟢 Estoy OK - Auto-Check-in',
+                "Tu reporte de bienestar se actualizó automáticamente al conectarte a tu Wi-Fi seguro ({$user->safe_wifi_ssid}).",
+                [
+                    'type' => 'auto_checkin_wifi',
+                    'source' => 'wifi',
+                    'wifi_ssid' => $user->safe_wifi_ssid,
+                ]
+            );
+        }
     }
 }
