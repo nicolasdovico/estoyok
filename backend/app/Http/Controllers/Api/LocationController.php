@@ -101,20 +101,25 @@ class LocationController extends Controller
                 }
                 // Calculate stationary_since (Life360 style persistent arrival timestamp)
                 $existingLoc = CurrentLocation::where('user_id', $user->id)->first();
-                $isMoving = $isDriving || ($speedKmh !== null && $speedKmh >= 2.0);
+                
+                $distMeters = 0.0;
+                if ($existingLoc && $existingLoc->latitude !== null && $existingLoc->longitude !== null) {
+                    $distMeters = (float) (DB::selectOne("
+                        SELECT ST_Distance(
+                            ST_GeomFromText('POINT($lng $lat)', 4326)::geography,
+                            ST_GeomFromText('POINT({$existingLoc->longitude} {$existingLoc->latitude})', 4326)::geography
+                        ) as dist
+                    ")->dist ?? 0);
+                }
+
+                $hasMovedDistance = ($distMeters > 40.0);
+                $isMoving = $isDriving || ($speedKmh !== null && $speedKmh >= 12.0) || ($hasMovedDistance && $speedKmh !== null && $speedKmh >= 3.5);
 
                 $stationarySince = null;
                 if ($isMoving) {
                     $stationarySince = null;
                 } else if ($existingLoc && $existingLoc->latitude !== null && $existingLoc->longitude !== null) {
-                    $distMeters = DB::selectOne("
-                        SELECT ST_Distance(
-                            ST_GeomFromText('POINT($lng $lat)', 4326)::geography,
-                            ST_GeomFromText('POINT({$existingLoc->longitude} {$existingLoc->latitude})', 4326)::geography
-                        ) as dist
-                    ")->dist ?? 0;
-
-                    if ($distMeters > 40.0) {
+                    if ($hasMovedDistance) {
                         $stationarySince = $recordedAt;
                     } else {
                         $stationarySince = $existingLoc->stationary_since ?: ($existingLoc->recorded_at ?: $recordedAt);

@@ -1,6 +1,16 @@
 # Progress Log
 
-## [2026-07-30] Implementación de Auto-Check-in Pasivo por Wi-Fi Seguro con Notificación de Confirmación al Usuario y Heartbeat Periódico Móvil
+## [2026-07-30] Notificaciones Push de Recordatorio de Bienestar ("Recordar 🔔") y Ajustes de Resiliencia GPS
+- **Backend (Laravel API):**
+    - Creado el endpoint `POST /api/circles/{circle}/members/{member}/remind` en `CircleController.php` para enviar notificaciones Push directas al dispositivo del familiar solicitando confirmación de bienestar (*"🔔 Recordatorio de Bienestar: [Nombre] te solicita confirmar tu reporte de bienestar ('Estoy OK')"*).
+    - Incorporado un rate-limit inteligente de 5 minutos por emisor-destinatario para evitar spam de notificaciones.
+    - Creado el test de integración `CircleMemberReminderTest.php` (`137/137 tests de backend pasando al 100%`).
+    - Mejorada la precisión de cálculo de `stationary_since` en `LocationController.php`: las actualizaciones periódicas de baja velocidad ($< 12\text{ km/h}$) o derivas de GPS dentro del radio estático ($< 40\text{m}$) **preservan la hora original de llegada**, impidiendo reinicios espurios del tiempo de permanencia al enviar heartbeats en interiores.
+- **App Móvil Nativa (Android Kotlin):**
+    - Conectada la llamada de API Retrofit `remindMember` en `CircleApiService.kt`, `CircleRepository` y `PanelViewModel.kt`, permitiendo enviar notificaciones push reales al pulsar el botón **"Recordar 🔔"**.
+    - Actualizado el formato de las tarjetas del Núcleo en `PanelScreen.kt` (Opción B): separadas las líneas de estado principal (`🟢 Reportado OK (hace Xm)`) y subtexto de vencimiento dinámico calculado hoy vs mañana (`Vence mañana a las 17:35 hs`).
+    - Actualizada la condición `isMoving` en `MapaScreen.kt` a $12\text{ km/h}$ para preservar el estado del `stayTracker` local durante reposo en interiores.
+    - Corregidos los 3 warnings de compilación de Kotlin en `MapaScreen.kt` y `PanelViewModel.kt` (`BUILD SUCCESSFUL in 29s`).
 - **Backend (Laravel):**
     - Implementado el método `handlePassiveWifiAutoCheckin` en `LocationController.php`. Al recibir reportes de ubicación en `/api/locations/update` transmitiendo la red Wi-Fi actual (`current_wifi_ssid`), si el usuario tiene activado `wifi_checkin_enabled` y coincide con `safe_wifi_ssid`, el backend ejecuta automáticamente el reporte de bienestar con origen `'wifi'`, refresca `last_check_in_at = now()` y resuelve cualquier alerta de emergencia activa.
     - Implementada la notificación push pasiva de confirmación al dispositivo del propio usuario (`$user->expo_push_token`) notificándole *"Tu reporte de bienestar se actualizó automáticamente al conectarte a tu Wi-Fi seguro (SSID)"*.

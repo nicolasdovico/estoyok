@@ -318,7 +318,7 @@ fun MapaScreen(
             val loc = member.currentLocation
             if (loc != null) {
                 val latLng = LatLng(loc.latitude, loc.longitude)
-                val isMoving = loc.isDriving == true || (loc.speed ?: 0f) >= 1.5f
+                val isMoving = loc.isDriving == true || (loc.speed ?: 0f) >= 12.0f
                 if (isMoving) {
                     stayTracker.remove(member.id)
                 } else {
