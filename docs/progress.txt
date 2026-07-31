@@ -1343,6 +1343,13 @@
 - **Validación:**
     - Suite completa de 137 pruebas de Laravel superadas con éxito (137/137 passed, 442 assertions).
 
+## [2026-07-31] Generación e Integración de Iconos de Lanzador (Legacy & Adaptive) en Android Nativo
+- **App Móvil Nativa (Android/Kotlin):**
+    - Creado script automatizado en Python (`generate_android_icons.py`) con la librería Pillow.
+    - Generadas todas las carpetas y resoluciones `mipmap-*` requeridas para pantallas Legacy (48x48, 72x72, 96x96, 144x144 y 192x192 px) tanto cuadradas (`ic_launcher.png`) como circulares (`ic_launcher_round.png`).
+    - Generado el icono adaptativo de primer plano `drawable/ic_launcher_foreground.png` (512x512 px) e integrados los esquemas XML `mipmap-anydpi-v26/ic_launcher.xml` y `ic_launcher_round.xml`.
+    - Actualizado [AndroidManifest.xml](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml) enlazando `@mipmap/ic_launcher` y `@mipmap/ic_launcher_round`, reemplazando el icono genérico verde por defecto de Android.
+
 
 
 

@@ -32,6 +32,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -148,7 +149,7 @@ class TrackingService : Service(), SensorEventListener {
     private fun startHeartbeatTicker() {
         heartbeatTickerJob?.cancel()
         heartbeatTickerJob = serviceScope.launch {
-            while (kotlinx.coroutines.isActive) {
+            while (isActive) {
                 kotlinx.coroutines.delay(15 * 60 * 1000L)
                 val now = System.currentTimeMillis()
                 val timeSinceLast = if (lastSentTimeMs > 0) now - lastSentTimeMs else Long.MAX_VALUE
