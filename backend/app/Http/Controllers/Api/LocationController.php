@@ -451,8 +451,8 @@ class LocationController extends Controller
             'status' => 'resolved',
         ]);
 
-        // Lock auto-checkin push for intervalHours
-        cache()->put($cacheKey, true, now()->addHours($intervalHours));
+        // Lock auto-checkin push for minIntervalHours
+        cache()->put($cacheKey, true, now()->addHours($minIntervalHours));
 
         // Send confirmation push notification to user
         if ($user->expo_push_token) {

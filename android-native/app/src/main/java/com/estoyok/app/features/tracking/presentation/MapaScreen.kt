@@ -11,6 +11,11 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -908,23 +913,6 @@ fun MapaScreen(
                                 val pinCenterXPx = 28f * displayDensity
                                 val computedAnchorX = if (composableWidthPx > 0) (pinCenterXPx / composableWidthPx).coerceIn(0.05f, 0.95f) else 0.5f
 
-                                var isMarkerMounted by remember { mutableStateOf(false) }
-                                LaunchedEffect(Unit) {
-                                    isMarkerMounted = true
-                                }
-
-                                val mainMarkerRotationY by animateFloatAsState(
-                                    targetValue = if (isMarkerMounted) 0f else 180f,
-                                    animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
-                                    label = "mainMarkerRotationY"
-                                )
-
-                                val mainMarkerScale by animateFloatAsState(
-                                    targetValue = if (isMarkerMounted) 1f else 0.4f,
-                                    animationSpec = tween(durationMillis = 350, easing = FastOutSlowInEasing),
-                                    label = "mainMarkerScale"
-                                )
-
                                 MarkerComposable(
                                     state = markerState,
                                     anchor = Offset(computedAnchorX, 1.0f),
@@ -945,12 +933,6 @@ fun MapaScreen(
                                     Box(
                                         modifier = Modifier
                                             .wrapContentSize()
-                                            .graphicsLayer {
-                                                rotationY = mainMarkerRotationY
-                                                scaleX = mainMarkerScale
-                                                scaleY = mainMarkerScale
-                                                cameraDistance = 32f
-                                            }
                                             .onGloballyPositioned { coordinates ->
                                                 composableWidthPx = coordinates.size.width
                                             }
@@ -1087,14 +1069,14 @@ fun MapaScreen(
         val placedAngles = mutableListOf<Double>()
         
         offScreenMembers.forEach { (member, screenPoint) ->
-            val mx = screenPoint.x.toFloat()
-            val my = screenPoint.y.toFloat()
-            
-            // Draw indicator ONLY when at least 50% of the avatar circle has already crossed out of the screen
-            val avatarCenterY = my - with(density) { 38.dp.toPx() }
-            val isOffScreen = mx < -5f || mx > (width + 5f) || avatarCenterY < (topMargin - 5f) || avatarCenterY > (height - bottomMargin + 5f)
-            
-            if (isOffScreen) {
+            key(member.id) {
+                val mx = screenPoint.x.toFloat()
+                val my = screenPoint.y.toFloat()
+                
+                // Draw indicator ONLY when at least 50% of the avatar circle has already crossed out of the screen
+                val avatarCenterY = my - with(density) { 38.dp.toPx() }
+                val isOffScreen = mx < -5f || mx > (width + 5f) || avatarCenterY < (topMargin - 5f) || avatarCenterY > (height - bottomMargin + 5f)
+                
                 val dx = mx - cx
                 val dy = my - cy
                 
@@ -1119,7 +1101,10 @@ fun MapaScreen(
                         }
                     }
                 } while (foundCollision && collisions < 10)
-                placedAngles.add(resolvedAngleRad)
+                
+                if (isOffScreen) {
+                    placedAngles.add(resolvedAngleRad)
+                }
                 
                 val rdx = Math.cos(resolvedAngleRad).toFloat()
                 val rdy = Math.sin(resolvedAngleRad).toFloat()
@@ -1153,36 +1138,53 @@ fun MapaScreen(
                     }
                 }
                 
-                if (t != Float.MAX_VALUE) {
+                val currentBoxX = if (t != Float.MAX_VALUE) {
                     val ix = cx + t * rdx
-                    val iy = cy + t * rdy
-                    
                     val ixDp = with(density) { ix.toDp() }
-                    val iyDp = with(density) { iy.toDp() }
-                    
-                    val boxX = when (edge) {
+                    when (edge) {
                         "left" -> 0.dp
                         "right" -> with(density) { (width - with(density) { 34.dp.toPx() }).toDp() }
                         else -> ixDp - 17.dp
                     }
-                    
-                    val boxY = when (edge) {
+                } else 0.dp
+
+                val currentBoxY = if (t != Float.MAX_VALUE) {
+                    val iy = cy + t * rdy
+                    val iyDp = with(density) { iy.toDp() }
+                    when (edge) {
                         "top" -> with(density) { topMargin.toDp() }
                         "bottom" -> with(density) { (height - bottomMargin - with(density) { 34.dp.toPx() }).toDp() }
                         else -> iyDp - 17.dp
                     }
-                    
-                    val loc = member.currentLocation!!
-                    val isOffline = loc.isOffline == true
-                    val borderColor = if (isOffline) TextMuted else PrimaryEmerald
-                    
+                } else 0.dp
+
+                var lastEdge by remember { mutableStateOf(edge) }
+                var lastBoxX by remember { mutableStateOf(currentBoxX) }
+                var lastBoxY by remember { mutableStateOf(currentBoxY) }
+
+                if (isOffScreen && t != Float.MAX_VALUE) {
+                    lastEdge = edge
+                    lastBoxX = currentBoxX
+                    lastBoxY = currentBoxY
+                }
+
+                val loc = member.currentLocation!!
+                val isOffline = loc.isOffline == true
+                val borderColor = if (isOffline) TextMuted else PrimaryEmerald
+
+                AnimatedVisibility(
+                    visible = isOffScreen,
+                    enter = fadeIn(animationSpec = tween(300)) + scaleIn(initialScale = 0.5f, animationSpec = tween(300)),
+                    exit = fadeOut(animationSpec = tween(300)) + scaleOut(targetScale = 0.5f, animationSpec = tween(300))
+                ) {
                     AnimatedEdgeIndicator(
                         member = member,
-                        edge = edge,
-                        boxX = boxX,
-                        boxY = boxY,
+                        edge = lastEdge,
+                        boxX = lastBoxX,
+                        boxY = lastBoxY,
                         borderColor = borderColor,
                         bitmapToDraw = markerBitmaps[member.id],
+                        isVisible = isOffScreen,
                         onClick = {
                             scope.launch {
                                 cameraPositionState.animate(
@@ -1392,7 +1394,7 @@ fun MapaScreen(
                             Surface(
                                 onClick = {
                                     isCircleDropdownExpanded = false
-                                    navController?.navigate(Screen.Familia.route)
+                                    navController?.navigate(com.estoyok.app.core.navigation.Screen.Familia.route)
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
@@ -1411,7 +1413,7 @@ fun MapaScreen(
                             Surface(
                                 onClick = {
                                     isCircleDropdownExpanded = false
-                                    navController?.navigate(Screen.Familia.route)
+                                    navController?.navigate(com.estoyok.app.core.navigation.Screen.Familia.route)
                                 },
                                 modifier = Modifier.weight(1f),
                                 shape = RoundedCornerShape(10.dp),
@@ -2487,7 +2489,7 @@ fun MemberDetailsSheetContent(
                     onClick = {
                         showPremiumPromoDialog = false
                         viewModel.selectedMember = null
-                        navController?.navigate(Screen.Premium.route)
+                        navController?.navigate(com.estoyok.app.core.navigation.Screen.Premium.route)
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary)
                 ) {
@@ -2684,7 +2686,7 @@ fun MemberDetailsSheetContent(
                     Button(
                         onClick = {
                             viewModel.selectedMember = null
-                            navController?.navigate(Screen.Premium.route)
+                            navController?.navigate(com.estoyok.app.core.navigation.Screen.Premium.route)
                         },
                         shape = RoundedCornerShape(8.dp),
                         modifier = Modifier.fillMaxWidth(),
@@ -3655,13 +3657,9 @@ fun AnimatedEdgeIndicator(
     boxY: Dp,
     borderColor: Color,
     bitmapToDraw: Bitmap?,
+    isVisible: Boolean,
     onClick: () -> Unit
 ) {
-    var isVisible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        isVisible = true
-    }
-
     val animatedRotationY by animateFloatAsState(
         targetValue = if (isVisible) 0f else 180f,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
@@ -3672,6 +3670,12 @@ fun AnimatedEdgeIndicator(
         targetValue = if (isVisible) 1f else 0.5f,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
         label = "scale"
+    )
+
+    val animatedAlpha by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing),
+        label = "alpha"
     )
 
     val cornerRadius = 10.dp
@@ -3699,12 +3703,13 @@ fun AnimatedEdgeIndicator(
                 rotationY = animatedRotationY
                 scaleX = animatedScale
                 scaleY = animatedScale
+                alpha = animatedAlpha
                 cameraDistance = 32f
             }
             .background(DarkSurface.copy(alpha = 0.95f), tabShape)
             .border(1.5.dp, borderColor, tabShape)
             .clip(tabShape)
-            .clickable { onClick() }
+            .then(if (isVisible) Modifier.clickable { onClick() } else Modifier)
     ) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             if (bitmapToDraw != null) {

@@ -58,6 +58,9 @@ class CheckInController extends Controller
             'status' => 'resolved',
         ]);
 
+        // Clear wifi auto check-in cache lock so future auto check-ins reset cleanly
+        \Illuminate\Support\Facades\Cache::forget("auto_checkin_wifi_{$user->id}");
+
         return response()->json([
             'message' => 'Check-in exitoso',
             'last_check_in_at' => $user->last_check_in_at,

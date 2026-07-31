@@ -143,6 +143,25 @@ class TrackingService : Service(), SensorEventListener {
         return START_STICKY
     }
 
+    private var heartbeatTickerJob: kotlinx.coroutines.Job? = null
+
+    private fun startHeartbeatTicker() {
+        heartbeatTickerJob?.cancel()
+        heartbeatTickerJob = serviceScope.launch {
+            while (kotlinx.coroutines.isActive) {
+                kotlinx.coroutines.delay(15 * 60 * 1000L)
+                val now = System.currentTimeMillis()
+                val timeSinceLast = if (lastSentTimeMs > 0) now - lastSentTimeMs else Long.MAX_VALUE
+                if (timeSinceLast >= 15 * 60 * 1000L) {
+                    lastSentLocation?.let { loc ->
+                        android.util.Log.d("TrackingService", "Periodic 15-min coroutine ticker forcing heartbeat update to backend.")
+                        processLocationUpdate(loc)
+                    }
+                }
+            }
+        }
+    }
+
     private fun startTracking(interval: Long) {
         android.util.Log.d("TrackingService", "startTracking called. isTrackingActive: $isTrackingActive")
         if (isTrackingActive) return
@@ -154,6 +173,7 @@ class TrackingService : Service(), SensorEventListener {
         startForeground(NOTIFICATION_ID, notification)
 
         startLocationUpdates()
+        startHeartbeatTicker()
     }
 
     private fun updateInterval(newInterval: Long) {
@@ -177,6 +197,8 @@ class TrackingService : Service(), SensorEventListener {
     private fun stopTracking() {
         android.util.Log.d("TrackingService", "stopTracking called")
         isTrackingActive = false
+        heartbeatTickerJob?.cancel()
+        heartbeatTickerJob = null
         stopLocationUpdates()
         unregisterAccelerometer()
         unregisterSignificantMotion()
@@ -360,7 +382,7 @@ class TrackingService : Service(), SensorEventListener {
                 if (now - stationaryStartTime >= 120000L) {
                     registerSignificantMotion()
                     registerStayGeofence(currentLoc.latitude, currentLoc.longitude)
-                    Pair(300000L, 20f)
+                    Pair(300000L, 0f)
                 } else {
                     // Stay in the last active mode (default to Walking if unknown, or keep current)
                     if (currentIntervalMs <= 5000L) Pair(5000L, 15f)

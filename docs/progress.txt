@@ -1328,7 +1328,21 @@
         - Desarrollada la plantilla de respuesta web HTML/CSS corporativa para `/api/subscriptions/callback` (remplazando respuestas crudas en JSON).
         - Añadidas notificaciones flotantes (Toast) nativas e inmunización contra aperturas de navegador redundantes en Android Nativo.
     - Preservadas al 100% todas las funcionalidades visuales alcanzadas: anclajes y solapamiento de etiquetas, indicadores de borde fuera de mapa (*Off-Screen Edge Indicators*), agrupadore de clusters, zonas seguras y marcas de tiempo estáticas (`stationarySince`).
+
+## [2026-07-31] Animación de Salida Simétrica (Flip In ↔ Flip Out) en Indicadores de Borde de Pantalla
+- **App Móvil Nativa (Android/Kotlin):**
+    - Actualizado [MapaScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt#L1070-L1190): integrado `AnimatedVisibility` con retención de posición de borde (`lastEdge`, `lastBoxX`, `lastBoxY`) y estado `isVisible`.
+    - Al ingresar el avatar pequeño de borde hace su rotación 3D flip (180° → 0°) y escalado (0.5x → 1.0x). Al reingresar el marcador principal al mapa, el avatar pequeño ejecuta la animación inversa simétrica (flip 3D de 0° → 180°, escalado 1.0x → 0.5x y fadeOut gradual de 1.0 → 0.0) antes de retirarse suavemente de pantalla.
+## [2026-07-31] Diagnóstico y Corrección del Auto-Check-in Pasivo por Wi-Fi
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado [TrackingService.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt): removido el filtro de distancia mínima de 20m (`setMinUpdateDistanceMeters(20f)`) en modo estacionario, reemplazándolo por `0f`. De este modo, la API de ubicación de Android no suprime callbacks cuando el celular permanece inmóvil durante la noche.
+    - Implementado un Coroutine Ticker de latido periódico de 15 minutos en `TrackingService.kt` que fuerza la transmisión de la ubicación y el SSID del Wi-Fi conectado (`current_wifi_ssid`) a Railway, garantizando resiliencia absoluta ante Doze Mode de Android.
+- **Backend (Laravel API):**
+    - Actualizado [CheckInController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/CheckInController.php): se limpia la clave de cache de Redis `auto_checkin_wifi_{$user->id}` al realizar check-ins manuales.
+    - Actualizado [LocationController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php): ajustada la expiración de la clave de bloqueo en Redis a `$minIntervalHours` (50% del intervalo configurado), asegurando respuesta inmediata en la siguiente ventana del servicio.
 - **Validación:**
-    - Compilación nativa Android Kotlin completada de forma exitosa (`BUILD SUCCESSFUL in 19s`).
-    - Suite completa de 130 pruebas de backend de Laravel superada con éxito (130/130 passed).
+    - Suite completa de 137 pruebas de Laravel superadas con éxito (137/137 passed, 442 assertions).
+
+
+
 
