@@ -1346,7 +1346,7 @@
 ## [2026-07-31] Generación e Integración de Iconos de Lanzador (Legacy & Adaptive) en Android Nativo
 - **App Móvil Nativa (Android/Kotlin):**
     - Creado script automatizado en Python (`generate_android_icons.py`) que analiza y recorta los bordes reales del isotipo [docs/logo-square.png](file:///home/usuario/aplicaciones/estoyok/docs/logo-square.png), eliminando márgenes asimétricos originales (35px arriba vs 21px abajo).
-    - Re-escalado el isotipo a 290px de diámetro dentro de la *Zona Segura* de Android (61%) y centrado a nivel matemático exacto (offset x=122, y=111), garantizando que el icono se dibuje 100% concéntrico, equilibrado y simétrico en la pantalla de inicio del teléfono.
+    - Re-escalado el isotipo a 290px de diámetro dentro de la *Zona Segura* de Android (61%) y centrado a nivel matemático exacto (offset x=122, y=111), sobre un fondo blanco puro concéntrico (#FFFFFF en `colors.xml` e `ic_launcher_background`), maximizando el contraste y legibilidad del isotipo en el teléfono.
     - Generadas todas las carpetas y resoluciones `mipmap-*` requeridas para pantallas Legacy (48x48, 72x72, 96x96, 144x144 y 192x192 px) tanto cuadradas (`ic_launcher.png`) como circulares (`ic_launcher_round.png`).
     - Generado el icono adaptativo de primer plano `drawable/ic_launcher_foreground.png` (512x512 px) e integrados los esquemas XML `mipmap-anydpi-v26/ic_launcher.xml` y `ic_launcher_round.xml`.
     - Sincronizados también los assets en `mobile/assets/images/icon.png` (1024x1024 px) y `android-icon-foreground.png`.
