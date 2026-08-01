@@ -125,8 +125,19 @@ fun VehiculoScreen(
         allFilteredDrives.values.flatten()
     }
 
-    val filteredDrives = remember(allFilteredDrives, selectedMember) {
-        selectedMember?.let { allFilteredDrives[it.id] } ?: emptyList()
+    val filteredDrives = remember(allFilteredDrives, selectedMember, viewModel.memberDrives, selectedWeekIndex) {
+        val week = weeks[selectedWeekIndex]
+        val memberId = selectedMember?.id
+        val listFromMap = memberId?.let { allFilteredDrives[it] }
+        if (!listFromMap.isNullOrEmpty()) {
+            listFromMap
+        } else {
+            val drivesGrouped = groupAndMergeDrives(viewModel.memberDrives)
+            drivesGrouped.filter { drive ->
+                val driveDate = parseIsoDate(drive.startTime)
+                driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
+            }
+        }
     }
 
     LaunchedEffect(selectedCircle?.id) {
@@ -1278,10 +1289,12 @@ private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberD
 }
 
 private fun parseIsoDate(isoString: String): Date? {
+    if (isoString.isBlank()) return null
+    val cleanIso = isoString.replace(Regex("\\.(\\d{3})\\d+"), ".$1")
     val patterns = listOf(
         "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
-        "yyyy-MM-dd'T'HH:mm:ssXXX",
         "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+        "yyyy-MM-dd'T'HH:mm:ssXXX",
         "yyyy-MM-dd'T'HH:mm:ss'Z'",
         "yyyy-MM-dd HH:mm:ss"
     )
@@ -1290,7 +1303,7 @@ private fun parseIsoDate(isoString: String): Date? {
             val parser = SimpleDateFormat(pattern, Locale.getDefault()).apply {
                 timeZone = TimeZone.getTimeZone("UTC")
             }
-            val date = parser.parse(isoString)
+            val date = parser.parse(cleanIso)
             if (date != null) return date
         } catch (e: Exception) {
             // Try next pattern

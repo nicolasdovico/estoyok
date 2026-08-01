@@ -199,8 +199,8 @@ class DriveController extends Controller
 
             return [
                 'id' => $drive->id,
-                'start_time' => $drive->start_time->toIso8601String(),
-                'end_time' => $drive->end_time->toIso8601String(),
+                'start_time' => $drive->start_time->format('Y-m-d\TH:i:s\Z'),
+                'end_time' => $drive->end_time->format('Y-m-d\TH:i:s\Z'),
                 'duration_seconds' => $drive->end_time->getTimestamp() - $drive->start_time->getTimestamp(),
                 'distance_km' => round($distanceKm, 2),
                 'max_speed' => round($drive->max_speed, 1),
