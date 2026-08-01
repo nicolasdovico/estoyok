@@ -273,6 +273,7 @@
           - [x] Interacción Nativa & Web: Chips interactivos en `PremiumScreen.kt` y `FamiliaViewModel.kt`, fallback de desarrollo y vista HTML/CSS corporativa para `/api/subscriptions/callback`.
           - [x] Legal & Privacy Compliance: Migración `2026_07_29_120000_add_disclaimer_accepted_at_to_users_table`, endpoint `POST /api/settings/accept-disclaimer`, test `DisclaimerAcceptanceTest` (131 tests pasando) y modal bloqueante de primer uso `DisclaimerMandatoryDialog` en app nativa. Documentado en `docs/disclaimer_condiciones_servicio.md`.
           - [x] Fallback Mapa 0 Núcleos: Renderizado dinámico e individual del propio usuario (`effectiveMembers`) cuando no pertenece a núcleos, centrado automático de cámara y banner glassmorphic con acceso a *"Crear / Unirse"* manteniendo intacto el pipeline de clustering, avatares y estilos.
+          - [x] Publicación Web de Política de Privacidad & Guía Google Play Store: Creada la guía [`docs/publicacion_play_store.md`](file:///home/usuario/aplicaciones/estoyok/docs/publicacion_play_store.md), la política legal [`docs/politica_de_privacidad.md`](file:///home/usuario/aplicaciones/estoyok/docs/politica_de_privacidad.md) y la ruta pública accesible `/politica-de-privacidad` en Next.js (`frontend-web/src/app/politica-de-privacidad/page.tsx`) enlazada en el pie de página de la web comercial.
 
 ### In Progress:
 - [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**

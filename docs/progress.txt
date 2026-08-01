@@ -1355,6 +1355,15 @@
 - **Validación:**
     - Compilación nativa en Android Kotlin superada (`BUILD SUCCESSFUL`).
 
-
-
+## [2026-07-31] Documentación de Publicación en Google Play Store y Política de Privacidad
+- **Documentación de Proyecto:**
+    - Creada la guía oficial en [docs/publicacion_play_store.md](file:///home/usuario/aplicaciones/estoyok/docs/publicacion_play_store.md).
+    - Creada la Política de Privacidad oficial y legalmente adaptada a Google Play en [docs/politica_de_privacidad.md](file:///home/usuario/aplicaciones/estoyok/docs/politica_de_privacidad.md), cubriendo la recolección de ubicación en segundo plano, no venta a terceros, derechos de supresión y cifrado HTTPS.
+    - Incluye el procedimiento paso a paso de firma de App Bundle (`.aab`), ficha gráfica de la tienda, formulario de permisos sensibles de ubicación en segundo plano (`ACCESS_BACKGROUND_LOCATION`) y la estrategia para cumplir con la normativa obligatoria de 20 evaluadores durante 14 días para cuentas personales.
+## [2026-08-01] Implementación de Pantalla Pública de Política de Privacidad (Web Next.js)
+- **Frontend Web (Next.js):**
+    - Creada la ruta pública `/politica-de-privacidad` (`frontend-web/src/app/politica-de-privacidad/page.tsx`) integrada con la estética visual premium en modo oscuro de Estoy Ok.
+    - Publicados los términos completos de recolección de ubicación en primer y segundo plano, finalidad de geocercas, auto-checkin por Wi-Fi, no venta de datos a terceros, cifrado HTTPS y canales de soporte/derecho de supresión.
+    - Agregado el enlace a la Política de Privacidad en el pie de página de la Landing Page comercial (`frontend-web/src/app/page.tsx`).
+    - Verificada la compilación en producción de Next.js (`next build`) y suite completa de 137 tests de Laravel pasando al 100%.
 
