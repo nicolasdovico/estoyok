@@ -65,7 +65,7 @@ El usuario mantiene el control total sobre su información en todo momento:
 
 - **Desactivación de Rastreo**: Puedes pausar o desactivar el permiso de ubicación en segundo plano en cualquier momento desde los Ajustes del teléfono o desde el menú de la Aplicación. *(Ten en cuenta que esto suspenderá las alertas de geocercas en tiempo real)*.
 - **Derecho de Acceso y Rectificación**: Puedes modificar o actualizar tus datos personales directamente desde tu perfil en la app.
-- **Eliminación de Cuenta y Datos**: Tienes derecho a solicitar la eliminación permanente de tu cuenta y de todos tus datos asociados ingresando a Ajustes -> Eliminar Cuenta, o enviando un correo a `contacto@estoyok.app`.
+- **Eliminación de Cuenta y Datos**: Tienes derecho a solicitar la eliminación permanente de tu cuenta y de todos tus datos asociados ingresando a Ajustes -> Eliminar Cuenta, o enviando un correo a `estoyok24@gmail.com`.
 
 ---
 
@@ -82,5 +82,6 @@ Utilizamos proveedores de infraestructura confiables que cumplen con estrictos e
 
 Si tienes preguntas, dudas o inquietudes sobre esta Política de Privacidad o el tratamiento de tus datos personales, puedes comunicarte con nuestro equipo de soporte en:
 
-- **Correo electrónico:** `privacidad@estoyok.app` / `contacto@estoyok.app`
+- **Correo electrónico:** `estoyok24@gmail.com`
+- **Instagram:** `@estoyok24` (https://instagram.com/estoyok24)
 - **Sitio web:** `https://frontend-web-production-f4f0.up.railway.app`

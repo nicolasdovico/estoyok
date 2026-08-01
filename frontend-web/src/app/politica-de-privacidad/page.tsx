@@ -169,7 +169,7 @@ export default function PoliticaDePrivacidadPage() {
             <ul className="space-y-2 text-neutral-400">
               <li>• <strong className="text-white">Desactivación de Rastreo:</strong> Puedes pausar o desactivar el permiso de ubicación en segundo plano en cualquier momento desde los Ajustes del teléfono o de la App.</li>
               <li>• <strong className="text-white">Derecho de Acceso y Rectificación:</strong> Puedes modificar o actualizar tus datos personales directamente desde tu perfil en la app.</li>
-              <li>• <strong className="text-white">Eliminación de Cuenta y Datos:</strong> Tienes derecho a solicitar la eliminación permanente de tu cuenta y de todos tus datos asociados desde Ajustes -&gt; Eliminar Cuenta, o escribiendo a <a href="mailto:contacto@estoyok.app" className="text-red-400 hover:underline">contacto@estoyok.app</a>.</li>
+              <li>• <strong className="text-white">Eliminación de Cuenta y Datos:</strong> Tienes derecho a solicitar la eliminación permanente de tu cuenta y de todos tus datos asociados desde Ajustes -&gt; Eliminar Cuenta, o escribiendo a <a href="mailto:estoyok24@gmail.com" className="text-red-400 hover:underline">estoyok24@gmail.com</a>.</li>
             </ul>
           </section>
 
@@ -197,11 +197,11 @@ export default function PoliticaDePrivacidadPage() {
               Si tienes preguntas, dudas o inquietudes sobre esta Política de Privacidad o el tratamiento de tus datos personales, puedes comunicarte con nuestro equipo en:
             </p>
             <div className="inline-flex flex-wrap gap-4 text-xs font-semibold">
-              <a href="mailto:privacidad@estoyok.app" className="px-4 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-red-400 hover:border-red-500/40 transition-colors">
-                ✉️ privacidad@estoyok.app
+              <a href="mailto:estoyok24@gmail.com" className="px-4 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-red-400 hover:border-red-500/40 transition-colors flex items-center gap-2">
+                ✉️ estoyok24@gmail.com
               </a>
-              <a href="mailto:contacto@estoyok.app" className="px-4 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-red-400 hover:border-red-500/40 transition-colors">
-                ✉️ contacto@estoyok.app
+              <a href="https://instagram.com/estoyok24" target="_blank" rel="noopener noreferrer" className="px-4 py-2 rounded-xl bg-neutral-950 border border-neutral-800 text-pink-400 hover:border-pink-500/40 transition-colors flex items-center gap-2">
+                📸 Instagram: @estoyok24
               </a>
             </div>
           </section>
