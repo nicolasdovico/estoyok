@@ -1367,3 +1367,14 @@
     - Agregado el enlace a la Política de Privacidad en el pie de página de la Landing Page comercial (`frontend-web/src/app/page.tsx`).
     - Verificada la compilación en producción de Next.js (`next build`) y suite completa de 137 tests de Laravel pasando al 100%.
 
+## [2026-08-01] Arquitectura de Registro de Dispositivos y Cierre de Sesión Estilo Life360
+- **Backend (Laravel API):**
+    - Creada la migración `2026_08_01_142330_create_user_devices_table.php` y el modelo Eloquent `UserDevice.php` (`user_id`, `device_uuid`, `device_name`, `platform`, `push_token`, `is_active`, `last_active_at`).
+    - Implementada la política de Dispositivo Principal Único en `AuthController.php`: al iniciar sesión en un dispositivo B, se revocan los tokens de Sanctum previos (`$user->tokens()->delete()`), se desactivan los dispositivos anteriores y se despacha una notificación silenciosa **Silent Push (`action => "logout"`)** al dispositivo anterior A.
+    - Sincronización de push tokens en `SettingsController.php` vinculándolos al dispositivo activo de `user_devices` y desasociando tokens residuales entre usuarios.
+    - Creada la suite de tests de integración `MultiDeviceSessionTest.php` (`139/139 tests pasando al 100%`).
+- **App Móvil Nativa (Android/Kotlin):**
+    - `SessionManager.kt`: Generación y persistencia de `device_uuid` (UUID único por instalación) enviado en `LoginRequest`.
+    - `AuthInterceptor.kt`: Eliminado el re-login silencioso zombi ante 401. Al recibir un 401 Unauthorized, la app detiene el `TrackingService` (`ACTION_STOP`), ejecuta `sessionManager.clearSession()` y redirige limpiamente a `LoginScreen`.
+    - `AuthRepositoryImpl.kt`: Refactorizado `logout()` incorporando detención de `TrackingService`, desuscripción del token nativo en Google FCM (`FirebaseMessaging.getInstance().deleteToken()`) y limpieza garantizada de la sesión en bloque `finally`.
+    - `MyFirebaseMessagingService.kt`: Implementado el manejador de Silent Push `action == "logout"` que detiene los servicios de fondo, invalida el token FCM y cierra la sesión local al instante. Agregado el filtro de sesión activa (`authTokenFlow.firstOrNull()`) para descartar cualquier notificación en dispositivos deslogueados.
