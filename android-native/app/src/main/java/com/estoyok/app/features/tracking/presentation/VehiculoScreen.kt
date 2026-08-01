@@ -1244,8 +1244,9 @@ private fun parseIsoToSeconds(isoStr: String): Long {
 }
 
 private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberDriveEventDto> {
-    if (drives.isEmpty()) return emptyList()
-    val sortedDrives = drives.sortedBy { parseIsoToSeconds(it.startTime) }
+    val validDrives = drives.filter { it.distanceKm >= 0.05 || it.routePoints.size >= 4 }
+    if (validDrives.isEmpty()) return emptyList()
+    val sortedDrives = validDrives.sortedBy { parseIsoToSeconds(it.startTime) }
     val merged = mutableListOf<MemberDriveEventDto>()
     for (drive in sortedDrives) {
         if (merged.isEmpty()) {

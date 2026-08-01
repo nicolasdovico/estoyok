@@ -23,7 +23,7 @@ Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('/maintenance/purge-noise-drives', function () {
     // 1. Purgar eventos de viaje duplicados por peticiones concurrentes (mismo usuario dentro de 10s)
-    $count = \Illuminate\Support\Facades\DB::delete("
+    $count1 = \Illuminate\Support\Facades\DB::delete("
         DELETE FROM drive_events
         WHERE id IN (
             SELECT d1.id
@@ -42,7 +42,23 @@ Route::post('/maintenance/purge-noise-drives', function () {
           AND EXTRACT(EPOCH FROM (end_time - start_time)) < 60
     ");
 
-    return response()->json(['message' => "Purged {$count} duplicate burst drives and {$count2} short noise drives."]);
+    // 3. Purgar eventos de viaje donde la velocidad máxima fue menor a 3 km/h o tienen menos de 4 puntos reales (estacionado/estático)
+    $count3 = \Illuminate\Support\Facades\DB::delete("
+        DELETE FROM drive_events
+        WHERE id IN (
+            SELECT d.id
+            FROM drive_events d
+            LEFT JOIN location_histories lh 
+               ON lh.user_id = d.user_id 
+              AND lh.recorded_at BETWEEN d.start_time AND d.end_time
+            WHERE d.end_time IS NOT NULL
+            GROUP BY d.id
+            HAVING COUNT(lh.id) < 4 OR COALESCE(MAX(lh.speed), 0) < 3.0
+        )
+    ");
+
+    $total = $count1 + $count2 + $count3;
+    return response()->json(['message' => "Purged {$total} ghost noise drives."]);
 });
 
 // Webhooks
