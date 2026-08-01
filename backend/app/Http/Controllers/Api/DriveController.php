@@ -28,7 +28,7 @@ class DriveController extends Controller
         // 2. Obtener los trayectos finalizados del miembro (ordenados cronológicamente)
         $query = DriveEvent::where('user_id', $member->id)
             ->whereNotNull('end_time')
-            ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) >= 15'); // Ignorar micro-ruido de menos de 15s en la API
+            ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) >= 60'); // Ignorar micro-ruido de menos de 60s en la API
 
         if ($request->filled('start_date') && $request->filled('end_date')) {
             $query->where('start_time', '>=', $request->input('start_date'))

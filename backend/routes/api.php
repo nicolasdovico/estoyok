@@ -22,10 +22,16 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('/maintenance/purge-noise-drives', function () {
-    $count = \App\Models\DriveEvent::whereNotNull('end_time')
-        ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) < 30')
+    $count1 = \App\Models\DriveEvent::whereNotNull('end_time')
+        ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) < 60')
         ->delete();
-    return response()->json(['message' => "Purged {$count} noise drives."]);
+
+    $count2 = \App\Models\DriveEvent::whereNotNull('end_time')
+        ->whereBetween('start_time', ['2026-07-31 19:20:00', '2026-07-31 19:26:00'])
+        ->delete();
+
+    $total = $count1 + $count2;
+    return response()->json(['message' => "Purged {$total} ghost noise drives."]);
 });
 
 // Webhooks

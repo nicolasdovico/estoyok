@@ -10,11 +10,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        // Purga automática de micro-registros basura de GPS con duración menor a 15 segundos
         DB::statement("
             DELETE FROM drive_events 
             WHERE end_time IS NOT NULL 
-              AND EXTRACT(EPOCH FROM (end_time - start_time)) < 15
+              AND (
+                EXTRACT(EPOCH FROM (end_time - start_time)) < 60
+                OR start_time BETWEEN '2026-07-31 19:20:00' AND '2026-07-31 19:26:00'
+              )
         ");
     }
 

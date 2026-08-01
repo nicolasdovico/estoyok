@@ -121,8 +121,8 @@ class DriveDetectionTest extends TestCase
             'end_time' => null,
         ]);
 
-        // 2. Reportar que se detuvo tras 10 segundos
-        $this->travel(10)->seconds();
+        // 2. Reportar que se detuvo tras 70 segundos
+        $this->travel(70)->seconds();
 
         $this->actingAs($user)->postJson('/api/locations/update', [
             'latitude' => -34.6037,

@@ -250,8 +250,8 @@ class LocationController extends Controller
                         ->first();
                     if ($activeDriveEvent) {
                         $durationSeconds = abs($recordedAt->diffInSeconds($activeDriveEvent->start_time));
-                        if ($durationSeconds < 5) {
-                            // Descartar micro-ruido de GPS instantáneo de menos de 5 segundos
+                        if ($durationSeconds < 60) {
+                            // Descartar micro-ruido de GPS instantáneo de menos de 60 segundos
                             $activeDriveEvent->delete();
                         } else {
                             $activeDriveEvent->update([
