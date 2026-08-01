@@ -58,7 +58,9 @@ interface CircleApiService {
     @GET("circles/{circleId}/members/{memberId}/drives")
     suspend fun getMemberDrives(
         @Path("circleId") circleId: Int,
-        @Path("memberId") memberId: Int
+        @Path("memberId") memberId: Int,
+        @Query("start_date") startDate: String? = null,
+        @Query("end_date") endDate: String? = null
     ): Response<MemberDrivesResponse>
 
     @GET("dynamic-geofences/active")
