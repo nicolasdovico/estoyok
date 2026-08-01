@@ -264,6 +264,11 @@ class DriveController extends Controller
             ];
         });
 
+        $response = $response->filter(function ($item) {
+            // Excluir ruidos de concurrencia que tengan 0km y menos de 4 puntos de recorrido reales
+            return $item['distance_km'] >= 0.05 || count($item['route_points']) >= 4;
+        })->values();
+
         return response()->json([
             'is_premium' => $isPremium,
             'drives' => $response

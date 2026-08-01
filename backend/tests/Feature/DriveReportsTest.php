@@ -61,8 +61,14 @@ class DriveReportsTest extends TestCase
         \App\Models\LocationHistory::create([
             'user_id' => $member->id,
             'speed' => 25.0,
-            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(30),
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(50),
             'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 35.0,
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(10),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3900 -34.6100)', 4326)")
         ]);
 
         $d2 = DriveEvent::create([
@@ -75,8 +81,14 @@ class DriveReportsTest extends TestCase
         \App\Models\LocationHistory::create([
             'user_id' => $member->id,
             'speed' => 30.0,
-            'recorded_at' => Carbon::now()->subMinutes(20),
+            'recorded_at' => Carbon::now()->subMinutes(25),
             'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 40.0,
+            'recorded_at' => Carbon::now()->subMinutes(15),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3900 -34.6100)', 4326)")
         ]);
 
         $response = $this->actingAs($requester)->getJson("/api/circles/{$circle->id}/members/{$member->id}/drives");
@@ -108,8 +120,14 @@ class DriveReportsTest extends TestCase
         \App\Models\LocationHistory::create([
             'user_id' => $member->id,
             'speed' => 25.0,
-            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(30),
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(50),
             'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 35.0,
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(10),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3900 -34.6100)', 4326)")
         ]);
 
         DriveEvent::create([
@@ -122,8 +140,14 @@ class DriveReportsTest extends TestCase
         \App\Models\LocationHistory::create([
             'user_id' => $member->id,
             'speed' => 30.0,
-            'recorded_at' => Carbon::now()->subMinutes(20),
+            'recorded_at' => Carbon::now()->subMinutes(25),
             'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 40.0,
+            'recorded_at' => Carbon::now()->subMinutes(15),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3900 -34.6100)', 4326)")
         ]);
 
         $response = $this->actingAs($requester)->getJson("/api/circles/{$circle->id}/members/{$member->id}/drives");

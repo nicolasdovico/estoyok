@@ -22,6 +22,7 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('/maintenance/purge-noise-drives', function () {
+    // 1. Purga de eventos de viaje que no tienen puntos en location_histories o tienen 0 puntos reales
     \Illuminate\Support\Facades\DB::statement("
         DELETE FROM drive_events
         WHERE id IN (
@@ -32,10 +33,10 @@ Route::post('/maintenance/purge-noise-drives', function () {
               AND lh.recorded_at BETWEEN d.start_time AND d.end_time
             WHERE d.end_time IS NOT NULL
             GROUP BY d.id
-            HAVING COUNT(lh.id) < 2 OR EXTRACT(EPOCH FROM (d.end_time - d.start_time)) < 60
+            HAVING COUNT(lh.id) < 4
         )
     ");
-    return response()->json(['message' => "Purged ghost 0-point noise drives."]);
+    return response()->json(['message' => "Purged ghost 0km / low-point noise drives."]);
 });
 
 // Webhooks
