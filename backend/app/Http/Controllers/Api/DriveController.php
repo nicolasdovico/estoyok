@@ -123,7 +123,15 @@ class DriveController extends Controller
 
         $speedLimit = $circle->speed_limit ?? 120;
 
-        $response = collect($drives)->map(function ($drive, $index) use ($speedLimit, $isPremium, $pointsByDrive) {
+        $response = collect($drives)
+            ->filter(function ($drive) use ($pointsByDrive, $allPoints) {
+                if (empty($allPoints)) {
+                    return true;
+                }
+                return count($pointsByDrive[$drive->id] ?? []) > 0;
+            })
+            ->values()
+            ->map(function ($drive, $index) use ($speedLimit, $isPremium, $pointsByDrive) {
             $points = $pointsByDrive[$drive->id] ?? [];
 
             $distanceKm = 0.0;

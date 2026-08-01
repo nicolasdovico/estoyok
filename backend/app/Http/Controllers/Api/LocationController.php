@@ -181,16 +181,18 @@ class LocationController extends Controller
                     }
                 }
 
-                // 4. Drive Event Processing
+                // 4. Drive Event Processing (Concurrencia Atómica & Validación de Puntos Mínimos)
                 if ($isDriving) {
                     $activeDriveEvent = DriveEvent::where('user_id', $user->id)
                         ->whereNull('end_time')
+                        ->lockForUpdate()
                         ->first();
 
                     if (!$activeDriveEvent) {
                         $lastClosedDrive = DriveEvent::where('user_id', $user->id)
                             ->whereNotNull('end_time')
                             ->orderBy('end_time', 'desc')
+                            ->lockForUpdate()
                             ->first();
 
                         if ($lastClosedDrive && abs($recordedAt->diffInSeconds($lastClosedDrive->end_time)) <= 600) {
@@ -244,14 +246,19 @@ class LocationController extends Controller
                         }
                     }
                 } else {
-                    // Cerrar el trayecto activo si existe
+                    // Cerrar el trayecto activo si existe (Validación atómica)
                     $activeDriveEvent = DriveEvent::where('user_id', $user->id)
                         ->whereNull('end_time')
+                        ->lockForUpdate()
                         ->first();
                     if ($activeDriveEvent) {
                         $durationSeconds = abs($recordedAt->diffInSeconds($activeDriveEvent->start_time));
-                        if ($durationSeconds < 60) {
-                            // Descartar micro-ruido de GPS instantáneo de menos de 60 segundos
+                        $pointsCount = LocationHistory::where('user_id', $user->id)
+                            ->whereBetween('recorded_at', [$activeDriveEvent->start_time, $recordedAt])
+                            ->count();
+
+                        if ($durationSeconds < 60 || $pointsCount < 2) {
+                            // Descartar ruido de GPS instantáneo de menos de 60 segundos o sin puntos de ruta reales
                             $activeDriveEvent->delete();
                         } else {
                             $activeDriveEvent->update([

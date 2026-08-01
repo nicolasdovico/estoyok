@@ -22,16 +22,20 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('/maintenance/purge-noise-drives', function () {
-    $count1 = \App\Models\DriveEvent::whereNotNull('end_time')
-        ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) < 60')
-        ->delete();
-
-    $count2 = \App\Models\DriveEvent::whereNotNull('end_time')
-        ->whereBetween('start_time', ['2026-07-31 19:20:00', '2026-07-31 19:26:00'])
-        ->delete();
-
-    $total = $count1 + $count2;
-    return response()->json(['message' => "Purged {$total} ghost noise drives."]);
+    \Illuminate\Support\Facades\DB::statement("
+        DELETE FROM drive_events
+        WHERE id IN (
+            SELECT d.id
+            FROM drive_events d
+            LEFT JOIN location_histories lh 
+               ON lh.user_id = d.user_id 
+              AND lh.recorded_at BETWEEN d.start_time AND d.end_time
+            WHERE d.end_time IS NOT NULL
+            GROUP BY d.id
+            HAVING COUNT(lh.id) < 2 OR EXTRACT(EPOCH FROM (d.end_time - d.start_time)) < 60
+        )
+    ");
+    return response()->json(['message' => "Purged ghost 0-point noise drives."]);
 });
 
 // Webhooks
