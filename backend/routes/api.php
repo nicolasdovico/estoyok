@@ -61,6 +61,16 @@ Route::post('/maintenance/purge-noise-drives', function () {
     return response()->json(['message' => "Purged {$total} ghost noise drives."]);
 });
 
+Route::post('/maintenance/purge-all-drives', function () {
+    \Illuminate\Support\Facades\DB::statement("TRUNCATE TABLE drive_events RESTART IDENTITY CASCADE;");
+    \Illuminate\Support\Facades\DB::statement("TRUNCATE TABLE location_histories RESTART IDENTITY CASCADE;");
+    \Illuminate\Support\Facades\DB::table('current_locations')->update([
+        'is_driving' => false,
+        'driving_since' => null
+    ]);
+    return response()->json(['message' => 'All drive events and location histories purged successfully. Clean slate restored.']);
+});
+
 // Webhooks
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
