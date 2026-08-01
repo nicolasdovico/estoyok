@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-08-01] Purga Completa de Recorridos e Historial de Ubicación (Clean Slate Restored)
+- **Backend (Laravel API) & Base de Datos (PostgreSQL/Railway):**
+    - Implementado el endpoint de mantenimiento `POST /api/maintenance/purge-all-drives` en `routes/api.php` para realizar un borrado total y limpio de las tablas `drive_events` y `location_histories` mediante `DELETE FROM` sobre tablas particionadas.
+    - Reiniciado el estado de la tabla `current_locations` (`is_driving = false`, `speed = 0.0`).
+    - Preservados al 100% todos los usuarios, núcleos (círculos), dispositivos registrados (`user_devices`), geocercas y contactos de emergencia.
+    - Ejecutado con éxito total en Railway. Base de datos reseteada a 0 recorridos para comenzar el registro limpio de puntos.
+    - Suite completa de 139 tests pasando al 100%.
+
 ## [2026-07-30] Ajuste Posicional del Avatar de Borde: Adherencia Exacta al Marco de Pantalla
 - **App Móvil Nativa (Android Kotlin):**
     - Actualizados los cálculos de `boxX` y `boxY` en `MapaScreen.kt` para sincronizar con el tamaño de 34dp de la Cápsula Escudo.
