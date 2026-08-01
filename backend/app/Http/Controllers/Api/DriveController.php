@@ -28,6 +28,7 @@ class DriveController extends Controller
         // 2. Obtener los trayectos finalizados del miembro (ordenados cronológicamente)
         $rawDrives = DriveEvent::where('user_id', $member->id)
             ->whereNotNull('end_time')
+            ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) >= 15') // Ignorar micro-ruido de menos de 15s en la API
             ->orderBy('start_time', 'asc')
             ->get();
 
@@ -61,30 +62,55 @@ class DriveController extends Controller
         $mergedDrives = array_reverse($mergedDrives);
 
         $isPremium = (bool) $currentUser->is_premium;
-        // Todos los usuarios acceden a los últimos 30 trayectos para estadísticas, pero se les restringe el detalle si son Free
-        $drives = array_slice($mergedDrives, 0, 30);
+        // Permitir obtener hasta los últimos 100 trayectos para cubrir las 4 semanas de estadísticas
+        $drives = array_slice($mergedDrives, 0, 100);
 
-        $drivesCollection = collect($drives);
+        if (empty($drives)) {
+            return response()->json([
+                'is_premium' => $isPremium,
+                'drives' => []
+            ]);
+        }
+
+        $minStart = min(array_map(fn($d) => $d->start_time, $drives));
+        $maxEnd = max(array_map(fn($d) => $d->end_time, $drives));
+
+        // BATCH QUERY: Ejecutar UNA SOLA consulta SQL para todos los trayectos solicitados
+        $allPoints = DB::select("
+            SELECT 
+                ST_Y(location::geometry) as latitude,
+                ST_X(location::geometry) as longitude,
+                speed,
+                recorded_at
+            FROM location_histories
+            WHERE user_id = :user_id
+              AND recorded_at BETWEEN :start AND :end
+            ORDER BY recorded_at ASC
+        ", [
+            'user_id' => $member->id,
+            'start' => $minStart,
+            'end' => $maxEnd,
+        ]);
+
+        // Agrupar los puntos por rango de fecha de cada trayecto
+        $pointsByDrive = [];
+        foreach ($drives as $drive) {
+            $driveStartTs = strtotime($drive->start_time);
+            $driveEndTs = strtotime($drive->end_time);
+            $drivePoints = [];
+            foreach ($allPoints as $p) {
+                $pTs = strtotime($p->recorded_at);
+                if ($pTs >= $driveStartTs && $pTs <= $driveEndTs) {
+                    $drivePoints[] = $p;
+                }
+            }
+            $pointsByDrive[$drive->id] = $drivePoints;
+        }
 
         $speedLimit = $circle->speed_limit ?? 120;
 
-        $response = $drivesCollection->map(function ($drive, $index) use ($speedLimit, $isPremium) {
-            // Consultar las coordenadas históricas del trayecto
-            $points = DB::select("
-                SELECT 
-                    ST_Y(location::geometry) as latitude,
-                    ST_X(location::geometry) as longitude,
-                    speed,
-                    recorded_at
-                FROM location_histories
-                WHERE user_id = :user_id
-                  AND recorded_at BETWEEN :start AND :end
-                ORDER BY recorded_at ASC
-            ", [
-                'user_id' => $drive->user_id,
-                'start' => $drive->start_time,
-                'end' => $drive->end_time,
-            ]);
+        $response = collect($drives)->map(function ($drive, $index) use ($speedLimit, $isPremium, $pointsByDrive) {
+            $points = $pointsByDrive[$drive->id] ?? [];
 
             $distanceKm = 0.0;
             $hardBrakes = [];

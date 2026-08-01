@@ -249,9 +249,15 @@ class LocationController extends Controller
                         ->whereNull('end_time')
                         ->first();
                     if ($activeDriveEvent) {
-                        $activeDriveEvent->update([
-                            'end_time' => $recordedAt,
-                        ]);
+                        $durationSeconds = abs($recordedAt->diffInSeconds($activeDriveEvent->start_time));
+                        if ($durationSeconds < 5) {
+                            // Descartar micro-ruido de GPS instantáneo de menos de 5 segundos
+                            $activeDriveEvent->delete();
+                        } else {
+                            $activeDriveEvent->update([
+                                'end_time' => $recordedAt,
+                            ]);
+                        }
                     }
                 }
 
