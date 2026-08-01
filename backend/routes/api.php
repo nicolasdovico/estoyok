@@ -22,21 +22,27 @@ Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
 Route::post('/maintenance/purge-noise-drives', function () {
-    // 1. Purga de eventos de viaje que no tienen puntos en location_histories o tienen 0 puntos reales
-    \Illuminate\Support\Facades\DB::statement("
+    // 1. Purgar eventos de viaje duplicados por peticiones concurrentes (mismo usuario dentro de 10s)
+    $count = \Illuminate\Support\Facades\DB::delete("
         DELETE FROM drive_events
         WHERE id IN (
-            SELECT d.id
-            FROM drive_events d
-            LEFT JOIN location_histories lh 
-               ON lh.user_id = d.user_id 
-              AND lh.recorded_at BETWEEN d.start_time AND d.end_time
-            WHERE d.end_time IS NOT NULL
-            GROUP BY d.id
-            HAVING COUNT(lh.id) < 4
+            SELECT d1.id
+            FROM drive_events d1
+            JOIN drive_events d2 
+              ON d1.user_id = d2.user_id 
+             AND d1.id < d2.id
+             AND ABS(EXTRACT(EPOCH FROM (d1.start_time - d2.start_time))) <= 10
         )
     ");
-    return response()->json(['message' => "Purged ghost 0km / low-point noise drives."]);
+
+    // 2. Purgar eventos de viaje cortos menores a 60 segundos
+    $count2 = \Illuminate\Support\Facades\DB::delete("
+        DELETE FROM drive_events
+        WHERE end_time IS NOT NULL
+          AND EXTRACT(EPOCH FROM (end_time - start_time)) < 60
+    ");
+
+    return response()->json(['message' => "Purged {$count} duplicate burst drives and {$count2} short noise drives."]);
 });
 
 // Webhooks
