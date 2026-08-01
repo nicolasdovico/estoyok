@@ -36,7 +36,9 @@ data class UserDto(
 data class LoginRequest(
     @SerializedName("email") val email: String,
     @SerializedName("password") val password: String,
-    @SerializedName("device_name") val deviceName: String = "android"
+    @SerializedName("device_name") val deviceName: String = "android",
+    @SerializedName("device_uuid") val deviceUuid: String? = null,
+    @SerializedName("platform") val platform: String = "android"
 )
 
 data class RegisterRequest(

@@ -29,6 +29,19 @@ class SessionManager @Inject constructor(
         private val API_BASE_URL = stringPreferencesKey("api_base_url")
         private val TRACKING_ENABLED = booleanPreferencesKey("tracking_enabled")
         private val ENCRYPTED_PASSWORD = stringPreferencesKey("encrypted_password")
+        private val DEVICE_UUID = stringPreferencesKey("device_uuid")
+    }
+
+    suspend fun getOrCreateDeviceUuid(): String {
+        val existing = context.dataStore.data.map { it[DEVICE_UUID] }.firstOrNull()
+        if (!existing.isNullOrBlank()) {
+            return existing
+        }
+        val newUuid = java.util.UUID.randomUUID().toString()
+        context.dataStore.edit { preferences ->
+            preferences[DEVICE_UUID] = newUuid
+        }
+        return newUuid
     }
 
     val authTokenFlow: Flow<String?> = context.dataStore.data.map { preferences ->

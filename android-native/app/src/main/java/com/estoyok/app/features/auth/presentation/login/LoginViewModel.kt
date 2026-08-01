@@ -76,7 +76,16 @@ class LoginViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            authRepository.login(LoginRequest(email.trim(), password)).collect { resource ->
+            val deviceUuid = sessionManager.getOrCreateDeviceUuid()
+            val deviceName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim()
+            val request = LoginRequest(
+                email = email.trim(),
+                password = password,
+                deviceName = if (deviceName.isNotBlank()) deviceName else "Android Device",
+                deviceUuid = deviceUuid,
+                platform = "android"
+            )
+            authRepository.login(request).collect { resource ->
                 when (resource) {
                     is Resource.Loading -> {
                         isLoading = true

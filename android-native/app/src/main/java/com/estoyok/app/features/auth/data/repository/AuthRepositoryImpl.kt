@@ -13,10 +13,14 @@ import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
+
 @Singleton
 class AuthRepositoryImpl @Inject constructor(
     private val apiService: AuthApiService,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    @ApplicationContext private val context: Context
 ) : AuthRepository {
 
     override fun register(request: RegisterRequest): Flow<Resource<MessageResponse>> = flow {
@@ -90,9 +94,26 @@ class AuthRepositoryImpl @Inject constructor(
     override fun logout(): Flow<Resource<MessageResponse>> = flow {
         emit(Resource.Loading())
         try {
+            // 1. Stop background tracking service
+            try {
+                val serviceIntent = android.content.Intent(context, com.estoyok.app.services.TrackingService::class.java).apply {
+                    action = com.estoyok.app.services.TrackingService.ACTION_STOP
+                }
+                context.stopService(serviceIntent)
+            } catch (e: Exception) {
+                // Ignore service stop exceptions
+            }
+
+            // 2. Unregister FCM token on device
+            try {
+                com.google.firebase.messaging.FirebaseMessaging.getInstance().deleteToken()
+            } catch (e: Exception) {
+                // Ignore FCM token deletion errors
+            }
+
+            // 3. Call backend logout API
             val response = apiService.logout()
             if (response.isSuccessful && response.body() != null) {
-                sessionManager.clearSession()
                 emit(Resource.Success(response.body()!!))
             } else {
                 emit(Resource.Error(parseErrorMessage(response)))
@@ -101,6 +122,9 @@ class AuthRepositoryImpl @Inject constructor(
             emit(Resource.Error("Error de conexión."))
         } catch (e: Exception) {
             emit(Resource.Error("Error al cerrar sesión."))
+        } finally {
+            // 4. Always clear local session, regardless of network success or failure
+            sessionManager.clearSession()
         }
     }
 
