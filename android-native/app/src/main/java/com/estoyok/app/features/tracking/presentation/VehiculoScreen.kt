@@ -110,25 +110,25 @@ fun VehiculoScreen(
     var selectedWeekIndex by remember { mutableStateOf(0) }
     var activeExplanationDialog by remember { mutableStateOf(ExplanationType.NONE) }
 
-    val filteredDrives = remember(viewModel.memberDrives, selectedWeekIndex) {
+    val allFilteredDrives = remember(viewModel.allMembersDrives, selectedWeekIndex) {
         val week = weeks[selectedWeekIndex]
-        val drivesGrouped = groupAndMergeDrives(viewModel.memberDrives)
-        drivesGrouped.filter { drive ->
-            val driveDate = parseIsoDate(drive.startTime)
-            driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
+        viewModel.allMembersDrives.mapValues { (_, raw) ->
+            val drivesGrouped = groupAndMergeDrives(raw)
+            drivesGrouped.filter { drive ->
+                val driveDate = parseIsoDate(drive.startTime)
+                driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
+            }
         }
     }
 
-    val consolidatedDrives = filteredDrives
+    val consolidatedDrives = remember(allFilteredDrives) {
+        allFilteredDrives.values.flatten()
+    }
 
-    LaunchedEffect(selectedCircle?.id) {
-        if (selectedCircle != null && selectedMember == null) {
-            val myMember = selectedCircle.members.find { it.email == viewModel.currentUserProfile?.email }
-                ?: selectedCircle.members.firstOrNull()
-            if (myMember != null) {
-                viewModel.selectedMember = myMember
-            }
-        }
+    val filteredDrives = remember(allFilteredDrives, selectedMember, viewModel.memberDrives) {
+        val memberId = selectedMember?.id
+        val listFromMap = memberId?.let { allFilteredDrives[it] }
+        if (!listFromMap.isNullOrEmpty()) listFromMap else viewModel.memberDrives
     }
 
     val sdfIsoUtc = remember {
@@ -137,7 +137,26 @@ fun VehiculoScreen(
         }
     }
 
-    LaunchedEffect(selectedMember?.id, selectedCircle?.id, selectedWeekIndex) {
+    LaunchedEffect(selectedCircle?.id, selectedWeekIndex) {
+        val circle = selectedCircle
+        if (circle != null) {
+            val week = weeks[selectedWeekIndex]
+            val startIso = sdfIsoUtc.format(week.startDate)
+            val endIso = sdfIsoUtc.format(week.endDate)
+
+            if (selectedMember == null) {
+                val myMember = circle.members.find { it.email == viewModel.currentUserProfile?.email }
+                    ?: circle.members.firstOrNull()
+                if (myMember != null) {
+                    viewModel.selectedMember = myMember
+                }
+            }
+
+            viewModel.loadAllMembersDrives(circle.id, circle.members, startIso, endIso)
+        }
+    }
+
+    LaunchedEffect(selectedMember?.id) {
         val memberId = selectedMember?.id
         val circleId = selectedCircle?.id
         if (memberId != null && circleId != null) {
@@ -406,7 +425,7 @@ fun VehiculoScreen(
 
                         items(selectedCircle.members) { member ->
                             val isSelected = selectedMember?.id == member.id
-                            val memberFilteredDrives = if (member.id == selectedMember?.id) filteredDrives else emptyList()
+                            val memberFilteredDrives = allFilteredDrives[member.id] ?: emptyList()
                             
                             val tripsCount = memberFilteredDrives.size
                             val totalDist = memberFilteredDrives.sumOf { it.distanceKm }

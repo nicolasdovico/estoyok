@@ -277,7 +277,7 @@ class MapaViewModel @Inject constructor(
         }
     }
 
-    fun loadAllMembersDrives(circleId: Int, members: List<CircleMemberDto>) {
+    fun loadAllMembersDrives(circleId: Int, members: List<CircleMemberDto>, startDate: String? = null, endDate: String? = null) {
         viewModelScope.launch {
             isDrivesLoading = true
             drivesErrorMessage = null
@@ -288,7 +288,7 @@ class MapaViewModel @Inject constructor(
                 async {
                     var drivesList = emptyList<MemberDriveEventDto>()
                     try {
-                        circleRepository.getMemberDrives(circleId, member.id).collect { resource ->
+                        circleRepository.getMemberDrives(circleId, member.id, startDate, endDate).collect { resource ->
                             if (resource is Resource.Success) {
                                 drivesList = resource.data?.drives ?: emptyList()
                                 hasPremium = hasPremium || (resource.data?.isPremium ?: false)
