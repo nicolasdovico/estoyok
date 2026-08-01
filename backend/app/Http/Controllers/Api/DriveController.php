@@ -80,13 +80,14 @@ class DriveController extends Controller
         $minStart = min(array_map(fn($d) => $d->start_time, $drives));
         $maxEnd = max(array_map(fn($d) => $d->end_time, $drives));
 
-        // BATCH QUERY: Ejecutar UNA SOLA consulta SQL para todos los trayectos solicitados
+        // BATCH QUERY: Ejecutar UNA SOLA consulta SQL con epoch_ts precalculado en PostgreSQL
         $allPoints = DB::select("
             SELECT 
                 ST_Y(location::geometry) as latitude,
                 ST_X(location::geometry) as longitude,
                 speed,
-                recorded_at
+                recorded_at,
+                EXTRACT(EPOCH FROM recorded_at)::integer as epoch_ts
             FROM location_histories
             WHERE user_id = :user_id
               AND recorded_at BETWEEN :start AND :end
@@ -97,19 +98,27 @@ class DriveController extends Controller
             'end' => $maxEnd,
         ]);
 
-        // Agrupar los puntos por rango de fecha de cada trayecto
+        // Precalcular marcas de tiempo de los viajes (O(N))
+        $driveRanges = [];
         $pointsByDrive = [];
         foreach ($drives as $drive) {
-            $driveStartTs = strtotime($drive->start_time);
-            $driveEndTs = strtotime($drive->end_time);
-            $drivePoints = [];
-            foreach ($allPoints as $p) {
-                $pTs = strtotime($p->recorded_at);
-                if ($pTs >= $driveStartTs && $pTs <= $driveEndTs) {
-                    $drivePoints[] = $p;
+            $driveRanges[] = [
+                'id' => $drive->id,
+                'start_ts' => strtotime($drive->start_time),
+                'end_ts' => strtotime($drive->end_time),
+            ];
+            $pointsByDrive[$drive->id] = [];
+        }
+
+        // Agrupamiento en 1 sola pasada lineal O(M) aprovechando orden cronológico y break temprano
+        foreach ($allPoints as $p) {
+            $pTs = (int) $p->epoch_ts;
+            foreach ($driveRanges as $range) {
+                if ($pTs >= $range['start_ts'] && $pTs <= $range['end_ts']) {
+                    $pointsByDrive[$range['id']][] = $p;
+                    break;
                 }
             }
-            $pointsByDrive[$drive->id] = $drivePoints;
         }
 
         $speedLimit = $circle->speed_limit ?? 120;
@@ -136,7 +145,7 @@ class DriveController extends Controller
                     );
 
                     // Calcular diferencia de velocidad y tiempo transcurrido
-                    $timeDelta = strtotime($p->recorded_at) - strtotime($prev->recorded_at);
+                    $timeDelta = (int) $p->epoch_ts - (int) $prev->epoch_ts;
                     if ($timeDelta > 0 && $timeDelta <= 3) {
                         $speedDiff = $p->speed - (double) $prev->speed;
                         

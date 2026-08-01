@@ -72,9 +72,11 @@ class CircleRepositoryImpl @Inject constructor(
 
     override fun getMemberDrives(
         circleId: Int,
-        memberId: Int
+        memberId: Int,
+        startDate: String?,
+        endDate: String?
     ): Flow<Resource<MemberDrivesResponse>> = safeApiCall {
-        apiService.getMemberDrives(circleId, memberId)
+        apiService.getMemberDrives(circleId, memberId, startDate, endDate)
     }
 
     override fun getActiveDynamicGeofences(): Flow<Resource<List<com.estoyok.app.features.tracking.data.model.DynamicGeofenceDto>>> = safeApiCall {

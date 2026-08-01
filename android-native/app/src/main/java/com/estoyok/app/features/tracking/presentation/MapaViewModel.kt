@@ -249,10 +249,10 @@ class MapaViewModel @Inject constructor(
         }
     }
 
-    fun loadMemberDrives(memberId: Int) {
+    fun loadMemberDrives(memberId: Int, startDate: String? = null, endDate: String? = null) {
         val circleId = selectedCircle?.id ?: return
         viewModelScope.launch {
-            circleRepository.getMemberDrives(circleId, memberId).collectLatest { resource ->
+            circleRepository.getMemberDrives(circleId, memberId, startDate, endDate).collectLatest { resource ->
                 when (resource) {
                     is Resource.Loading -> {
                         isDrivesLoading = true

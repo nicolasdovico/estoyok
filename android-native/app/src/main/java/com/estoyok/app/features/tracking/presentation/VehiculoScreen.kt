@@ -131,11 +131,20 @@ fun VehiculoScreen(
         }
     }
 
-    LaunchedEffect(selectedMember?.id, selectedCircle?.id) {
+    val sdfIsoUtc = remember {
+        SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
+        }
+    }
+
+    LaunchedEffect(selectedMember?.id, selectedCircle?.id, selectedWeekIndex) {
         val memberId = selectedMember?.id
         val circleId = selectedCircle?.id
         if (memberId != null && circleId != null) {
-            viewModel.loadMemberDrives(memberId)
+            val week = weeks[selectedWeekIndex]
+            val startIso = sdfIsoUtc.format(week.startDate)
+            val endIso = sdfIsoUtc.format(week.endDate)
+            viewModel.loadMemberDrives(memberId, startIso, endIso)
         }
     }
 
