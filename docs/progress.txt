@@ -1373,8 +1373,10 @@
     - Implementada la política de Dispositivo Principal Único en `AuthController.php`: al iniciar sesión en un dispositivo B, se revocan los tokens de Sanctum previos (`$user->tokens()->delete()`), se desactivan los dispositivos anteriores y se despacha una notificación silenciosa **Silent Push (`action => "logout"`)** al dispositivo anterior A.
     - Sincronización de push tokens en `SettingsController.php` vinculándolos al dispositivo activo de `user_devices` y desasociando tokens residuales entre usuarios.
     - Creada la suite de tests de integración `MultiDeviceSessionTest.php` (`139/139 tests pasando al 100%`).
+## [2026-08-01] Optimización de Performance en Protección Vehicular y Corrección de Fechas
+- **Backend (Laravel API & Postgres):**
+    - Creada la migración `2026_08_01_145442_add_performance_indexes_to_drives_tables.php` agregando índices compuestos en `location_histories(user_id, recorded_at)` y `drive_events(user_id, start_time, end_time)`.
+    - Refactorizado `DriveController.php`: eliminadas las consultas N+1 en loop e implementado **Batch Query en una sola consulta SQL** para todos los trayectos del usuario. Eliminado el desbordamiento de las 4 semanas ampliando la ventana de retorno hasta 100 viajes e ignorando micro-ruidos (<15s) en la API.
+    - Modificado `LocationController.php` para descartar automáticamente en tiempo real los micro-registros instantáneos de GPS (< 5 segundos de duración) generados por inestabilidad de sensores.
 - **App Móvil Nativa (Android/Kotlin):**
-    - `SessionManager.kt`: Generación y persistencia de `device_uuid` (UUID único por instalación) enviado en `LoginRequest`.
-    - `AuthInterceptor.kt`: Eliminado el re-login silencioso zombi ante 401. Al recibir un 401 Unauthorized, la app detiene el `TrackingService` (`ACTION_STOP`), ejecuta `sessionManager.clearSession()` y redirige limpiamente a `LoginScreen`.
-    - `AuthRepositoryImpl.kt`: Refactorizado `logout()` incorporando detención de `TrackingService`, desuscripción del token nativo en Google FCM (`FirebaseMessaging.getInstance().deleteToken()`) y limpieza garantizada de la sesión en bloque `finally`.
-    - `MyFirebaseMessagingService.kt`: Implementado el manejador de Silent Push `action == "logout"` que detiene los servicios de fondo, invalida el token FCM y cierra la sesión local al instante. Agregado el filtro de sesión activa (`authTokenFlow.firstOrNull()`) para descartar cualquier notificación en dispositivos deslogueados.
+    - `VehiculoScreen.kt`: Corregido el parseo de fechas ISO-8601 reemplazando la lógica `SimpleDateFormat` frágil por `parseIsoDate(drive.startTime)` con límites inclusivos (`!before` y `!after`). Esto solucionó la lectura de "Semana anterior" permitiendo visualizar todos los trayectos pasados de Analía y el resto de los usuarios.
