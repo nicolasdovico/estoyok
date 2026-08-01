@@ -21,6 +21,13 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
+Route::post('/maintenance/purge-noise-drives', function () {
+    $count = \App\Models\DriveEvent::whereNotNull('end_time')
+        ->whereRaw('EXTRACT(EPOCH FROM (end_time - start_time)) < 30')
+        ->delete();
+    return response()->json(['message' => "Purged {$count} noise drives."]);
+});
+
 // Webhooks
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
