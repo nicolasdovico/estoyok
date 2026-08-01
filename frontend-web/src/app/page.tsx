@@ -733,6 +733,11 @@ export default function Home() {
       <footer className="py-12 border-t border-neutral-900 bg-neutral-950 text-center text-neutral-500 text-xs">
         <p>© 2026 ESTOY OK. Todos los derechos reservados.</p>
         <p className="mt-2 text-[10px] text-neutral-600">Protección integral y redundancia de comunicación para la seguridad de tu familia.</p>
+        <div className="mt-4 flex items-center justify-center gap-6 text-xs text-neutral-400">
+          <Link href="/politica-de-privacidad" className="hover:text-red-400 transition-colors underline underline-offset-4">
+            Política de Privacidad
+          </Link>
+        </div>
       </footer>
     </div>
   );
