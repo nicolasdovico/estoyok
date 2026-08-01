@@ -62,13 +62,17 @@ Route::post('/maintenance/purge-noise-drives', function () {
 });
 
 Route::post('/maintenance/purge-all-drives', function () {
-    \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
-    \Illuminate\Support\Facades\DB::statement("DELETE FROM location_histories;");
-    \Illuminate\Support\Facades\DB::table('current_locations')->update([
-        'is_driving' => false,
-        'driving_since' => null
-    ]);
-    return response()->json(['message' => 'All drive events and location histories purged successfully. Clean slate restored.']);
+    try {
+        \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
+        \Illuminate\Support\Facades\DB::statement("TRUNCATE TABLE location_histories CASCADE;");
+        \Illuminate\Support\Facades\DB::table('current_locations')->update([
+            'is_driving' => false,
+            'driving_since' => null
+        ]);
+        return response()->json(['message' => 'All drive events and location histories purged successfully. Clean slate restored.']);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
 });
 
 // Webhooks
