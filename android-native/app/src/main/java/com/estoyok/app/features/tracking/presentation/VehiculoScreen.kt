@@ -110,53 +110,32 @@ fun VehiculoScreen(
     var selectedWeekIndex by remember { mutableStateOf(0) }
     var activeExplanationDialog by remember { mutableStateOf(ExplanationType.NONE) }
 
-    val allFilteredDrives = remember(viewModel.allMembersDrives, selectedWeekIndex) {
+    val filteredDrives = remember(viewModel.memberDrives, selectedWeekIndex) {
         val week = weeks[selectedWeekIndex]
-        viewModel.allMembersDrives.mapValues { (_, raw) ->
-            val drivesGrouped = groupAndMergeDrives(raw)
-            drivesGrouped.filter { drive ->
-                val driveDate = parseIsoDate(drive.startTime)
-                driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
-            }
+        val drivesGrouped = groupAndMergeDrives(viewModel.memberDrives)
+        drivesGrouped.filter { drive ->
+            val driveDate = parseIsoDate(drive.startTime)
+            driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
         }
     }
 
-    val consolidatedDrives = remember(allFilteredDrives) {
-        allFilteredDrives.values.flatten()
-    }
-
-    val filteredDrives = remember(allFilteredDrives, selectedMember, viewModel.memberDrives, selectedWeekIndex) {
-        val week = weeks[selectedWeekIndex]
-        val memberId = selectedMember?.id
-        val listFromMap = memberId?.let { allFilteredDrives[it] }
-        if (!listFromMap.isNullOrEmpty()) {
-            listFromMap
-        } else {
-            val drivesGrouped = groupAndMergeDrives(viewModel.memberDrives)
-            drivesGrouped.filter { drive ->
-                val driveDate = parseIsoDate(drive.startTime)
-                driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
-            }
-        }
-    }
+    val consolidatedDrives = filteredDrives
 
     LaunchedEffect(selectedCircle?.id) {
-        if (selectedCircle != null) {
-            viewModel.loadAllMembersDrives(selectedCircle.id, selectedCircle.members)
-            
-            if (selectedMember == null) {
-                val myMember = selectedCircle.members.find { it.email == viewModel.currentUserProfile?.email }
-                    ?: selectedCircle.members.firstOrNull()
-                if (myMember != null) {
-                    viewModel.selectedMember = myMember
-                }
+        if (selectedCircle != null && selectedMember == null) {
+            val myMember = selectedCircle.members.find { it.email == viewModel.currentUserProfile?.email }
+                ?: selectedCircle.members.firstOrNull()
+            if (myMember != null) {
+                viewModel.selectedMember = myMember
             }
         }
     }
 
-    LaunchedEffect(selectedMember?.id) {
-        if (selectedMember != null && selectedCircle != null) {
-            viewModel.loadMemberDrives(selectedMember.id)
+    LaunchedEffect(selectedMember?.id, selectedCircle?.id) {
+        val memberId = selectedMember?.id
+        val circleId = selectedCircle?.id
+        if (memberId != null && circleId != null) {
+            viewModel.loadMemberDrives(memberId)
         }
     }
 
@@ -418,7 +397,7 @@ fun VehiculoScreen(
 
                         items(selectedCircle.members) { member ->
                             val isSelected = selectedMember?.id == member.id
-                            val memberFilteredDrives = allFilteredDrives[member.id] ?: emptyList()
+                            val memberFilteredDrives = if (member.id == selectedMember?.id) filteredDrives else emptyList()
                             
                             val tripsCount = memberFilteredDrives.size
                             val totalDist = memberFilteredDrives.sumOf { it.distanceKm }
@@ -1288,28 +1267,21 @@ private fun groupAndMergeDrives(drives: List<MemberDriveEventDto>): List<MemberD
     return merged.sortedByDescending { parseIsoToSeconds(it.startTime) }
 }
 
-private fun parseIsoDate(isoString: String): Date? {
-    if (isoString.isBlank()) return null
-    val cleanIso = isoString.replace(Regex("\\.(\\d{3})\\d+"), ".$1")
-    val patterns = listOf(
-        "yyyy-MM-dd'T'HH:mm:ss.SSSXXX",
-        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-        "yyyy-MM-dd'T'HH:mm:ssXXX",
-        "yyyy-MM-dd'T'HH:mm:ss'Z'",
-        "yyyy-MM-dd HH:mm:ss"
-    )
-    for (pattern in patterns) {
-        try {
-            val parser = SimpleDateFormat(pattern, Locale.getDefault()).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
-            }
-            val date = parser.parse(cleanIso)
-            if (date != null) return date
-        } catch (e: Exception) {
-            // Try next pattern
+private fun parseIsoDate(isoString: String?): Date? {
+    if (isoString.isNullOrBlank()) return null
+    return try {
+        val clean = isoString
+            .replace("T", " ")
+            .replace("Z", "")
+            .replace(Regex("(\\.\\d+)?([+-]\\d{2}:?\\d{2})?$"), "")
+            .trim()
+        val sdf = SimpleDateFormat("yyyy-MM-dd HH:mm:ss", Locale.US).apply {
+            timeZone = TimeZone.getTimeZone("UTC")
         }
+        sdf.parse(clean)
+    } catch (e: Exception) {
+        null
     }
-    return null
 }
 
 private fun formatTime(isoString: String): String {
