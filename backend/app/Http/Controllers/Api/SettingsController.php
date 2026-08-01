@@ -419,14 +419,41 @@ class SettingsController extends Controller
     {
         $validated = $request->validate([
             'push_token' => 'required|string|max:500',
+            'device_uuid' => 'nullable|string',
         ]);
 
         $user = Auth::user();
 
-        // Disassociate this push token from any other users to prevent shared token notifications
+        // 1. Disassociate this push token from any other users or devices
         User::where('expo_push_token', $validated['push_token'])
             ->where('id', '!=', $user->id)
             ->update(['expo_push_token' => null]);
+
+        \App\Models\UserDevice::where('push_token', $validated['push_token'])
+            ->where('user_id', '!=', $user->id)
+            ->update(['push_token' => null, 'is_active' => false]);
+
+        // 2. Update or associate token in user_devices table
+        $deviceUuid = $validated['device_uuid'] ?? null;
+        if ($deviceUuid) {
+            \App\Models\UserDevice::updateOrCreate(
+                ['user_id' => $user->id, 'device_uuid' => $deviceUuid],
+                [
+                    'push_token' => $validated['push_token'],
+                    'is_active' => true,
+                    'last_active_at' => now(),
+                ]
+            );
+        } else {
+            $device = $user->activeDevice;
+            if ($device) {
+                $device->update([
+                    'push_token' => $validated['push_token'],
+                    'is_active' => true,
+                    'last_active_at' => now(),
+                ]);
+            }
+        }
 
         $user->update([
             'expo_push_token' => $validated['push_token']

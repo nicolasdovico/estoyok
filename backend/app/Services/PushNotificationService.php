@@ -84,14 +84,14 @@ class PushNotificationService
         try {
             $message = CloudMessage::new()->withToken($to);
 
-            // Silent push wake_up payload (used to wake up gps background service)
-            if ($highPriority && isset($data['action']) && $data['action'] === 'wake_up') {
+            // Silent push payload (e.g., wake_up, logout)
+            if ($highPriority && isset($data['action']) && in_array($data['action'], ['wake_up', 'logout'])) {
                 $message = $message->withData($data)
                     ->withAndroidConfig(AndroidConfig::fromArray([
                         'priority' => 'high',
                         'ttl' => '0s',
                     ]));
-                Log::info("FCM Silent Push (wake_up) payload constructed.");
+                Log::info("FCM Silent Push ({$data['action']}) payload constructed.");
             } else {
                 // Regular visible notification
                 $notification = Notification::create($title, $body);

@@ -147,6 +147,16 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         return $this->belongsToMany(Circle::class)->withPivot('role')->withTimestamps();
     }
 
+    public function devices()
+    {
+        return $this->hasMany(UserDevice::class);
+    }
+
+    public function activeDevice()
+    {
+        return $this->hasOne(UserDevice::class)->where('is_active', true)->latestOfMany();
+    }
+
     public function ownedCircles()
     {
         return $this->hasMany(Circle::class, 'owner_id');
