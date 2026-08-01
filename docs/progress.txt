@@ -1374,10 +1374,11 @@
     - Sincronización de push tokens en `SettingsController.php` vinculándolos al dispositivo activo de `user_devices` y desasociando tokens residuales entre usuarios.
     - Creada la suite de tests de integración `MultiDeviceSessionTest.php` (`139/139 tests pasando al 100%`).
 ## [2026-08-01] Optimización de Performance Vehicular O(M) y Consulta Semanal
-- **Backend (Laravel API & Postgres):**
-    - Rediseñado el agrupamiento de coordenadas en `DriveController.php` utilizando `EXTRACT(EPOCH FROM recorded_at)` en PostgreSQL. Se eliminó el bucle anidado O(N×M) que realizaba 5.000.000 de llamadas a `strtotime()`, pasando a un agrupamiento lineal O(M) con `break` temprano.
-    - Soporte completo para filtrado por fecha con `start_date` y `end_date` vía HTTP GET.
-    - Medido en vivo en Railway: La latencia de respuesta pasó de **2,431s a 0,165s** (reducción del 93% en tiempo de procesamiento del servidor).
+- **Blindaje y Purga de Recorridos Fantasma (Life360 Standards):**
+    - `LocationController.php`: Implementado bloqueo de concurrencia atómico con `lockForUpdate()` en la búsqueda de `DriveEvent` activos. Al cerrar un viaje, se verifica la cantidad de puntos de trayectoria en `location_histories`: si la duración es menor a 60s o los puntos son menores a 2, el evento se borra inmediatamente sin guardarse.
+    - `DriveController.php`: La API filtra incondicionalmente cualquier `DriveEvent` que tenga 0 puntos asignados en `pointsByDrive`.
+    - Ejecutada la purga masiva en Railway eliminando **281 viajes fantasma** adicionales que tenían 0 puntos de ruta registrados.
+
 - **App Móvil Nativa (Android/Kotlin):**
     - `VehiculoScreen.kt`: `LaunchedEffect` ahora envía automáticamente el rango de fechas ISO UTC correspondiente a la semana seleccionada (`start_date` y `end_date`), evitando descargar 100 viajes masivos innecesarios y permitiendo respuestas de menos de 100ms.
     - Implementado `parseIsoDate(isoString)` sanitizado con expresión regular que remueve fraccionarios y offsets de zona horaria de forma infalible en cualquier versión de Android.

@@ -51,20 +51,32 @@ class DriveReportsTest extends TestCase
         $circle->users()->attach($member->id, ['role' => 'member']);
 
         // Create 2 drives
-        DriveEvent::create([
+        $d1 = DriveEvent::create([
             'user_id' => $member->id,
             'start_time' => Carbon::now()->subHours(2),
             'end_time' => Carbon::now()->subHours(1),
             'max_speed' => 90.0,
             'exceeded_speed_limit' => false
         ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 25.0,
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(30),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
 
-        DriveEvent::create([
+        $d2 = DriveEvent::create([
             'user_id' => $member->id,
             'start_time' => Carbon::now()->subMinutes(30),
             'end_time' => Carbon::now()->subMinutes(10),
             'max_speed' => 100.0,
             'exceeded_speed_limit' => false
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 30.0,
+            'recorded_at' => Carbon::now()->subMinutes(20),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
         ]);
 
         $response = $this->actingAs($requester)->getJson("/api/circles/{$circle->id}/members/{$member->id}/drives");
@@ -93,6 +105,12 @@ class DriveReportsTest extends TestCase
             'max_speed' => 90.0,
             'exceeded_speed_limit' => false
         ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 25.0,
+            'recorded_at' => Carbon::now()->subHours(1)->subMinutes(30),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
+        ]);
 
         DriveEvent::create([
             'user_id' => $member->id,
@@ -100,6 +118,12 @@ class DriveReportsTest extends TestCase
             'end_time' => Carbon::now()->subMinutes(10),
             'max_speed' => 100.0,
             'exceeded_speed_limit' => false
+        ]);
+        \App\Models\LocationHistory::create([
+            'user_id' => $member->id,
+            'speed' => 30.0,
+            'recorded_at' => Carbon::now()->subMinutes(20),
+            'location' => \Illuminate\Support\Facades\DB::raw("ST_GeomFromText('POINT(-58.3816 -34.6037)', 4326)")
         ]);
 
         $response = $this->actingAs($requester)->getJson("/api/circles/{$circle->id}/members/{$member->id}/drives");
