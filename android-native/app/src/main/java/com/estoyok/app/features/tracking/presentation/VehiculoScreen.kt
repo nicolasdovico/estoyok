@@ -112,17 +112,11 @@ fun VehiculoScreen(
 
     val allFilteredDrives = remember(viewModel.allMembersDrives, selectedWeekIndex) {
         val week = weeks[selectedWeekIndex]
-        val sdfIso = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
         viewModel.allMembersDrives.mapValues { (_, raw) ->
             val drivesGrouped = groupAndMergeDrives(raw)
             drivesGrouped.filter { drive ->
-                try {
-                    val cleanTime = drive.startTime.replace("Z", "")
-                    val driveDate = sdfIso.parse(cleanTime)
-                    driveDate != null && driveDate.after(week.startDate) && driveDate.before(week.endDate)
-                } catch (e: Exception) {
-                    false
-                }
+                val driveDate = parseIsoDate(drive.startTime)
+                driveDate != null && !driveDate.before(week.startDate) && !driveDate.after(week.endDate)
             }
         }
     }
