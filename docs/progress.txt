@@ -1,5 +1,11 @@
 # Progress Log
 
+## [2026-08-02] Visibilidad de Notificaciones en Pantalla de Bloqueo y Ambient Display (Android Native)
+- **App Móvil Nativa (Android Kotlin):**
+    - Configurada la visibilidad pública (`VISIBILITY_PUBLIC`) y la categoría del sistema (`CATEGORY_SERVICE` y `CATEGORY_EVENT`) en los creadores de notificaciones `TrackingService.kt` y `MyFirebaseMessagingService.kt`.
+    - Habilitadas las propiedades `lockscreenVisibility = Notification.VISIBILITY_PUBLIC` y `setShowBadge(true)` en los canales de notificación `NotificationChannel` para que Android (Motorola Peek Display, Samsung Always On Display y Ambient Display) muestre el icono monocromático en la pantalla de bloqueo junto al reloj.
+    - Registrado el metadato `com.google.firebase.messaging.default_notification_channel_id` en `AndroidManifest.xml`.
+
 ## [2026-08-02] Optimización de Tamaño y Encuadre del Icono de Notificaciones Push (Android Native)
 - **App Móvil Nativa (Android Kotlin):**
     - Ajustado el recorte y escalado de `ic_stat_notification.png` en todas las carpetas de densidad (`drawable`, `mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`): se removieron los márgenes transparentes excesivos (del 20% al 4%), maximizando el área útil de la silueta del escudo blanco al 90%+ de la insignia circular de notificación para igualar el tamaño visual estándar de apps como Life360.

@@ -595,6 +595,8 @@ class TrackingService : Service(), SensorEventListener {
             .setColor(androidx.core.content.ContextCompat.getColor(this, com.estoyok.app.R.color.primary_emerald))
             .setContentIntent(pendingIntent)
             .setOngoing(true)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_SERVICE)
             .build()
     }
 
@@ -606,6 +608,8 @@ class TrackingService : Service(), SensorEventListener {
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
                 description = "Notificación persistente para garantizar el monitoreo del GPS."
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setShowBadge(true)
             }
             val manager = getSystemService(NotificationManager::class.java)
             manager.createNotificationChannel(channel)

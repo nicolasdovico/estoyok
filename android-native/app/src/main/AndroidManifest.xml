@@ -38,13 +38,16 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="${MAPS_API_KEY}" />
 
-        <!-- Firebase Push Notification Default Icon & Color -->
+        <!-- Firebase Push Notification Default Icon, Color & Channel -->
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_icon"
             android:resource="@drawable/ic_stat_notification" />
         <meta-data
             android:name="com.google.firebase.messaging.default_notification_color"
             android:resource="@color/primary_emerald" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_channel_id"
+            android:value="estoyok_alerts_channel" />
 
         <activity
             android:name=".MainActivity"

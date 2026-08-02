@@ -1,5 +1,6 @@
 package com.estoyok.app.services
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -124,6 +125,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
                 NotificationManager.IMPORTANCE_HIGH
             ).apply {
                 description = "Notificaciones de Estoy Ok"
+                lockscreenVisibility = Notification.VISIBILITY_PUBLIC
+                setShowBadge(true)
             }
             notificationManager.createNotificationChannel(channel)
         }
@@ -147,6 +150,8 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setCategory(NotificationCompat.CATEGORY_EVENT)
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notificationBuilder.build())
     }
