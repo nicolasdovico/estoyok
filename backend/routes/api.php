@@ -75,48 +75,6 @@ Route::post('/maintenance/purge-all-drives', function () {
     }
 });
 
-Route::get('/maintenance/debug-wifi-user', function (Request $request) {
-    $email = $request->query('email', 'nicolas@gmail.com');
-    $user = \App\Models\User::where('email', $email)->first();
-    if (!$user) {
-        $allUsers = \App\Models\User::select('id', 'email', 'name')->get();
-        return response()->json(['error' => 'User not found', 'searched_email' => $email, 'all_users' => $allUsers], 404);
-    }
-    
-    $loc = \App\Models\CurrentLocation::where('user_id', $user->id)->first();
-    $checkIns = \App\Models\CheckIn::where('user_id', $user->id)->orderBy('created_at', 'desc')->take(10)->get();
-    $cacheKey = 'auto_checkin_wifi_' . $user->id;
-    $inCache = cache()->has($cacheKey);
-    
-    return response()->json([
-        'user' => [
-            'id' => $user->id,
-            'email' => $user->email,
-            'name' => $user->name,
-            'wifi_checkin_enabled' => (bool)$user->wifi_checkin_enabled,
-            'safe_wifi_ssid' => $user->safe_wifi_ssid,
-            'checkin_interval_hours' => $user->checkin_interval_hours,
-            'last_check_in_at' => $user->last_check_in_at ? $user->last_check_in_at->toIso8601String() : null,
-            'hours_since_last_checkin' => $user->last_check_in_at ? round(now()->diffInMinutes($user->last_check_in_at) / 60, 2) : null,
-        ],
-        'current_location' => $loc ? [
-            'recorded_at' => $loc->recorded_at ? $loc->recorded_at->toIso8601String() : null,
-            'last_seen_at' => $loc->last_seen_at ? $loc->last_seen_at->toIso8601String() : null,
-            'is_tracking_active' => $loc->is_tracking_active,
-            'gps_enabled' => $loc->gps_enabled,
-        ] : null,
-        'recent_checkins' => $checkIns->map(fn($c) => [
-            'id' => $c->id,
-            'source' => $c->source,
-            'created_at' => $c->created_at->toIso8601String(),
-        ]),
-        'cache' => [
-            'key' => $cacheKey,
-            'is_locked' => $inCache,
-        ]
-    ]);
-});
-
 // Webhooks
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
