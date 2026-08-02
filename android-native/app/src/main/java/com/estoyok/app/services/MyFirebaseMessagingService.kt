@@ -139,8 +139,9 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         )
 
         val notificationBuilder = NotificationCompat.Builder(this, channelId)
-            .setSmallIcon(com.estoyok.app.R.mipmap.ic_launcher)
+            .setSmallIcon(com.estoyok.app.R.drawable.ic_stat_notification)
             .setLargeIcon(android.graphics.BitmapFactory.decodeResource(resources, com.estoyok.app.R.mipmap.ic_launcher))
+            .setColor(ContextCompat.getColor(this, com.estoyok.app.R.color.primary_emerald))
             .setContentTitle(title)
             .setContentText(body)
             .setAutoCancel(true)

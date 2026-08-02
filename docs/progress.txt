@@ -1,5 +1,12 @@
 # Progress Log
 
+## [2026-08-02] Solución de Icono Blanco en Notificaciones Push (Android Native)
+- **App Móvil Nativa (Android Kotlin):**
+    - Generados mediante script Python los recursos gráficos monocromáticos `ic_stat_notification.png` (con silueta blanca transparente sobre todas las densidades: `drawable`, `drawable-mdpi`, `drawable-hdpi`, `drawable-xhdpi`, `drawable-xxhdpi`, `drawable-xxxhdpi`).
+    - Actualizado [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml) reemplazando la meta-data `com.google.firebase.messaging.default_notification_icon` por `@drawable/ic_stat_notification`.
+    - Actualizado [`MyFirebaseMessagingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/MyFirebaseMessagingService.kt) y [`TrackingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt) configurando `setSmallIcon(R.drawable.ic_stat_notification)`, `setLargeIcon(R.mipmap.ic_launcher)` y `setColor(primary_emerald)`.
+    - Verificada compilación nativa limpia (`BUILD SUCCESSFUL in 2m 15s`).
+
 ## [2026-08-01] Purga Completa de Recorridos e Historial de Ubicación (Clean Slate Restored)
 - **Backend (Laravel API) & Base de Datos (PostgreSQL/Railway):**
     - Implementado el endpoint de mantenimiento `POST /api/maintenance/purge-all-drives` en `routes/api.php` para realizar un borrado total y limpio de las tablas `drive_events` y `location_histories` mediante `DELETE FROM` sobre tablas particionadas.

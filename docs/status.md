@@ -49,6 +49,7 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
 - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] Corrección del Icono Blanco en Notificaciones Push (Android Native): Generados drawables monocromáticos `ic_stat_notification.png` en todas las densidades de pantalla (`drawable`, `mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`), actualizado el `AndroidManifest.xml` y los servicios `MyFirebaseMessagingService` / `TrackingService` para separar `smallIcon` (silueta), `largeIcon` (logo a color) y `color` de acento (`primary_emerald`).
   - [x] Integración completa de Iconos de Lanzador (Legacy & Adaptive) en Android Nativo: generadas resoluciones `mipmap-*` (48px a 192px), icono adaptativo 512px con fondo verde esmeralda `#10B981` e integración en `AndroidManifest.xml`.
   - [x] Corrección de Auto-Check-in Pasivo por Wi-Fi: eliminado el bloqueo de desplazamiento de 20m en modo estacionario en `TrackingService.kt`, agregado Heartbeat Coroutine Ticker de 15 min inmune a Doze Mode y reseteo de claves de bloqueo en Redis (`auto_checkin_wifi_*`) al hacer check-ins manuales.
   - [x] Corrección de tamaño de avatares en `MapaScreen.kt`: removido el escalado inicial (0.4x) en `MarkerComposable` para que los avatares e iniciales se muestren en su tamaño normal (100% / 56dp) al desplegarse ("explotar") desde una burbuja agrupada.
