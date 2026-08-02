@@ -445,9 +445,8 @@ class LocationController extends Controller
             return;
         }
 
-        // Check if user last checkin was recent (within 50% of interval to avoid unnecessary early checkins if they just manually checked in 5 minutes ago)
-        $minIntervalHours = max(1, (int) floor($intervalHours / 2));
-        if ($user->last_check_in_at && $user->last_check_in_at->copy()->addHours($minIntervalHours)->isFuture()) {
+        // Only perform auto check-in when the user's configured check-in interval has expired
+        if ($user->last_check_in_at && $user->last_check_in_at->copy()->addHours($intervalHours)->isFuture()) {
             return;
         }
 
@@ -464,8 +463,8 @@ class LocationController extends Controller
             'status' => 'resolved',
         ]);
 
-        // Lock auto-checkin push for minIntervalHours
-        cache()->put($cacheKey, true, now()->addHours($minIntervalHours));
+        // Lock auto-checkin push for the full configured interval
+        cache()->put($cacheKey, true, now()->addHours($intervalHours));
 
         // Send confirmation push notification to user
         if ($user->expo_push_token) {
