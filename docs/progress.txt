@@ -1,5 +1,9 @@
 # Progress Log
 
+## [2026-08-02] Corrección del Logo Oficial en Notificaciones Push (Android Native)
+- **App Móvil Nativa (Android Kotlin):**
+    - Se reemplazó el recurso de origen utilizado para generar `ic_stat_notification.png`: en lugar del icono genérico de plantilla, se extrajo la silueta vectorizada directamente del logo oficial de Estoy OK (`ic_launcher_foreground.png`), asegurando 100% de identidad visual entre el icono del lanzador y los avisos flotantes / pantalla de bloqueo.
+
 ## [2026-08-02] Visibilidad de Notificaciones en Pantalla de Bloqueo y Ambient Display (Android Native)
 - **App Móvil Nativa (Android Kotlin):**
     - Configurada la visibilidad pública (`VISIBILITY_PUBLIC`) y la categoría del sistema (`CATEGORY_SERVICE` y `CATEGORY_EVENT`) en los creadores de notificaciones `TrackingService.kt` y `MyFirebaseMessagingService.kt`.
