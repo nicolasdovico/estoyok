@@ -45,6 +45,11 @@ class TrackingService : Service(), SensorEventListener {
     @Inject
     lateinit var locationRepository: LocationRepository
 
+    @Inject
+    lateinit var settingsRepository: com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+
+    private var cachedSafeWifiSsid: String? = null
+
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
 
@@ -146,6 +151,17 @@ class TrackingService : Service(), SensorEventListener {
 
     private var heartbeatTickerJob: kotlinx.coroutines.Job? = null
 
+    private fun fetchUserPreferences() {
+        serviceScope.launch {
+            settingsRepository.getUserProfile().collectLatest { resource ->
+                if (resource is com.estoyok.app.core.util.Resource.Success && resource.data != null) {
+                    cachedSafeWifiSsid = resource.data.safeWifiSsid
+                    android.util.Log.d("TrackingService", "Cached safe_wifi_ssid for Wi-Fi fallback: $cachedSafeWifiSsid")
+                }
+            }
+        }
+    }
+
     private fun startHeartbeatTicker() {
         heartbeatTickerJob?.cancel()
         heartbeatTickerJob = serviceScope.launch {
@@ -154,9 +170,23 @@ class TrackingService : Service(), SensorEventListener {
                 val now = System.currentTimeMillis()
                 val timeSinceLast = if (lastSentTimeMs > 0) now - lastSentTimeMs else Long.MAX_VALUE
                 if (timeSinceLast >= 15 * 60 * 1000L) {
-                    lastSentLocation?.let { loc ->
+                    val locToSend = lastSentLocation
+                    if (locToSend != null) {
                         android.util.Log.d("TrackingService", "Periodic 15-min coroutine ticker forcing heartbeat update to backend.")
-                        processLocationUpdate(loc)
+                        processLocationUpdate(locToSend, isForceHeartbeat = true)
+                    } else {
+                        try {
+                            if (ActivityCompat.checkSelfPermission(this@TrackingService, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                                fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                                    if (loc != null) {
+                                        android.util.Log.d("TrackingService", "Periodic 15-min coroutine ticker obtained lastLocation. Forcing heartbeat update.")
+                                        processLocationUpdate(loc, isForceHeartbeat = true)
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("TrackingService", "Error in heartbeat lastLocation: ${e.message}")
+                        }
                     }
                 }
             }
@@ -173,6 +203,7 @@ class TrackingService : Service(), SensorEventListener {
         val notification = createNotification()
         startForeground(NOTIFICATION_ID, notification)
 
+        fetchUserPreferences()
         startLocationUpdates()
         startHeartbeatTicker()
     }
@@ -256,8 +287,8 @@ class TrackingService : Service(), SensorEventListener {
         locationCallback = null
     }
 
-    private fun processLocationUpdate(location: Location) {
-        android.util.Log.d("TrackingService", "processLocationUpdate: Lat: ${location.latitude}, Lng: ${location.longitude}, Speed: ${location.speed}, Accuracy: ${location.accuracy}")
+    private fun processLocationUpdate(location: Location, isForceHeartbeat: Boolean = false) {
+        android.util.Log.d("TrackingService", "processLocationUpdate: Lat: ${location.latitude}, Lng: ${location.longitude}, Speed: ${location.speed}, Accuracy: ${location.accuracy}, force: $isForceHeartbeat")
         lastLatitude = location.latitude
         lastLongitude = location.longitude
         lastAccuracy = location.accuracy
@@ -268,7 +299,7 @@ class TrackingService : Service(), SensorEventListener {
 
         val nowMs = System.currentTimeMillis()
         val timeSinceLastSentMs = if (lastSentTimeMs > 0) nowMs - lastSentTimeMs else Long.MAX_VALUE
-        val isHeartbeatDue = timeSinceLastSentMs >= 15 * 60 * 1000L
+        val isHeartbeatDue = isForceHeartbeat || (timeSinceLastSentMs >= 15 * 60 * 1000L)
 
         // 1. Accuracy Filter: discard noisy updates (allow up to 100m for indoor heartbeat, 40m for active tracking)
         val maxAllowedAccuracy = if (isHeartbeatDue) 100f else 40f
@@ -725,10 +756,16 @@ class TrackingService : Service(), SensorEventListener {
                         return ssid
                     }
                 }
+                // 3. Fallback for Android 10/12+ redaction (<unknown ssid>):
+                // If connected to TRANSPORT_WIFI, fallback to user's saved safe_wifi_ssid
+                if (!cachedSafeWifiSsid.isNullOrBlank()) {
+                    android.util.Log.d("TrackingService", "SSID redacted by Android (<unknown ssid>). Using cached safe_wifi_ssid: $cachedSafeWifiSsid")
+                    return cachedSafeWifiSsid
+                }
             }
             null
         } catch (e: Exception) {
-            null
+            cachedSafeWifiSsid
         }
     }
 

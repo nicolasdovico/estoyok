@@ -14,5 +14,6 @@ data class OfflineLocationEntity(
     val gpsEnabled: Boolean?,
     val recordedAt: String,
     val speed: Float?,
-    val isDriving: Boolean?
+    val isDriving: Boolean?,
+    val currentWifiSsid: String? = null
 )

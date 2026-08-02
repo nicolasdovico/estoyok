@@ -1,5 +1,11 @@
 # Progress Log
 
+## [2026-08-02] Corrección de Resiliencia de Auto Check-in por Wi-Fi Seguro en Android Nativo
+- **App Móvil Nativa (Android Kotlin):**
+    - Implementada la recuperación y *fallback* seguro de SSID en `TrackingService.kt`: si Android enmascara el nombre de la red a `"<unknown ssid>"` por políticas de privacidad de Android 10/12+, pero el canal Wi-Fi está activo (`TRANSPORT_WIFI`), la app utiliza el `safe_wifi_ssid` configurado por el usuario impidiendo que `current_wifi_ssid` se envíe como `null`.
+    - Corregida la rutina periódica de latido de red (*heartbeat ticker* cada 15 min): ante inmovilidad prolongada del dispositivo o si `lastSentLocation` es nulo, la app obtiene `fusedLocationClient.lastLocation` y fuerza la transmisión a la API (`isForceHeartbeat = true`) pasando por alto el filtro de desplazamiento de 15m.
+    - Incorporada la propiedad `currentWifiSsid` a la entidad Room `OfflineLocationEntity` (base de datos versionada a v2) y actualizado `LocationRepositoryImpl.kt` para que la sincronización diferida no pierda el origen Wi-Fi.
+
 ## [2026-08-02] Solución de Icono Blanco en Notificaciones Push (Android Native)
 - **App Móvil Nativa (Android Kotlin):**
     - Generados mediante script Python los recursos gráficos monocromáticos `ic_stat_notification.png` (con silueta blanca transparente sobre todas las densidades: `drawable`, `drawable-mdpi`, `drawable-hdpi`, `drawable-xhdpi`, `drawable-xxhdpi`, `drawable-xxxhdpi`).

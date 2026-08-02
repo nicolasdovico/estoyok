@@ -7,7 +7,7 @@ import com.estoyok.app.features.tracking.data.local.entity.OfflineLocationEntity
 
 @Database(
     entities = [OfflineLocationEntity::class],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class EstoyOkDatabase : RoomDatabase() {

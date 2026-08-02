@@ -95,7 +95,8 @@ class LocationRepositoryImpl @Inject constructor(
                     gpsEnabled = entity.gpsEnabled,
                     recordedAt = entity.recordedAt,
                     speed = entity.speed,
-                    isDriving = entity.isDriving
+                    isDriving = entity.isDriving,
+                    currentWifiSsid = entity.currentWifiSsid
                 )
 
                 try {
@@ -139,7 +140,8 @@ class LocationRepositoryImpl @Inject constructor(
                 gpsEnabled = request.gpsEnabled,
                 recordedAt = timestamp,
                 speed = request.speed,
-                isDriving = request.isDriving
+                isDriving = request.isDriving,
+                currentWifiSsid = request.currentWifiSsid
             )
         )
     }
