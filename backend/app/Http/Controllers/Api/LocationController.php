@@ -445,8 +445,9 @@ class LocationController extends Controller
             return;
         }
 
-        // Only perform auto check-in when the user's configured check-in interval has expired
-        if ($user->last_check_in_at && $user->last_check_in_at->copy()->addHours($intervalHours)->isFuture()) {
+        // Trigger auto check-in when last_check_in_at is approaching expiration (15 minutes window before interval ends)
+        $thresholdTime = $user->last_check_in_at ? $user->last_check_in_at->copy()->addHours($intervalHours)->subMinutes(15) : null;
+        if ($thresholdTime && $thresholdTime->isFuture()) {
             return;
         }
 
