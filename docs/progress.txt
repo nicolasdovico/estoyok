@@ -1,5 +1,9 @@
 # Progress Log
 
+## [2026-08-02] Optimización de Tamaño y Encuadre del Icono de Notificaciones Push (Android Native)
+- **App Móvil Nativa (Android Kotlin):**
+    - Ajustado el recorte y escalado de `ic_stat_notification.png` en todas las carpetas de densidad (`drawable`, `mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`): se removieron los márgenes transparentes excesivos (del 20% al 4%), maximizando el área útil de la silueta del escudo blanco al 90%+ de la insignia circular de notificación para igualar el tamaño visual estándar de apps como Life360.
+
 ## [2026-08-02] Corrección de Resiliencia de Auto Check-in por Wi-Fi Seguro en Android Nativo
 - **App Móvil Nativa (Android Kotlin):**
     - Implementada la recuperación y *fallback* seguro de SSID en `TrackingService.kt`: si Android enmascara el nombre de la red a `"<unknown ssid>"` por políticas de privacidad de Android 10/12+, pero el canal Wi-Fi está activo (`TRANSPORT_WIFI`), la app utiliza el `safe_wifi_ssid` configurado por el usuario impidiendo que `current_wifi_ssid` se envíe como `null`.

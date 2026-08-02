@@ -49,6 +49,7 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
 - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] Optimización de Tamaño y Encuadre de Icono de Notificación (Android Native): Reducidos los márgenes transparentes de `ic_stat_notification.png` (del 20% al 4%) en todas las densidades de pantalla, expandiendo la silueta blanca al 90%+ del lienzo para igualar el tamaño visual estándar de apps como Life360.
   - [x] Corrección de Resiliencia de Auto Check-in por Wi-Fi Seguro (Android Native): Implementado fallback seguro de SSID ante enmascaramiento `<unknown ssid>` de Android 10/12+, forzado de latido de red incondicional cada 15 min en `TrackingService.kt` (`isForceHeartbeat = true`) ante inmovilidad prolongada y preservación de `currentWifiSsid` en la cola offline Room (`OfflineLocationEntity` v2).
   - [x] Corrección del Icono Blanco en Notificaciones Push (Android Native): Generados drawables monocromáticos `ic_stat_notification.png` en todas las densidades de pantalla (`drawable`, `mdpi`, `hdpi`, `xhdpi`, `xxhdpi`, `xxxhdpi`), actualizado el `AndroidManifest.xml` y los servicios `MyFirebaseMessagingService` / `TrackingService` para separar `smallIcon` (silueta), `largeIcon` (logo a color) y `color` de acento (`primary_emerald`).
   - [x] Integración completa de Iconos de Lanzador (Legacy & Adaptive) en Android Nativo: generadas resoluciones `mipmap-*` (48px a 192px), icono adaptativo 512px con fondo verde esmeralda `#10B981` e integración en `AndroidManifest.xml`.
