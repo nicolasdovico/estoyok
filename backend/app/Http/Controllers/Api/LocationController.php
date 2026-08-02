@@ -268,9 +268,10 @@ class LocationController extends Controller
                     }
                 }
 
-                // 5. Dispatch Geofencing processing & Passive Wi-Fi Auto Check-in
+                // 5. Dispatch Geofencing processing & Passive Auto Check-ins (Wi-Fi & Movement)
                 $wifiSsid = $request->input('current_wifi_ssid') ?? $request->input('safe_wifi_ssid') ?? null;
                 $this->handlePassiveWifiAutoCheckin($user, $wifiSsid);
+                $this->handlePassiveMovementAutoCheckin($user, $isMoving);
                 ProcessGeofencing::dispatch($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
                 ProcessDynamicGeofencing::dispatch($user, $lat, $lng);
             });
@@ -477,6 +478,56 @@ class LocationController extends Controller
                     'type' => 'auto_checkin_wifi',
                     'source' => 'wifi',
                     'wifi_ssid' => $user->safe_wifi_ssid,
+                ]
+            );
+        }
+    }
+
+    protected function handlePassiveMovementAutoCheckin(User $user, bool $isMoving): void
+    {
+        if (!$user->sensor_checkin_enabled || !$isMoving) {
+            return;
+        }
+
+        $intervalHours = max(1, (int) ($user->checkin_interval_hours ?? 24));
+        $cacheKey = "auto_checkin_movement_{$user->id}";
+
+        // If auto-checkin for movement was already performed recently within the configured interval, skip
+        if (cache()->has($cacheKey)) {
+            return;
+        }
+
+        // Trigger auto check-in when last_check_in_at is approaching expiration (15 minutes window before interval ends)
+        $thresholdTime = $user->last_check_in_at ? $user->last_check_in_at->copy()->addHours($intervalHours)->subMinutes(15) : null;
+        if ($thresholdTime && $thresholdTime->isFuture()) {
+            return;
+        }
+
+        // Perform auto check-in by movement
+        $user->update([
+            'last_check_in_at' => now(),
+        ]);
+
+        $user->checkIns()->create([
+            'source' => 'movement',
+        ]);
+
+        $user->emergencyAlerts()->where('status', 'active')->update([
+            'status' => 'resolved',
+        ]);
+
+        // Lock auto-checkin push for the full configured interval
+        cache()->put($cacheKey, true, now()->addHours($intervalHours));
+
+        // Send confirmation push notification to user
+        if ($user->expo_push_token) {
+            app(\App\Services\PushNotificationService::class)->sendPush(
+                $user->expo_push_token,
+                '🟢 Estoy OK - Auto-Check-in',
+                'Tu reporte de bienestar se actualizó automáticamente al detectar movimiento.',
+                [
+                    'type' => 'auto_checkin_movement',
+                    'source' => 'movement',
                 ]
             );
         }
