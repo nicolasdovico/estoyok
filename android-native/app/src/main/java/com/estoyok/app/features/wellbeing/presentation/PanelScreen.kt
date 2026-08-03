@@ -66,8 +66,8 @@ fun PanelScreen(
         onDismissSuccessDialog = { viewModel.dismissSuccessDialog() },
         onOpenManageContactsModal = { viewModel.openManageContactsModal() },
         onDismissManageContactsModal = { viewModel.dismissManageContactsModal() },
-        onAddContact = { name, phone, rel -> viewModel.addContact(name, phone, rel, context) },
-        onUpdateContact = { id, name, phone, rel -> viewModel.updateContact(id, name, phone, rel, context) },
+        onAddContact = { name, phone, email, rel -> viewModel.addContact(name, phone, email, rel, context) },
+        onUpdateContact = { id, name, phone, email, rel -> viewModel.updateContact(id, name, phone, email, rel, context) },
         onDeleteContact = { id -> viewModel.deleteContact(id) },
         onMoveContactUp = { idx -> viewModel.moveContactUp(idx) },
         onMoveContactDown = { idx -> viewModel.moveContactDown(idx) },
@@ -99,8 +99,8 @@ fun PanelContent(
     onDismissSuccessDialog: () -> Unit,
     onOpenManageContactsModal: () -> Unit,
     onDismissManageContactsModal: () -> Unit,
-    onAddContact: (String, String, String) -> Unit,
-    onUpdateContact: (Int, String, String, String) -> Unit,
+    onAddContact: (String, String, String, String) -> Unit,
+    onUpdateContact: (Int, String, String, String, String) -> Unit,
     onDeleteContact: (Int) -> Unit,
     onMoveContactUp: (Int) -> Unit,
     onMoveContactDown: (Int) -> Unit,
@@ -1178,8 +1178,8 @@ fun ManageContactsModal(
     circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
     emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
     onDismiss: () -> Unit,
-    onAddContact: (String, String, String) -> Unit,
-    onUpdateContact: (Int, String, String, String) -> Unit,
+    onAddContact: (String, String, String, String) -> Unit,
+    onUpdateContact: (Int, String, String, String, String) -> Unit,
     onDeleteContact: (Int) -> Unit,
     onMoveContactUp: (Int) -> Unit,
     onMoveContactDown: (Int) -> Unit
@@ -1188,6 +1188,7 @@ fun ManageContactsModal(
     var contactToDelete by remember { mutableStateOf<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto?>(null) }
     var newName by remember { mutableStateOf("") }
     var newPhone by remember { mutableStateOf("") }
+    var newEmail by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
 
     contactToDelete?.let { contact ->
@@ -1345,7 +1346,8 @@ fun ManageContactsModal(
 
                                 Column {
                                     Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                    Text("${contact.phone} • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
+                                    val contactSubtext = if (!contact.email.isNullOrBlank()) "${contact.phone} • ${contact.email}" else contact.phone
+                                    Text("$contactSubtext • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
                                 }
                             }
 
@@ -1379,6 +1381,7 @@ fun ManageContactsModal(
                                         editingContactId = contact.id
                                         newName = contact.name
                                         newPhone = contact.phone
+                                        newEmail = contact.email ?: ""
                                         newRelationship = contact.relationship ?: ""
                                     },
                                     modifier = Modifier.size(28.dp)
@@ -1443,6 +1446,17 @@ fun ManageContactsModal(
 
                 item {
                     OutlinedTextField(
+                        value = newEmail,
+                        onValueChange = { newEmail = it },
+                        label = { Text("Email / Correo (Opcional)", fontSize = 11.sp) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+
+                item {
+                    OutlinedTextField(
                         value = newRelationship,
                         onValueChange = { newRelationship = it },
                         label = { Text("Parentesco (Ej. Hermana)", fontSize = 11.sp) },
@@ -1458,13 +1472,14 @@ fun ManageContactsModal(
                             onClick = {
                                 val currentId = editingContactId
                                 if (currentId != null) {
-                                    onUpdateContact(currentId, newName, newPhone, newRelationship)
+                                    onUpdateContact(currentId, newName, newPhone, newEmail, newRelationship)
                                 } else {
-                                    onAddContact(newName, newPhone, newRelationship)
+                                    onAddContact(newName, newPhone, newEmail, newRelationship)
                                 }
                                 editingContactId = null
                                 newName = ""
                                 newPhone = ""
+                                newEmail = ""
                                 newRelationship = ""
                             },
                             colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
@@ -1485,6 +1500,7 @@ fun ManageContactsModal(
                                     editingContactId = null
                                     newName = ""
                                     newPhone = ""
+                                    newEmail = ""
                                     newRelationship = ""
                                 },
                                 shape = RoundedCornerShape(8.dp),
@@ -1562,8 +1578,8 @@ fun PanelScreenPreview() {
             onDismissSuccessDialog = {},
             onOpenManageContactsModal = {},
             onDismissManageContactsModal = {},
-            onAddContact = { _, _, _ -> },
-            onUpdateContact = { _, _, _, _ -> },
+            onAddContact = { _, _, _, _ -> },
+            onUpdateContact = { _, _, _, _, _ -> },
             onDeleteContact = {},
             onMoveContactUp = {},
             onMoveContactDown = {},

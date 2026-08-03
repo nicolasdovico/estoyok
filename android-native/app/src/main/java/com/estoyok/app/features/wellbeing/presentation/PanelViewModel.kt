@@ -144,7 +144,7 @@ class PanelViewModel @Inject constructor(
         }
     }
 
-    fun addContact(name: String, phone: String, relationship: String, context: android.content.Context) {
+    fun addContact(name: String, phone: String, email: String, relationship: String, context: android.content.Context) {
         if (name.isBlank() || phone.isBlank()) {
             android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
             return
@@ -154,7 +154,7 @@ class PanelViewModel @Inject constructor(
             id = null,
             name = name.trim(),
             phone = formattedPhone,
-            email = null,
+            email = email.trim().ifBlank { null },
             relationship = relationship.ifBlank { "Familiar" }
         )
         viewModelScope.launch {
@@ -169,7 +169,7 @@ class PanelViewModel @Inject constructor(
         }
     }
 
-    fun updateContact(contactId: Int, name: String, phone: String, relationship: String, context: android.content.Context) {
+    fun updateContact(contactId: Int, name: String, phone: String, email: String, relationship: String, context: android.content.Context) {
         if (name.isBlank() || phone.isBlank()) {
             android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
             return
@@ -179,7 +179,7 @@ class PanelViewModel @Inject constructor(
             id = contactId,
             name = name.trim(),
             phone = formattedPhone,
-            email = null,
+            email = email.trim().ifBlank { null },
             relationship = relationship.ifBlank { "Familiar" }
         )
         viewModelScope.launch {

@@ -1417,3 +1417,10 @@
 - **App Móvil Nativa (Android/Kotlin):**
     - `VehiculoScreen.kt`: `LaunchedEffect` ahora envía automáticamente el rango de fechas ISO UTC correspondiente a la semana seleccionada (`start_date` y `end_date`), evitando descargar 100 viajes masivos innecesarios y permitiendo respuestas de menos de 100ms.
     - Implementado `parseIsoDate(isoString)` sanitizado con expresión regular que remueve fraccionarios y offsets de zona horaria de forma infalible en cualquier versión de Android.
+
+## [2026-08-03] Incorporación de Campo Email en Gestión de Contactos de Emergencia (Android Nativo)
+- **App Móvil Nativa (Android/Kotlin):**
+    - Modificado `ManageContactsModal` en `PanelScreen.kt` agregando el campo `OutlinedTextField` para ingresar y editar el `Email / Correo (Opcional)` del contacto de emergencia.
+    - Actualizados los callbacks de creación/actualización `onAddContact` y `onUpdateContact` para incluir el parámetro `email`.
+    - Actualizado `PanelViewModel.kt` enviando la propiedad `email` saneada a la API (`EmergencyContactDto`).
+    - Verificada la compilación exitosa en Gradle (`BUILD SUCCESSFUL`).
