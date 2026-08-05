@@ -74,30 +74,50 @@ class MainActivity : ComponentActivity() {
         autoStartTrackingServiceIfAuthenticated()
     }
 
+    @Inject
+    lateinit var settingsRepository: com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+
     private fun autoStartTrackingServiceIfAuthenticated() {
         lifecycleScope.launch {
             val token = sessionManager.authTokenFlow.firstOrNull()
             val isTrackingEnabled = sessionManager.isTrackingEnabledFlow.firstOrNull() ?: true
 
-            if (!token.isNullOrEmpty() && isTrackingEnabled && !TrackingService.isRunning) {
-                val hasLocationPermission = ContextCompat.checkSelfPermission(
-                    this@MainActivity,
-                    Manifest.permission.ACCESS_FINE_LOCATION
-                ) == PackageManager.PERMISSION_GRANTED
+            if (!token.isNullOrEmpty()) {
+                // Sync FCM Token with backend on resume
+                try {
+                    com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                        if (task.isSuccessful) {
+                            val fcmToken = task.result
+                            lifecycleScope.launch {
+                                val uuid = sessionManager.getOrCreateDeviceUuid()
+                                settingsRepository.updatePushToken(fcmToken, uuid).collect { }
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Log.e("MainActivity", "Error syncing FCM token on resume: ${e.message}")
+                }
 
-                if (hasLocationPermission) {
-                    try {
-                        val intent = Intent(this@MainActivity, TrackingService::class.java).apply {
-                            action = TrackingService.ACTION_START
+                if (isTrackingEnabled && !TrackingService.isRunning) {
+                    val hasLocationPermission = ContextCompat.checkSelfPermission(
+                        this@MainActivity,
+                        Manifest.permission.ACCESS_FINE_LOCATION
+                    ) == PackageManager.PERMISSION_GRANTED
+
+                    if (hasLocationPermission) {
+                        try {
+                            val intent = Intent(this@MainActivity, TrackingService::class.java).apply {
+                                action = TrackingService.ACTION_START
+                            }
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                                startForegroundService(intent)
+                            } else {
+                                startService(intent)
+                            }
+                            Log.d("MainActivity", "TrackingService auto-started on app resume.")
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error starting TrackingService on resume: ${e.message}", e)
                         }
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            startForegroundService(intent)
-                        } else {
-                            startService(intent)
-                        }
-                        Log.d("MainActivity", "TrackingService auto-started on app resume.")
-                    } catch (e: Exception) {
-                        Log.e("MainActivity", "Error starting TrackingService on resume: ${e.message}", e)
                     }
                 }
             }

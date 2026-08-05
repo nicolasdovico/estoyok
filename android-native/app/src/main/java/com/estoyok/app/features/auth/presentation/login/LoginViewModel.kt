@@ -14,11 +14,14 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import com.estoyok.app.core.data.local.SessionManager
+import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.collectLatest
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -93,6 +96,20 @@ class LoginViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         isLoading = false
+                        // Synchronize FCM Token immediately with the device_uuid upon successful login
+                        try {
+                            com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                                if (task.isSuccessful) {
+                                    val token = task.result
+                                    viewModelScope.launch {
+                                        val uuid = sessionManager.getOrCreateDeviceUuid()
+                                        settingsRepository.updatePushToken(token, uuid).collectLatest { }
+                                    }
+                                }
+                            }
+                        } catch (e: Exception) {
+                            android.util.Log.e("LoginViewModel", "Error fetching FCM token on login: ${e.message}")
+                        }
                         _loginSuccess.emit(Unit)
                     }
                     is Resource.Error -> {

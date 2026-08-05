@@ -38,5 +38,6 @@ data class ProximityAlertsRequest(
 )
 
 data class PushTokenRequest(
-    @SerializedName("push_token") val pushToken: String
+    @SerializedName("push_token") val pushToken: String,
+    @SerializedName("device_uuid") val deviceUuid: String? = null
 )

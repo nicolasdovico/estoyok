@@ -48,7 +48,13 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
-- [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+  - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+    - [x] Fix Ciclo de Vida de Notificaciones Push y Sincronización Automática FCM (Android Nativo & Laravel Backend):
+      - Impuesta la diferenciación de plataformas Web vs Móvil en `AuthController.php`. Los inicios de sesión desde la Web o peticiones API no envían Silent Push `action => logout` ni desactivan dispositivos celulares físicos.
+      - Asignado e inyectado el `device_uuid` de hardware nativo de Android (`SessionManager`) en `LoginRequest` y `PushTokenRequest` (`SettingsModels.kt`).
+      - Automatizada la sincronización inmediata del token FCM de Google al iniciar sesión (`LoginViewModel.kt`) y al reanudar la aplicación en primer plano (`MainActivity.kt` `onResume`), garantizando el registro continuo en la base de datos de Railway sin depender de navegar a la solapa del Mapa.
+      - Refactorizado `updatePushToken` en `SettingsController.php` para asociar atómicamente el token al `UserDevice` y `users.expo_push_token` incluso ante peticiones sin UUID explícito.
+      - Preservada la suite completa de 139 pruebas integradas del backend de Laravel con éxito total (139/139 PASS).
   - [x] Corrección de Identidad Visual de Iconos de Notificación (Android Native): Generados todos los `ic_stat_notification.png` extraídos directamente del logo oficial de Estoy OK (`ic_launcher_foreground.png`), reemplazando el icono genérico de plantilla previo y manteniendo coherencia con el icono principal de la app.
   - [x] Configuración de Visibilidad en Pantalla de Bloqueo y Ambient Display (Android Native): Implementados los flags `VISIBILITY_PUBLIC`, `lockscreenVisibility = Notification.VISIBILITY_PUBLIC` y categorías `CATEGORY_SERVICE` / `CATEGORY_EVENT` en `TrackingService.kt` y `MyFirebaseMessagingService.kt` para mostrar el icono monocromático en Motorola Peek Display, Samsung Always On Display y pantallas de bloqueo de Android.
   - [x] Optimización de Tamaño y Encuadre de Icono de Notificación (Android Native): Reducidos los márgenes transparentes de `ic_stat_notification.png` (del 20% al 4%) en todas las densidades de pantalla, expandiendo la silueta blanca al 90%+ del lienzo para igualar el tamaño visual estándar de apps como Life360.

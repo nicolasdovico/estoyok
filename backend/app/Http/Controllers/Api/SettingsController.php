@@ -440,14 +440,29 @@ class SettingsController extends Controller
                 ['user_id' => $user->id, 'device_uuid' => $deviceUuid],
                 [
                     'push_token' => $validated['push_token'],
+                    'platform' => str_starts_with($deviceUuid, 'web-') ? 'web' : 'android',
                     'is_active' => true,
                     'last_active_at' => now(),
                 ]
             );
         } else {
-            $device = $user->activeDevice;
+            $device = \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->latest('last_active_at')
+                ->first();
+
             if ($device) {
                 $device->update([
+                    'push_token' => $validated['push_token'],
+                    'is_active' => true,
+                    'last_active_at' => now(),
+                ]);
+            } else {
+                \App\Models\UserDevice::create([
+                    'user_id' => $user->id,
+                    'device_uuid' => 'android-' . md5($user->id . '-' . microtime(true)),
+                    'device_name' => 'Android Device',
+                    'platform' => 'android',
                     'push_token' => $validated['push_token'],
                     'is_active' => true,
                     'last_active_at' => now(),

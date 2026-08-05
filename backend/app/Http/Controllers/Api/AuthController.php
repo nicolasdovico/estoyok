@@ -235,22 +235,31 @@ class AuthController extends Controller
         $deviceName = $request->input('device_name') ?? ($request->input('device_uuid') ? 'Android Device' : 'Navegador Web');
         $platform = $request->input('platform', $request->input('device_uuid') ? 'android' : 'web');
 
-        // 1. Inform previous active devices to logout via silent push (Life360 style)
-        $previousActiveDevices = \App\Models\UserDevice::where('user_id', $user->id)
-            ->where('is_active', true)
-            ->where('device_uuid', '!=', $deviceUuid)
-            ->get();
+        $isMobileLogin = ($platform !== 'web') && !str_starts_with($deviceUuid, 'web-');
 
-        $pushService = app(\App\Services\PushNotificationService::class);
-        foreach ($previousActiveDevices as $prevDevice) {
-            if (!empty($prevDevice->push_token)) {
-                $pushService->sendPush($prevDevice->push_token, '', '', ['action' => 'logout'], true);
+        if ($isMobileLogin) {
+            // 1. Inform previous active mobile devices to logout via silent push (Life360 style)
+            $previousActiveDevices = \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->where('platform', '!=', 'web')
+                ->where('device_uuid', '!=', $deviceUuid)
+                ->get();
+
+            $pushService = app(\App\Services\PushNotificationService::class);
+            foreach ($previousActiveDevices as $prevDevice) {
+                if (!empty($prevDevice->push_token)) {
+                    $pushService->sendPush($prevDevice->push_token, '', '', ['action' => 'logout'], true);
+                }
             }
-        }
 
-        // 2. Deactivate previous devices and revoke all previous Sanctum tokens for single device policy
-        \App\Models\UserDevice::where('user_id', $user->id)->update(['is_active' => false]);
-        $user->tokens()->delete();
+            // 2. Deactivate previous mobile devices for single mobile device policy and revoke previous tokens
+            \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('platform', '!=', 'web')
+                ->where('device_uuid', '!=', $deviceUuid)
+                ->update(['is_active' => false]);
+
+            $user->tokens()->delete();
+        }
 
         // 3. Register or reactivate the current device
         $device = \App\Models\UserDevice::updateOrCreate(
@@ -291,11 +300,23 @@ class AuthController extends Controller
                     ->where('device_uuid', $deviceUuid)
                     ->update(['is_active' => false, 'push_token' => null]);
             } else {
+                // If device_uuid is not specified, deactivate web devices only
                 \App\Models\UserDevice::where('user_id', $user->id)
+                    ->where('platform', 'web')
                     ->update(['is_active' => false, 'push_token' => null]);
             }
 
-            $user->update(['expo_push_token' => null]);
+            // Update user's expo_push_token to the latest active mobile device push token if available
+            $activeMobileDevice = \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->whereNotNull('push_token')
+                ->where('platform', '!=', 'web')
+                ->latest('last_active_at')
+                ->first();
+
+            $user->update([
+                'expo_push_token' => $activeMobileDevice ? $activeMobileDevice->push_token : null
+            ]);
 
             $token = $user->currentAccessToken();
             if ($token && method_exists($token, 'delete')) {
