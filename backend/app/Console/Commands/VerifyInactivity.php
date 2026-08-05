@@ -42,10 +42,10 @@ class VerifyInactivity extends Command
         $inactiveUsers = User::where(function ($query) use ($unit) {
             // El usuario es inactivo si su último check-in fue hace más de X unidades (horas o minutos)
             // O si nunca hizo uno y su cuenta tiene más de X unidades
-            $query->whereRaw("last_check_in_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval")
+            $query->whereRaw("last_check_in_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval")
                 ->orWhere(function ($q) use ($unit) {
                     $q->whereNull('last_check_in_at')
-                        ->whereRaw("created_at < NOW() - (checkin_interval_hours || ' {$unit}')::interval");
+                        ->whereRaw("created_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval");
                 });
         })
             ->whereDoesntHave('emergencyAlerts', function ($query) {

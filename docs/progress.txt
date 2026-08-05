@@ -1405,18 +1405,13 @@
 ## [2026-08-01] Arquitectura de Registro de Dispositivos y Cierre de Sesión Estilo Life360
 - **Backend (Laravel API):**
     - Creada la migración `2026_08_01_142330_create_user_devices_table.php` y el modelo Eloquent `UserDevice.php` (`user_id`, `device_uuid`, `device_name`, `platform`, `push_token`, `is_active`, `last_active_at`).
-    - Implementada la política de Dispositivo Principal Único en `AuthController.php`: al iniciar sesión en un dispositivo B, se revocan los tokens de Sanctum previos (`$user->tokens()->delete()`), se desactivan los dispositivos anteriores y se despacha una notificación silenciosa **Silent Push (`action => "logout"`)** al dispositivo anterior A.
-    - Sincronización de push tokens en `SettingsController.php` vinculándolos al dispositivo activo de `user_devices` y desasociando tokens residuales entre usuarios.
-    - Creada la suite de tests de integración `MultiDeviceSessionTest.php` (`139/139 tests pasando al 100%`).
-## [2026-08-01] Optimización de Performance Vehicular O(M) y Consulta Semanal
-- **Blindaje y Purga de Recorridos Fantasma (Life360 Standards):**
-    - `LocationController.php`: Implementado bloqueo de concurrencia atómico con `lockForUpdate()` en la búsqueda de `DriveEvent` activos. Al cerrar un viaje, se verifica la cantidad de puntos de trayectoria en `location_histories`: si la duración es menor a 60s o los puntos son menores a 2, el evento se borra inmediatamente sin guardarse.
-    - `DriveController.php`: La API filtra incondicionalmente cualquier `DriveEvent` que tenga 0 puntos asignados en `pointsByDrive`.
-    - Ejecutada la purga masiva en Railway eliminando **281 viajes fantasma** adicionales que tenían 0 puntos de ruta registrados.
-
-- **App Móvil Nativa (Android/Kotlin):**
-    - `VehiculoScreen.kt`: `LaunchedEffect` ahora envía automáticamente el rango de fechas ISO UTC correspondiente a la semana seleccionada (`start_date` y `end_date`), evitando descargar 100 viajes masivos innecesarios y permitiendo respuestas de menos de 100ms.
-    - Implementado `parseIsoDate(isoString)` sanitizado con expresión regular que remueve fraccionarios y offsets de zona horaria de forma infalible en cualquier versión de Android.
+    - Implementada la política de Dispositivo Principal Único en `AuthController.php`: al iniciar sesión en un dispositivo B, se revocan los tokens de Sanctum previos (`$user->tokens()->delete()`), se desactivan los dispositivos anteriores y se despacha una notificación silenciosa **Silent Push ## [2026-08-05] Sincronización Automática FCM, Corrección de Zona Horaria UTC en Inactividad y Frecuencia del Scheduler
+- **Backend (Laravel API):**
+    - Corregida comparación de marcas de tiempo en [VerifyInactivity.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php): forzada la expresión SQL a utilizar `(NOW() AT TIME ZONE 'UTC')` para evitar discrepancias de zona horaria entre PostgreSQL (`timestamp without time zone`) y la zona local configurada en la sesión PDO de PHP.
+    - Incrementada la frecuencia de barrido del comando `checkins:verify-inactivity` en producción ([routes/console.php](file:///home/usuario/aplicaciones/estoyok/backend/routes/console.php)) a `everyFiveMinutes()`.
+    - Corregido desacople de método HTTP en la API ([routes/api.php](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php)): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)`.
+    - Modificado [AuthController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php): los inicios de sesión o peticiones provenientes de la Web o API no envían Silent Push `action => logout` a los celulares activos ni borran la sesión de la app nativa.
+    - Verificada la suite completa de 139 pruebas de integración del backend con éxito total (`139/139 tests PASS`).tring)` sanitizado con expresión regular que remueve fraccionarios y offsets de zona horaria de forma infalible en cualquier versión de Android.
 
 ## [2026-08-03] Incorporación de Campo Email en Gestión de Contactos de Emergencia (Android Nativo)
 - **App Móvil Nativa (Android/Kotlin):**
@@ -1426,7 +1421,9 @@
     - Verificada la compilación exitosa en Gradle (`BUILD SUCCESSFUL`).
 
 ## [2026-08-05] Sincronización Automática FCM y Protección del Ciclo de Vida de Notificaciones Push
-- **Backend (Laravel API):**
+- **Backend (Laravel API - UTC Timestamp & Scheduler Frecuencia):**
+    - Corregida comparación de marcas de tiempo en [VerifyInactivity.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php): forzada la expresión SQL a utilizar `(NOW() AT TIME ZONE 'UTC')` para evitar discrepancias de zona horaria entre PostgreSQL (`timestamp without time zone`) y la zona local configurada en la sesión PDO de PHP.
+    - Incrementada la frecuencia de barrido del comando `checkins:verify-inactivity` en producción ([routes/console.php](file:///home/usuario/aplicaciones/estoyok/backend/routes/console.php)) a `everyFiveMinutes()`.
     - Corregido desacople de método HTTP en la API ([routes/api.php](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php)): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)`. Anteriormente la app nativa realizaba `POST` mientras Laravel requería estrictamente `PUT`, rebotando silenciosamente con `405 Method Not Allowed`.
     - Modificado [AuthController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php): los inicios de sesión o peticiones provenientes de la Web o API no envían Silent Push `action => logout` a los celulares activos ni borran la sesión de la app nativa. La regla de dispositivo móvil único aplica exclusivamente al registrar un nuevo dispositivo móvil.
     - Modificado [SettingsController.php](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php): mejorado el endpoint `POST/PUT /api/settings/push-token` para que reciba e identifique el `device_uuid` de hardware de Android y asocie atómicamente el token FCM a la tabla `user_devices` y `users.expo_push_token`, incluso con fallbacks seguros ante peticiones legacy.
