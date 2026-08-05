@@ -51,6 +51,7 @@
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
     - [x] Fix Ciclo de Vida de Notificaciones Push y Sincronización Automática FCM (Android Nativo & Laravel Backend):
       - Impuesta la diferenciación de plataformas Web vs Móvil en `AuthController.php`. Los inicios de sesión desde la Web o peticiones API no envían Silent Push `action => logout` ni desactivan dispositivos celulares físicos.
+      - Corregido desacople de método HTTP en la API (`routes/api.php`): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)` y actualizado `SettingsApiService.kt` a `@PUT("settings/push-token")`. Anteriormente, el frontend nativo enviaba `POST` mientras Laravel exigía estrictamente `PUT`, respondiendo silenciosamente `405 Method Not Allowed`.
       - Asignado e inyectado el `device_uuid` de hardware nativo de Android (`SessionManager`) en `LoginRequest` y `PushTokenRequest` (`SettingsModels.kt`).
       - Automatizada la sincronización inmediata del token FCM de Google al iniciar sesión (`LoginViewModel.kt`) y al reanudar la aplicación en primer plano (`MainActivity.kt` `onResume`), garantizando el registro continuo en la base de datos de Railway sin depender de navegar a la solapa del Mapa.
       - Refactorizado `updatePushToken` en `SettingsController.php` para asociar atómicamente el token al `UserDevice` y `users.expo_push_token` incluso ante peticiones sin UUID explícito.
