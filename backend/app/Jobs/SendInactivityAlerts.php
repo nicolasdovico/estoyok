@@ -137,13 +137,22 @@ class SendInactivityAlerts implements ShouldQueue
 
     protected function sendEmailAlertToContact($contact, string $emergencyUrl)
     {
-        if ($contact->email) {
-            Mail::to($contact->email)->send(new InactivityAlertMail(
-                $this->user,
-                $emergencyUrl,
-                $contact->relationship
-            ));
-            Log::info("Email alert sent to contact ID {$contact->id} for user {$this->user->id}");
+        $alwaysTo = config('mail.always_to') ?? env('MAIL_ALWAYS_TO');
+        $recipient = !empty($alwaysTo) ? $alwaysTo : $contact->email;
+
+        if (!empty($recipient)) {
+            try {
+                Mail::to($recipient)->send(new InactivityAlertMail(
+                    $this->user,
+                    $emergencyUrl,
+                    $contact->relationship
+                ));
+                Log::info("Email alert sent to {$recipient} (contact ID {$contact->id}) for user {$this->user->id}");
+            } catch (\Throwable $e) {
+                Log::error("Failed to send email alert to {$recipient} for user {$this->user->id}: ".$e->getMessage());
+            }
+        } else {
+            Log::warning("No email address or MAIL_ALWAYS_TO found for emergency contact ID {$contact->id}");
         }
     }
 

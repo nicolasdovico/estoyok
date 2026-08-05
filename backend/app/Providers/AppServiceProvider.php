@@ -22,8 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        if (env('MAIL_ALWAYS_TO')) {
-            Mail::alwaysTo(env('MAIL_ALWAYS_TO'));
+        $alwaysTo = config('mail.always_to') ?? env('MAIL_ALWAYS_TO');
+        if (!empty($alwaysTo)) {
+            Mail::alwaysTo($alwaysTo);
         }
     }
 }

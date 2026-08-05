@@ -53,6 +53,7 @@
       - Impuesta la diferenciación de plataformas Web vs Móvil en `AuthController.php`. Los inicios de sesión desde la Web o peticiones API no envían Silent Push `action => logout` ni desactivan dispositivos celulares físicos.
       - Corregido desacople de método HTTP en la API (`routes/api.php`): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)` y actualizado `SettingsApiService.kt` a `@PUT("settings/push-token")`.
       - Corregida comparación de fechas en `VerifyInactivity.php`: forzada la consulta SQL a usar `(NOW() AT TIME ZONE 'UTC')` para eliminar desfasajes de zona horaria entre PostgreSQL (`timestamp without time zone`) y la sesión PDO de PHP.
+      - Reforzado el envío de mails en `SendInactivityAlerts.php` y `AppServiceProvider.php`: registrado `'always_to' => env('MAIL_ALWAYS_TO')` en `config/mail.php` para preservar la variable durante el cacheo de configuración (`config:cache`) y agregados bloques de captura `try-catch` con logs explícitos de éxito/error al enviar emails por SMTP.
       - Incrementada la frecuencia de barrido del Scheduler en producción (`routes/console.php`) a `everyFiveMinutes()`.
       - Asignado e inyectado el `device_uuid` de hardware nativo de Android (`SessionManager`) en `LoginRequest` y `PushTokenRequest` (`SettingsModels.kt`).
       - Automatizada la sincronización inmediata del token FCM de Google al iniciar sesión (`LoginViewModel.kt`) y al reanudar la aplicación en primer plano (`MainActivity.kt` `onResume`).
