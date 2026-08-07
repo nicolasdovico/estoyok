@@ -49,6 +49,8 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+    - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`):
+      - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
     - [x] Fix Ciclo de Vida de Notificaciones Push y Sincronización Automática FCM (Android Nativo & Laravel Backend):
       - Impuesta la diferenciación de plataformas Web vs Móvil en `AuthController.php`. Los inicios de sesión desde la Web o peticiones API no envían Silent Push `action => logout` ni desactivan dispositivos celulares físicos.
       - Corregido desacople de método HTTP en la API (`routes/api.php`): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)` y actualizado `SettingsApiService.kt` a `@PUT("settings/push-token")`.

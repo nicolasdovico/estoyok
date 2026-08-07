@@ -249,7 +249,7 @@ fun LoginScreen(
 
                             OutlinedButton(
                                 onClick = {
-                                    viewModel.updateBaseUrl("https://backend-api-production-aec1.up.railway.app/api/")
+                                    viewModel.updateBaseUrl("https://api.estoyok24.com/api/")
                                     Toast.makeText(context, "Servidor cambiado a Railway", Toast.LENGTH_SHORT).show()
                                 },
                                 modifier = Modifier.fillMaxWidth(),
@@ -287,7 +287,7 @@ fun LoginScreen(
 
                             OutlinedButton(
                                 onClick = {
-                                    viewModel.updateBaseUrl("https://backend-api-production-aec1.up.railway.app/api/")
+                                    viewModel.updateBaseUrl("https://api.estoyok24.com/api/")
                                     Toast.makeText(context, "Servidor cambiado a Railway", Toast.LENGTH_SHORT).show()
                                 },
                                 modifier = Modifier.weight(1f),

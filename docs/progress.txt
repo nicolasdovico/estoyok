@@ -1,5 +1,9 @@
 # Progress Log
 
+## [2026-08-07] Actualización de Dominio Personalizado Producción (estoyok24.com) en App Nativa
+- **App Móvil Nativa (Android Kotlin):**
+    - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt): la opción de conmutador de servidor **🌐 Railway** fue actualizada para apuntar directamente a la URL con el dominio personalizado oficial `https://api.estoyok24.com/api/`.
+
 ## [2026-08-02] Corrección del Logo Oficial en Notificaciones Push (Android Native)
 - **App Móvil Nativa (Android Kotlin):**
     - Se reemplazó el recurso de origen utilizado para generar `ic_stat_notification.png`: en lugar del icono genérico de plantilla, se extrajo la silueta vectorizada directamente del logo oficial de Estoy OK (`ic_launcher_foreground.png`), asegurando 100% de identidad visual entre el icono del lanzador y los avisos flotantes / pantalla de bloqueo.
