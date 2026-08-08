@@ -1,5 +1,11 @@
 # Progress Log
 
+## [2026-08-08] Corrección de Logotipo de Marca en Encabezados de Emails (Laravel Backend)
+- **Backend (Laravel API & Mail Templates):**
+    - Reemplazado el logo genérico de plantilla de Laravel (`notification-logo-v2.1.png`) en el componente de vista publicado [`resources/views/vendor/mail/html/header.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/vendor/mail/html/header.blade.php) por la imagen oficial del logotipo de la app Estoy Ok (`asset('images/logo.png')`).
+    - Copiado el asset `logo.png` a `backend/public/images/logo.png` y `backend/public/logo.png`.
+    - Creada e integrada la suite de pruebas `MailLogoHeaderTest.php` verificando el renderizado correcto del logo en las plantillas de `InactivityAlertMail`, `CheckInReminderMail` y `OtpVerificationMail`, descartando cualquier referencia a `laravel.com` (142/142 tests passing).
+
 ## [2026-08-07] Actualización de Dominio Personalizado Producción (estoyok24.com) en App Nativa
 - **App Móvil Nativa (Android Kotlin):**
     - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt): la opción de conmutador de servidor **🌐 Railway** fue actualizada para apuntar directamente a la URL con el dominio personalizado oficial `https://api.estoyok24.com/api/`.
