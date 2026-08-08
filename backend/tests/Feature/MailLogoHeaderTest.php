@@ -36,6 +36,8 @@ class MailLogoHeaderTest extends TestCase
         $this->assertStringContainsString('images/logo.png', $html);
         $this->assertStringContainsString('alt="Estoy Ok"', $html);
         $this->assertStringNotContainsString('laravel.com', $html);
+        $this->assertStringContainsString('aplicación móvil', $html);
+        $this->assertStringNotContainsString('Confirmar Bienestar (Estoy OK)', $html);
     }
 
     public function test_otp_verification_mail_renders_app_logo_in_header(): void

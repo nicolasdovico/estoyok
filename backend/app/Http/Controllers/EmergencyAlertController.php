@@ -193,7 +193,7 @@ class EmergencyAlertController extends Controller
             'expires_at' => now()->addHours(48),
         ]);
 
-        $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'))."/emergencia/{$alert->id}";
+        $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com'))."/emergencia/{$alert->id}";
 
         // Notify nucleus members
         $user->load('circles.users');

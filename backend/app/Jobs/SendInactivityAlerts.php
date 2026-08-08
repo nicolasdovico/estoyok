@@ -52,7 +52,7 @@ class SendInactivityAlerts implements ShouldQueue
                 ]);
             }
 
-            $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'http://localhost:3000'))."/emergencia/{$alert->id}";
+            $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com'))."/emergencia/{$alert->id}";
 
             // If index is 0, send push notification to the user themselves and to nucleus members
             if ($this->contactIndex === 0) {

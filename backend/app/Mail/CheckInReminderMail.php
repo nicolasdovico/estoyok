@@ -15,7 +15,7 @@ class CheckInReminderMail extends Mailable
 
     public function __construct(
         public User $user,
-        public string $actionUrl
+        public string $actionUrl = 'https://estoyok24.com'
     ) {}
 
     public function envelope(): Envelope

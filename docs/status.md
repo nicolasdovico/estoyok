@@ -64,6 +64,10 @@
       - Reemplazado el logo por defecto de Laravel en el componente de vista `resources/views/vendor/mail/html/header.blade.php` por el logo oficial de Estoy Ok (`asset('images/logo.png')`).
       - Disponibilizado el archivo gráfico `logo.png` en `backend/public/images/logo.png`.
       - Creada e integrada la suite de pruebas `MailLogoHeaderTest.php` asegurando la garantía de no regresión (142/142 tests passing).
+    - [x] Corrección de Email de Recordatorio de Bienestar (Laravel Backend):
+      - Removido el botón de acción web e instrucciones obsoletas de check-in web en `resources/views/emails/checkin-reminder.blade.php`.
+      - Clarificado el mensaje indicando al usuario ingresar directamente a la app móvil Estoy Ok para reportar su estado.
+      - Actualizada la URL por defecto en controladores/jobs del backend a `https://estoyok24.com`.
     - [x] Corrección de Identidad Visual de Iconos de Notificación (Android Native): Generados todos los `ic_stat_notification.png` extraídos directamente del logo oficial de Estoy OK (`ic_launcher_foreground.png`), reemplazando el icono genérico de plantilla previo y manteniendo coherencia con el icono principal de la app.
     - [x] Configuración de Visibilidad en Pantalla de Bloqueo y Ambient Display (Android Native): Implementados los flags `VISIBILITY_PUBLIC`, `lockscreenVisibility = Notification.VISIBILITY_PUBLIC` y categorías `CATEGORY_SERVICE` / `CATEGORY_EVENT` en `TrackingService.kt` y `MyFirebaseMessagingService.kt` para mostrar el icono monocromático en Motorola Peek Display, Samsung Always On Display y pantallas de bloqueo de Android.
     - [x] Optimización de Tamaño y Encuadre de Icono de Notificación (Android Native): Reducidos los márgenes transparentes de `ic_stat_notification.png` (del 20% al 4%) en todas las densidades de pantalla, expandiendo la silueta blanca al 90%+ del lienzo para igualar el tamaño visual estándar de apps como Life360.
