@@ -61,6 +61,25 @@ Route::post('/maintenance/purge-noise-drives', function () {
     return response()->json(['message' => "Purged {$total} ghost noise drives."]);
 });
 
+Route::post('/maintenance/delete-user', function (Request $request) {
+    $email = $request->input('email');
+    if (!$email) {
+        return response()->json(['error' => 'Email required'], 400);
+    }
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return response()->json(['message' => 'User not found']);
+    }
+    \App\Models\EmergencyContact::where('user_id', $user->id)->delete();
+    \App\Models\CheckIn::where('user_id', $user->id)->delete();
+    \App\Models\CurrentLocation::where('user_id', $user->id)->delete();
+    \App\Models\LocationHistory::where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('circle_user')->where('user_id', $user->id)->delete();
+    $user->delete();
+
+    return response()->json(['message' => "User {$email} deleted successfully from Railway DB."]);
+});
+
 Route::post('/maintenance/purge-all-drives', function () {
     try {
         \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
