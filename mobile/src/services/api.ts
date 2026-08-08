@@ -4,7 +4,7 @@ import { DeviceEventEmitter } from 'react-native';
 
 // REEMPLAZAR con tu IP local para dispositivos reales
 //const BASE_URL = 'http://10.20.30.16:8000/api';
-const BASE_URL = 'https://backend-api-production-aec1.up.railway.app/api';
+const BASE_URL = 'https://api.estoyok24.com/api';
 
 const api = axios.create({
   baseURL: BASE_URL,

@@ -52,7 +52,11 @@ class SendInactivityAlerts implements ShouldQueue
                 ]);
             }
 
-            $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com'))."/emergencia/{$alert->id}";
+            $baseUrl = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com')), '/');
+            if (empty($baseUrl) || str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1') || str_contains($baseUrl, 'railway.app')) {
+                $baseUrl = 'https://estoyok24.com';
+            }
+            $emergencyUrl = "{$baseUrl}/emergencia/{$alert->id}";
 
             // If index is 0, send push notification to the user themselves and to nucleus members
             if ($this->contactIndex === 0) {

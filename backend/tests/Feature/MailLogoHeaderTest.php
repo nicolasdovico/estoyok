@@ -16,7 +16,7 @@ class MailLogoHeaderTest extends TestCase
     public function test_inactivity_alert_mail_renders_app_logo_in_header(): void
     {
         $user = User::factory()->create();
-        $mailable = new InactivityAlertMail($user, 'https://estoyok24.com/emergencia/test-uuid');
+        $mailable = new InactivityAlertMail($user, 'https://estoyok24.com/emergencia/test-uuid', 'Padre');
 
         $html = $mailable->render();
 
@@ -24,6 +24,8 @@ class MailLogoHeaderTest extends TestCase
         $this->assertStringContainsString('alt="Estoy Ok"', $html);
         $this->assertStringNotContainsString('laravel.com', $html);
         $this->assertStringNotContainsString('notification-logo', $html);
+        $this->assertStringContainsString('Padre', $html);
+        $this->assertStringContainsString('https://estoyok24.com/emergencia/test-uuid', $html);
     }
 
     public function test_checkin_reminder_mail_renders_app_logo_in_header(): void

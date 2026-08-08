@@ -37,7 +37,11 @@ class SendCrashAlertJob implements ShouldQueue
         }
 
         $user->load('circles.users');
-        $emergencyUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com'))."/emergencia/{$this->emergencyAlert->id}";
+        $baseUrl = rtrim(config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com')), '/');
+        if (empty($baseUrl) || str_contains($baseUrl, 'localhost') || str_contains($baseUrl, '127.0.0.1') || str_contains($baseUrl, 'railway.app')) {
+            $baseUrl = 'https://estoyok24.com';
+        }
+        $emergencyUrl = "{$baseUrl}/emergencia/{$this->emergencyAlert->id}";
 
         Log::info("Processing crash alert for user {$user->name} ({$user->id}), force G: {$this->crashEvent->g_force}");
 

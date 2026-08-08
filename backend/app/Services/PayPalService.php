@@ -23,8 +23,8 @@ class PayPalService
 
         // Fallback back_urls if localhost/127.0.0.1
         if (str_contains($successUrl, 'localhost') || str_contains($successUrl, '127.0.0.1')) {
-            $successUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/paypal?status=success&user_id=' . $user->id;
-            $cancelUrl = 'https://frontend-web-production-f4f0.up.railway.app/api/subscriptions/callback/paypal?status=cancel&user_id=' . $user->id;
+            $successUrl = 'https://estoyok24.com/api/subscriptions/callback/paypal?status=success&user_id=' . $user->id;
+            $cancelUrl = 'https://estoyok24.com/api/subscriptions/callback/paypal?status=cancel&user_id=' . $user->id;
         }
 
         // Get or create PayPal Subscription Plan with 7-Day Trial ($0.00 today, then $4.99/mo)
