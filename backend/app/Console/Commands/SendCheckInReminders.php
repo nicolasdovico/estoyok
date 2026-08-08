@@ -83,6 +83,9 @@ class SendCheckInReminders extends Command
     protected function sendReminder(User $user)
     {
         $actionUrl = config('app.frontend_url', env('FRONTEND_URL', 'https://estoyok24.com'));
+        if (empty($actionUrl) || str_contains($actionUrl, 'localhost') || str_contains($actionUrl, '127.0.0.1') || str_contains($actionUrl, 'railway.app')) {
+            $actionUrl = 'https://estoyok24.com';
+        }
 
         // 1. Enviar notificación Push híbrida (FCM / Expo)
         if ($user->expo_push_token) {
