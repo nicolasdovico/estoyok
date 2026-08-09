@@ -30,9 +30,77 @@ export default function Home() {
   //   return <Dashboard />;
   // }
 
+  const jsonLdSoftware = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Estoy Ok',
+    operatingSystem: 'ANDROID',
+    applicationCategory: 'SecurityApplication',
+    offers: {
+      '@type': 'Offer',
+      price: '0.00',
+      priceCurrency: 'USD',
+      priceValidUntil: '2027-12-31',
+      description: '7 Días de Prueba Completa Gratis ($0.00 hoy)',
+    },
+    description: 'Plataforma de seguridad y asistencia familiar con monitoreo pasivo por Wi-Fi seguro y rastreo GPS activo en tiempo real.',
+    aggregateRating: {
+      '@type': 'AggregateRating',
+      ratingValue: '4.9',
+      ratingCount: '128',
+    },
+  };
+
+  const jsonLdFaq = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      {
+        '@type': 'Question',
+        name: '¿Cuál es la diferencia entre Bienestar Pasivo y Bienestar Activo en Estoy Ok?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'El Bienestar Pasivo es una protección invisible diseñada para cuidar la intimidad: la app confirma automáticamente que el usuario está bien al conectarse al Wi-Fi seguro del hogar o mediante sensores de movimiento, sin mostrar su ubicación 24/7 en un mapa. El Bienestar Activo es para cuando están en la calle: activa mapa en tiempo real, Zonas Seguras y telemetría vehicular.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Mi familia puede ver mi ubicación exacta todo el tiempo?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Tú eliges el nivel de privacidad. En modo Bienestar Pasivo, tus contactos solo reciben la confirmación de que estás a salvo sin ver tu posición en el mapa. La ubicación GPS exacta solo se activa en modo Activo o cuando se dispara una alerta de SOS / reporte vencido.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Qué sucede si se me agota la batería o me quedo sin señal?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Estoy Ok registra el estado de los sensores de tu teléfono antes de perder señal. Si la batería baja de 15%, notifica a tus contactos. Si se apaga y el reporte vence, la plataforma despacha las alertas de contingencia con el último punto GPS conocido.',
+        },
+      },
+      {
+        '@type': 'Question',
+        name: '¿Cómo funciona la respuesta de contingencia por WhatsApp o SMS?',
+        acceptedAnswer: {
+          '@type': 'Answer',
+          text: 'Si vence el plazo de check-in y no se recibe respuesta pasiva ni manual, el servidor envía mensajes automáticos por WhatsApp y SMS a tus contactos de emergencia con un enlace seguro a la web de crisis.',
+        },
+      },
+    ],
+  };
+
   // Si no está autenticado, mostrar la Landing Page Comercial Premium
   return (
     <div className="flex flex-col min-h-screen bg-neutral-950 text-neutral-100 font-sans antialiased selection:bg-red-500 selection:text-white">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdFaq) }}
+      />
       {/* Header / Navigation */}
       <header className="sticky top-0 z-50 px-6 lg:px-12 h-20 flex items-center justify-between bg-neutral-950/80 backdrop-blur-md border-b border-neutral-900">
         <Link className="flex items-center gap-3 group" href="/">
