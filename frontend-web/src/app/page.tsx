@@ -83,9 +83,9 @@ export default function Home() {
           <div className="absolute top-20 right-1/4 translate-x-1/2 w-80 h-80 rounded-full bg-blue-600/10 blur-[120px] pointer-events-none"></div>
 
           <div className="container px-6 mx-auto relative z-10 text-center max-w-5xl">
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-red-950/45 border border-red-500/20 text-xs font-semibold text-red-400 mb-8 animate-pulse">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Seguridad Familiar Integral: Activa &amp; Pasiva
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-red-950/50 border border-red-500/30 text-xs font-semibold text-red-400 mb-8 shadow-sm">
+              <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span>
+              Protección Dual: Bienestar Pasivo (Invisible) + Tracking Activo Satelital
             </div>
             
             <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl text-white leading-none">
@@ -95,8 +95,8 @@ export default function Home() {
               </span>
             </h1>
             
-            <p className="mx-auto max-w-2xl text-neutral-400 md:text-xl mt-6 leading-relaxed">
-              La primera plataforma de asistencia que combina el **Rastreo GPS Activo** en tiempo real con un sistema inteligente de **Bienestar Pasivo** (Wi-Fi seguro y movimiento) con alertas redundantes de emergencia.
+            <p className="mx-auto max-w-3xl text-neutral-400 md:text-xl mt-6 leading-relaxed">
+              La primera plataforma de asistencia que combina la **Protección Pasiva Invisible** (confirmación automática por Wi-Fi seguro o movimiento sin violar la intimidad) con el **Rastreo Activo en Tiempo Real** (Zonas Seguras, telemetría vehicular y SOS de emergencia) para cuando necesitas cuidar a los tuyos.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 max-w-md mx-auto sm:max-w-none">
@@ -192,24 +192,33 @@ export default function Home() {
         <section id="features" className="py-24 px-6 bg-neutral-950 border-t border-neutral-900">
           <div className="container px-4 mx-auto max-w-6xl">
             <div className="text-center max-w-3xl mx-auto mb-20">
-              <h2 className="text-3xl font-extrabold sm:text-5xl">Tres Niveles de Seguridad Familiar</h2>
+              <span className="px-3.5 py-1 text-xs font-bold tracking-widest uppercase border border-red-500/20 text-red-400 rounded-full">
+                Dos Modos, Una Sola App
+              </span>
+              <h2 className="text-3xl font-extrabold sm:text-5xl text-white mt-4">
+                Tres Niveles de Seguridad: Pasivo, Activo y Crisis
+              </h2>
               <p className="text-neutral-400 mt-4 md:text-lg">
-                Desde el monitoreo pasivo diario para respetar la intimidad, hasta el rastreo activo por zonas y la respuesta inmediata ante crisis extremas.
+                Elige el nivel de protección que tu familia necesita: desde la tranquilidad pasiva sin rastreo continuo para cuidar la intimidad, hasta la coordinación GPS activa y la respuesta inmediata ante emergencias.
               </p>
             </div>
 
             <div className="grid lg:grid-cols-3 md:grid-cols-2 gap-8 items-stretch">
               {/* Pillar 1: Passive Wellbeing */}
-              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-red-500/20 transition-all duration-300 group">
+              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-red-500/30 transition-all duration-300 group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-red-600/5 rounded-full blur-3xl pointer-events-none"></div>
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-red-950/40 border border-red-500/20 flex items-center justify-center text-red-500 mb-6 group-hover:bg-red-900/20 transition-all">
+                  <div className="w-12 h-12 rounded-2xl bg-red-950/50 border border-red-500/30 flex items-center justify-center text-red-500 mb-6 group-hover:bg-red-900/30 transition-all">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">1. Bienestar Pasivo (Botón &amp; Sensores)</h3>
-                  <p className="text-neutral-400 mt-3 leading-relaxed">
-                    Pensado para resguardar la intimidad familiar. Confirma tu bienestar una vez al día de forma activa o deja que el celular lo haga por ti en segundo plano.
+                  <span className="text-[10px] font-black uppercase tracking-widest text-red-500 bg-red-950/60 px-2.5 py-1 rounded-md border border-red-500/20">
+                    Protección Invisible
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-3">1. Bienestar Pasivo (Sin Rastreo 24/7)</h3>
+                  <p className="text-neutral-400 mt-3 text-sm leading-relaxed">
+                    Tranquilidad para tu familia sin sentirte vigilado ni obligado a mostrar tu ubicación continua en un mapa. Tu celular confirma automáticamente que estás bien.
                   </p>
                   
                   <ul className="space-y-3.5 mt-6 text-sm text-neutral-300">
@@ -217,39 +226,49 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Check-in Manual de 1 toque:** Un gran botón rojo para calmar ansiedades familiares.</span>
+                      <span>**Auto-Check-in por Wi-Fi Seguro:** Al conectarte al Wi-Fi de tu casa o trabajo, la app reporta silenciosamente que estás bien sin tocar el teléfono.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Auto-Check-in por Wi-Fi:** Al conectarte al Wi-Fi seguro configurado de tu casa, la app hace check-in silencioso por ti.</span>
+                      <span>**Auto-Check-in por Movimiento:** Si das pasos o usas el móvil, los sensores registran tu bienestar de forma invisible.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección de Movimiento:** Si das más de 100 pasos en una hora, la app asume que estás bien y reporta actividad de bienestar automáticamente.</span>
+                      <span>**Check-in Manual de 1 Toque:** Un botón simple "Estoy OK" una vez al día para calmar ansiedades familiares.</span>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span>**Modo Sueño:** Respeta tus horas de descanso sin generar alertas durante la noche.</span>
                     </li>
                   </ul>
                 </div>
-                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
-                  Ideal para adultos mayores y estudiantes independientes.
+                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-400 bg-neutral-950/40 -mx-8 -mb-8 p-6 rounded-b-3xl">
+                  💡 <span className="font-semibold text-neutral-300">Ideal para:</span> Adultos mayores, estudiantes universitarios e independientes que exigen 100% de privacidad.
                 </div>
               </div>
 
               {/* Pillar 2: Active Wellbeing */}
-              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-indigo-500/20 transition-all duration-300 group">
+              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-indigo-500/30 transition-all duration-300 group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-indigo-600/5 rounded-full blur-3xl pointer-events-none"></div>
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-indigo-950/40 border border-indigo-500/20 flex items-center justify-center text-indigo-400 mb-6 group-hover:bg-indigo-900/20 transition-all">
+                  <div className="w-12 h-12 rounded-2xl bg-indigo-950/50 border border-indigo-500/30 flex items-center justify-center text-indigo-400 mb-6 group-hover:bg-indigo-900/30 transition-all">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">2. Bienestar Activo (Núcleos &amp; Mapa)</h3>
-                  <p className="text-neutral-400 mt-3 leading-relaxed">
-                    Ubicación satelital y Zonas Seguras inteligentes para cuando necesitas coordinación familiar rápida y precisa en tus trayectos.
+                  <span className="text-[10px] font-black uppercase tracking-widest text-indigo-400 bg-indigo-950/60 px-2.5 py-1 rounded-md border border-indigo-500/20">
+                    Monitoreo Satelital
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-3">2. Bienestar Activo (GPS &amp; Telemetría)</h3>
+                  <p className="text-neutral-400 mt-3 text-sm leading-relaxed">
+                    Ubicación en tiempo real y Zonas Seguras cuando necesitas coordinar traslados o cuidar la ruta de los tuyos en la calle.
                   </p>
                   
                   <ul className="space-y-3.5 mt-6 text-sm text-neutral-300">
@@ -257,50 +276,54 @@ export default function Home() {
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Mapa Familiar Compartido:** Visualización en vivo de los integrantes autorizados de tu núcleo.</span>
+                      <span>**Mapa del Núcleo en Vivo:** Visualización en tiempo real con marcadores animados y estado de tránsito (caminando 🚶, bici 🚲, auto 🚗).</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Zonas Seguras:** Configura radios de alerta y recibe notificaciones push cuando entren o salgan de casa, colegio o trabajo.</span>
+                      <span>**Zonas Seguras Inteligentes:** Avisos automáticos al entrar o salir de Casa, Colegio o Trabajo sin falsas alarmas.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Alertas de Batería Baja &amp; Sensores:** Revisa el porcentaje de carga y si tienen el GPS desactivado o están sin señal.</span>
+                      <span>**Detección Vehicular &amp; Velocidad:** Identifica viajes en automóvil, mide la velocidad en vivo y alerta sobreexcesos.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección de Conducción &amp; Velocidad:** Identifica automáticamente cuando un familiar viaja en auto (🚗), mostrando su velocidad en vivo y alertando si supera el límite establecido.</span>
+                      <span>**Estado de Sensores &amp; Batería:** Notifica si le queda menos de 15% de carga, apaga el GPS o se queda sin señal.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Historial de Rutas:** Revisa el camino recorrido por los integrantes de tu núcleo con estimaciones de velocidad y barra de tiempo.</span>
+                      <span>**Radar Móvil de Proximidad:** Perímetro dinámico para paseos o compras (vibran si se distancien).</span>
                     </li>
                   </ul>
                 </div>
-                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
-                  Ideal para coordinar traslados y verificar rutas en tiempo real.
+                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-400 bg-neutral-950/40 -mx-8 -mb-8 p-6 rounded-b-3xl">
+                  💡 <span className="font-semibold text-neutral-300">Ideal para:</span> Niños, jóvenes en edad escolar, traslados nocturnos y viajes en carretera.
                 </div>
               </div>
 
               {/* Pillar 3: Silent S.O.S */}
-              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-amber-500/20 transition-all duration-300 group">
+              <div className="p-8 lg:p-10 rounded-3xl bg-neutral-900/30 border border-neutral-900 flex flex-col justify-between hover:border-amber-500/30 transition-all duration-300 group relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-32 h-32 bg-amber-600/5 rounded-full blur-3xl pointer-events-none"></div>
                 <div>
-                  <div className="w-12 h-12 rounded-2xl bg-amber-950/40 border border-amber-500/20 flex items-center justify-center text-amber-500 mb-6 group-hover:bg-amber-900/20 transition-all">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-950/50 border border-amber-500/30 flex items-center justify-center text-amber-500 mb-6 group-hover:bg-amber-900/30 transition-all">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
                   </div>
-                  <h3 className="text-2xl font-bold text-white">3. S.O.S. de Emergencia (Crisis Activa)</h3>
-                  <p className="text-neutral-400 mt-3 leading-relaxed">
-                    Un botón de auxilio instantáneo para situaciones de peligro inminente. Activa alertas críticas inmediatas y un rastreo continuo de alta fidelidad.
+                  <span className="text-[10px] font-black uppercase tracking-widest text-amber-400 bg-amber-950/60 px-2.5 py-1 rounded-md border border-amber-500/20">
+                    Respuesta de Auxilio
+                  </span>
+                  <h3 className="text-2xl font-bold text-white mt-3">3. S.O.S. de Emergencia (Crisis Inminente)</h3>
+                  <p className="text-neutral-400 mt-3 text-sm leading-relaxed">
+                    Botón de auxilio e integración de impacto para situaciones de peligro real. Activa alarmas críticas y seguimiento prioritario.
                   </p>
                   
                   <ul className="space-y-3.5 mt-6 text-sm text-neutral-300">
@@ -308,36 +331,36 @@ export default function Home() {
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**S.O.S. Silencioso de Emergencia:** Dispara alarmas prioritarias de forma imperceptible y discreta desde tu teléfono móvil.</span>
+                      <span>**S.O.S. Silencioso:** Dispara alarmas prioritarias de forma imperceptible desde tu teléfono móvil.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Rastreo Crítico de Alta Frecuencia:** Al activarse, la tasa de actualización del GPS se acelera a cada 5 segundos para un seguimiento preciso.</span>
+                      <span>**Rastreo Crítico (Cada 5s):** Acelera el GPS a intervalos de 5 segundos para un seguimiento milimétrico.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Grabación Ambiental Automática:** Captura 15 segundos de audio de fondo de manera silenciosa para que tu familia escuche qué está sucediendo.</span>
+                      <span>**Grabación Ambiental de 15s:** Captura audio de fondo en vivo para escuchar el contexto de la emergencia.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección de Accidentes por Acelerómetro:** Monitorea desaceleraciones extremas de colisión ($\ge 4.5$G) seguidas de inmovilidad física, iniciando una pre-alerta acústica de 15 segundos antes de alarmar a tus contactos.</span>
+                      <span>**Detección de Choques (G-Force):** Registra desaceleraciones severas ($\ge 4.5$G) con sirena pre-alerta de 15s.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Canal de Respaldo por SMS:** Envía mensajes de texto de emergencia automáticos por red telefónica si pierdes conexión a internet.</span>
+                      <span>**Respaldo por SMS:** Transmite coordenadas por SMS si se interrumpe la red de datos móviles.</span>
                     </li>
                   </ul>
                 </div>
-                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-500">
-                  Ideal para situaciones imprevistas, seguridad urbana y emergencias reales.
+                <div className="mt-8 pt-6 border-t border-neutral-900 text-xs text-neutral-400 bg-neutral-950/40 -mx-8 -mb-8 p-6 rounded-b-3xl">
+                  💡 <span className="font-semibold text-neutral-300">Ideal para:</span> Situaciones de peligro inminente, seguridad urbana y emergencias reales.
                 </div>
               </div>
             </div>
@@ -448,13 +471,13 @@ export default function Home() {
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Check-in fijo cada 24 horas</span>
+                      <span>Monitoreo de Bienestar Pasivo diario</span>
                     </li>
                     <li className="flex items-center gap-2.5">
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>Alertas por Email y Push</span>
+                      <span>Alertas por Email y Push en caso de vencimiento</span>
                     </li>
                     <li className="flex items-center gap-2.5">
                       <svg className="w-4 h-4 text-green-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -662,6 +685,14 @@ export default function Home() {
 
             <div className="space-y-4">
               {[
+                {
+                  q: "¿Cuál es la diferencia entre Bienestar Pasivo y Bienestar Activo en Estoy Ok?",
+                  a: "El Bienestar Pasivo confirma que te encuentras a salvo automáticamente mediante tu Wi-Fi seguro de casa o tu movimiento, sin activar rastreo continuo ni compartir tu ubicación en un mapa (respetando tu privacidad al 100%). El Bienestar Activo habilita el seguimiento GPS en tiempo real, Zonas Seguras y telemetría vehicular para cuando necesites coordinar traslados o cuidar a tus hijos en la calle."
+                },
+                {
+                  q: "¿Mi familia puede ver mi ubicación exacta todo el tiempo?",
+                  a: "No si utilizas el modo de Bienestar Pasivo. En este modo, tu ubicación geográfica solo se vuelve accesible para tus contactos de emergencia en caso de que venza tu temporizador de seguridad sin confirmación previa o si presionas de forma voluntaria el botón S.O.S. de emergencia."
+                },
                 {
                   q: "¿Qué es y cómo funciona el botón de \"Estoy Ok\"?",
                   a: "Es un sistema de bienestar pasivo diseñado para proteger tu privacidad. Solo debes pulsar el botón una vez al día para confirmar que te encuentras bien y reiniciar tu plazo de seguridad. Si el plazo se vence y olvidas reportarte, el sistema despacha alertas automáticas prioritarias a todos tus contactos de emergencia."

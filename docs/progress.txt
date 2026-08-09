@@ -1,6 +1,10 @@
 # Progress Log
 
-## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Ajuste de Tamaño de Logo en Emails
+## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Rediseño de Landing Web (Bienestar Pasivo vs Activo)
+- **Frontend Web (Next.js Landing Page & SEO):**
+    - Rediseñada la Landing Page comercial ([`frontend-web/src/app/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx)): clarificados y diferenciados exhaustivamente los conceptos de **Bienestar Pasivo** (monitoreo invisible por Wi-Fi seguro/pasos sin rastreo 24/7 para privacidad absoluta) y **Bienestar Activo** (seguimiento GPS en vivo, Zonas Seguras y telemetría vehicular).
+    - Incorporado el bloque destacado *"Dos Modos, Una Sola App"* con tarjetas diferenciadas por códigos de color de acento, eslóganes, viñetas de funcionamiento y casos de uso recomendados.
+    - Incorporadas 2 preguntas frecuentes estratégicas de SEO al inicio del acordeón de FAQs resolviendo la privacidad y la diferencia entre ambos modos.
 - **Backend (Laravel API & Mail Templates):**
     - Ajustada la dimensión del logotipo oficial en [`resources/views/vendor/mail/html/header.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/vendor/mail/html/header.blade.php) incrementando `max-height` a `78px` para dar mayor jerarquía visual e igualar el tamaño estándar del header de Laravel.
     - Actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json): incorporados `php artisan view:clear` y `php artisan queue:restart` al comando `preDeployCommand`.
