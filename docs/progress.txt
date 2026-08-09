@@ -1,5 +1,10 @@
 # Progress Log
 
+## [2026-08-09] Purgado Automático de Caché de Vistas y Reinicio de Queue Workers en Despliegue (Railway)
+- **Backend (Configuración de Despliegue Railway):**
+    - Actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json): incorporados `php artisan view:clear` y `php artisan queue:restart` al comando `preDeployCommand`.
+    - Asegurada la eliminación de vistas Blade compiladas obsoletas en `storage/framework/views/` y el reinicio incondicional de los procesos trabajadores de cola (*queue workers*) en cada redespliegue de producción.
+
 ## [2026-08-08] Corrección de Logotipo de Marca y Enlaces de Dominio en Emails (Laravel Backend)
 - **Backend (Laravel API & Mail Templates):**
     - Reemplazado el logo genérico de plantilla de Laravel (`notification-logo-v2.1.png`) en el componente de vista publicado [`resources/views/vendor/mail/html/header.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/vendor/mail/html/header.blade.php) por la imagen oficial del logotipo de la app Estoy Ok (`asset('images/logo.png')`).
