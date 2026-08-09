@@ -1,8 +1,9 @@
 # Progress Log
 
-## [2026-08-09] Purgado Automático de Caché de Vistas y Reinicio de Queue Workers en Despliegue (Railway)
-- **Backend (Configuración de Despliegue Railway):**
+## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Endpoint de Prueba de Email en Railway
+- **Backend (Configuración de Despliegue Railway & API):**
     - Actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json): incorporados `php artisan view:clear` y `php artisan queue:restart` al comando `preDeployCommand`.
+    - Creada la ruta de mantenimiento `POST /api/maintenance/send-test-email` en `routes/api.php` para disparar la emisión de correos de prueba reales en el entorno de producción de Railway hacia `nicolasdovico@gmail.com`.
     - Asegurada la eliminación de vistas Blade compiladas obsoletas en `storage/framework/views/` y el reinicio incondicional de los procesos trabajadores de cola (*queue workers*) en cada redespliegue de producción.
 
 ## [2026-08-08] Corrección de Logotipo de Marca y Enlaces de Dominio en Emails (Laravel Backend)

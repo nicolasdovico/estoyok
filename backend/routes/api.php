@@ -80,6 +80,30 @@ Route::post('/maintenance/delete-user', function (Request $request) {
     return response()->json(['message' => "User {$email} deleted successfully from Railway DB."]);
 });
 
+Route::post('/maintenance/send-test-email', function (Request $request) {
+    $to = $request->input('email', 'nicolasdovico@gmail.com');
+    $user = \App\Models\User::first() ?? new \App\Models\User(['name' => 'Usuario Pruebas']);
+
+    try {
+        \Illuminate\Support\Facades\Mail::to($to)->send(
+            new \App\Mail\InactivityAlertMail(
+                $user,
+                'https://estoyok24.com/emergencia/test-email-verification',
+                'Contacto de Pruebas'
+            )
+        );
+        return response()->json([
+            'success' => true,
+            'message' => "Test email successfully dispatched to {$to} via Railway production mailer.",
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 Route::post('/maintenance/purge-all-drives', function () {
     try {
         \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
