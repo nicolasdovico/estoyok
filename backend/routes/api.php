@@ -104,6 +104,52 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
     }
 });
 
+Route::post('/maintenance/send-test-sms', function (Request $request) {
+    $to = $request->input('phone', '+5491112345678');
+    $type = strtolower($request->input('type', 'sms'));
+
+    $sid = config('services.twilio.sid');
+    $token = config('services.twilio.token');
+    $smsFrom = config('services.twilio.sms_from');
+    $waFrom = config('services.twilio.whatsapp_from');
+
+    if (!$sid || !$token) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Twilio no está configurado en Railway. Falta TWILIO_SID o TWILIO_AUTH_TOKEN.',
+            'values' => [
+                'sid' => $sid ? substr($sid, 0, 6) . '...' : null,
+                'sms_from' => $smsFrom,
+                'wa_from' => $waFrom,
+            ]
+        ], 400);
+    }
+
+    try {
+        $twilio = new \App\Services\TwilioService();
+        if ($type === 'whatsapp') {
+            $ok = $twilio->sendWhatsApp($to, '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada desde Railway.');
+        } else {
+            $ok = $twilio->sendSMS($to, '🔔 Prueba oficial de SMS de Estoy Ok enviada desde Railway.');
+        }
+
+        return response()->json([
+            'success' => $ok,
+            'type' => $type,
+            'target_phone' => $to,
+            'sid_prefix' => substr($sid, 0, 6) . '...',
+            'sms_from' => $smsFrom,
+            'wa_from' => $waFrom,
+            'message' => $ok ? 'Petición procesada exitosamente por Twilio.' : 'Twilio devolvió error o no pudo entregar el mensaje. Revisa los logs.',
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 Route::post('/maintenance/purge-all-drives', function () {
     try {
         \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
