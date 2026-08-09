@@ -1,7 +1,8 @@
 # Progress Log
 
-## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Endpoint de Prueba de Email en Railway
-- **Backend (Configuración de Despliegue Railway & API):**
+## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Ajuste de Tamaño de Logo en Emails
+- **Backend (Laravel API & Mail Templates):**
+    - Ajustada la dimensión del logotipo oficial en [`resources/views/vendor/mail/html/header.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/vendor/mail/html/header.blade.php) incrementando `max-height` a `78px` para dar mayor jerarquía visual e igualar el tamaño estándar del header de Laravel.
     - Actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json): incorporados `php artisan view:clear` y `php artisan queue:restart` al comando `preDeployCommand`.
     - Creada la ruta de mantenimiento `POST /api/maintenance/send-test-email` en `routes/api.php` para disparar la emisión de correos de prueba reales en el entorno de producción de Railway hacia `nicolasdovico@gmail.com`.
     - Asegurada la eliminación de vistas Blade compiladas obsoletas en `storage/framework/views/` y el reinicio incondicional de los procesos trabajadores de cola (*queue workers*) en cada redespliegue de producción.
