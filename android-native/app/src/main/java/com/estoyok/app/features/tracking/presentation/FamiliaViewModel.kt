@@ -183,6 +183,26 @@ class FamiliaViewModel @Inject constructor(
         }
     }
 
+    fun updateSpeedLimit(circleId: Int, speedLimit: Int) {
+        viewModelScope.launch {
+            circleRepository.updateSpeedLimit(circleId, speedLimit).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        isActionInProgress = true
+                    }
+                    is Resource.Success -> {
+                        isActionInProgress = false
+                        refreshData()
+                    }
+                    is Resource.Error -> {
+                        isActionInProgress = false
+                        errorMessage = resource.message ?: "Error al actualizar el límite de velocidad."
+                    }
+                }
+            }
+        }
+    }
+
     fun checkoutSubscription(provider: String, onUrlReceived: (String) -> Unit) {
         viewModelScope.launch {
             subscriptionRepository.checkout(provider).collectLatest { resource ->

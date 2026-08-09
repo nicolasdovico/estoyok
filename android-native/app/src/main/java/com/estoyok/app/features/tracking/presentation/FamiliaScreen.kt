@@ -311,6 +311,103 @@ fun FamiliaScreen(
                 }
             }
 
+            // Speed Limit Configuration Card (for active circle)
+            item {
+                val isOwnerOrAdmin = activeCircle.ownerId == (viewModel.user?.id ?: -1)
+                val currentLimit = activeCircle.speedLimit ?: 120
+                val speedOptions = listOf(80, 100, 110, 120, 130, 140)
+
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Column(modifier = Modifier.padding(16.dp)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Default.Speed,
+                                    contentDescription = "Límite de Velocidad",
+                                    tint = PrimaryRed,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Límite de Velocidad Máxima",
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 14.sp,
+                                    color = TextPrimary
+                                )
+                            }
+                            Surface(
+                                color = PrimaryRed.copy(alpha = 0.15f),
+                                shape = RoundedCornerShape(6.dp)
+                            ) {
+                                Text(
+                                    text = "$currentLimit km/h",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = PrimaryRed,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = "Si algún integrante en automóvil supera esta velocidad, el sistema notificará al núcleo.",
+                            fontSize = 11.sp,
+                            color = TextMuted
+                        )
+
+                        if (isOwnerOrAdmin) {
+                            Spacer(modifier = Modifier.height(12.dp))
+                            Text(
+                                text = "Configurar Límite (km/h):",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                            ) {
+                                speedOptions.forEach { option ->
+                                    val isSelected = option == currentLimit
+                                    FilterChip(
+                                        selected = isSelected,
+                                        onClick = {
+                                            if (!isSelected && !viewModel.isActionInProgress) {
+                                                viewModel.updateSpeedLimit(activeCircle.id, option)
+                                            }
+                                        },
+                                        label = {
+                                            Text(
+                                                text = "$option",
+                                                fontSize = 10.sp,
+                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+                                            )
+                                        },
+                                        colors = FilterChipDefaults.filterChipColors(
+                                            selectedContainerColor = PrimaryRed,
+                                            selectedLabelColor = TextOnPrimary,
+                                            containerColor = DarkSurfaceVariant.copy(alpha = 0.6f),
+                                            labelColor = TextMuted
+                                        ),
+                                        modifier = Modifier.weight(1f)
+                                    )
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // Delete circle button (if owner)
             if (activeCircle.ownerId == (viewModel.user?.id ?: -1)) {
                 item {

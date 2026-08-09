@@ -1,8 +1,16 @@
 # Progress Log
 
-## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers y Rediseño de Landing Web (Bienestar Pasivo vs Activo)
+## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers, Rediseño de Landing Web y Selector de Límite de Velocidad en Android Nativo
+- **Frontend Móvil (Android Nativo Kotlin):**
+    - Agregado el modelo `UpdateSpeedLimitRequest` en [`CircleModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/CircleModels.kt).
+    - Agregado el endpoint `@PUT("circles/{circleId}/speed-limit")` en [`CircleApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/remote/CircleApiService.kt) y expuesto a través de `CircleRepository` e `CircleRepositoryImpl`.
+    - Agregado el método `updateSpeedLimit(circleId, speedLimit)` en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt).
+    - Incorporada la tarjeta interactiva *"⚡ Límite de Velocidad Máxima"* en [`FamiliaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaScreen.kt) permitiendo al administrador/dueño del núcleo seleccionar el umbral máximo de conducción (80, 100, 110, 120, 130, 140 km/h) con sincronización en tiempo real con la API.
 - **Frontend Web (Next.js Landing Page & SEO):**
     - Rediseñada la Landing Page comercial ([`frontend-web/src/app/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx)): clarificados y diferenciados exhaustivamente los conceptos de **Bienestar Pasivo** (monitoreo invisible por Wi-Fi seguro/pasos sin rastreo 24/7 para privacidad absoluta) y **Bienestar Activo** (seguimiento GPS en vivo, Zonas Seguras y telemetría vehicular).
+    - Removido el botón de descarga de la App Store (iOS) en la sección `#download` para enfocar la plataforma exclusivamente en la aplicación móvil nativa de **Android** (**Google Play** & APK).
+    - Reemplazada la sintaxis de texto asterisco de Markdown (`**texto**`) por etiquetas HTML JSX semánticas (`<strong className="font-bold text-white">`) para asegurar un correcto resaltado tipográfico en el navegador web.
+    - Aplicada la estrategia comercial *Product-Led Growth*: presentadas todas las funcionalidades estrella (Auto-Check-in Wi-Fi, WhatsApp/SMS, SOS con audio, detección de choques G-Force) como las capacidades estándar de Estoy Ok, impulsando la conversión mediante botones y badges destacados de **"Descargar & Probar Gratis (7 Días)"** y **"Prueba la Experiencia Completa ($0.00 hoy)"**.
     - Incorporado el bloque destacado *"Dos Modos, Una Sola App"* con tarjetas diferenciadas por códigos de color de acento, eslóganes, viñetas de funcionamiento y casos de uso recomendados.
     - Incorporadas 2 preguntas frecuentes estratégicas de SEO al inicio del acordeón de FAQs resolviendo la privacidad y la diferencia entre ambos modos.
 - **Backend (Laravel API & Mail Templates):**

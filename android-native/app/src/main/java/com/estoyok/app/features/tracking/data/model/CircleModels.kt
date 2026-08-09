@@ -70,6 +70,10 @@ data class CreateCircleRequest(
     @SerializedName("name") val name: String
 )
 
+data class UpdateSpeedLimitRequest(
+    @SerializedName("speed_limit") val speedLimit: Int
+)
+
 data class JoinCircleRequest(
     @SerializedName("invite_code") val inviteCode: String
 )

@@ -96,7 +96,7 @@ export default function Home() {
             </h1>
             
             <p className="mx-auto max-w-3xl text-neutral-400 md:text-xl mt-6 leading-relaxed">
-              La primera plataforma de asistencia que combina la **Protección Pasiva Invisible** (confirmación automática por Wi-Fi seguro o movimiento sin violar la intimidad) con el **Rastreo Activo en Tiempo Real** (Zonas Seguras, telemetría vehicular y SOS de emergencia) para cuando necesitas cuidar a los tuyos.
+              La primera plataforma de asistencia que combina la <strong className="font-bold text-white">Protección Pasiva Invisible</strong> (confirmación automática por Wi-Fi seguro o movimiento sin violar la intimidad) con el <strong className="font-bold text-white">Rastreo Activo en Tiempo Real</strong> (Zonas Seguras, telemetría vehicular y SOS de emergencia) para cuando necesitas cuidar a los tuyos.
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 max-w-md mx-auto sm:max-w-none">
@@ -106,7 +106,7 @@ export default function Home() {
               >
                 <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 opacity-20 group-hover:opacity-60 blur-sm transition duration-300 pointer-events-none"></div>
                 <span className="relative z-10 flex items-center gap-2">
-                  Descargar Aplicación
+                  Descargar &amp; Probar Gratis (7 Días)
                   <svg className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                   </svg>
@@ -116,7 +116,7 @@ export default function Home() {
                 className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-900/40 hover:bg-neutral-900 px-8 text-base font-bold text-neutral-300 hover:text-white hover:border-neutral-700 transition-all duration-200"
                 href="#features"
               >
-                Saber más
+                Ver Funcionalidades
               </Link>
             </div>
             
@@ -226,25 +226,25 @@ export default function Home() {
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Auto-Check-in por Wi-Fi Seguro:** Al conectarte al Wi-Fi de tu casa o trabajo, la app reporta silenciosamente que estás bien sin tocar el teléfono.</span>
+                      <span><strong className="font-bold text-white">Auto-Check-in por Wi-Fi Seguro:</strong> Al conectarte al Wi-Fi de tu casa o trabajo, la app reporta silenciosamente que estás bien sin tocar el teléfono.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Auto-Check-in por Movimiento:** Si das pasos o usas el móvil, los sensores registran tu bienestar de forma invisible.</span>
+                      <span><strong className="font-bold text-white">Auto-Check-in por Movimiento:</strong> Si das pasos o usas el móvil, los sensores registran tu bienestar de forma invisible.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Check-in Manual de 1 Toque:** Un botón simple "Estoy OK" una vez al día para calmar ansiedades familiares.</span>
+                      <span><strong className="font-bold text-white">Check-in Manual de 1 Toque:</strong> Un botón simple &quot;Estoy OK&quot; una vez al día para calmar ansiedades familiares.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-red-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Modo Sueño:** Respeta tus horas de descanso sin generar alertas durante la noche.</span>
+                      <span><strong className="font-bold text-white">Modo Sueño:</strong> Respeta tus horas de descanso sin generar alertas durante la noche.</span>
                     </li>
                   </ul>
                 </div>
@@ -276,31 +276,31 @@ export default function Home() {
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Mapa del Núcleo en Vivo:** Visualización en tiempo real con marcadores animados y estado de tránsito (caminando 🚶, bici 🚲, auto 🚗).</span>
+                      <span><strong className="font-bold text-white">Mapa del Núcleo en Vivo:</strong> Visualización en tiempo real con marcadores animados y estado de tránsito (caminando 🚶, bici 🚲, auto 🚗).</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Zonas Seguras Inteligentes:** Avisos automáticos al entrar o salir de Casa, Colegio o Trabajo sin falsas alarmas.</span>
+                      <span><strong className="font-bold text-white">Zonas Seguras Inteligentes:</strong> Avisos automáticos al entrar o salir de Casa, Colegio o Trabajo sin falsas alarmas.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección Vehicular &amp; Velocidad:** Identifica viajes en automóvil, mide la velocidad en vivo y alerta sobreexcesos.</span>
+                      <span><strong className="font-bold text-white">Detección Vehicular &amp; Velocidad:</strong> Identifica viajes en automóvil, mide la velocidad en vivo y alerta sobreexcesos.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Estado de Sensores &amp; Batería:** Notifica si le queda menos de 15% de carga, apaga el GPS o se queda sin señal.</span>
+                      <span><strong className="font-bold text-white">Estado de Sensores &amp; Batería:</strong> Notifica si le queda menos de 15% de carga, apaga el GPS o se queda sin señal.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-indigo-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Radar Móvil de Proximidad:** Perímetro dinámico para paseos o compras (vibran si se distancien).</span>
+                      <span><strong className="font-bold text-white">Radar Móvil de Proximidad:</strong> Perímetro dinámico para paseos o compras (vibran si se distancian).</span>
                     </li>
                   </ul>
                 </div>
@@ -331,31 +331,31 @@ export default function Home() {
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**S.O.S. Silencioso:** Dispara alarmas prioritarias de forma imperceptible desde tu teléfono móvil.</span>
+                      <span><strong className="font-bold text-white">S.O.S. Silencioso:</strong> Dispara alarmas prioritarias de forma imperceptible desde tu teléfono móvil.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Rastreo Crítico (Cada 5s):** Acelera el GPS a intervalos de 5 segundos para un seguimiento milimétrico.</span>
+                      <span><strong className="font-bold text-white">Rastreo Crítico (Cada 5s):</strong> Acelera el GPS a intervalos de 5 segundos para un seguimiento milimétrico.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Grabación Ambiental de 15s:** Captura audio de fondo en vivo para escuchar el contexto de la emergencia.</span>
+                      <span><strong className="font-bold text-white">Grabación Ambiental de 15s:</strong> Captura audio de fondo en vivo para escuchar el contexto de la emergencia.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Detección de Choques (G-Force):** Registra desaceleraciones severas ($\ge 4.5$G) con sirena pre-alerta de 15s.</span>
+                      <span><strong className="font-bold text-white">Detección de Choques (G-Force):</strong> Registra desaceleraciones severas (≥ 4.5G) con sirena pre-alerta de 15s.</span>
                     </li>
                     <li className="flex items-start gap-2.5">
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span>**Respaldo por SMS:** Transmite coordenadas por SMS si se interrumpe la red de datos móviles.</span>
+                      <span><strong className="font-bold text-white">Respaldo por SMS:</strong> Transmite coordenadas por SMS si se interrumpe la red de datos móviles.</span>
                     </li>
                   </ul>
                 </div>
@@ -450,9 +450,9 @@ export default function Home() {
           <div className="absolute bottom-0 right-1/4 w-96 h-96 rounded-full bg-red-600/5 blur-[150px] pointer-events-none"></div>
 
           <div className="container px-4 mx-auto max-w-5xl text-center">
-            <h2 className="text-3xl font-extrabold sm:text-5xl">Planes diseñados para tu tranquilidad</h2>
+            <h2 className="text-3xl font-extrabold sm:text-5xl">Prueba la Experiencia Completa</h2>
             <p className="text-neutral-400 mt-4 md:text-lg max-w-2xl mx-auto">
-              Empieza hoy a cuidar de tu familia. Prueba todas las funciones avanzadas gratis por 7 días.
+              Comienza hoy mismo a cuidar de tu familia. Descarga la aplicación y accede de inmediato a <strong className="text-white font-bold">7 Días de Prueba Completa por $0.00</strong> sin compromisos.
             </p>
 
             <div className="grid md:grid-cols-2 gap-8 items-stretch max-w-4xl mx-auto mt-16">
@@ -511,15 +511,15 @@ export default function Home() {
               {/* Plan Premium */}
               <div className="relative flex flex-col justify-between p-8 bg-gradient-to-b from-neutral-900 to-red-950/20 border-2 border-red-500 rounded-3xl text-left transform md:scale-105 shadow-2xl">
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-red-600 text-white text-[9px] font-black px-4 py-0.5 rounded-full uppercase tracking-widest">
-                  RECOMENDADO
+                  7 DÍAS GRATIS POR $0.00
                 </div>
                 
                 <div>
-                  <h3 className="text-lg font-bold text-red-400 mt-2">Premium PRO</h3>
+                  <h3 className="text-lg font-bold text-red-400 mt-2">Experiencia Completa Estoy Ok</h3>
                   <div className="text-5xl font-black text-white mt-4 flex items-baseline gap-1 font-sans">
-                    $4.99<span className="text-xs text-neutral-400 font-medium">/ mes</span>
+                    $4.99<span className="text-xs text-neutral-400 font-medium">/ mes (tras 7 días gratis)</span>
                   </div>
-                  <p className="text-xs text-red-500/80 mt-2 font-medium">La tranquilidad absoluta de tu núcleo familiar en piloto automático.</p>
+                  <p className="text-xs text-red-500/80 mt-2 font-medium">Acceso ilimitado a todas las funcionalidades estrella de protección activa y pasiva.</p>
 
                   <ul className="space-y-3.5 mt-8 text-sm text-neutral-300">
                     <li className="flex items-start gap-2.5">
@@ -590,9 +590,9 @@ export default function Home() {
 
                 <Link
                   className="mt-8 text-center bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-red-500/20 text-sm"
-                  href="/register"
+                  href="#download"
                 >
-                  Prueba Gratis de 7 Días
+                  Comenzar Prueba Gratis de 7 Días
                 </Link>
               </div>
             </div>
@@ -633,24 +633,6 @@ export default function Home() {
                 <div>
                   <div className="text-[10px] text-neutral-500 uppercase font-black">Consíguelo en</div>
                   <div className="text-base font-bold text-white leading-tight">Google Play</div>
-                </div>
-              </a>
-
-              {/* Apple App Store Simulator */}
-              <a 
-                href="/download/ios" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert("La aplicación para iOS está disponible en la carpeta mobile. Puedes ejecutarla localmente usando Expo Go o mediante npx expo run:ios.");
-                }}
-                className="flex items-center gap-3 bg-neutral-905 border border-neutral-800 rounded-2xl px-6 py-3.5 text-left hover:bg-neutral-850 hover:border-neutral-700 active:scale-95 transition-all w-full sm:w-auto justify-center"
-              >
-                <svg className="w-8 h-8 text-neutral-300" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.81-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M15.97 4.17c.66-.81 1.11-1.93.99-3.06-1 .04-2.22.67-2.94 1.51-.64.73-1.2 1.87-1.05 2.98 1.11.09 2.24-.59 2.97-1.43z" />
-                </svg>
-                <div>
-                  <div className="text-[10px] text-neutral-500 uppercase font-black">Descargar de la</div>
-                  <div className="text-base font-bold text-white leading-tight">App Store</div>
                 </div>
               </a>
             </div>

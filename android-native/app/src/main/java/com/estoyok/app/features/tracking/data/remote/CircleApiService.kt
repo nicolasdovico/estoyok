@@ -31,6 +31,12 @@ interface CircleApiService {
         @Path("circleId") circleId: Int
     ): Response<MessageResponse>
 
+    @PUT("circles/{circleId}/speed-limit")
+    suspend fun updateSpeedLimit(
+        @Path("circleId") circleId: Int,
+        @Body request: UpdateSpeedLimitRequest
+    ): Response<CircleDto>
+
     @GET("circles/{circleId}/members/{memberId}/history")
     suspend fun getMemberHistory(
         @Path("circleId") circleId: Int,

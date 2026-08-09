@@ -38,6 +38,10 @@ class CircleRepositoryImpl @Inject constructor(
         apiService.deleteCircle(circleId)
     }
 
+    override fun updateSpeedLimit(circleId: Int, speedLimit: Int): Flow<Resource<CircleDto>> = safeApiCall {
+        apiService.updateSpeedLimit(circleId, UpdateSpeedLimitRequest(speedLimit))
+    }
+
     override fun getMemberHistory(
         circleId: Int,
         memberId: Int,
