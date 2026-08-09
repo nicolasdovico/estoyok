@@ -120,69 +120,14 @@ export default function Home() {
               </Link>
             </div>
             
-            {/* Visual device mockups (CSS Only) */}
-            <div className="mt-16 md:mt-24 rounded-3xl border border-neutral-900 bg-neutral-950 p-4 shadow-2xl max-w-4xl mx-auto">
-              <div className="w-full h-8 bg-neutral-900/60 rounded-t-2xl flex items-center px-4 gap-2 border-b border-neutral-900">
-                <span className="w-3.5 h-3.5 rounded-full bg-red-500/80"></span>
-                <span className="w-3.5 h-3.5 rounded-full bg-yellow-500/80"></span>
-                <span className="w-3.5 h-3.5 rounded-full bg-green-500/80"></span>
-                <div className="mx-auto bg-neutral-950/80 rounded-md text-[10px] text-neutral-500 px-10 py-1 font-mono border border-neutral-800/40 truncate">
-                  https://estoyok.com/dashboard
-                </div>
-              </div>
-              <div className="aspect-[16/9] w-full bg-neutral-900/30 rounded-b-2xl overflow-hidden flex flex-col md:flex-row items-center justify-center p-6 gap-8">
-                {/* Simulated Check-in Phone View */}
-                <div className="w-[185px] aspect-[9/16] bg-neutral-950 rounded-[32px] border-4 border-neutral-800 p-4 flex flex-col justify-between shadow-2xl shrink-0">
-                  <div className="w-12 h-3.5 bg-neutral-850 rounded-full mx-auto mb-2"></div>
-                  
-                  <div className="flex-1 flex flex-col justify-between py-2 text-center">
-                    <div>
-                      <div className="text-[9px] text-neutral-500 uppercase tracking-widest font-black">Estado</div>
-                      <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-green-950 border border-green-500/20 text-[9px] font-bold text-green-400 mt-1">
-                        <span className="w-1.5 h-1.5 rounded-full bg-green-400"></span>
-                        A Salvo
-                      </div>
-                    </div>
-
-                    <div className="flex flex-col items-center">
-                      <div className="w-18 h-18 rounded-full bg-gradient-to-tr from-green-500 to-emerald-600 flex items-center justify-center shadow-lg shadow-green-500/15 border-4 border-green-950/40">
-                        <span className="text-white text-[10px] font-black">ESTOY OK</span>
-                      </div>
-                      <p className="text-[8px] text-neutral-500 mt-2.5 px-2">
-                        Presiona una vez al día para confirmar bienestar.
-                      </p>
-                    </div>
-
-                    <div className="bg-neutral-900/60 border border-neutral-850 p-2 rounded-xl text-[8px] text-neutral-400 text-left">
-                      📡 Auto-Check-in Activo:<br/>
-                      🏠 Red Wi-Fi hogar detectada.
-                    </div>
-                  </div>
-                </div>
-
-                {/* Simulated Desktop Dashboard map preview */}
-                <div className="flex-1 w-full h-full min-h-[160px] bg-neutral-950/60 rounded-2xl border border-neutral-850 p-4 flex flex-col justify-between text-left">
-                  <div className="flex items-center justify-between border-b border-neutral-900 pb-2">
-                    <div className="text-xs font-bold text-neutral-200">Mapa del Núcleo Familiar</div>
-                    <div className="text-[9px] text-neutral-500">Localizaciones en tiempo real</div>
-                  </div>
-                  <div className="flex-1 flex items-center justify-center relative bg-neutral-900/30 rounded-xl my-3 border border-neutral-900 overflow-hidden">
-                    <div className="absolute inset-0 bg-[radial-gradient(#ffffff02_1px,transparent_1px)] bg-[size:12px_12px]"></div>
-                    {/* User Marker */}
-                    <div className="absolute top-1/2 left-1/3 -translate-y-1/2 -translate-x-1/2 flex flex-col items-center">
-                      <div className="px-2 py-0.5 rounded bg-red-600 text-white text-[8px] font-bold shadow-lg">Hijo (Lucas)</div>
-                      <div className="w-2 h-2 rounded-full bg-red-600 mt-1 ring-4 ring-red-500/20 animate-pulse"></div>
-                    </div>
-                    {/* Geofence safe circle */}
-                    <div className="absolute top-1/2 left-1/3 -translate-y-1/2 -translate-x-1/2 w-20 h-20 rounded-full border-2 border-dashed border-red-500/10 bg-red-500/5 flex items-center justify-center">
-                      <span className="text-[7px] text-red-500/30 font-mono">Colegio 200m</span>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2 text-[10px]">
-                    <span className="w-2.5 h-2.5 rounded-full bg-green-500 flex items-center justify-center text-[7px] text-white font-bold">✓</span>
-                    <span className="text-neutral-400">Lucas ingresó a la Zona Segura Colegio</span>
-                  </div>
-                </div>
+            {/* Real App Preview Mockup */}
+            <div className="mt-16 md:mt-20 max-w-4xl mx-auto flex justify-center">
+              <div className="relative rounded-3xl border border-neutral-800/80 bg-neutral-950/60 p-2 md:p-3 shadow-2xl shadow-green-500/10 hover:border-green-500/30 transition-all duration-300 overflow-hidden">
+                <img 
+                  src="/images/hero_mockup.jpg" 
+                  alt="Aplicación Móvil Estoy Ok - Monitoreo de Bienestar y Estado A Salvo" 
+                  className="w-full max-w-3xl h-auto rounded-2xl object-cover hover:scale-[1.01] transition-transform duration-500"
+                />
               </div>
             </div>
           </div>
@@ -407,39 +352,13 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Simulated Emergency Page on Phone */}
-              <div className="relative mx-auto w-full max-w-[280px] bg-neutral-950 rounded-[40px] border-[6px] border-neutral-800 p-4 shadow-2xl">
-                <div className="w-16 h-4 bg-neutral-800 rounded-full mx-auto mb-3"></div>
-                <div className="text-center">
-                  <div className="w-9 h-9 rounded-full bg-red-950 border border-red-500/30 flex items-center justify-center mx-auto text-red-500 animate-bounce mb-2">
-                    ⚠️
-                  </div>
-                  <div className="text-[9px] font-black uppercase text-red-500 tracking-wider">Reporte Vencido</div>
-                  <h4 className="text-xs font-bold text-white mt-0.5">Sofía Dovico no ha reportado</h4>
-                  <p className="text-[8px] text-neutral-500">Último reporte hace 24 horas</p>
-                </div>
-
-                {/* Map preview */}
-                <div className="w-full h-32 bg-neutral-900 rounded-xl my-4 relative border border-neutral-800 overflow-hidden">
-                  <div className="absolute inset-0 bg-[radial-gradient(#ffffff03_1px,transparent_1px)] bg-[size:8px_8px]"></div>
-                  <div className="absolute top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2 text-center">
-                    <div className="px-1.5 py-0.5 rounded bg-red-600 text-white text-[7px] font-bold">Último Registro</div>
-                    <div className="w-2.5 h-2.5 rounded-full bg-red-600 mx-auto mt-0.5 ring-4 ring-red-600/30"></div>
-                  </div>
-                </div>
-
-                {/* Interaction Feedback buttons */}
-                <div className="space-y-2">
-                  <div className="text-[9px] font-bold text-neutral-400 text-center uppercase tracking-wide">Respuestas de apoyo</div>
-                  <div className="grid grid-cols-2 gap-2">
-                    <button className="bg-red-600 text-white text-[8px] font-extrabold py-2.5 rounded-lg active:scale-95 transition-all">
-                      VOY EN CAMINO
-                    </button>
-                    <button className="bg-neutral-850 text-neutral-200 text-[8px] font-extrabold py-2.5 rounded-lg active:scale-95 transition-all">
-                      RECIBIDO
-                    </button>
-                  </div>
-                </div>
+              {/* Real Crisis Web Dashboard Mockup */}
+              <div className="relative mx-auto w-full max-w-xl md:max-w-2xl bg-neutral-950 rounded-3xl border border-neutral-800 p-2 md:p-3 shadow-2xl overflow-hidden hover:scale-[1.02] transition-transform duration-300">
+                <img 
+                  src="/images/crisis_mockup.jpg" 
+                  alt="Sitio Web de Emergencia Estoy Ok - Mapa de Crisis y Respuestas Voy en camino / Recibido" 
+                  className="w-full h-auto rounded-2xl object-cover"
+                />
               </div>
             </div>
           </div>
