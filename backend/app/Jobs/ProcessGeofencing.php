@@ -111,7 +111,7 @@ class ProcessGeofencing implements ShouldQueue
                     $this->recordEvent($geofence, 'entry');
                     $this->sendGeofenceAlert($geofence, 'ingresado a');
                 }
-            } elseif ($distanceMeters > $exitThreshold && $lastType === 'entry') {
+            } elseif ($distanceMeters > $exitThreshold && ($lastType === 'entry' || $lastEvent === null)) {
                 // User is OUTSIDE geofence
                 // If high-speed driving (>= 15 km/h) or very large distance (> 5x radius or > 10km), exit is confirmed immediately
                 $isFastMoving = ($this->speedKmh !== null && $this->speedKmh >= 15.0) || $distanceMeters > max(2000.0, $radius * 5);

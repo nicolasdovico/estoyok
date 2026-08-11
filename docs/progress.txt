@@ -1,6 +1,17 @@
 # Progress Log
 
+## [2026-08-11] Auditoría y Resolución de Notificaciones Push FCM & Fix de Salida de Zonas Seguras (Railway)
+- **Backend (Laravel API):**
+    - Identificada y corregida la causa del bloqueo de notificaciones de salida de Zonas Seguras introducida el 30 de julio: en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php#L272) el parámetro `$wifiSsid` utilizaba un *fallback* erróneo a `$request->input('safe_wifi_ssid')` cuando el celular estaba en datos móviles (`current_wifi_ssid` nulo). Esto hacía que el backend evaluara que el usuario continuaba conectado a la red Wi-Fi de su casa aun estando a kilómetros de distancia, suprimiendo la alerta de salida.
+    - Eliminado el *fallback* engañoso en `LocationController.php` pasando únicamente la red Wi-Fi real (`$request->input('current_wifi_ssid')`).
+    - Actualizada la condición de salida en [`ProcessGeofencing.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/ProcessGeofencing.php#L114) para soportar el despacho de eventos cuando no exista un evento de entrada previo en la base de datos (`$lastEvent === null`).
+    - Preservado intacto el Auto-Check-in Pasivo por Wi-Fi segura y la suite completa de 142 pruebas automatizadas (142/142 PASS).
+
 ## [2026-08-09] Purgado Automático de Caché de Vistas, Reinicio de Queue Workers, Rediseño de Landing Web y Selector de Límite de Velocidad en Android Nativo
+- **Backend (API Laravel & Integración Twilio):**
+    - Creada la ruta de mantenimiento `POST /api/maintenance/send-test-sms` en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) para validar en producción el estado real de las credenciales de Twilio (SID: `ACa241...`, SMS From: `+14246223093`, WhatsApp From: `+14155238886`).
+    - Verificado exitosamente el envío de SMS de producción y pruebas de WhatsApp desde Railway (`api.estoyok24.com`).
+    - Tramitado el proceso de Verificación de Desarrollador / Negocio en Meta Business Manager ([`business.facebook.com/settings/security`](https://business.facebook.com/settings/security)) con documentación subida y a la espera de la resolución de aprobación de Meta para asociar el emisor oficial de WhatsApp API en Twilio.
 - **Frontend Móvil (Android Nativo Kotlin):**
     - Agregado el modelo `UpdateSpeedLimitRequest` en [`CircleModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/CircleModels.kt).
     - Agregado el endpoint `@PUT("circles/{circleId}/speed-limit")` en [`CircleApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/remote/CircleApiService.kt) y expuesto a través de `CircleRepository` e `CircleRepositoryImpl`.

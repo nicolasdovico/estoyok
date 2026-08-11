@@ -51,6 +51,11 @@
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
     - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`):
       - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
+    - [x] Resolución de Notificaciones Push FCM en Producción (Railway) & Fix de Geocercas:
+      - Diagnosticada la causa de la supresión de alertas de salida de Zonas Seguras introducida el 30 de julio: en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php#L272) se asignaba un *fallback* a `$user->safe_wifi_ssid` cuando la red actual era `null`, haciendo que el servidor simulara que el usuario continuaba conectado a la red Wi-Fi de su casa a pesar de estar a varios kilómetros de distancia en datos móviles.
+      - Corregido el parámetro `$wifiSsid` en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php) para transmitir únicamente la red Wi-Fi real informada por el dispositivo (`$request->input('current_wifi_ssid')`).
+      - Actualizado [`ProcessGeofencing.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/ProcessGeofencing.php#L114) permitiendo registrar eventos de salida aun cuando no existiera un evento de entrada previo registrado en la base de datos (`$lastEvent === null`).
+      - Preservada al 100% la funcionalidad de Auto-Check-in Pasivo por Wi-Fi segura y la suite completa de 142 pruebas automatizadas (142/142 PASS).
     - [x] Fix Ciclo de Vida de Notificaciones Push y Sincronización Automática FCM (Android Nativo & Laravel Backend):
       - Impuesta la diferenciación de plataformas Web vs Móvil en `AuthController.php`. Los inicios de sesión desde la Web o peticiones API no envían Silent Push `action => logout` ni desactivan dispositivos celulares físicos.
       - Corregido desacople de método HTTP en la API (`routes/api.php`): configurada la ruta para aceptar `Route::match(['put', 'post'], '/settings/push-token', ...)` y actualizado `SettingsApiService.kt` a `@PUT("settings/push-token")`.

@@ -269,7 +269,7 @@ class LocationController extends Controller
                 }
 
                 // 5. Dispatch Geofencing processing & Passive Auto Check-ins (Wi-Fi & Movement)
-                $wifiSsid = $request->input('current_wifi_ssid') ?? $request->input('safe_wifi_ssid') ?? null;
+                $wifiSsid = $request->input('current_wifi_ssid');
                 $this->handlePassiveWifiAutoCheckin($user, $wifiSsid);
                 $this->handlePassiveMovementAutoCheckin($user, $isMoving);
                 ProcessGeofencing::dispatch($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
