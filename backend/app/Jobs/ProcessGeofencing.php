@@ -170,19 +170,33 @@ class ProcessGeofencing implements ShouldQueue
         $members = $geofence->circle->users()->where('users.id', '!=', $this->user->id)->get();
 
         foreach ($members as $member) {
-            $memberToken = $member->expo_push_token;
-            if (!empty($memberToken) && !isset($sentTokens[$memberToken])) {
-                $sentTokens[$memberToken] = true;
-                app(\App\Services\PushNotificationService::class)->sendPush(
-                    $memberToken,
-                    'Alerta de Perímetro',
-                    "{$this->user->name} ha {$action}: {$geofence->name}",
-                    [
-                        'type' => 'geofence_alert',
-                        'geofence_id' => (string) $geofence->id,
-                        'event' => $action == 'ingresado a' ? 'entry' : 'exit',
-                    ]
-                );
+            $tokens = [];
+            if (!empty($member->expo_push_token)) {
+                $tokens[] = $member->expo_push_token;
+            }
+            $deviceTokens = DB::table('user_devices')
+                ->where('user_id', $member->id)
+                ->where('is_active', true)
+                ->whereNotNull('push_token')
+                ->pluck('push_token')
+                ->toArray();
+            $tokens = array_unique(array_merge($tokens, $deviceTokens));
+
+            foreach ($tokens as $token) {
+                if (!empty($token) && !isset($sentTokens[$token])) {
+                    $sentTokens[$token] = true;
+                    app(\App\Services\PushNotificationService::class)->sendPush(
+                        $token,
+                        'Alerta de Perímetro',
+                        "{$this->user->name} ha {$action}: {$geofence->name}",
+                        [
+                            'type' => 'geofence_alert',
+                            'geofence_id' => (string) $geofence->id,
+                            'event' => $action == 'ingresado a' ? 'entry' : 'exit',
+                        ],
+                        true
+                    );
+                }
             }
         }
     }
