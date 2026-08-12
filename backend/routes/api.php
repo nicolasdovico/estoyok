@@ -105,8 +105,20 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
 });
 
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
-    $to = $request->input('phone', '+5491112345678');
-    $message = $request->input('message', '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada con Evolution API.');
+    $to = $request->input('phone') ?? $request->json('phone');
+    if (! $to) {
+        $body = json_decode($request->getContent(), true);
+        $to = $body['phone'] ?? null;
+    }
+
+    if (! $to) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Debes especificar el parámetro "phone" en el cuerpo JSON (ej: {"phone": "5491149790220"}).',
+        ], 400);
+    }
+
+    $message = $request->input('message') ?? '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada con Evolution API en Railway.';
 
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
