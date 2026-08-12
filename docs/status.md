@@ -51,7 +51,7 @@
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
     - [x] Migración Completa de Pasarela de WhatsApp ($0/mes Self-Hosted Evolution API v2.2.0):
       - Incorporado el servicio contenedor `evolution-api` (v2.2.0) a `docker-compose.yml` e implementado `EvolutionApiService.php` conectado a `WhatsAppServiceInterface` mediante peticiones HTTP directas (`/message/sendText/{instance}`).
-      - Vinculada exitosamente la línea telefónica dedicada (`5492323610697`) en estado `open` y configurado el envío/recepción de WhatsApp en vivo.
+      - Vinculada exitosamente la línea telefónica dedicada (`5492323610697`) en estado `open` y verificado el envío y recepción de WhatsApp en vivo en Railway producción.
       - Removida la dependencia `twilio/sdk` y descartado el envío de SMS desde el servidor, canalizando notificaciones críticas por WhatsApp y Push.
       - Actualizado `WebhookController.php` (`evolutionMessage`) y `routes/api.php` para procesar webhooks de Evolution API (`POST /api/webhooks/evolution/message`) y ejecutar auto check-in al responder "OK".
       - Creada la suite `EvolutionWebhookTest.php` e inmunizada la suite completa (141/141 tests passing).
