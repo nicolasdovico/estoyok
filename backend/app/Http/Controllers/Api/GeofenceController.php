@@ -75,7 +75,7 @@ class GeofenceController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'radius' => 'required|numeric|min:10|max:10000',
+            'radius' => 'required|numeric|min:100|max:10000',
             'type' => 'required|string|in:entry,exit,entry_exit',
             'latitude' => 'required|numeric|between:-90,90',
             'longitude' => 'required|numeric|between:-180,180',
@@ -144,7 +144,7 @@ class GeofenceController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'radius' => 'sometimes|required|numeric|min:10|max:10000',
+            'radius' => 'sometimes|required|numeric|min:100|max:10000',
             'type' => 'sometimes|required|string|in:entry,exit,entry_exit',
             'latitude' => 'sometimes|required|numeric|between:-90,90',
             'longitude' => 'sometimes|required|numeric|between:-180,180',

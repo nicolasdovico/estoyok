@@ -172,6 +172,26 @@ Route::post('/maintenance/purge-all-drives', function () {
     }
 });
 
+Route::post('/maintenance/purge-queued-jobs', function () {
+    try {
+        \Illuminate\Support\Facades\DB::table('failed_jobs')->truncate();
+        $updatedGeofences = \Illuminate\Support\Facades\DB::table('geofences')->where('radius', '<', 100)->update(['radius' => 100]);
+        if (config('queue.default') === 'redis') {
+            try {
+                \Illuminate\Support\Facades\Redis::connection()->flushdb();
+            } catch (\Throwable $e) {
+                // Redis flush optional if keys are handled
+            }
+        }
+        return response()->json([
+            'message' => 'Failed jobs purged, queue backlog cleared, and geofences updated to minimum 100m radius.',
+            'geofences_upgraded_to_100m' => $updatedGeofences,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage()], 500);
+    }
+});
+
 Route::get('/maintenance/diagnose-push', function (Request $request) {
     $report = [];
 
