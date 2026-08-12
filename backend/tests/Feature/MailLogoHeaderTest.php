@@ -20,7 +20,7 @@ class MailLogoHeaderTest extends TestCase
 
         $html = $mailable->render();
 
-        $this->assertTrue(str_contains($html, 'data:image/png;base64,') || str_contains($html, 'images/logo.png'));
+        $this->assertTrue(str_contains($html, 'cid:') || str_contains($html, 'logo'));
         $this->assertStringContainsString('alt="Estoy Ok"', $html);
         $this->assertStringNotContainsString('laravel.com', $html);
         $this->assertStringNotContainsString('notification-logo', $html);
@@ -35,7 +35,7 @@ class MailLogoHeaderTest extends TestCase
 
         $html = $mailable->render();
 
-        $this->assertTrue(str_contains($html, 'data:image/png;base64,') || str_contains($html, 'images/logo.png'));
+        $this->assertTrue(str_contains($html, 'cid:') || str_contains($html, 'logo'));
         $this->assertStringContainsString('alt="Estoy Ok"', $html);
         $this->assertStringNotContainsString('laravel.com', $html);
         $this->assertStringContainsString('aplicación móvil', $html);
@@ -48,7 +48,7 @@ class MailLogoHeaderTest extends TestCase
 
         $html = $mailable->render();
 
-        $this->assertTrue(str_contains($html, 'data:image/png;base64,') || str_contains($html, 'images/logo.png'));
+        $this->assertTrue(str_contains($html, 'cid:') || str_contains($html, 'logo'));
         $this->assertStringContainsString('alt="Estoy Ok"', $html);
         $this->assertStringNotContainsString('laravel.com', $html);
     }

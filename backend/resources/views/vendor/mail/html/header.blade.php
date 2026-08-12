@@ -1,8 +1,8 @@
 @props(['url'])
 @php
     $logoPath = public_path('images/logo.png');
-    $logoSrc = file_exists($logoPath)
-        ? 'data:image/png;base64,' . base64_encode(file_get_contents($logoPath))
+    $logoSrc = (isset($message) && file_exists($logoPath))
+        ? $message->embed($logoPath)
         : 'https://api.estoyok24.com/images/logo.png';
 @endphp
 <tr>
