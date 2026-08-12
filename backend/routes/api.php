@@ -258,8 +258,15 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
 
     // 5. Failed Jobs Audit
     try {
-        $failedCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
-        $report['failed_jobs_count'] = $failedCount;
+        $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->latest('failed_at')->take(5)->get();
+        $report['failed_jobs_count'] = $failedJobs->count();
+        $report['failed_jobs_details'] = $failedJobs->map(fn($fj) => [
+            'id' => $fj->id,
+            'queue' => $fj->queue,
+            'payload_job' => json_decode($fj->payload)->displayName ?? 'Unknown',
+            'exception' => substr($fj->exception, 0, 200),
+            'failed_at' => $fj->failed_at,
+        ]);
     } catch (\Throwable $e) {
         $report['failed_jobs_count'] = 'N/A';
     }
