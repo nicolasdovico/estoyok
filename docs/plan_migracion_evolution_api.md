@@ -46,8 +46,12 @@ volumes:
    - `API_KEY`: `estoyok_secret_key_prod_2026`
    - `DATABASE_ENABLED`: `true`
    - `DATABASE_PROVIDER`: `postgresql`
-   - `DATABASE_CONNECTION_URI`: `${DATABASE_URL}?schema=evolution` (apunta a la BD existente de Railway en un esquema aislado).
+   - `DATABASE_CONNECTION_URI`: `${DATABASE_URL}?schema=evolution&connection_limit=20&pool_timeout=30`
    - `DATABASE_SAVE_DATA_INSTANCE`: `true`
+   - `DATABASE_SAVE_DATA_NEW_MESSAGE`: `true`
+   - `DATABASE_SAVE_DATA_CONTACTS`: `false`
+   - `DATABASE_SAVE_DATA_CHATS`: `false`
+   - `DATABASE_SAVE_DATA_HISTORIC`: `false`
    - `CACHE_REDIS_ENABLED`: `true`
    - `CACHE_REDIS_URI`: `${REDIS_URL}` (reutiliza el Redis del proyecto en Railway).
    - `CACHE_REDIS_PREFIX_KEY`: `evolution`

@@ -137,6 +137,10 @@ services:
       - DATABASE_PROVIDER=postgresql
       - DATABASE_CONNECTION_URI=postgresql://estoyok_user:estoyok_password@postgres:5432/estoyok_db?schema=evolution
       - DATABASE_SAVE_DATA_INSTANCE=true
+      - DATABASE_SAVE_DATA_NEW_MESSAGE=true
+      - DATABASE_SAVE_DATA_CONTACTS=false
+      - DATABASE_SAVE_DATA_CHATS=false
+      - DATABASE_SAVE_DATA_HISTORIC=false
       - CONFIG_SESSION_PHONE_CLIENT=Chrome
       - CONFIG_SESSION_PHONE_NAME=Chrome
       - CONFIG_SESSION_PHONE_VERSION=2.3000.1043857760
