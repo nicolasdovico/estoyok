@@ -60,6 +60,10 @@
       - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
     - [x] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway):
       - Verificada la operatividad del SDK de Firebase (`Kreait\Firebase\Contract\Messaging`) tras la carga de `FIREBASE_CREDENTIALS` en Railway.
+    - [x] Optimización de UX y Resiliencia en Correos y Mapa Público de Emergencia:
+      - Incrustado el logo de Estoy Ok vía `$message->embed()` (inline Content-ID MIME attachment) en `header.blade.php` para asegurar su renderizado perfecto en Gmail, Outlook y Apple Mail.
+      - Habilitados por defecto los botones de respuesta SOS en 1 solo toque (`Marcar como leído`, `Enterado`, `Voy en camino`) con nombre opcional y fallback a "Contacto de Emergencia".
+      - Resuelto el crash de Leaflet en el mapa público de emergencia mediante el parseo a float estricto de coordenadas GPS y fallback defensivo `getApiUrl()`.
       - Inyectado el objeto `'notification' => ['channel_id' => 'fcm_default_channel', 'sound' => 'default', 'icon' => 'ic_stat_notification', 'color' => '#10B981']` en la carga útil `AndroidConfig` de [`PushNotificationService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PushNotificationService.php) para evitar el descarte de notificaciones en Android 8.0+ en segundo plano.
       - Actualizado [`MyFirebaseMessagingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/MyFirebaseMessagingService.kt) en la app nativa Android para procesar notificaciones tanto si el título/cuerpo vienen en el objeto `notification` como en `data`.
       - Implementado el endpoint de auditoría `GET /api/maintenance/diagnose-push` con soporte para test-push en vivo.
