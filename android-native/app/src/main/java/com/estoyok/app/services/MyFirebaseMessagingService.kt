@@ -107,10 +107,13 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
             return
         }
 
-        // 3. Check for normal Notification payload
-        message.notification?.let { notification ->
-            Log.d("FCMService", "Message Notification Title: ${notification.title}, Body: ${notification.body}")
-            showNotification(notification.title ?: "Estoy Ok", notification.body ?: "")
+        // 3. Check for Notification payload or Data payload title/body
+        val title = message.notification?.title ?: message.data["title"] ?: "Estoy Ok"
+        val body = message.notification?.body ?: message.data["body"] ?: ""
+
+        if (body.isNotEmpty() || message.notification != null) {
+            Log.d("FCMService", "Displaying notification: Title: $title, Body: $body")
+            showNotification(title, body)
         }
     }
 

@@ -84,6 +84,10 @@ class PushNotificationService
         try {
             $message = CloudMessage::new()->withToken($to);
 
+            // Ensure title and body are available in data payload for data-only listeners
+            $data['title'] = $data['title'] ?? $title;
+            $data['body'] = $data['body'] ?? $body;
+
             // Silent push payload (e.g., wake_up, logout)
             if ($highPriority && isset($data['action']) && in_array($data['action'], ['wake_up', 'logout'])) {
                 $message = $message->withData($data)
@@ -99,14 +103,20 @@ class PushNotificationService
                     ->withData($data)
                     ->withAndroidConfig(AndroidConfig::fromArray([
                         'priority' => $highPriority ? 'high' : 'normal',
+                        'notification' => [
+                            'channel_id' => 'fcm_default_channel',
+                            'sound' => 'default',
+                            'icon' => 'ic_stat_notification',
+                            'color' => '#10B981',
+                        ]
                     ]));
             }
 
             $this->messaging->send($message);
-            Log::info("Google FCM Push Notification sent successfully.");
+            Log::info("Google FCM Push Notification sent successfully to " . substr($to, 0, 15) . "...");
             return true;
         } catch (\Exception $e) {
-            Log::error("Error sending Google FCM Push: " . $e->getMessage());
+            Log::error("Error sending Google FCM Push to " . substr($to, 0, 15) . "... : " . $e->getMessage());
             return false;
         }
     }

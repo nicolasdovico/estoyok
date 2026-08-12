@@ -164,6 +164,118 @@ Route::post('/maintenance/purge-all-drives', function () {
     }
 });
 
+Route::get('/maintenance/diagnose-push', function (Request $request) {
+    $report = [];
+
+    // 1. Firebase SDK Configuration Audit
+    $envCreds = env('FIREBASE_CREDENTIALS') ?? env('GOOGLE_APPLICATION_CREDENTIALS');
+    $configCreds = config('firebase.projects.app.credentials');
+
+    $firebaseStatus = [
+        'env_firebase_credentials_set' => !empty($envCreds),
+        'config_firebase_credentials_set' => !empty($configCreds),
+        'sdk_status' => 'unknown',
+        'sdk_error' => null,
+    ];
+
+    try {
+        $messaging = app(\Kreait\Firebase\Contract\Messaging::class);
+        $firebaseStatus['sdk_status'] = 'operational';
+    } catch (\Throwable $e) {
+        $firebaseStatus['sdk_status'] = 'failed';
+        $firebaseStatus['sdk_error'] = $e->getMessage();
+    }
+    $report['firebase_sdk'] = $firebaseStatus;
+
+    // 2. Push Tokens Audit in Database
+    $users = \App\Models\User::all();
+    $tokenTypes = [
+        'expo_token' => 0,
+        'fcm_native_token' => 0,
+        'null_or_empty' => 0,
+    ];
+
+    $usersSummary = [];
+    foreach ($users as $user) {
+        $token = $user->expo_push_token;
+        if (empty($token)) {
+            $type = 'null_or_empty';
+        } elseif (str_starts_with($token, 'ExponentPushToken[') || str_starts_with($token, 'ExpoPushToken[')) {
+            $type = 'expo_token';
+        } else {
+            $type = 'fcm_native_token';
+        }
+        $tokenTypes[$type]++;
+
+        $usersSummary[] = [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'token_type' => $type,
+            'token_snippet' => $token ? (substr($token, 0, 25) . '...') : null,
+        ];
+    }
+
+    $report['tokens_summary'] = [
+        'total_users' => $users->count(),
+        'breakdown' => $tokenTypes,
+        'users' => $usersSummary,
+    ];
+
+    // 3. User Devices Table Audit
+    $devices = \Illuminate\Support\Facades\DB::table('user_devices')->get();
+    $report['user_devices'] = [
+        'total_registered_devices' => $devices->count(),
+        'active_devices_with_token' => $devices->where('is_active', true)->whereNotNull('push_token')->count(),
+        'devices' => $devices->map(function ($dev) {
+            return [
+                'user_id' => $dev->user_id,
+                'device_uuid' => $dev->device_uuid,
+                'platform' => $dev->platform,
+                'is_active' => $dev->is_active,
+                'token_snippet' => $dev->push_token ? (substr($dev->push_token, 0, 25) . '...') : null,
+                'last_active_at' => $dev->last_active_at,
+            ];
+        }),
+    ];
+
+    // 4. Geofences & Events Audit
+    $geofences = \App\Models\Geofence::where('is_active', true)->get();
+    $recentEvents = \App\Models\GeofenceEvent::where('occurred_at', '>=', now()->subHours(24))->get();
+    $report['geofencing_audit'] = [
+        'active_geofences_count' => $geofences->count(),
+        'geofences' => $geofences->map(fn($g) => ['id' => $g->id, 'name' => $g->name, 'circle_id' => $g->circle_id, 'radius' => $g->radius]),
+        'recent_events_24h_count' => $recentEvents->count(),
+    ];
+
+    // 5. Failed Jobs Audit
+    try {
+        $failedCount = \Illuminate\Support\Facades\DB::table('failed_jobs')->count();
+        $report['failed_jobs_count'] = $failedCount;
+    } catch (\Throwable $e) {
+        $report['failed_jobs_count'] = 'N/A';
+    }
+
+    // 6. Actionable Diagnosis
+    $diagnoses = [];
+    if ($firebaseStatus['sdk_status'] !== 'operational') {
+        $diagnoses[] = 'CRITICAL: Google FCM Firebase SDK is NOT operational on Railway backend because FIREBASE_CREDENTIALS (or GOOGLE_APPLICATION_CREDENTIALS) is missing or invalid in Railway environment variables. Native Android devices using FCM tokens will NOT receive push notifications.';
+    }
+    if ($tokenTypes['fcm_native_token'] > 0 && $firebaseStatus['sdk_status'] !== 'operational') {
+        $diagnoses[] = 'HIGH RISK: Active Android native users exist with FCM tokens, but backend cannot send FCM notifications without Firebase credentials.';
+    }
+    if ($tokenTypes['null_or_empty'] == $users->count()) {
+        $diagnoses[] = 'WARNING: No users have active push tokens registered in users.expo_push_token.';
+    }
+    if (empty($diagnoses)) {
+        $diagnoses[] = 'System configuration appears healthy. Check individual device notification permissions and Android battery optimization settings.';
+    }
+
+    $report['diagnoses'] = $diagnoses;
+
+    return response()->json($report);
+});
+
 // Webhooks
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
