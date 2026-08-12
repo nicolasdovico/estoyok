@@ -18,8 +18,7 @@
         "mercadopago/dx-php": "^3.10",
         "resend/resend-laravel": "*",
         "srmklive/paypal": "^3.1",
-        "symfony/filesystem": "^8.1",
-        "twilio/sdk": "^8.11"
+        "symfony/filesystem": "^8.1"
     },
     "require-dev": {
         "fakerphp/faker": "^1.23",

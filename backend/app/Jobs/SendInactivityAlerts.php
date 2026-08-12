@@ -180,10 +180,10 @@ class SendInactivityAlerts implements ShouldQueue
             $success = $whatsAppService->sendWhatsApp($contact->phone, $message);
 
             if (! $success) {
-                Log::warning("WhatsApp failed for contact {$contact->phone}, falling back to SMS.");
-                $whatsAppService->sendSMS($contact->phone, $message);
+                Log::warning("WhatsApp failed for contact {$contact->phone} (user {$this->user->id}).");
+            } else {
+                Log::info("Premium alert sent to contact ID {$contact->id} for user {$this->user->id}");
             }
-            Log::info("Premium alert sent to contact ID {$contact->id} for user {$this->user->id}");
         }
     }
 

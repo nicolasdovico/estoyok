@@ -159,7 +159,7 @@ class AjustesViewModel @Inject constructor(
             settingsRepository.updateSmsWhatsappCheckin(enabled).collectLatest { resource ->
                 if (resource is Resource.Success) {
                     allowSmsWhatsappCheckin = enabled
-                    messageSuccess = "Ajustes de Twilio actualizados."
+                    messageSuccess = "Ajustes de WhatsApp actualizados."
                 }
             }
         }

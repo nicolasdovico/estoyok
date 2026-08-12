@@ -36,14 +36,8 @@ class CrashAlertTest extends TestCase
             'https://exp.host/--/api/v2/push/send' => Http::response(['status' => 'ok'], 200),
         ]);
 
-        // 3. Mock Twilio/WhatsApp Service
+        // 3. Mock UltraMsg/WhatsApp Service
         $this->mock(WhatsAppServiceInterface::class, function ($mock) use ($contact) {
-            // Should send both SMS and WhatsApp because the user is premium
-            $mock->shouldReceive('sendSMS')
-                ->once()
-                ->with($contact->phone, Mockery::pattern('/ALERTA DE ACCIDENTE/'))
-                ->andReturn(true);
-
             $mock->shouldReceive('sendWhatsApp')
                 ->once()
                 ->with($contact->phone, Mockery::pattern('/ALERTA DE ACCIDENTE/'))

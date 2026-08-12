@@ -1,5 +1,17 @@
 # Progress Log
 
+## [2026-08-12] Migración Completa de Pasarela de WhatsApp de Twilio a UltraMsg (API Gateway) & Eliminación de SMS de Servidor
+- **Backend (API Laravel & UltraMsg Integration):**
+    - Removido el paquete `twilio/sdk` del backend mediante `composer remove twilio/sdk`.
+    - Eliminado `TwilioService.php` y creado `UltraMsgService.php` implementando `WhatsAppServiceInterface` mediante peticiones HTTP directas con `Illuminate\Support\Facades\Http` a `https://api.ultramsg.com/{instance_id}/messages/chat`.
+    - Removido el envío de SMS desde el servidor en `SendInactivityAlerts.php`, `SendCrashAlertJob.php` y `EmergencyAlertController.php`, canalizando todas las alertas críticas exclusivamente vía WhatsApp y Notificaciones Push.
+    - Actualizadas las variables de entorno en `.env` y `.env.example` (`ULTRAMSG_INSTANCE_ID` y `ULTRAMSG_TOKEN`) y la configuración en `config/services.php`.
+    - Creado el endpoint de webhook entrante `POST /api/webhooks/ultramsg/message` y el controlador `WebhookController@ultramsgMessage` para procesar respuestas de WhatsApp y ejecutar el Auto Check-in al responder "OK".
+    - Creado el test de integración `UltraMsgWebhookTest.php` y actualizada la suite de pruebas (`WhatsAppAlertTest.php`, `CrashAlertTest.php`, `InactivityEscalationTest.php`) verificando el 100% de éxito (141/141 tests passing).
+    - Creada la guía técnica completa en [`docs/plan_migracion_ultramsg.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_migracion_ultramsg.md).
+- **App Móvil Nativa (Android Kotlin):**
+    - Actualizadas las pantallas y ViewModels (`AjustesScreen.kt`, `PremiumScreen.kt`, `AjustesViewModel.kt`) reemplazando referencias de Twilio / SMS por *"Reporte por WhatsApp"* y *"Alertas por WhatsApp"*.
+
 ## [2026-08-11] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway) & Auditoría de Servidor
 - **Backend (Laravel API & Firebase SDK):**
     - Auditada la conexión en vivo con Railway confirmando que el SDK de Firebase (`Kreait\Firebase\Contract\Messaging`) se encuentra `operational` tras cargar la variable de entorno `FIREBASE_CREDENTIALS`.

@@ -104,43 +104,32 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
     }
 });
 
-Route::post('/maintenance/send-test-sms', function (Request $request) {
+Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone', '+5491112345678');
-    $type = strtolower($request->input('type', 'sms'));
+    $message = $request->input('message', '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada con UltraMsg.');
 
-    $sid = config('services.twilio.sid');
-    $token = config('services.twilio.token');
-    $smsFrom = config('services.twilio.sms_from');
-    $waFrom = config('services.twilio.whatsapp_from');
+    $instanceId = config('services.ultramsg.instance_id');
+    $token = config('services.ultramsg.token');
 
-    if (!$sid || !$token) {
+    if (!$instanceId || !$token) {
         return response()->json([
             'success' => false,
-            'message' => 'Twilio no está configurado en Railway. Falta TWILIO_SID o TWILIO_AUTH_TOKEN.',
+            'message' => 'UltraMsg no está configurado en Railway. Falta ULTRAMSG_INSTANCE_ID o ULTRAMSG_TOKEN.',
             'values' => [
-                'sid' => $sid ? substr($sid, 0, 6) . '...' : null,
-                'sms_from' => $smsFrom,
-                'wa_from' => $waFrom,
+                'instance_id' => $instanceId ? substr($instanceId, 0, 6) . '...' : null,
             ]
         ], 400);
     }
 
     try {
-        $twilio = new \App\Services\TwilioService();
-        if ($type === 'whatsapp') {
-            $ok = $twilio->sendWhatsApp($to, '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada desde Railway.');
-        } else {
-            $ok = $twilio->sendSMS($to, '🔔 Prueba oficial de SMS de Estoy Ok enviada desde Railway.');
-        }
+        $ultraMsg = new \App\Services\UltraMsgService();
+        $ok = $ultraMsg->sendWhatsApp($to, $message);
 
         return response()->json([
             'success' => $ok,
-            'type' => $type,
             'target_phone' => $to,
-            'sid_prefix' => substr($sid, 0, 6) . '...',
-            'sms_from' => $smsFrom,
-            'wa_from' => $waFrom,
-            'message' => $ok ? 'Petición procesada exitosamente por Twilio.' : 'Twilio devolvió error o no pudo entregar el mensaje. Revisa los logs.',
+            'instance_id' => $instanceId,
+            'message' => $ok ? 'Petición procesada exitosamente por UltraMsg.' : 'UltraMsg devolvió error o no pudo entregar el mensaje. Revisa los logs.',
         ]);
     } catch (\Throwable $e) {
         return response()->json([
@@ -304,7 +293,7 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
 Route::post('/webhooks/stripe', [Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook']);
-Route::post('/webhooks/twilio/message', [WebhookController::class, 'twilioMessage']);
+Route::post('/webhooks/ultramsg/message', [WebhookController::class, 'ultramsgMessage']);
 
 // Emergency Routes (Public)
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);

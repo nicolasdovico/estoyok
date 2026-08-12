@@ -227,18 +227,14 @@ class EmergencyAlertController extends Controller
             }
         }
 
-        // Notify emergency contacts via SMS
+        // Notify emergency contacts via WhatsApp
         $contacts = $user->emergencyContacts()->where('is_active', true)->get();
         $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
-        $smsBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$emergencyUrl}";
+        $sosBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$emergencyUrl}";
 
         foreach ($contacts as $contact) {
             if ($contact->phone) {
-                $whatsAppService->sendSMS($contact->phone, $smsBody);
-                // Si el usuario es premium, también le mandamos WhatsApp por si acaso
-                if ($user->is_premium) {
-                    $whatsAppService->sendWhatsApp($contact->phone, $smsBody);
-                }
+                $whatsAppService->sendWhatsApp($contact->phone, $sosBody);
             }
         }
 

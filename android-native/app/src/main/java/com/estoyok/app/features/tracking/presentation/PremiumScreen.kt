@@ -407,7 +407,7 @@ fun PremiumScreen(
                         Triple("Historial de Recorridos", "24 Horas", "30 Días"),
                         Triple("Rastreo GPS en Vehículo", "Estándar (30s)", "Alta Frecuencia (5s)"),
                         Triple("Zonas Seguras (Geocercas)", "Hasta 2", "Ilimitadas"),
-                        Triple("Alertas por WhatsApp / SMS", "Desactivado", "Ilimitadas"),
+                        Triple("Alertas por WhatsApp", "Desactivado", "Ilimitadas"),
                         Triple("S.O.S. con Audio Ambiente", "Solo Push", "Grabación 15s + 5s GPS"),
                         Triple("Detección de Accidentes (Crash)", "Desactivado", "Acelerómetro + Sirena"),
                         Triple("Telemetría de Conducción", "Básica", "Frenadas / Excesos / Celular"),

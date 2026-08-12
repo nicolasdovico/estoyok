@@ -61,71 +61,67 @@ class WebhookController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    public function twilioMessage(Request $request)
+    public function ultramsgMessage(Request $request)
     {
-        Log::info('Twilio Message Webhook Received', $request->all());
+        Log::info('UltraMsg Message Webhook Received', $request->all());
 
-        $from = $request->input('From');
+        $from = $request->input('data.from') ?? $request->input('from');
         if (! $from) {
-            return $this->twimlResponse('');
+            return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
         }
 
-        // Clean "whatsapp:" prefix if present
+        // Clean @c.us or whatsapp: prefix if present
+        if (str_contains($from, '@')) {
+            $from = explode('@', $from)[0];
+        }
         if (str_starts_with($from, 'whatsapp:')) {
             $from = substr($from, 9);
         }
 
-        // Clean E.164 phone format
-        $fromCleaned = preg_replace('/[\s\-\(\)]+/', '', $from);
+        // Clean phone format (keep numbers)
+        $fromCleaned = preg_replace('/[^0-9]/', '', $from);
 
         // Find user by phone who is active (email verified)
-        $user = User::where('phone', $fromCleaned)
-            ->whereNotNull('email_verified_at')
-            ->first();
+        $user = User::whereNotNull('email_verified_at')
+            ->get()
+            ->first(function ($u) use ($fromCleaned) {
+                if (empty($u->phone)) return false;
+                $userPhoneClean = preg_replace('/[^0-9]/', '', $u->phone);
+                return $userPhoneClean === $fromCleaned || str_ends_with($fromCleaned, $userPhoneClean) || str_ends_with($userPhoneClean, $fromCleaned);
+            });
 
         if (! $user) {
-            return $this->twimlResponse('');
+            Log::info("UltraMsg Webhook: User not found for phone {$fromCleaned}");
+            return response()->json(['status' => 'user_not_found']);
         }
 
         // Check if configuration is enabled
         if (! $user->allow_sms_whatsapp_checkin) {
-            return $this->twimlResponse('La opción de Check-in por SMS/WhatsApp no está activa en tu cuenta. Por favor, actívala en tus Ajustes de Estoy Ok.');
+            Log::info("UltraMsg Webhook: Check-in disabled for user {$user->id}");
+            return response()->json(['status' => 'checkin_disabled']);
         }
 
-        $body = trim(strtolower($request->input('Body', '')));
+        $body = trim(strtolower($request->input('data.body') ?? $request->input('body', '')));
         $acceptedPatterns = ['ok', 'estoy ok', '1', 'bien'];
 
         if (! in_array($body, $acceptedPatterns)) {
-            return $this->twimlResponse('No reconocimos tu respuesta. Para reportar que estás bien, responde con: OK, ESTOY OK, 1 o BIEN.');
+            Log::info("UltraMsg Webhook: Unrecognized body '{$body}' from user {$user->id}");
+            return response()->json(['status' => 'unrecognized_body']);
         }
-
-        // Check time limit
-        $isLocal = app()->environment('local');
-        $unit = $isLocal ? 'minutes' : 'hours';
-        $lastCheckIn = $user->last_check_in_at ?? $user->created_at;
-        $expiresAt = $lastCheckIn->copy()->add($user->checkin_interval_hours, $unit);
 
         // Process check-in
         $user->update([
             'last_check_in_at' => \Illuminate\Support\Carbon::now(),
         ]);
-        $user->checkIns()->create();
+        $user->checkIns()->create(['source' => 'whatsapp']);
         $user->emergencyAlerts()->where('status', 'active')->update([
             'status' => 'resolved',
         ]);
 
-        return $this->twimlResponse('Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
-    }
+        // Optional confirmation reply via WhatsApp
+        $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
+        $whatsAppService->sendWhatsApp($user->phone, 'Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
 
-    private function twimlResponse(string $message)
-    {
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>';
-        $xml .= '<Response>';
-        if (! empty($message)) {
-            $xml .= '<Message>' . e($message) . '</Message>';
-        }
-        $xml .= '</Response>';
-
-        return response($xml, 200)->header('Content-Type', 'text/xml');
+        return response()->json(['status' => 'success', 'message' => 'Check-in processed successfully']);
     }
 }

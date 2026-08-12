@@ -12,12 +12,4 @@ interface WhatsAppServiceInterface
      * @param  array  $parameters  Optional parameters for templates.
      */
     public function sendWhatsApp(string $to, string $message, array $parameters = []): bool;
-
-    /**
-     * Send an SMS message (fallback).
-     *
-     * @param  string  $to  The recipient's phone number.
-     * @param  string  $message  The message content.
-     */
-    public function sendSMS(string $to, string $message): bool;
 }

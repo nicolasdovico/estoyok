@@ -372,8 +372,8 @@ fun AjustesScreen(
                 }
             }
 
-            // 4. SMS / WhatsApp (Twilio Webhook Toggle)
-            SettingsCard(title = "Reporte por SMS / WhatsApp") {
+            // 4. WhatsApp (UltraMsg Webhook Toggle)
+            SettingsCard(title = "Reporte por WhatsApp") {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -381,14 +381,14 @@ fun AjustesScreen(
                 ) {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = "Reporte por SMS / WhatsApp",
+                            text = "Reporte por WhatsApp",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Habilita responder a las notificaciones de emergencia directamente con un mensaje de texto para confirmar que estás a salvo.",
+                            text = "Habilita responder a las notificaciones de emergencia directamente con un mensaje de WhatsApp para confirmar que estás a salvo.",
                             fontSize = 11.sp,
                             color = TextSecondary,
                             lineHeight = 15.sp

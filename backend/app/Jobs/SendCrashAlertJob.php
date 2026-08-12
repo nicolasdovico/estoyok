@@ -89,7 +89,7 @@ class SendCrashAlertJob implements ShouldQueue
             }
         }
 
-        // Send Twilio SMS and/or WhatsApp to Emergency Contacts
+        // Send WhatsApp to Emergency Contacts
         $contacts = $user->emergencyContacts()->where('is_active', true)->get();
         $gForceText = $this->crashEvent->g_force ? " de {$this->crashEvent->g_force} G" : "";
         $message = "🚨 ¡ALERTA DE ACCIDENTE! Detectamos un fuerte impacto vehicular{$gForceText} en la ubicación de {$user->name}. Ver mapa en vivo: {$emergencyUrl}";
@@ -97,16 +97,10 @@ class SendCrashAlertJob implements ShouldQueue
         foreach ($contacts as $contact) {
             if ($contact->phone) {
                 try {
-                    // Send basic SMS
-                    $whatsAppService->sendSMS($contact->phone, $message);
-
-                    // Send WhatsApp if premium
-                    if ($user->hasPremiumAccess()) {
-                        $whatsAppService->sendWhatsApp($contact->phone, $message);
-                    }
-                    Log::info("Crash alert SMS/WhatsApp sent to contact {$contact->phone} for user {$user->id}");
+                    $whatsAppService->sendWhatsApp($contact->phone, $message);
+                    Log::info("Crash alert WhatsApp sent to contact {$contact->phone} for user {$user->id}");
                 } catch (\Exception $e) {
-                    Log::error("Failed to send Twilio alert to contact {$contact->id}: " . $e->getMessage());
+                    Log::error("Failed to send UltraMsg alert to contact {$contact->id}: " . $e->getMessage());
                 }
             }
         }

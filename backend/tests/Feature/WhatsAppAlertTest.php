@@ -51,7 +51,7 @@ class WhatsAppAlertTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function test_send_inactivity_alerts_falls_back_to_sms_if_whatsapp_fails()
+    public function test_send_inactivity_alerts_handles_whatsapp_failure_gracefully()
     {
         // 1. Create a premium user with emergency contacts
         $user = User::factory()->create([
@@ -65,16 +65,11 @@ class WhatsAppAlertTest extends TestCase
             'phone' => '+5491122334455',
         ]);
 
-        // 2. Mock WhatsApp Service to fail WhatsApp but succeed SMS
+        // 2. Mock WhatsApp Service to fail WhatsApp
         $this->mock(WhatsAppServiceInterface::class, function ($mock) use ($contact) {
             $mock->shouldReceive('sendWhatsApp')
                 ->once()
                 ->andReturn(false);
-
-            $mock->shouldReceive('sendSMS')
-                ->once()
-                ->with($contact->phone, Mockery::pattern('/John Doe/'))
-                ->andReturn(true);
         });
 
         // 3. Execute the job
