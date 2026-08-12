@@ -124,14 +124,22 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     }
 
     try {
-        $evolutionService = new \App\Services\EvolutionApiService();
-        $ok = $evolutionService->sendWhatsApp($to, $message);
+        $url = rtrim(config('services.evolution.url'), '/') . '/message/sendText/' . config('services.evolution.instance', 'estoyok_main');
+        $apiKey = config('services.evolution.api_key');
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($url, [
+            'number' => preg_replace('/[^0-9]/', '', $to),
+            'text' => $message,
+        ]);
 
         return response()->json([
-            'success' => $ok,
+            'success' => $response->successful(),
             'target_phone' => $to,
-            'instance' => $instance,
-            'message' => $ok ? 'Petición procesada exitosamente por Evolution API.' : 'Evolution API devolvió error o no pudo entregar el mensaje. Revisa los logs.',
+            'url_called' => $url,
+            'http_status' => $response->status(),
+            'evolution_response' => $response->json() ?? $response->body(),
         ]);
     } catch (\Throwable $e) {
         return response()->json([
