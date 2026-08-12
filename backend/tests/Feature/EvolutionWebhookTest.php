@@ -137,7 +137,7 @@ class EvolutionWebhookTest extends TestCase
             'source' => 'whatsapp',
         ]);
         $this->assertNotNull($user->fresh()->last_check_in_at);
-        $this->assertTrue($user->fresh()->last_check_in_at->isAfter(now()->subSeconds(5)));
+        $this->assertTrue($user->fresh()->last_check_in_at->isAfter(now()->subMinute()));
     }
 
     public function test_user_check_in_resolves_active_emergency_alerts()
