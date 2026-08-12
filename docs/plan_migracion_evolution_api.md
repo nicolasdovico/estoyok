@@ -35,12 +35,34 @@ volumes:
 ```
 
 ### 1.2 Configuración en Railway (Entorno de Producción)
-1. En el proyecto de Railway, agregar un nuevo servicio desde la plantilla o imagen oficial de Docker: `atendai/evolution-api:v2.1.1`.
-2. Asignar las variables de entorno:
-   - `SERVER_URL`: `https://evolution-production-estoyok.up.railway.app` (o el dominio público asignado por Railway).
-   - `API_KEY`: Clave secreta definida para la autenticación (ej: `estoyok_secret_key_prod_2026`).
-   - `AUTHENTICATION_TYPE`: `apikey`.
-   - `DATABASE_ENABLED`: `false` (almacenamiento local en disco).
+
+1. En el proyecto de Railway (**Estoy Ok**), hacer clic en **+ New** ➔ **Docker Image**.
+2. Ingresar el nombre de la imagen oficial: `evoapicloud/evolution-api:v2.2.0`.
+3. Renombrar el servicio a `evolution-api`.
+4. Asignar las variables de entorno en la pestaña **Variables** del servicio `evolution-api`:
+   - `SERVER_URL`: `https://${RAILWAY_PUBLIC_DOMAIN}` (o la URL pública asignada por Railway).
+   - `AUTHENTICATION_TYPE`: `apikey`
+   - `AUTHENTICATION_API_KEY`: `estoyok_secret_key_prod_2026`
+   - `API_KEY`: `estoyok_secret_key_prod_2026`
+   - `DATABASE_ENABLED`: `true`
+   - `DATABASE_PROVIDER`: `postgresql`
+   - `DATABASE_CONNECTION_URI`: `${DATABASE_URL}?schema=evolution` (apunta a la BD existente de Railway en un esquema aislado).
+   - `DATABASE_SAVE_DATA_INSTANCE`: `true`
+   - `CACHE_REDIS_ENABLED`: `true`
+   - `CACHE_REDIS_URI`: `${REDIS_URL}` (reutiliza el Redis del proyecto en Railway).
+   - `CACHE_REDIS_PREFIX_KEY`: `evolution`
+   - `CACHE_REDIS_SAVE_INSTANCES`: `true`
+   - `CONFIG_SESSION_PHONE_CLIENT`: `Chrome`
+   - `CONFIG_SESSION_PHONE_NAME`: `Chrome`
+   - `CONFIG_SESSION_PHONE_VERSION`: `2.3000.1043857760`
+   - `NODE_OPTIONS`: `--network-family-autoselection-attempt-timeout=1000`
+   - `PORT`: `8080`
+
+5. En **Settings ➔ Networking** del servicio `evolution-api`, presionar **Generate Domain** (ej: `https://evolution-api-production-xxxx.up.railway.app`).
+6. En el servicio `backend` de Laravel en Railway, actualizar las variables de entorno:
+   - `EVOLUTION_API_URL`: `https://evolution-api-production-xxxx.up.railway.app`
+   - `EVOLUTION_API_KEY`: `estoyok_secret_key_prod_2026`
+   - `EVOLUTION_INSTANCE_NAME`: `estoyok_main`
 
 ---
 
