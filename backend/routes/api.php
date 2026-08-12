@@ -289,11 +289,52 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
 
     // 4. Geofences & Events Audit
     $geofences = \App\Models\Geofence::where('is_active', true)->get();
-    $recentEvents = \App\Models\GeofenceEvent::where('occurred_at', '>=', now()->subHours(24))->get();
+    $recentEvents = \App\Models\GeofenceEvent::with(['user', 'geofence'])
+        ->latest('occurred_at')
+        ->take(10)
+        ->get();
+    
+    $currentLocations = \App\Models\CurrentLocation::with('user')->get()->map(function($cl) use ($geofences) {
+        $distances = [];
+        foreach ($geofences as $g) {
+            $distResult = \Illuminate\Support\Facades\DB::selectOne(
+                'SELECT ST_Distance(center, ST_SetSRID(ST_MakePoint(?, ?), 4326)::geography) as distance FROM geofences WHERE id = ?',
+                [$cl->longitude, $cl->latitude, $g->id]
+            );
+            $distances[$g->name] = $distResult ? round((float) $distResult->distance, 1) . 'm' : 'N/A';
+        }
+        return [
+            'user_id' => $cl->user_id,
+            'user_name' => $cl->user?->name ?? 'Unknown',
+            'latitude' => $cl->latitude,
+            'longitude' => $cl->longitude,
+            'updated_at' => (string) $cl->updated_at,
+            'distances_to_geofences' => $distances,
+        ];
+    });
+
+    $analiaHistory = \App\Models\LocationHistory::where('user_id', 21)
+        ->latest('created_at')
+        ->take(5)
+        ->get()
+        ->map(fn($lh) => [
+            'latitude' => $lh->latitude,
+            'longitude' => $lh->longitude,
+            'created_at' => (string) $lh->created_at,
+        ]);
+
     $report['geofencing_audit'] = [
         'active_geofences_count' => $geofences->count(),
         'geofences' => $geofences->map(fn($g) => ['id' => $g->id, 'name' => $g->name, 'circle_id' => $g->circle_id, 'radius' => $g->radius]),
-        'recent_events_24h_count' => $recentEvents->count(),
+        'recent_events' => $recentEvents->map(fn($e) => [
+            'id' => $e->id,
+            'user_name' => $e->user?->name ?? "User #{$e->user_id}",
+            'geofence_name' => $e->geofence?->name ?? "Geofence #{$e->geofence_id}",
+            'type' => $e->type,
+            'occurred_at' => (string) $e->occurred_at,
+        ]),
+        'current_locations' => $currentLocations,
+        'analia_recent_history' => $analiaHistory,
     ];
 
     // 5. Failed Jobs Audit
