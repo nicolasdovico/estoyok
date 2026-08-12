@@ -176,7 +176,7 @@ class LocationController extends Controller
                 if ($batteryLevel !== null && $isBatteryLow && !$previousIsBatteryLow && $user->low_battery_alerts_enabled) {
                     $oneHourAgo = now()->subHour();
                     if (is_null($user->last_battery_alert_sent_at) || $user->last_battery_alert_sent_at->lt($oneHourAgo)) {
-                        SendBatteryAlertJob::dispatch($user, $batteryLevel);
+                        SendBatteryAlertJob::dispatchSync($user, $batteryLevel);
                         $user->update(['last_battery_alert_sent_at' => now()]);
                     }
                 }
@@ -217,7 +217,7 @@ class LocationController extends Controller
                                 if (!cache()->has($cacheKey)) {
                                     $circleOwner = User::find($circle->owner_id);
                                     if ($circleOwner && $circleOwner->id !== $user->id) {
-                                        SendSpeedingAlertJob::dispatch($circleOwner, $user, $speedKmh, $limit);
+                                        SendSpeedingAlertJob::dispatchSync($circleOwner, $user, $speedKmh, $limit);
                                     }
                                     cache()->put($cacheKey, true, now()->addMinutes(15));
                                 }
@@ -272,8 +272,8 @@ class LocationController extends Controller
                 $wifiSsid = $request->input('current_wifi_ssid');
                 $this->handlePassiveWifiAutoCheckin($user, $wifiSsid);
                 $this->handlePassiveMovementAutoCheckin($user, $isMoving);
-                ProcessGeofencing::dispatch($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
-                ProcessDynamicGeofencing::dispatch($user, $lat, $lng);
+                ProcessGeofencing::dispatchSync($user, $lat, $lng, $accuracy, $wifiSsid, $speedKmh);
+                ProcessDynamicGeofencing::dispatchSync($user, $lat, $lng);
             });
 
             $activeGeofenceExists = \App\Models\DynamicGeofence::active()
