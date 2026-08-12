@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-08-11] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway) & Auditoría de Servidor
+- **Backend (Laravel API & Firebase SDK):**
+    - Auditada la conexión en vivo con Railway confirmando que el SDK de Firebase (`Kreait\Firebase\Contract\Messaging`) se encuentra `operational` tras cargar la variable de entorno `FIREBASE_CREDENTIALS`.
+    - Inyectado el objeto `'notification' => ['channel_id' => 'fcm_default_channel', 'sound' => 'default', 'icon' => 'ic_stat_notification', 'color' => '#10B981']` dentro del payload de `AndroidConfig` en [`PushNotificationService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PushNotificationService.php) para evitar el descarte de notificaciones en Android 8.0+ en segundo plano.
+    - Creado el endpoint de auditoría e inspección `GET /api/maintenance/diagnose-push` que audita el estado del SDK, los tokens de usuarios registrados y permite simular envíos Push directos (`?test_user_id=21`).
+- **App Móvil Nativa (Android Kotlin):**
+    - Actualizado [`MyFirebaseMessagingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/MyFirebaseMessagingService.kt) para procesar el título y cuerpo de las notificaciones tanto si vienen en el objeto `notification` como en `data` (silent push o data-only payloads).
+
 ## [2026-08-11] Auditoría y Resolución de Notificaciones Push FCM & Fix de Salida de Zonas Seguras (Railway)
 - **Backend (Laravel API):**
     - Identificada y corregida la causa del bloqueo de notificaciones de salida de Zonas Seguras introducida el 30 de julio: en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php#L272) el parámetro `$wifiSsid` utilizaba un *fallback* erróneo a `$request->input('safe_wifi_ssid')` cuando el celular estaba en datos móviles (`current_wifi_ssid` nulo). Esto hacía que el backend evaluara que el usuario continuaba conectado a la red Wi-Fi de su casa aun estando a kilómetros de distancia, suprimiendo la alerta de salida.

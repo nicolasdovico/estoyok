@@ -111,8 +111,9 @@ class AuthRepositoryImpl @Inject constructor(
                 // Ignore FCM token deletion errors
             }
 
-            // 3. Call backend logout API
-            val response = apiService.logout()
+            // 3. Call backend logout API with device_uuid
+            val deviceUuid = sessionManager.getOrCreateDeviceUuid()
+            val response = apiService.logout(mapOf("device_uuid" to deviceUuid))
             if (response.isSuccessful && response.body() != null) {
                 emit(Resource.Success(response.body()!!))
             } else {

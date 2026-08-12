@@ -28,5 +28,7 @@ interface AuthApiService {
     ): Response<MessageResponse>
 
     @POST("logout")
-    suspend fun logout(): Response<MessageResponse>
+    suspend fun logout(
+        @Body request: Map<String, String>? = null
+    ): Response<MessageResponse>
 }

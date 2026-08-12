@@ -300,9 +300,8 @@ class AuthController extends Controller
                     ->where('device_uuid', $deviceUuid)
                     ->update(['is_active' => false, 'push_token' => null]);
             } else {
-                // If device_uuid is not specified, deactivate web devices only
+                // If device_uuid is not specified, deactivate ALL active devices for this user and clear their tokens
                 \App\Models\UserDevice::where('user_id', $user->id)
-                    ->where('platform', 'web')
                     ->update(['is_active' => false, 'push_token' => null]);
             }
 

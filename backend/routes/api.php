@@ -256,19 +256,43 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
         $report['failed_jobs_count'] = 'N/A';
     }
 
-    // 6. Actionable Diagnosis
+    // 6. Test Push Dispatch if requested
+    $testUserId = $request->query('test_user_id');
+    if (!empty($testUserId)) {
+        $targetUser = \App\Models\User::find($testUserId);
+        if ($targetUser && !empty($targetUser->expo_push_token)) {
+            $pushService = app(\App\Services\PushNotificationService::class);
+            $sendSuccess = $pushService->sendPush(
+                $targetUser->expo_push_token,
+                '🔔 Prueba de Notificación Estoy OK',
+                "Hola {$targetUser->name}, esta es una prueba de envío directo desde el servidor de Railway.",
+                ['type' => 'test_push', 'timestamp' => now()->toIso8601String()],
+                true
+            );
+
+            $report['test_push_result'] = [
+                'target_user_id' => $targetUser->id,
+                'target_user_name' => $targetUser->name,
+                'token_snippet' => substr($targetUser->expo_push_token, 0, 25) . '...',
+                'success' => $sendSuccess,
+            ];
+        } else {
+            $report['test_push_result'] = [
+                'error' => "User ID {$testUserId} not found or has no push token.",
+            ];
+        }
+    }
+
+    // 7. Actionable Diagnosis
     $diagnoses = [];
     if ($firebaseStatus['sdk_status'] !== 'operational') {
-        $diagnoses[] = 'CRITICAL: Google FCM Firebase SDK is NOT operational on Railway backend because FIREBASE_CREDENTIALS (or GOOGLE_APPLICATION_CREDENTIALS) is missing or invalid in Railway environment variables. Native Android devices using FCM tokens will NOT receive push notifications.';
+        $diagnoses[] = 'CRITICAL: Google FCM Firebase SDK is NOT operational on Railway backend because FIREBASE_CREDENTIALS (or GOOGLE_APPLICATION_CREDENTIALS) is missing or invalid in Railway environment variables.';
     }
-    if ($tokenTypes['fcm_native_token'] > 0 && $firebaseStatus['sdk_status'] !== 'operational') {
-        $diagnoses[] = 'HIGH RISK: Active Android native users exist with FCM tokens, but backend cannot send FCM notifications without Firebase credentials.';
+    if ($tokenTypes['null_or_empty'] > 0) {
+        $diagnoses[] = "NOTE: {$tokenTypes['null_or_empty']} users currently do not have a push token registered in users.expo_push_token (e.g. logged out or web-only).";
     }
-    if ($tokenTypes['null_or_empty'] == $users->count()) {
-        $diagnoses[] = 'WARNING: No users have active push tokens registered in users.expo_push_token.';
-    }
-    if (empty($diagnoses)) {
-        $diagnoses[] = 'System configuration appears healthy. Check individual device notification permissions and Android battery optimization settings.';
+    if ($report['user_devices']['active_devices_with_token'] == 0) {
+        $diagnoses[] = 'WARNING: No active device push tokens registered in user_devices table.';
     }
 
     $report['diagnoses'] = $diagnoses;

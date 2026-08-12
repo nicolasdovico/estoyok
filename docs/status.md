@@ -51,6 +51,11 @@
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
     - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`):
       - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
+    - [x] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway):
+      - Verificada la operatividad del SDK de Firebase (`Kreait\Firebase\Contract\Messaging`) tras la carga de `FIREBASE_CREDENTIALS` en Railway.
+      - Inyectado el objeto `'notification' => ['channel_id' => 'fcm_default_channel', 'sound' => 'default', 'icon' => 'ic_stat_notification', 'color' => '#10B981']` en la carga útil `AndroidConfig` de [`PushNotificationService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/PushNotificationService.php) para evitar el descarte de notificaciones en Android 8.0+ en segundo plano.
+      - Actualizado [`MyFirebaseMessagingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/MyFirebaseMessagingService.kt) en la app nativa Android para procesar notificaciones tanto si el título/cuerpo vienen en el objeto `notification` como en `data`.
+      - Implementado el endpoint de auditoría `GET /api/maintenance/diagnose-push` con soporte para test-push en vivo.
     - [x] Resolución de Notificaciones Push FCM en Producción (Railway) & Fix de Geocercas:
       - Diagnosticada la causa de la supresión de alertas de salida de Zonas Seguras introducida el 30 de julio: en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php#L272) se asignaba un *fallback* a `$user->safe_wifi_ssid` cuando la red actual era `null`, haciendo que el servidor simulara que el usuario continuaba conectado a la red Wi-Fi de su casa a pesar de estar a varios kilómetros de distancia en datos móviles.
       - Corregido el parámetro `$wifiSsid` en [`LocationController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php) para transmitir únicamente la red Wi-Fi real informada por el dispositivo (`$request->input('current_wifi_ssid')`).
