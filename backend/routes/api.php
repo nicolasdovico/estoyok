@@ -195,6 +195,26 @@ Route::post('/maintenance/purge-queued-jobs', function () {
 Route::get('/maintenance/diagnose-push', function (Request $request) {
     $report = [];
 
+    // Purge action if requested
+    if ($request->query('purge_queues')) {
+        try {
+            \Illuminate\Support\Facades\DB::table('failed_jobs')->truncate();
+            $upgraded = \Illuminate\Support\Facades\DB::table('geofences')->where('radius', '<', 100)->update(['radius' => 100]);
+            if (config('queue.default') === 'redis') {
+                try {
+                    \Illuminate\Support\Facades\Redis::connection()->flushdb();
+                } catch (\Throwable $e) {}
+            }
+            $report['purge_action_result'] = [
+                'status' => 'success',
+                'failed_jobs_truncated' => true,
+                'geofences_upgraded_to_100m' => $upgraded,
+            ];
+        } catch (\Throwable $e) {
+            $report['purge_action_result'] = ['error' => $e->getMessage()];
+        }
+    }
+
     // 1. Firebase SDK Configuration Audit
     $envCreds = env('FIREBASE_CREDENTIALS') ?? env('GOOGLE_APPLICATION_CREDENTIALS');
     $configCreds = config('firebase.projects.app.credentials');
