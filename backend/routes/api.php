@@ -106,30 +106,32 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
 
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone', '+5491112345678');
-    $message = $request->input('message', '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada con UltraMsg.');
+    $message = $request->input('message', '🔔 Prueba oficial de WhatsApp de Estoy Ok enviada con Evolution API.');
 
-    $instanceId = config('services.ultramsg.instance_id');
-    $token = config('services.ultramsg.token');
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance');
 
-    if (!$instanceId || !$token) {
+    if (!$baseUrl || !$apiKey) {
         return response()->json([
             'success' => false,
-            'message' => 'UltraMsg no está configurado en Railway. Falta ULTRAMSG_INSTANCE_ID o ULTRAMSG_TOKEN.',
+            'message' => 'Evolution API no está configurada. Falta EVOLUTION_API_URL o EVOLUTION_API_KEY.',
             'values' => [
-                'instance_id' => $instanceId ? substr($instanceId, 0, 6) . '...' : null,
+                'url' => $baseUrl,
+                'instance' => $instance,
             ]
         ], 400);
     }
 
     try {
-        $ultraMsg = new \App\Services\UltraMsgService();
-        $ok = $ultraMsg->sendWhatsApp($to, $message);
+        $evolutionService = new \App\Services\EvolutionApiService();
+        $ok = $evolutionService->sendWhatsApp($to, $message);
 
         return response()->json([
             'success' => $ok,
             'target_phone' => $to,
-            'instance_id' => $instanceId,
-            'message' => $ok ? 'Petición procesada exitosamente por UltraMsg.' : 'UltraMsg devolvió error o no pudo entregar el mensaje. Revisa los logs.',
+            'instance' => $instance,
+            'message' => $ok ? 'Petición procesada exitosamente por Evolution API.' : 'Evolution API devolvió error o no pudo entregar el mensaje. Revisa los logs.',
         ]);
     } catch (\Throwable $e) {
         return response()->json([
@@ -293,7 +295,7 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
 Route::post('/webhooks/mercadopago', [WebhookController::class, 'mercadopago']);
 Route::post('/webhooks/paypal', [WebhookController::class, 'paypal']);
 Route::post('/webhooks/stripe', [Laravel\Cashier\Http\Controllers\WebhookController::class, 'handleWebhook']);
-Route::post('/webhooks/ultramsg/message', [WebhookController::class, 'ultramsgMessage']);
+Route::post('/webhooks/evolution/message', [WebhookController::class, 'evolutionMessage']);
 
 // Emergency Routes (Public)
 Route::get('/emergency-alerts/{id}', [EmergencyAlertController::class, 'show']);

@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\Services\UltraMsgService;
+use App\Services\EvolutionApiService;
 use App\Services\WhatsAppServiceInterface;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Mail;
@@ -14,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        $this->app->singleton(WhatsAppServiceInterface::class, UltraMsgService::class);
+        $this->app->singleton(WhatsAppServiceInterface::class, EvolutionApiService::class);
     }
 
     /**

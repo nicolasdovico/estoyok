@@ -49,9 +49,10 @@ return [
         ],
     ],
 
-    'ultramsg' => [
-        'instance_id' => env('ULTRAMSG_INSTANCE_ID'),
-        'token' => env('ULTRAMSG_TOKEN'),
+    'evolution' => [
+        'url' => env('EVOLUTION_API_URL', 'http://evolution-api:8080'),
+        'api_key' => env('EVOLUTION_API_KEY'),
+        'instance' => env('EVOLUTION_INSTANCE_NAME', 'estoyok_main'),
     ],
 
 ];

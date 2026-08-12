@@ -7,16 +7,22 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
-class UltraMsgWebhookTest extends TestCase
+class EvolutionWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
     public function test_user_not_found_returns_json_status()
     {
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491123456789@c.us',
-                'body' => 'OK',
+                'key' => [
+                    'remoteJid' => '5491123456789@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'OK',
+                ],
             ],
         ]);
 
@@ -32,10 +38,16 @@ class UltraMsgWebhookTest extends TestCase
             'allow_sms_whatsapp_checkin' => true,
         ]);
 
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491122334455@c.us',
-                'body' => 'OK',
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'OK',
+                ],
             ],
         ]);
 
@@ -51,10 +63,16 @@ class UltraMsgWebhookTest extends TestCase
             'allow_sms_whatsapp_checkin' => false,
         ]);
 
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491122334455@c.us',
-                'body' => 'OK',
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'OK',
+                ],
             ],
         ]);
 
@@ -70,10 +88,16 @@ class UltraMsgWebhookTest extends TestCase
             'allow_sms_whatsapp_checkin' => true,
         ]);
 
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491122334455@c.us',
-                'body' => 'hola',
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'hola',
+                ],
             ],
         ]);
 
@@ -92,10 +116,16 @@ class UltraMsgWebhookTest extends TestCase
 
         $this->assertDatabaseEmpty('check_ins');
 
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491122334455@c.us',
-                'body' => 'estoy ok',
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'estoy ok',
+                ],
             ],
         ]);
 
@@ -123,10 +153,16 @@ class UltraMsgWebhookTest extends TestCase
             'status' => 'active',
         ]);
 
-        $response = $this->postJson('/api/webhooks/ultramsg/message', [
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
             'data' => [
-                'from' => '5491122334455@c.us',
-                'body' => 'bien',
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'bien',
+                ],
             ],
         ]);
 

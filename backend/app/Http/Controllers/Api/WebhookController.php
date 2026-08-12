@@ -61,16 +61,26 @@ class WebhookController extends Controller
         return response()->json(['status' => 'ok']);
     }
 
-    public function ultramsgMessage(Request $request)
+    public function evolutionMessage(Request $request)
     {
-        Log::info('UltraMsg Message Webhook Received', $request->all());
+        Log::info('Evolution API Message Webhook Received', $request->all());
 
-        $from = $request->input('data.from') ?? $request->input('from');
+        // Ignore messages sent by ourselves
+        if ($request->input('data.key.fromMe') === true) {
+            return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
+        }
+
+        $from = $request->input('data.key.remoteJid') ?? $request->input('data.sender') ?? $request->input('from');
         if (! $from) {
             return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
         }
 
-        // Clean @c.us or whatsapp: prefix if present
+        // Ignore group messages
+        if (str_contains($from, '@g.us')) {
+            return response()->json(['status' => 'ignored', 'reason' => 'group_message']);
+        }
+
+        // Clean @s.whatsapp.net or @c.us or whatsapp: prefix
         if (str_contains($from, '@')) {
             $from = explode('@', $from)[0];
         }
@@ -91,21 +101,25 @@ class WebhookController extends Controller
             });
 
         if (! $user) {
-            Log::info("UltraMsg Webhook: User not found for phone {$fromCleaned}");
+            Log::info("Evolution Webhook: User not found for phone {$fromCleaned}");
             return response()->json(['status' => 'user_not_found']);
         }
 
         // Check if configuration is enabled
         if (! $user->allow_sms_whatsapp_checkin) {
-            Log::info("UltraMsg Webhook: Check-in disabled for user {$user->id}");
+            Log::info("Evolution Webhook: Check-in disabled for user {$user->id}");
             return response()->json(['status' => 'checkin_disabled']);
         }
 
-        $body = trim(strtolower($request->input('data.body') ?? $request->input('body', '')));
+        $rawBody = $request->input('data.message.conversation')
+            ?? $request->input('data.message.extendedTextMessage.text')
+            ?? $request->input('body', '');
+
+        $body = trim(strtolower((string) $rawBody));
         $acceptedPatterns = ['ok', 'estoy ok', '1', 'bien'];
 
         if (! in_array($body, $acceptedPatterns)) {
-            Log::info("UltraMsg Webhook: Unrecognized body '{$body}' from user {$user->id}");
+            Log::info("Evolution Webhook: Unrecognized body '{$body}' from user {$user->id}");
             return response()->json(['status' => 'unrecognized_body']);
         }
 
@@ -118,7 +132,7 @@ class WebhookController extends Controller
             'status' => 'resolved',
         ]);
 
-        // Optional confirmation reply via WhatsApp
+        // Confirmation reply via WhatsApp
         $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
         $whatsAppService->sendWhatsApp($user->phone, 'Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
 

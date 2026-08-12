@@ -49,12 +49,12 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
-    - [x] Migración Completa de Pasarela de WhatsApp (Twilio ➔ UltraMsg API Gateway):
-      - Removida la dependencia `twilio/sdk` del backend y reemplazado `TwilioService.php` por `UltraMsgService.php` usando peticiones HTTP directas a UltraMsg API (`https://api.ultramsg.com/{instance_id}/messages/chat`).
-      - Removido el envío de SMS desde el servidor en `SendInactivityAlerts.php`, `SendCrashAlertJob.php` y `EmergencyAlertController.php`, canalizando todas las notificaciones críticas por WhatsApp y Push.
-      - Actualizado `WebhookController.php` (`ultramsgMessage`) y `routes/api.php` para procesar webhooks entrantes de UltraMsg (`POST /api/webhooks/ultramsg/message`) y realizar auto check-in al responder "OK".
-      - Creada e integrada la suite de pruebas `UltraMsgWebhookTest.php` e inmunizada la suite completa (141/141 tests passing).
-      - Actualizadas la interfaz nativa en Android (`AjustesScreen.kt`, `PremiumScreen.kt`, `AjustesViewModel.kt`) y la documentación técnica del plan en `docs/plan_migracion_ultramsg.md`.
+    - [x] Migración Completa de Pasarela de WhatsApp ($0/mes Self-Hosted Evolution API v2):
+      - Incorporado el servicio contenedor `evolution-api` (v2.1.1) a `docker-compose.yml` e implementado `EvolutionApiService.php` conectado a `WhatsAppServiceInterface` mediante peticiones HTTP directas (`/message/sendText/{instance}`).
+      - Removida la dependencia `twilio/sdk` y descartado el envío de SMS desde el servidor, canalizando notificaciones críticas por WhatsApp y Push.
+      - Actualizado `WebhookController.php` (`evolutionMessage`) y `routes/api.php` para procesar webhooks de Evolution API (`POST /api/webhooks/evolution/message`) y ejecutar auto check-in al responder "OK".
+      - Creada la suite `EvolutionWebhookTest.php` e inmunizada la suite completa (141/141 tests passing).
+      - Creado el plan técnico en `docs/plan_migracion_evolution_api.md`.
     - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`):
       - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
     - [x] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway):
