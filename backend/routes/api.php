@@ -110,16 +110,13 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
 
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
-    $instance = config('services.evolution.instance');
+    $instance = config('services.evolution.instance', 'estoyok_main');
 
-    if (!$baseUrl || !$apiKey) {
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
         return response()->json([
             'success' => false,
-            'message' => 'Evolution API no está configurada. Falta EVOLUTION_API_URL o EVOLUTION_API_KEY.',
-            'values' => [
-                'url' => $baseUrl,
-                'instance' => $instance,
-            ]
+            'message' => 'Falta configurar la variable EVOLUTION_API_URL en Railway (o la URL no es válida).',
+            'current_value' => $baseUrl,
         ], 400);
     }
 
