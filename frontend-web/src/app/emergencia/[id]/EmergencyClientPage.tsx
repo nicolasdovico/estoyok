@@ -89,7 +89,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   }, [id, data?.status, data?.type]);
 
   const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
-    if (!contactName.trim()) return;
+    const nameToSend = contactName.trim() || 'Contacto de Emergencia';
     setIsSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -101,7 +101,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          contact_name: contactName,
+          contact_name: nameToSend,
           status,
         }),
       });
@@ -110,8 +110,8 @@ export default function EmergencyClientPage({ id }: { id: string }) {
         throw new Error('No se pudo registrar la respuesta.');
       }
 
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('contact_name', contactName);
+      if (typeof window !== 'undefined' && contactName.trim()) {
+        localStorage.setItem('contact_name', contactName.trim());
       }
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 4000);
@@ -289,10 +289,10 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tu Nombre</label>
+                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tu Nombre (Opcional)</label>
                 <input
                   type="text"
-                  placeholder="Ej: Juan Pérez"
+                  placeholder="Ej: Juan Pérez (Opcional)"
                   value={contactName}
                   onChange={(e) => {
                     setContactName(e.target.value);
@@ -301,44 +301,29 @@ export default function EmergencyClientPage({ id }: { id: string }) {
                     }
                   }}
                   disabled={isSubmitting}
-                  className="w-full bg-gray-50 text-gray-800 text-sm font-semibold p-3.5 rounded-xl border border-transparent focus:border-red-100 focus:bg-white focus:outline-none transition-all"
+                  className="w-full bg-gray-50 text-gray-800 text-sm font-semibold p-3.5 rounded-xl border border-gray-200 focus:border-red-400 focus:bg-white focus:outline-none transition-all shadow-sm"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <button
                   onClick={() => handleRespond('read')}
-                  disabled={isSubmitting || !contactName.trim()}
-                  className={`
-                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
-                    ${!contactName.trim() 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-blue-50 text-blue-700 hover:bg-blue-100'}
-                  `}
+                  disabled={isSubmitting}
+                  className="px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 active:scale-95 shadow-sm border border-blue-100"
                 >
                   👁️ Marcar como Leído
                 </button>
                 <button
                   onClick={() => handleRespond('acknowledged')}
-                  disabled={isSubmitting || !contactName.trim()}
-                  className={`
-                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
-                    ${!contactName.trim() 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100'}
-                  `}
+                  disabled={isSubmitting}
+                  className="px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 active:scale-95 shadow-sm border border-indigo-100"
                 >
                   💬 Recibido / Enterado
                 </button>
                 <button
                   onClick={() => handleRespond('on_my_way')}
-                  disabled={isSubmitting || !contactName.trim()}
-                  className={`
-                    px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2
-                    ${!contactName.trim() 
-                      ? 'bg-gray-100 text-gray-400 cursor-not-allowed' 
-                      : 'bg-emerald-50 text-emerald-800 hover:bg-emerald-100 shadow-sm'}
-                  `}
+                  disabled={isSubmitting}
+                  className="px-4 py-3.5 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center justify-center gap-2 bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95 shadow-md font-extrabold"
                 >
                   🚗 Voy en camino
                 </button>
