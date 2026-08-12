@@ -44,10 +44,18 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  const getApiUrl = () => {
+    const envUrl = process.env.NEXT_PUBLIC_API_URL;
+    if (envUrl && envUrl.startsWith('http')) {
+      return envUrl;
+    }
+    return 'https://api.estoyok24.com/api';
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
+        const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}`);
         if (!res.ok) throw new Error();
         const json = await res.json();
         setData(json);
@@ -67,7 +75,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
+        const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}`);
         if (res.ok) {
           const json = await res.json();
           setData(json);
@@ -87,7 +95,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     setSubmitSuccess(false);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}/respond`, {
+      const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -108,7 +116,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
       setSubmitSuccess(true);
       setTimeout(() => setSubmitSuccess(false), 4000);
 
-      const updatedRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/emergency-alerts/${id}`);
+      const updatedRes = await fetch(`${getApiUrl()}/emergency-alerts/${id}`);
       if (updatedRes.ok) {
         const json = await updatedRes.json();
         setData(json);
