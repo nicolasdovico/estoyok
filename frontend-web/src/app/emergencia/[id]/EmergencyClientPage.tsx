@@ -78,7 +78,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     }, pollInterval);
 
     return () => clearInterval(interval);
-  }, [id, data]);
+  }, [id, data?.status, data?.type]);
 
   const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
     if (!contactName.trim()) return;
@@ -406,7 +406,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
               </div>
             ) : data.location ? (
               <EmergencyMap 
-                center={[data.location.latitude, data.location.longitude]} 
+                center={[parseFloat(String(data.location.latitude)), parseFloat(String(data.location.longitude))]} 
                 isCrash={data.type === 'crash'}
                 gForce={data.crash_info?.g_force}
               />
