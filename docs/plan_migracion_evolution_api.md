@@ -55,6 +55,7 @@ volumes:
    - `CONFIG_SESSION_PHONE_CLIENT`: `Chrome`
    - `CONFIG_SESSION_PHONE_NAME`: `Chrome`
    - `CONFIG_SESSION_PHONE_VERSION`: `2.3000.1043857760`
+   - `CONFIG_SESSION_PHONE_SYNC_FULL_HISTORY`: `false`
    - `NODE_OPTIONS`: `--network-family-autoselection-attempt-timeout=1000`
    - `PORT`: `8080`
 
