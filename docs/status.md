@@ -56,6 +56,7 @@
       - Creado el script [`scripts/check_user_status.py`](file:///home/usuario/aplicaciones/estoyok/scripts/check_user_status.py) con soporte para PostgreSQL (Railway / Local) para consultar en tiempo real el usuario, `last_check_in_at`, cálculo de expiración, historial de `check_ins` (origen wifi, manual, etc.) y estado de alertas.
       - Implementado en `PanelScreen.kt` un `LifecycleEventObserver` en `ON_RESUME` y un `BroadcastReceiver` dinámico para `ACTION_WELLBEING_UPDATED` emitido por `MyFirebaseMessagingService.kt` ante notificaciones push de auto check-in.
       - Añadido sondeo silencioso en segundo plano cada 25s en `PanelViewModel.kt` para mantener el contador de bienestar 100% actualizado sin necesidad de pulsar manualmente "Actualizar".
+      - Persistido `safe_wifi_ssid` en `SessionManager` (DataStore) y conectado a `TrackingService.kt` para garantizar que la detección de Wi-Fi nunca se interrumpa aunque Android oculte el SSID por privacidad (`<unknown ssid>`).
     - [x] Migración Completa de Pasarela de WhatsApp ($0/mes Self-Hosted Evolution API v2.2.0):
       - Incorporado el servicio contenedor `evolution-api` (v2.2.0) a `docker-compose.yml` e implementado `EvolutionApiService.php` conectado a `WhatsAppServiceInterface` mediante peticiones HTTP directas (`/message/sendText/{instance}`).
       - Vinculada exitosamente la línea telefónica dedicada (`5492323610697`) en estado `open` y verificado el envío y recepción de WhatsApp en vivo en Railway producción.

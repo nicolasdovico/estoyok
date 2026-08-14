@@ -4,10 +4,11 @@
 - **Script de Auditoría PostgreSQL ([`scripts/check_user_status.py`](file:///home/usuario/aplicaciones/estoyok/scripts/check_user_status.py)):**
     - Creado script en Python para consultar instantáneamente el estado del usuario (`last_check_in_at`, intervalo, vigencia o tiempo de vencimiento), historial de la tabla `check_ins` (`source` wifi, movement, manual, etc.) y alertas activas/resueltas.
     - Compatible con Railway pasando `--db-url` o `DATABASE_URL` (y con Docker Postgres local por defecto).
-- **App Móvil Android (Actualización en Vivo del Contador de Bienestar):**
+- **App Móvil Android (Actualización en Vivo del Contador de Bienestar & Detección Wi-Fi Resiliente):**
     - Identificada la causa por la cual la interfaz seguía mostrando *"Reporte vencido"* a pesar de recibir la notificación de Wi-Fi: `PanelViewModel` solo cargaba el perfil una vez al inicio, sin refrescarse al volver a la pantalla ni al recibir la notificación push de background.
     - Implementado `BroadcastReceiver` en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) para escuchar `ACTION_WELLBEING_UPDATED` emitido por [`MyFirebaseMessagingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/MyFirebaseMessagingService.kt) cada vez que el backend confirma un auto check-in.
     - Añadido `LifecycleEventObserver` en `ON_RESUME` y refresco periódico silencioso cada 25 segundos en [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), haciendo que el contador de bienestar inicie su cuenta atrás de inmediato.
+    - Persistido el `safe_wifi_ssid` en `SessionManager` (DataStore) para que [`TrackingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt) reconozca de inmediato el Wi-Fi seguro configurado sin requerir reinicios del servicio, superando la ofuscación de SSID de Android 10+ (`<unknown ssid>`).
     - Suite completa de backend (141/141 tests) y compilación nativa verificadas con éxito.
 
 ## [2026-08-14] Corrección de Permisos y Visualización del Reproductor de Audio SOS (Android Nativo, Backend & Web)
