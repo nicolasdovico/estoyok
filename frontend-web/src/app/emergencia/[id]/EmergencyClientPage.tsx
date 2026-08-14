@@ -68,10 +68,13 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     fetchData();
   }, [id]);
 
-  useEffect(() => {
-    if (!data || data.status === 'resolved') return;
+  const alertStatus = data?.status;
+  const alertType = data?.type;
 
-    const pollInterval = (data.type === 'silent_sos' || data.type === 'crash') ? 5000 : 10000;
+  useEffect(() => {
+    if (!alertStatus || alertStatus === 'resolved') return;
+
+    const pollInterval = (alertType === 'silent_sos' || alertType === 'crash') ? 5000 : 10000;
 
     const interval = setInterval(async () => {
       try {
@@ -86,7 +89,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     }, pollInterval);
 
     return () => clearInterval(interval);
-  }, [id, data?.status, data?.type]);
+  }, [id, alertStatus, alertType]);
 
   const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
     const nameToSend = contactName.trim() || 'Contacto de Emergencia';
@@ -262,20 +265,56 @@ export default function EmergencyClientPage({ id }: { id: string }) {
           </section>
         )}
 
-        {data.audio_url && (
-          <section className="bg-red-50 border border-red-200 rounded-2xl shadow-sm p-6 space-y-3">
-            <h3 className="text-lg font-black text-red-950 flex items-center gap-2">
-              🎙️ Grabación de Audio Ambiental
-            </h3>
+        {data.audio_url ? (
+          <section className="bg-red-50 border-2 border-red-200 rounded-2xl shadow-sm p-6 space-y-4 animate-fade-in">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-black text-red-950 flex items-center gap-2">
+                🎙️ Grabación de Audio Ambiental
+              </h3>
+              <span className="bg-red-600 text-white text-[10px] font-extrabold uppercase px-2.5 py-1 rounded-full animate-pulse">
+                Audio 15s
+              </span>
+            </div>
             <p className="text-xs text-red-700 leading-relaxed font-semibold">
               {data.type === 'crash'
                 ? 'Esta es una grabación de 15 segundos capturada automáticamente por el micrófono del dispositivo tras detectarse el impacto vehicular.'
                 : 'Esta es una grabación de 15 segundos capturada de forma silenciosa por el micrófono del dispositivo al activarse la alerta.'}
             </p>
             <div className="pt-2">
-              <audio src={data.audio_url} controls className="w-full focus:outline-none rounded-lg" />
+              <audio controls preload="auto" className="w-full focus:outline-none rounded-lg shadow-inner bg-white">
+                <source src={data.audio_url} type="audio/mp4" />
+                <source src={data.audio_url} type="audio/m4a" />
+                <source src={data.audio_url} type="audio/aac" />
+                Tu navegador no soporta el reproductor de audio.
+              </audio>
+            </div>
+            <div className="flex justify-end pt-1">
+              <a
+                href={data.audio_url}
+                target="_blank"
+                rel="noopener noreferrer"
+                download
+                className="text-xs font-bold text-red-700 hover:text-red-900 underline flex items-center gap-1"
+              >
+                ⬇️ Descargar archivo de audio (.m4a)
+              </a>
             </div>
           </section>
+        ) : (
+          data.status !== 'resolved' && (data.type === 'silent_sos' || data.type === 'crash') && (
+            <section className="bg-amber-50 border border-amber-200 rounded-2xl shadow-sm p-5 space-y-2">
+              <div className="flex items-center gap-2 text-amber-900 font-bold text-sm">
+                <span className="relative flex h-3 w-3">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                </span>
+                🎙️ Grabando Audio Ambiental (15s)...
+              </div>
+              <p className="text-xs text-amber-800 leading-relaxed font-medium">
+                El dispositivo del usuario está capturando el audio del entorno. El reproductor aparecerá aquí automáticamente en cuanto finalice la grabación.
+              </p>
+            </section>
+          )
         )}
 
         {data.status !== 'resolved' && (

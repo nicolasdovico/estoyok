@@ -1,6 +1,11 @@
 package com.estoyok.app.features.wellbeing.presentation
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTapGestures
@@ -48,6 +53,33 @@ fun PanelScreen(
     viewModel: PanelViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
+
+    val audioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            viewModel.triggerSos(context)
+            Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(context, "Permiso de micrófono no concedido. Enviando SOS sin audio...", Toast.LENGTH_LONG).show()
+            viewModel.triggerSos(context)
+        }
+    }
+
+    val handleSosAction: (android.content.Context) -> Unit = { ctx ->
+        val hasAudioPermission = ContextCompat.checkSelfPermission(
+            ctx,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
+        if (hasAudioPermission) {
+            viewModel.triggerSos(ctx)
+            Toast.makeText(ctx, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
+        } else {
+            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
     PanelContent(
         userName = viewModel.user?.name ?: "Usuario",
         status = viewModel.status,
@@ -71,7 +103,7 @@ fun PanelScreen(
         onDeleteContact = { id -> viewModel.deleteContact(id) },
         onMoveContactUp = { idx -> viewModel.moveContactUp(idx) },
         onMoveContactDown = { idx -> viewModel.moveContactDown(idx) },
-        onSos = { ctx -> viewModel.triggerSos(ctx) },
+        onSos = handleSosAction,
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings,
         showMandatoryDisclaimer = (viewModel.user != null && viewModel.user?.disclaimerAcceptedAt.isNullOrBlank()),
@@ -210,7 +242,6 @@ fun PanelContent(
                                         detectTapGestures(
                                             onLongPress = {
                                                 onSos(context)
-                                                Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
                                             },
                                             onTap = {
                                                 Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()
@@ -270,7 +301,6 @@ fun PanelContent(
                                         detectTapGestures(
                                             onLongPress = {
                                                 onSos(context)
-                                                Toast.makeText(context, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
                                             },
                                             onTap = {
                                                 Toast.makeText(context, "Mantén presionado por 3 segundos para activar SOS", Toast.LENGTH_SHORT).show()

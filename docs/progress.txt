@@ -1,5 +1,21 @@
 # Progress Log
 
+## [2026-08-14] Corrección de Permisos y Visualización del Reproductor de Audio SOS (Android Nativo, Backend & Web)
+- **App Móvil Nativa (Android Kotlin):**
+    - Identificada y solucionada la causa por la cual no se grababa el audio: el permiso en tiempo de ejecución `RECORD_AUDIO` no era solicitado dinámicamente, provocando que `AudioRecorder` fallara silenciosamente y abortara la subida del archivo a la API.
+    - Implementado el launcher de permisos `rememberLauncherForActivityResult` en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) para verificar y solicitar `Manifest.permission.RECORD_AUDIO` de forma fluida al presionar SOS.
+    - Mejorado [`AudioRecorder.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/util/AudioRecorder.kt) con validación estricta de permisos, bit rate de 64 kbps, frecuencia de 44.1 kHz y logs informativos.
+- **Backend (Laravel API):**
+    - Actualizado [`EmergencyAlert.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/EmergencyAlert.php) (`getAudioUrlAttribute`) para resolver dinámicamente la URL HTTPS pública de almacenamiento `/storage/audio_alerts/...` tanto en peticiones HTTP como en consola.
+- **Frontend Web (Next.js Crisis Page):**
+    - Actualizado [`EmergencyClientPage.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/emergencia/[id]/EmergencyClientPage.tsx): incorporado el indicador animado *"🎙️ Grabando Audio Ambiental (15s)..."* mientras el audio se encuentra en proceso de captura/subida, reproductor con soporte multiformato (`audio/mp4`, `audio/m4a`, `audio/aac`) y enlace de descarga directa.
+
+## [2026-08-14] Creación de Checklist Exhaustivo de Pruebas QA para la Pestaña "Estoy OK" (Bienestar)
+- **Documentación & Auditoría de Código:**
+    - Creado el documento interactivo [`docs/checklist_tab_estoy_ok.md`](file:///home/usuario/aplicaciones/estoyok/docs/checklist_tab_estoy_ok.md) con 37 puntos de verificación paso a paso estructurados en 10 módulos.
+    - Auditado exhaustivamente el código nativo en Kotlin ([`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt), [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt), [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt)) y backend en Laravel ([`CheckInController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/CheckInController.php), [`EmergencyContactController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php), [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php), [`EmergencyAlertController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/EmergencyAlertController.php), [`SendInactivityAlerts.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendInactivityAlerts.php), [`VerifyInactivity.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php), [`SendCheckInReminders.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/SendCheckInReminders.php), [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php)).
+    - Incorporadas indicaciones detalladas de prueba, resultados esperados, comandos de emulación local rápida (minutos vs horas) y tabla resumen de control.
+
 ## [2026-08-12] Migración Completa de Pasarela de WhatsApp a Evolution API ($0/mes Self-Hosted WhatsApp Gateway) & Eliminación de SMS de Servidor
 - **Backend (API Laravel & Evolution API v2 Integration):**
     - Removido el paquete `twilio/sdk` del backend mediante `composer remove twilio/sdk`.

@@ -32,7 +32,18 @@ class EmergencyAlert extends Model
 
     public function getAudioUrlAttribute(): ?string
     {
-        return $this->audio_path ? url(Storage::url($this->audio_path)) : null;
+        if (!$this->audio_path) {
+            return null;
+        }
+
+        if (request()->httpHost()) {
+            $isSecure = request()->secure() || (strtolower(request()->header('X-Forwarded-Proto', '')) === 'https');
+            $scheme = $isSecure ? 'https' : 'http';
+            return $scheme . '://' . request()->httpHost() . '/storage/' . $this->audio_path;
+        }
+
+        $appUrl = rtrim(config('app.url', env('APP_URL', 'https://api.estoyok24.com')), '/');
+        return $appUrl . '/storage/' . $this->audio_path;
     }
 
     public function user(): BelongsTo
