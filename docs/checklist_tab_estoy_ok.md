@@ -59,7 +59,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     1. Realiza un toque simple y rápido sobre el botón rojo *"SOS"*.
   * **Resultado Esperado:** La app no dispara la emergencia y muestra un mensaje Toast: *"Mantén presionado por 3 segundos para activar SOS"*.
 
-- [ ] **2.4 Botón SOS — Activación Crítica Silenciosa (Long Press de 3s)**
+- [x] **2.4 Botón SOS — Activación Crítica Silenciosa (Long Press de 3s)**
   * **Código:** [`PanelViewModel.kt@triggerSos`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L314-L362), [`EmergencyAlertController.php@storeSos`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/EmergencyAlertController.php#L184-L242) y [`AudioRecorder.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/util/AudioRecorder.kt)
   * **Instrucciones de Prueba:**
     1. Mantén presionado el botón *"SOS"* firmemente durante 3 segundos.
@@ -73,7 +73,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * Los miembros del núcleo reciben notificación Push inmediata (`🚨 ¡SOS CRÍTICO!`).
     * Los contactos de emergencia reciben WhatsApp con el link público al mapa de crisis (`https://estoyok24.com/emergencia/{id}`).
 
-- [ ] **2.5 Acceso Rápido a Ajustes (Icono de Engranaje ⚙️)**
+- [x] **2.5 Acceso Rápido a Ajustes (Icono de Engranaje ⚙️)**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L179-L185)
   * **Instrucciones de Prueba:**
     1. Toca el icono de engranaje (⚙️) en la esquina superior derecha.

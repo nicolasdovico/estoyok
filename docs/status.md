@@ -52,11 +52,10 @@
     - [x] Confección de Checklist Exhaustivo de Pruebas QA para la Pestaña "Estoy OK":
       - Creado el documento interactivo [`docs/checklist_tab_estoy_ok.md`](file:///home/usuario/aplicaciones/estoyok/docs/checklist_tab_estoy_ok.md) con 37 ítems de verificación que recorren el 100% de los flujos de código en `PanelScreen.kt`, `PanelViewModel.kt`, `AjustesScreen.kt`, controladores de backend, consola y webhooks de Evolution API.
       - Incluidas instrucciones paso a paso de prueba, resultados esperados y referencias exactas a archivos y líneas de código.
-    - [x] Corrección de Permisos y Visualización del Reproductor de Audio SOS (Android Nativo, Backend & Web):
-      - Incorporada la solicitud proactiva de `Manifest.permission.RECORD_AUDIO` en el onboarding / inicio de la app (`MapaScreen.kt` y `PanelScreen.kt`), asegurando que el micrófono quede concedido desde el registro inicial para que el SOS se active silenciosamente en emergencias reales sin bloquearse por popups.
-      - Actualizado `AudioRecorder.kt` con validación previa de permisos, bit rate a 64 kbps, frecuencia de muestreo de 44.1 kHz y logs detallados.
-      - Mejorado `EmergencyAlert.php` (`getAudioUrlAttribute`) para resolver dinámicamente URLs seguras HTTPS del backend para el almacenamiento público `/storage/audio_alerts/...`.
-      - Rediseñada la sección de audio en `EmergencyClientPage.tsx` con soporte multiformato (`audio/mp4`, `audio/m4a`, `audio/aac`), estado visual de grabación en proceso y botón directo de descarga.
+    - [x] Sincronización en Tiempo Real de Auto-Check-in (Wi-Fi & Sensores) y Script de Auditoría DB:
+      - Creado el script [`scripts/check_user_status.py`](file:///home/usuario/aplicaciones/estoyok/scripts/check_user_status.py) con soporte para PostgreSQL (Railway / Local) para consultar en tiempo real el usuario, `last_check_in_at`, cálculo de expiración, historial de `check_ins` (origen wifi, manual, etc.) y estado de alertas.
+      - Implementado en `PanelScreen.kt` un `LifecycleEventObserver` en `ON_RESUME` y un `BroadcastReceiver` dinámico para `ACTION_WELLBEING_UPDATED` emitido por `MyFirebaseMessagingService.kt` ante notificaciones push de auto check-in.
+      - Añadido sondeo silencioso en segundo plano cada 25s en `PanelViewModel.kt` para mantener el contador de bienestar 100% actualizado sin necesidad de pulsar manualmente "Actualizar".
     - [x] Migración Completa de Pasarela de WhatsApp ($0/mes Self-Hosted Evolution API v2.2.0):
       - Incorporado el servicio contenedor `evolution-api` (v2.2.0) a `docker-compose.yml` e implementado `EvolutionApiService.php` conectado a `WhatsAppServiceInterface` mediante peticiones HTTP directas (`/message/sendText/{instance}`).
       - Vinculada exitosamente la línea telefónica dedicada (`5492323610697`) en estado `open` y verificado el envío y recepción de WhatsApp en vivo en Railway producción.

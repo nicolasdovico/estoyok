@@ -96,6 +96,13 @@ class PanelViewModel @Inject constructor(
 
     init {
         refreshDashboard()
+        viewModelScope.launch {
+            while (true) {
+                delay(25000L)
+                launch { fetchUserProfile() }
+                launch { fetchCheckInHistory() }
+            }
+        }
     }
 
     fun openManageContactsModal() {

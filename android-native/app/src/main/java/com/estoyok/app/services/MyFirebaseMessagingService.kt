@@ -111,10 +111,23 @@ class MyFirebaseMessagingService : FirebaseMessagingService() {
         val title = message.notification?.title ?: message.data["title"] ?: "Estoy Ok"
         val body = message.notification?.body ?: message.data["body"] ?: ""
 
+        val type = message.data["type"]
+        if (type == "auto_checkin_wifi" || type == "auto_checkin_movement" || type == "check_in_update") {
+            Log.d("FCMService", "Broadcasting ACTION_WELLBEING_UPDATED for realtime UI refresh.")
+            val updateIntent = Intent(ACTION_WELLBEING_UPDATED).apply {
+                setPackage(packageName)
+            }
+            sendBroadcast(updateIntent)
+        }
+
         if (body.isNotEmpty() || message.notification != null) {
             Log.d("FCMService", "Displaying notification: Title: $title, Body: $body")
             showNotification(title, body)
         }
+    }
+
+    companion object {
+        const val ACTION_WELLBEING_UPDATED = "com.estoyok.app.ACTION_WELLBEING_UPDATED"
     }
 
     private fun showNotification(title: String, body: String) {
