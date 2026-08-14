@@ -66,6 +66,20 @@ fun PanelScreen(
         }
     }
 
+    val proactiveAudioPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { _ -> }
+
+    LaunchedEffect(Unit) {
+        val hasAudio = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+        if (!hasAudio) {
+            proactiveAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
+
     val handleSosAction: (android.content.Context) -> Unit = { ctx ->
         val hasAudioPermission = ContextCompat.checkSelfPermission(
             ctx,

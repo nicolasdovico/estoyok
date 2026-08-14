@@ -53,7 +53,7 @@
       - Creado el documento interactivo [`docs/checklist_tab_estoy_ok.md`](file:///home/usuario/aplicaciones/estoyok/docs/checklist_tab_estoy_ok.md) con 37 ítems de verificación que recorren el 100% de los flujos de código en `PanelScreen.kt`, `PanelViewModel.kt`, `AjustesScreen.kt`, controladores de backend, consola y webhooks de Evolution API.
       - Incluidas instrucciones paso a paso de prueba, resultados esperados y referencias exactas a archivos y líneas de código.
     - [x] Corrección de Permisos y Visualización del Reproductor de Audio SOS (Android Nativo, Backend & Web):
-      - Solicitado el permiso de ejecución `Manifest.permission.RECORD_AUDIO` mediante `rememberLauncherForActivityResult` en `PanelScreen.kt` al presionar SOS, impidiendo la excepción silenciosa que cancelaba la grabación de audio.
+      - Incorporada la solicitud proactiva de `Manifest.permission.RECORD_AUDIO` en el onboarding / inicio de la app (`MapaScreen.kt` y `PanelScreen.kt`), asegurando que el micrófono quede concedido desde el registro inicial para que el SOS se active silenciosamente en emergencias reales sin bloquearse por popups.
       - Actualizado `AudioRecorder.kt` con validación previa de permisos, bit rate a 64 kbps, frecuencia de muestreo de 44.1 kHz y logs detallados.
       - Mejorado `EmergencyAlert.php` (`getAudioUrlAttribute`) para resolver dinámicamente URLs seguras HTTPS del backend para el almacenamiento público `/storage/audio_alerts/...`.
       - Rediseñada la sección de audio en `EmergencyClientPage.tsx` con soporte multiformato (`audio/mp4`, `audio/m4a`, `audio/aac`), estado visual de grabación en proceso y botón directo de descarga.

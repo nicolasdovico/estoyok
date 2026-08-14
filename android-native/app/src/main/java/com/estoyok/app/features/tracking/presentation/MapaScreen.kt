@@ -271,6 +271,11 @@ fun MapaScreen(
             true
         }
 
+        val hasAudio = ContextCompat.checkSelfPermission(
+            context,
+            Manifest.permission.RECORD_AUDIO
+        ) == PackageManager.PERMISSION_GRANTED
+
         if (hasLocation && hasNotifications) {
             val hasBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContextCompat.checkSelfPermission(
@@ -294,11 +299,21 @@ fun MapaScreen(
                     viewModel.toggleTrackingService(context)
                 }
             }
-        } else {
-            val reqs = mutableListOf(Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                reqs.add(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        }
+
+        val reqs = mutableListOf<String>()
+        if (!hasLocation) {
+            reqs.add(Manifest.permission.ACCESS_FINE_LOCATION)
+            reqs.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+        }
+        if (!hasNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+        if (!hasAudio) {
+            reqs.add(Manifest.permission.RECORD_AUDIO)
+        }
+
+        if (reqs.isNotEmpty()) {
             permissionsLauncher.launch(reqs.toTypedArray())
         }
     }
