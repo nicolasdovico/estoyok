@@ -185,6 +185,7 @@ class AjustesViewModel @Inject constructor(
                     wifiCheckinEnabled = wifiEnabled
                     safeWifiSsid = ssid
                     sensorCheckinEnabled = sensorEnabled
+                    sessionManager.saveSafeWifiSsid(ssid)
                     messageSuccess = "Auto-check-in pasivo guardado."
                 }
             }

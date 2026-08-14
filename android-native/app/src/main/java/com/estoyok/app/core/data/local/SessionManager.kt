@@ -30,6 +30,17 @@ class SessionManager @Inject constructor(
         private val TRACKING_ENABLED = booleanPreferencesKey("tracking_enabled")
         private val ENCRYPTED_PASSWORD = stringPreferencesKey("encrypted_password")
         private val DEVICE_UUID = stringPreferencesKey("device_uuid")
+        private val SAFE_WIFI_SSID = stringPreferencesKey("safe_wifi_ssid")
+    }
+
+    val safeWifiSsidFlow: Flow<String?> = context.dataStore.data.map { preferences ->
+        preferences[SAFE_WIFI_SSID]
+    }
+
+    suspend fun saveSafeWifiSsid(ssid: String) {
+        context.dataStore.edit { preferences ->
+            preferences[SAFE_WIFI_SSID] = ssid
+        }
     }
 
     suspend fun getOrCreateDeviceUuid(): String {

@@ -32,6 +32,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -47,6 +49,9 @@ class TrackingService : Service(), SensorEventListener {
 
     @Inject
     lateinit var settingsRepository: com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+
+    @Inject
+    lateinit var sessionManager: com.estoyok.app.core.data.local.SessionManager
 
     private var cachedSafeWifiSsid: String? = null
 
@@ -729,6 +734,13 @@ class TrackingService : Service(), SensorEventListener {
 
     private fun getConnectedWifiSsid(): String? {
         return try {
+            if (cachedSafeWifiSsid.isNullOrBlank()) {
+                val persisted = runBlocking { sessionManager.safeWifiSsidFlow.firstOrNull() }
+                if (!persisted.isNullOrBlank()) {
+                    cachedSafeWifiSsid = persisted
+                }
+            }
+
             val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
             val network = connectivityManager.activeNetwork ?: return null
             val capabilities = connectivityManager.getNetworkCapabilities(network) ?: return null
