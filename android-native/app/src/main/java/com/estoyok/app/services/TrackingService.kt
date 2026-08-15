@@ -211,6 +211,25 @@ class TrackingService : Service(), SensorEventListener {
         fetchUserPreferences()
         startLocationUpdates()
         startHeartbeatTicker()
+
+        // Immediate initial location fix upon start/open
+        requestImmediateLocationFix()
+    }
+
+    private fun requestImmediateLocationFix() {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED ||
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationClient.lastLocation.addOnSuccessListener { loc ->
+                    if (loc != null) {
+                        android.util.Log.d("TrackingService", "Immediate location fix dispatched: Lat: ${loc.latitude}, Lng: ${loc.longitude}")
+                        processLocationUpdate(loc, isForceHeartbeat = true)
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            android.util.Log.e("TrackingService", "Error obtaining immediate initial fix: ${e.message}")
+        }
     }
 
     private fun updateInterval(newInterval: Long) {
@@ -228,6 +247,7 @@ class TrackingService : Service(), SensorEventListener {
         if (isTrackingActive) {
             stopLocationUpdates()
             startLocationUpdates()
+            requestImmediateLocationFix()
         }
     }
 
