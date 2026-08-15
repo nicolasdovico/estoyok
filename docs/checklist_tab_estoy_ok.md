@@ -83,7 +83,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 3. Banner de Estado de Bienestar (StatusBanner)
 
-- [ ] **3.1 Estado "Sin Reportes" (Usuario Inicial)**
+- [x] **3.1 Estado "Sin Reportes" (Usuario Inicial)**
   * **Código:** [`PanelScreen.kt@StatusBanner`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L417-L422)
   * **Instrucciones de Prueba:**
     1. Con un usuario que no tenga check-ins registrados (`last_check_in_at = NULL`).

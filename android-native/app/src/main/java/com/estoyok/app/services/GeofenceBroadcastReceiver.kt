@@ -4,7 +4,10 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.util.Log
+import android.os.Build
 import androidx.core.content.ContextCompat
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingEvent
 
@@ -31,13 +34,29 @@ class GeofenceBroadcastReceiver : BroadcastReceiver() {
             val hasStayGeofence = triggeringGeofences?.any { it.requestId == "dynamic_stay_geofence" } ?: false
             if (hasStayGeofence) {
                 Log.d("GeofenceReceiver", "User left dynamic stay geofence. Waking up TrackingService.")
-                
-                // Wake up TrackingService by sending an ACTION_UPDATE_INTERVAL with 30s interval
-                val serviceIntent = Intent(context, TrackingService::class.java).apply {
-                    action = TrackingService.ACTION_UPDATE_INTERVAL
-                    putExtra(TrackingService.EXTRA_INTERVAL, 30000L) // Switch back to active walking mode
+
+                // 1. Enqueue WorkManager one-time request for guaranteed background execution on Android 12+
+                try {
+                    val oneTimeSync = OneTimeWorkRequestBuilder<LocationSyncWorker>().build()
+                    WorkManager.getInstance(context).enqueue(oneTimeSync)
+                } catch (e: Exception) {
+                    Log.e("GeofenceReceiver", "Error enqueuing WorkManager on geofence exit: ${e.message}")
                 }
-                ContextCompat.startForegroundService(context, serviceIntent)
+
+                // 2. Direct wake up attempt of TrackingService
+                try {
+                    val serviceIntent = Intent(context, TrackingService::class.java).apply {
+                        action = TrackingService.ACTION_UPDATE_INTERVAL
+                        putExtra(TrackingService.EXTRA_INTERVAL, 30000L) // Switch back to active walking mode
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        ContextCompat.startForegroundService(context, serviceIntent)
+                    } else {
+                        context.startService(serviceIntent)
+                    }
+                } catch (e: Exception) {
+                    Log.w("GeofenceReceiver", "Direct startForegroundService restricted in background (Android 12+): ${e.message}. Handled safely via WorkManager.")
+                }
             }
         }
     }

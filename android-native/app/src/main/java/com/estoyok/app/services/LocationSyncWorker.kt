@@ -45,7 +45,7 @@ class LocationSyncWorker @AssistedInject constructor(
                             action = TrackingService.ACTION_START
                         }
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            context.startForegroundService(intent)
+                            ContextCompat.startForegroundService(context, intent)
                         } else {
                             context.startService(intent)
                         }
@@ -53,6 +53,21 @@ class LocationSyncWorker @AssistedInject constructor(
                     } catch (e: Exception) {
                         Log.e("LocationSyncWorker", "Error auto-healing TrackingService: ${e.message}", e)
                     }
+                }
+            } else {
+                try {
+                    val updateIntent = Intent(context, TrackingService::class.java).apply {
+                        action = TrackingService.ACTION_UPDATE_INTERVAL
+                        putExtra(TrackingService.EXTRA_INTERVAL, 30000L)
+                    }
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                        ContextCompat.startForegroundService(context, updateIntent)
+                    } else {
+                        context.startService(updateIntent)
+                    }
+                    Log.d("LocationSyncWorker", "TrackingService signaled with active interval by WorkManager.")
+                } catch (e: Exception) {
+                    Log.d("LocationSyncWorker", "TrackingService already active or update failed: ${e.message}")
                 }
             }
 

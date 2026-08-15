@@ -27,6 +27,7 @@ import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.services.TrackingService
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -94,15 +95,27 @@ class PanelViewModel @Inject constructor(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
+    private var activePollingJob: kotlinx.coroutines.Job? = null
+
     init {
         refreshDashboard()
-        viewModelScope.launch {
-            while (true) {
+    }
+
+    fun startActivePolling() {
+        refreshDashboard()
+        activePollingJob?.cancel()
+        activePollingJob = viewModelScope.launch {
+            while (isActive) {
                 delay(25000L)
                 launch { fetchUserProfile() }
                 launch { fetchCheckInHistory() }
             }
         }
+    }
+
+    fun stopActivePolling() {
+        activePollingJob?.cancel()
+        activePollingJob = null
     }
 
     fun openManageContactsModal() {

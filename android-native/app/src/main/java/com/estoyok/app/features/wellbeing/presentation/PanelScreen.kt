@@ -64,16 +64,23 @@ fun PanelScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // 1. Refrescar automáticamente cada vez que el usuario vuelve a la pantalla
+    // 1. Refrescar automáticamente y mantener activo el polling solo mientras la pantalla está visible
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
-            if (event == Lifecycle.Event.ON_RESUME) {
-                viewModel.refreshDashboard()
+            when (event) {
+                Lifecycle.Event.ON_RESUME -> {
+                    viewModel.startActivePolling()
+                }
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    viewModel.stopActivePolling()
+                }
+                else -> {}
             }
         }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
             lifecycleOwner.lifecycle.removeObserver(observer)
+            viewModel.stopActivePolling()
         }
     }
 
