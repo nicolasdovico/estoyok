@@ -94,53 +94,27 @@ class WebhookController extends Controller
             return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
         }
 
-        // Extract real phone number ignoring @lid identifiers
-        $from = null;
+        // 1. Extract sender JID from message item (NOT top-level instance sender)
+        $rawSenderJid = data_get($item, 'key.remoteJid') 
+            ?? data_get($item, 'remoteJid') 
+            ?? data_get($item, 'key.participant') 
+            ?? data_get($item, 'participant') 
+            ?? data_get($item, 'sender');
 
-        // 1. Check top-level sender (e.g. 5492323610697@s.whatsapp.net)
-        $topSender = data_get($payload, 'sender');
-        if ($topSender && !str_contains($topSender, '@lid') && (str_contains($topSender, '@s.whatsapp.net') || str_contains($topSender, '@c.us'))) {
-            $from = $topSender;
-        }
-
-        // 2. Check item remoteJid if it is not a @lid
-        if (! $from) {
-            $remoteJid = data_get($item, 'key.remoteJid') ?? data_get($item, 'remoteJid');
-            if ($remoteJid && !str_contains($remoteJid, '@lid') && (str_contains($remoteJid, '@s.whatsapp.net') || str_contains($remoteJid, '@c.us'))) {
-                $from = $remoteJid;
-            }
-        }
-
-        // 3. Check participant in message
-        if (! $from) {
-            $participant = data_get($item, 'key.participant') ?? data_get($item, 'participant') ?? data_get($item, 'sender');
-            if ($participant && !str_contains($participant, '@lid')) {
-                $from = $participant;
-            }
-        }
-
-        // 4. Fallback to any identifier
-        if (! $from) {
-            $from = data_get($item, 'key.remoteJid') 
-                ?? data_get($item, 'remoteJid') 
-                ?? data_get($item, 'sender') 
-                ?? data_get($payload, 'sender') 
-                ?? data_get($payload, 'from');
-        }
-
-        if (! $from) {
+        if (! $rawSenderJid) {
             Log::info("Evolution Webhook: Missing sender/from in payload");
             $this->recordWebhookCall($payload, 'ignored_missing_from');
             return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
         }
 
-        // Ignore group messages
-        if (str_contains($from, '@g.us') || str_contains($from, '@broadcast')) {
+        // Ignore group or broadcast messages
+        if (str_contains($rawSenderJid, '@g.us') || str_contains($rawSenderJid, '@broadcast')) {
             $this->recordWebhookCall($payload, 'ignored_group_or_broadcast');
             return response()->json(['status' => 'ignored', 'reason' => 'group_or_broadcast_message']);
         }
 
         // Clean @s.whatsapp.net, @lid, @c.us or whatsapp: prefix
+        $from = $rawSenderJid;
         if (str_contains($from, '@')) {
             $from = explode('@', $from)[0];
         }
@@ -179,8 +153,36 @@ class WebhookController extends Controller
                 return false;
             });
 
+        // 2. Intelligent fallback: if sender was a WhatsApp @lid privacy identifier, match by pushName
         if (! $user) {
-            Log::info("Evolution Webhook: User not found for phone {$fromCleaned}");
+            $pushName = data_get($item, 'pushName') ?? data_get($payload, 'data.pushName');
+            if (! empty($pushName)) {
+                $cleanPush = strtr(mb_strtolower(trim($pushName), 'UTF-8'), [
+                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
+                ]);
+
+                $user = User::whereNotNull('email_verified_at')
+                    ->where(function ($q) {
+                        $q->where('allow_sms_whatsapp_checkin', true)
+                          ->orWhereNull('allow_sms_whatsapp_checkin');
+                    })
+                    ->get()
+                    ->first(function ($u) use ($cleanPush) {
+                        $uName = strtr(mb_strtolower(trim($u->name), 'UTF-8'), [
+                            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
+                        ]);
+                        if (empty($uName) || strlen($uName) < 3) return false;
+                        return str_contains($cleanPush, $uName) || str_contains($uName, $cleanPush);
+                    });
+
+                if ($user) {
+                    Log::info("Evolution Webhook: Matched user {$user->id} ({$user->name}) via pushName '{$pushName}' for @lid {$fromCleaned}");
+                }
+            }
+        }
+
+        if (! $user) {
+            Log::info("Evolution Webhook: User not found for phone/lid {$fromCleaned}");
             $this->recordWebhookCall($payload, "user_not_found_for_phone_{$fromCleaned}");
             return response()->json(['status' => 'user_not_found']);
         }
