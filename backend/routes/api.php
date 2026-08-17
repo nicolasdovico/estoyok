@@ -158,6 +158,81 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     }
 });
 
+Route::post('/maintenance/setup-evolution-webhook', function (Request $request) {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json([
+            'success' => false,
+            'message' => 'Falta configurar la variable EVOLUTION_API_URL en Railway.',
+            'current_value' => $baseUrl,
+        ], 400);
+    }
+
+    $webhookUrl = $request->input('webhook_url') ?? 'https://api.estoyok24.com/api/webhooks/evolution/message';
+
+    try {
+        $url = rtrim($baseUrl, '/') . '/webhook/set/' . $instance;
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+            'Content-Type' => 'application/json',
+        ])->post($url, [
+            'webhook' => [
+                'enabled' => true,
+                'url' => $webhookUrl,
+                'byEvents' => false,
+                'base64' => false,
+                'events' => [
+                    'MESSAGES_UPSERT',
+                    'MESSAGES_UPDATE',
+                    'SEND_MESSAGE',
+                ],
+            ],
+        ]);
+
+        return response()->json([
+            'success' => $response->successful(),
+            'instance' => $instance,
+            'configured_webhook_url' => $webhookUrl,
+            'http_status' => $response->status(),
+            'evolution_response' => $response->json() ?? $response->body(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
+Route::get('/maintenance/check-evolution-webhook', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['success' => false, 'message' => 'EVOLUTION_API_URL not configured.'], 400);
+    }
+
+    try {
+        $url = rtrim($baseUrl, '/') . '/webhook/find/' . $instance;
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+        ])->get($url);
+
+        return response()->json([
+            'success' => $response->successful(),
+            'instance' => $instance,
+            'http_status' => $response->status(),
+            'evolution_response' => $response->json() ?? $response->body(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
 Route::post('/maintenance/purge-all-drives', function () {
     try {
         \Illuminate\Support\Facades\DB::statement("DELETE FROM drive_events;");
