@@ -169,7 +169,17 @@ class PanelViewModel @Inject constructor(
             android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
             return
         }
-        val formattedPhone = if (phone.trim().startsWith("+")) phone.trim() else "+${phone.trim()}"
+        val cleaned = phone.trim().replace(" ", "").replace("-", "")
+        val formattedPhone = if (cleaned.startsWith("+")) cleaned else "+$cleaned"
+        val digitsOnly = formattedPhone.drop(1)
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
+            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono válido (mínimo 8 dígitos, Ej: +54911...)", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+        if (email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+            android.widget.Toast.makeText(context, "El correo electrónico no tiene un formato válido", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         val dto = EmergencyContactDto(
             id = null,
             name = name.trim(),
@@ -194,7 +204,17 @@ class PanelViewModel @Inject constructor(
             android.widget.Toast.makeText(context, "Por favor ingresa nombre y teléfono", android.widget.Toast.LENGTH_SHORT).show()
             return
         }
-        val formattedPhone = if (phone.trim().startsWith("+")) phone.trim() else "+${phone.trim()}"
+        val cleaned = phone.trim().replace(" ", "").replace("-", "")
+        val formattedPhone = if (cleaned.startsWith("+")) cleaned else "+$cleaned"
+        val digitsOnly = formattedPhone.drop(1)
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
+            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono válido (mínimo 8 dígitos, Ej: +54911...)", android.widget.Toast.LENGTH_LONG).show()
+            return
+        }
+        if (email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
+            android.widget.Toast.makeText(context, "El correo electrónico no tiene un formato válido", android.widget.Toast.LENGTH_SHORT).show()
+            return
+        }
         val dto = EmergencyContactDto(
             id = contactId,
             name = name.trim(),

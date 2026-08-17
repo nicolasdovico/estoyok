@@ -3,11 +3,13 @@ package com.estoyok.app.features.wellbeing.presentation
 import android.Manifest
 import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,17 +17,24 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -1279,6 +1288,7 @@ fun ManageContactsModal(
     onMoveContactUp: (Int) -> Unit,
     onMoveContactDown: (Int) -> Unit
 ) {
+    var isFormVisible by remember { mutableStateOf(false) }
     var editingContactId by remember { mutableStateOf<Int?>(null) }
     var contactToDelete by remember { mutableStateOf<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto?>(null) }
     var newName by remember { mutableStateOf("") }
@@ -1286,6 +1296,45 @@ fun ManageContactsModal(
     var newEmail by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
 
+    // Validaciones en tiempo real para teléfono y email
+    val cleanedPhone = newPhone.trim().replace(" ", "").replace("-", "")
+    val isPhoneStartedWithPlus = cleanedPhone.startsWith("+")
+    val digitsOnly = if (isPhoneStartedWithPlus) cleanedPhone.drop(1) else cleanedPhone
+    val isDigitsValid = digitsOnly.all { it.isDigit() }
+
+    val phoneError: String? = when {
+        newPhone.isBlank() -> null
+        !isDigitsValid -> "Solo se permiten números y el '+' al inicio"
+        digitsOnly.length < 8 -> "Número muy corto (mínimo 8 dígitos)"
+        digitsOnly.length > 15 -> "Número muy largo (máximo 15 dígitos)"
+        else -> null
+    }
+
+    val isEmailFormatValid = newEmail.isBlank() || android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail.trim()).matches()
+    val emailError: String? = when {
+        newEmail.isBlank() -> null
+        !isEmailFormatValid -> "Formato de correo electrónico inválido"
+        else -> null
+    }
+
+    val isPhoneValid = newPhone.isNotBlank() && phoneError == null && digitsOnly.length in 8..15
+    val isFormValid = newName.isNotBlank() && isPhoneValid && emailError == null
+
+    // Interceptar botón atrás físico o por gestos del sistema
+    BackHandler {
+        if (isFormVisible) {
+            isFormVisible = false
+            editingContactId = null
+            newName = ""
+            newPhone = ""
+            newEmail = ""
+            newRelationship = ""
+        } else {
+            onDismiss()
+        }
+    }
+
+    // Diálogo de confirmación para eliminar contacto
     contactToDelete?.let { contact ->
         AlertDialog(
             onDismissRequest = { contactToDelete = null },
@@ -1327,290 +1376,557 @@ fun ManageContactsModal(
         )
     }
 
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        confirmButton = {
-            Button(
-                onClick = onDismiss,
-                colors = ButtonDefaults.buttonColors(containerColor = CardBackground, contentColor = TextPrimary),
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.dp, BorderColor),
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text("Cerrar", fontWeight = FontWeight.Bold)
+    Dialog(
+        onDismissRequest = {
+            if (isFormVisible) {
+                isFormVisible = false
+                editingContactId = null
+                newName = ""
+                newPhone = ""
+                newEmail = ""
+                newRelationship = ""
+            } else {
+                onDismiss()
             }
         },
-        title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text("👥 ", fontSize = 20.sp)
-                Text(
-                    text = "Contactos de Alerta SOS",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = TextPrimary
-                )
-            }
-        },
-        text = {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 440.dp),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                item {
-                    Text(
-                        text = "Miembros del Círculo (Automáticos)",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = PrimaryEmerald
-                    )
-                }
-
-                if (circleMembers.isEmpty()) {
-                    item {
-                        Text("Sin otros miembros en el núcleo.", fontSize = 11.sp, color = TextMuted)
-                    }
-                } else {
-                    items(circleMembers) { member ->
-                        Row(
+        properties = DialogProperties(
+            usePlatformDefaultWidth = false,
+            decorFitsSystemWindows = false
+        )
+    ) {
+        Surface(
+            color = DarkBackground,
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .navigationBarsPadding()
+                .imePadding()
+        ) {
+            if (!isFormVisible) {
+                // ==========================================
+                // VISTA 1: LISTA DE CONTACTOS SOS
+                // ==========================================
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    // Header de la Vista 1
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
+                            onClick = onDismiss,
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .background(CardBackground.copy(alpha = 0.5f), RoundedCornerShape(8.dp))
-                                .padding(10.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .size(40.dp)
+                                .background(CardBackground, CircleShape)
                         ) {
-                            Column {
-                                Text(member.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                Text(member.email, fontSize = 11.sp, color = TextSecondary)
-                            }
-                            Text("🛡️ Núcleo", fontSize = 10.sp, color = PrimaryEmerald, fontWeight = FontWeight.Bold)
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver al panel",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Contactos de Alerta SOS",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = "Avisos prioritarios por WhatsApp y Push",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
                         }
                     }
-                }
 
-                item {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    HorizontalDivider(color = BorderColor)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = "Contactos Externos (SMS / WhatsApp)",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                }
-
-                if (emergencyContacts.isEmpty()) {
-                    item {
-                        Text("No has registrado contactos externos aún.", fontSize = 11.sp, color = TextMuted)
-                    }
-                } else {
-                    itemsIndexed(emergencyContacts) { index, contact ->
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .background(
-                                    if (editingContactId == contact.id) PrimaryEmerald.copy(alpha = 0.15f)
-                                    else CardBackground.copy(alpha = 0.5f),
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(8.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.SpaceBetween
-                        ) {
+                    LazyColumn(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        // Sección: Miembros del Núcleo
+                        item {
+                            Spacer(modifier = Modifier.height(4.dp))
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.padding(vertical = 4.dp)
                             ) {
+                                Text("🛡️ ", fontSize = 14.sp)
+                                Text(
+                                    text = "Miembros del Núcleo (Automáticos)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = PrimaryEmerald
+                                )
+                            }
+                        }
+
+                        if (circleMembers.isEmpty()) {
+                            item {
                                 Surface(
-                                    color = PrimaryEmerald.copy(alpha = 0.2f),
-                                    contentColor = PrimaryEmerald,
-                                    shape = RoundedCornerShape(4.dp)
+                                    color = CardBackground.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
                                 ) {
                                     Text(
-                                        text = "#${index + 1}",
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                                        text = "Sin otros miembros en el núcleo.",
+                                        fontSize = 12.sp,
+                                        color = TextMuted,
+                                        modifier = Modifier.padding(14.dp)
                                     )
-                                }
-
-                                Spacer(modifier = Modifier.width(8.dp))
-
-                                Column {
-                                    Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
-                                    val contactSubtext = if (!contact.email.isNullOrBlank()) "${contact.phone} • ${contact.email}" else contact.phone
-                                    Text("$contactSubtext • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
                                 }
                             }
-
-                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                IconButton(
-                                    onClick = { onMoveContactUp(index) },
-                                    enabled = index > 0,
-                                    modifier = Modifier.size(28.dp)
+                        } else {
+                            items(circleMembers) { member ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(CardBackground.copy(alpha = 0.6f), RoundedCornerShape(12.dp))
+                                        .border(BorderStroke(1.dp, BorderColor.copy(alpha = 0.6f)), RoundedCornerShape(12.dp))
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowUpward,
-                                        contentDescription = "Subir",
-                                        tint = if (index > 0) PrimaryEmerald else TextMuted
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = { onMoveContactDown(index) },
-                                    enabled = index < emergencyContacts.size - 1,
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.ArrowDownward,
-                                        contentDescription = "Bajar",
-                                        tint = if (index < emergencyContacts.size - 1) PrimaryEmerald else TextMuted
-                                    )
-                                }
-
-                                IconButton(
-                                    onClick = {
-                                        editingContactId = contact.id
-                                        newName = contact.name
-                                        newPhone = contact.phone
-                                        newEmail = contact.email ?: ""
-                                        newRelationship = contact.relationship ?: ""
-                                    },
-                                    modifier = Modifier.size(28.dp)
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Default.Edit,
-                                        contentDescription = "Editar contacto",
-                                        tint = PrimaryOrange
-                                    )
-                                }
-
-                                contact.id?.let {
-                                    IconButton(
-                                        onClick = { contactToDelete = contact },
-                                        modifier = Modifier.size(28.dp)
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(member.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                        Text(member.email, fontSize = 11.sp, color = TextSecondary)
+                                    }
+                                    Surface(
+                                        color = PrimaryEmerald.copy(alpha = 0.15f),
+                                        shape = RoundedCornerShape(6.dp)
                                     ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Delete,
-                                            contentDescription = "Eliminar contacto",
-                                            tint = PrimaryRed
+                                        Text(
+                                            text = "🛡️ Núcleo",
+                                            fontSize = 11.sp,
+                                            color = PrimaryEmerald,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                                         )
                                     }
                                 }
                             }
                         }
+
+                        // Sección: Contactos Externos
+                        item {
+                            Spacer(modifier = Modifier.height(10.dp))
+                            HorizontalDivider(color = BorderColor.copy(alpha = 0.7f))
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(vertical = 4.dp)
+                            ) {
+                                Text("📞 ", fontSize = 14.sp)
+                                Text(
+                                    text = "Contactos Externos (SMS / WhatsApp)",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                            }
+                            Text(
+                                text = "Se alertarán secuencialmente en este orden de prioridad:",
+                                fontSize = 11.sp,
+                                color = TextMuted,
+                                modifier = Modifier.padding(bottom = 4.dp)
+                            )
+                        }
+
+                        if (emergencyContacts.isEmpty()) {
+                            item {
+                                Surface(
+                                    color = CardBackground.copy(alpha = 0.5f),
+                                    shape = RoundedCornerShape(10.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(
+                                        text = "No has registrado contactos externos aún.\nPulsa el botón de abajo para agregar uno.",
+                                        fontSize = 12.sp,
+                                        color = TextMuted,
+                                        modifier = Modifier.padding(16.dp)
+                                    )
+                                }
+                            }
+                        } else {
+                            itemsIndexed(emergencyContacts) { index, contact ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(CardBackground, RoundedCornerShape(12.dp))
+                                        .border(BorderStroke(1.dp, BorderColor), RoundedCornerShape(12.dp))
+                                        .padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Row(
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        modifier = Modifier.weight(1f)
+                                    ) {
+                                        Surface(
+                                            color = PrimaryEmerald.copy(alpha = 0.15f),
+                                            contentColor = PrimaryEmerald,
+                                            shape = RoundedCornerShape(6.dp)
+                                        ) {
+                                            Text(
+                                                text = "#${index + 1}",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.ExtraBold,
+                                                modifier = Modifier.padding(horizontal = 7.dp, vertical = 3.dp)
+                                            )
+                                        }
+
+                                        Spacer(modifier = Modifier.width(10.dp))
+
+                                        Column {
+                                            Text(contact.name, fontSize = 13.sp, fontWeight = FontWeight.Bold, color = TextPrimary)
+                                            val contactSubtext = if (!contact.email.isNullOrBlank()) "${contact.phone} • ${contact.email}" else contact.phone
+                                            Text("$contactSubtext • ${contact.relationship ?: "Familiar"}", fontSize = 11.sp, color = TextSecondary)
+                                        }
+                                    }
+
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        IconButton(
+                                            onClick = { onMoveContactUp(index) },
+                                            enabled = index > 0,
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowUpward,
+                                                contentDescription = "Subir prioridad",
+                                                tint = if (index > 0) PrimaryEmerald else TextMuted,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = { onMoveContactDown(index) },
+                                            enabled = index < emergencyContacts.size - 1,
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.ArrowDownward,
+                                                contentDescription = "Bajar prioridad",
+                                                tint = if (index < emergencyContacts.size - 1) PrimaryEmerald else TextMuted,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        IconButton(
+                                            onClick = {
+                                                editingContactId = contact.id
+                                                newName = contact.name
+                                                newPhone = contact.phone
+                                                newEmail = contact.email ?: ""
+                                                newRelationship = contact.relationship ?: ""
+                                                isFormVisible = true
+                                            },
+                                            modifier = Modifier.size(32.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Edit,
+                                                contentDescription = "Editar contacto",
+                                                tint = PrimaryOrange,
+                                                modifier = Modifier.size(18.dp)
+                                            )
+                                        }
+
+                                        contact.id?.let {
+                                            IconButton(
+                                                onClick = { contactToDelete = contact },
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Delete,
+                                                    contentDescription = "Eliminar contacto",
+                                                    tint = PrimaryRed,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                        }
+                    }
+
+                    // Botón inferior para agregar nuevo contacto
+                    Button(
+                        onClick = {
+                            editingContactId = null
+                            newName = ""
+                            newPhone = ""
+                            newEmail = ""
+                            newRelationship = ""
+                            isFormVisible = true
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryEmerald,
+                            contentColor = TextOnPrimary
+                        ),
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 8.dp)
+                            .height(50.dp)
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(
+                                imageVector = Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp),
+                                tint = TextOnPrimary
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Agregar Nuevo Contacto Externo",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = TextOnPrimary
+                            )
+                        }
                     }
                 }
-
-                item {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    HorizontalDivider(color = BorderColor)
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = if (editingContactId != null) "✏️ Editar Contacto" else "➕ Agregar Nuevo Contacto Externo",
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = newName,
-                        onValueChange = { newName = it },
-                        label = { Text("Nombre", fontSize = 11.sp) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = newPhone,
-                        onValueChange = { newPhone = it },
-                        label = { Text("Teléfono (+549...)", fontSize = 11.sp) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = newEmail,
-                        onValueChange = { newEmail = it },
-                        label = { Text("Email / Correo (Opcional)", fontSize = 11.sp) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-
-                item {
-                    OutlinedTextField(
-                        value = newRelationship,
-                        onValueChange = { newRelationship = it },
-                        label = { Text("Parentesco (Ej. Hermana)", fontSize = 11.sp) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(8.dp)
-                    )
-                }
-
-                item {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                        Button(
+            } else {
+                // ==========================================
+                // VISTA 2: FORMULARIO DE AGREGAR / EDITAR
+                // ==========================================
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 12.dp)
+                ) {
+                    // Header de la Vista 2
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(
                             onClick = {
-                                val currentId = editingContactId
-                                if (currentId != null) {
-                                    onUpdateContact(currentId, newName, newPhone, newEmail, newRelationship)
-                                } else {
-                                    onAddContact(newName, newPhone, newEmail, newRelationship)
-                                }
+                                isFormVisible = false
                                 editingContactId = null
                                 newName = ""
                                 newPhone = ""
                                 newEmail = ""
                                 newRelationship = ""
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald, contentColor = TextOnPrimary),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(CardBackground, CircleShape)
                         ) {
-                            Text(
-                                text = if (editingContactId != null) "Actualizar Contacto ✏️" else "Guardar Contacto",
-                                fontWeight = FontWeight.Bold,
-                                fontSize = 12.sp,
-                                color = TextOnPrimary
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Volver a la lista",
+                                tint = TextPrimary,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = if (editingContactId != null) "✏️ Editar Contacto SOS" else "➕ Nuevo Contacto SOS",
+                                fontSize = 17.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = if (editingContactId != null) "Modifica los datos del contacto de emergencia" else "Ingresa los datos del nuevo contacto externo",
+                                fontSize = 11.sp,
+                                color = TextSecondary
+                            )
+                        }
+                    }
 
-                        if (editingContactId != null) {
-                            OutlinedButton(
-                                onClick = {
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(14.dp)
+                    ) {
+                        Surface(
+                            color = CardBackground,
+                            shape = RoundedCornerShape(14.dp),
+                            border = BorderStroke(1.dp, BorderColor),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                OutlinedTextField(
+                                    value = newName,
+                                    onValueChange = { newName = it },
+                                    label = { Text("Nombre Completo", fontSize = 12.sp) },
+                                    placeholder = { Text("Ej. María García", fontSize = 12.sp, color = TextMuted) },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Text,
+                                        capitalization = KeyboardCapitalization.Words
+                                    ),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = PrimaryEmerald,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedLabelColor = PrimaryEmerald
+                                    )
+                                )
+
+                                OutlinedTextField(
+                                    value = newPhone,
+                                    onValueChange = { newPhone = it },
+                                    label = { Text("Teléfono Celular con prefijo", fontSize = 12.sp) },
+                                    placeholder = { Text("Ej. +5491123456789", fontSize = 12.sp, color = TextMuted) },
+                                    supportingText = {
+                                        if (phoneError != null) {
+                                            Text(phoneError, fontSize = 11.sp, color = PrimaryRed)
+                                        } else {
+                                            Text("Incluye el código de país (Ej: +549...)", fontSize = 10.sp, color = TextMuted)
+                                        }
+                                    },
+                                    isError = phoneError != null,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = PrimaryEmerald,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedLabelColor = PrimaryEmerald,
+                                        errorBorderColor = PrimaryRed,
+                                        errorLabelColor = PrimaryRed
+                                    )
+                                )
+
+                                OutlinedTextField(
+                                    value = newEmail,
+                                    onValueChange = { newEmail = it },
+                                    label = { Text("Email / Correo (Opcional)", fontSize = 12.sp) },
+                                    placeholder = { Text("Ej. contacto@gmail.com", fontSize = 12.sp, color = TextMuted) },
+                                    supportingText = {
+                                        if (emailError != null) {
+                                            Text(emailError, fontSize = 11.sp, color = PrimaryRed)
+                                        } else {
+                                            Text("Opcional: Para alertas y respaldos por email", fontSize = 10.sp, color = TextMuted)
+                                        }
+                                    },
+                                    isError = emailError != null,
+                                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                                    singleLine = true,
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = PrimaryEmerald,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedLabelColor = PrimaryEmerald,
+                                        errorBorderColor = PrimaryRed,
+                                        errorLabelColor = PrimaryRed
+                                    )
+                                )
+
+                                OutlinedTextField(
+                                    value = newRelationship,
+                                    onValueChange = { newRelationship = it },
+                                    label = { Text("Parentesco (Opcional)", fontSize = 12.sp) },
+                                    placeholder = { Text("Ej. Hermana, Madre, Amigo", fontSize = 12.sp, color = TextMuted) },
+                                    singleLine = true,
+                                    keyboardOptions = KeyboardOptions(
+                                        keyboardType = KeyboardType.Text,
+                                        capitalization = KeyboardCapitalization.Words
+                                    ),
+                                    modifier = Modifier.fillMaxWidth(),
+                                    shape = RoundedCornerShape(10.dp),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = PrimaryEmerald,
+                                        unfocusedBorderColor = BorderColor,
+                                        focusedLabelColor = PrimaryEmerald
+                                    )
+                                )
+                            }
+                        }
+                    }
+
+                    // Botones de acción inferiores
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 12.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Button(
+                            onClick = {
+                                if (isFormValid) {
+                                    val formattedPhone = if (cleanedPhone.startsWith("+")) cleanedPhone else "+$cleanedPhone"
+                                    val currentId = editingContactId
+                                    if (currentId != null) {
+                                        onUpdateContact(currentId, newName.trim(), formattedPhone, newEmail.trim(), newRelationship.trim())
+                                    } else {
+                                        onAddContact(newName.trim(), formattedPhone, newEmail.trim(), newRelationship.trim())
+                                    }
                                     editingContactId = null
                                     newName = ""
                                     newPhone = ""
                                     newEmail = ""
                                     newRelationship = ""
-                                },
-                                shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                Text("Cancelar Edición", fontSize = 11.sp)
-                            }
+                                    isFormVisible = false
+                                }
+                            },
+                            enabled = isFormValid,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryEmerald,
+                                contentColor = TextOnPrimary,
+                                disabledContainerColor = CardBackground,
+                                disabledContentColor = TextMuted
+                            ),
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(50.dp)
+                        ) {
+                            Text(
+                                text = if (editingContactId != null) "Actualizar Contacto ✏️" else "Guardar Contacto 💾",
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 14.sp,
+                                color = if (isFormValid) TextOnPrimary else TextMuted
+                            )
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                editingContactId = null
+                                newName = ""
+                                newPhone = ""
+                                newEmail = ""
+                                newRelationship = ""
+                                isFormVisible = false
+                            },
+                            shape = RoundedCornerShape(12.dp),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp)
+                        ) {
+                            Text("Cancelar", fontSize = 13.sp, color = TextSecondary)
                         }
                     }
                 }
             }
-        },
-        containerColor = CardBackground,
-        shape = RoundedCornerShape(20.dp)
-    )
+        }
+    }
 }
 
 @Preview(showBackground = true)

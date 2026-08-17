@@ -1,5 +1,25 @@
 # Progress Log
 
+## [2026-08-17] Validación Estricta en Tiempo Real de Teléfono Celular y Email en Contactos SOS (Android Nativo)
+- **App Móvil Android Nativa (Validaciones & UX):**
+    - Implementada validación en tiempo real de número telefónico en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): comprueba que el valor ingresado contenga únicamente dígitos válidos con prefijo `+` opcional/automático y una longitud reglamentaria de 8 a 15 dígitos (estándar internacional E.164), impidiendo guardar valores incompletos o de un solo dígito.
+    - Agregado estado de error visual (`isError = true`) y textos de ayuda reactivos en `supportingText` (*"Solo se permiten números y '+'"*, *"Número muy corto (mínimo 8 dígitos)"*, *"Número muy largo (máximo 15 dígitos)"*).
+    - Implementada validación de formato de correo electrónico (`Patterns.EMAIL_ADDRESS`) si el campo opcional no está vacío.
+    - Configuradas opciones de teclado nativo `KeyboardOptions(keyboardType = KeyboardType.Phone)` para celular, `KeyboardType.Email` para correo y `KeyboardCapitalization.Words` para nombres.
+    - Deshabilitado reactivamente el botón de guardado (*"Guardar / Actualizar"*) hasta que el nombre esté completo, el teléfono sea válido y el email tenga formato correcto.
+    - Incorporada salvaguarda defensiva en `addContact` y `updateContact` dentro de [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) con notificaciones Toast descriptivas ante intentos de carga inválidos.
+    - Verificada la compilación exitosa en Kotlin (`BUILD SUCCESSFUL in 26s`).
+
+## [2026-08-17] Rediseño a Pantalla Completa y Navegación de 2 Vistas en Modal de Contactos SOS (Android Nativo)
+- **App Móvil Android Nativa (UX / UI de Bienestar):**
+    - Transformado el modal de gestión de contactos [`ManageContactsModal`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) de un diálogo emergente acotado (`AlertDialog` 440dp) a una experiencia a pantalla completa (`Dialog` full-width con `DarkBackground`, `statusBarsPadding`, `navigationBarsPadding` e `imePadding`).
+    - Implementada arquitectura de navegación interna de 2 vistas fluidas e independientes:
+      1. **Vista 1 (Listado de Contactos SOS):** Presenta cabecera con botón de retorno (`Icons.AutoMirrored.Filled.ArrowBack`), visualización limpia de miembros automáticos del núcleo, listado de contactos externos con badges de prioridad (`#1`, `#2`), controles de reordenamiento (`⬆️`/`⬇️`), botón de edición (`✏️` en naranja), botón de eliminación (`🗑️` con diálogo de confirmación `AlertDialog`) y botón de acción destacado *"➕ Agregar Nuevo Contacto Externo"*.
+      2. **Vista 2 (Formulario de Carga / Edición):** Se activa al pulsar el lápiz (`✏️`) o el botón *"➕ Agregar"*, desplegando un formulario amplio y enfocado (*Nombre*, *Teléfono con prefijo*, *Email opcional*, *Parentesco*), inmune a la superposición del teclado virtual (`imePadding`), con botón *"Actualizar Contacto ✏️"* / *"Guardar Contacto 💾"* que regresa automáticamente a la lista al guardar, y botón/flecha *"Cancelar / Volver"* para descartar cambios.
+    - Integrado `BackHandler` nativo para interceptar el botón físico/gestos 'Atrás' del sistema operativo, regresando del formulario a la lista o cerrando el modal de forma intuitiva.
+    - Preservadas al 100% todas las validaciones de datos, llamadas al ViewModel (`onAddContact`, `onUpdateContact`, `onDeleteContact`, `onMoveContactUp`, `onMoveContactDown`) e identidad visual.
+    - Verificada la compilación exitosa de la app nativa en Kotlin (`BUILD SUCCESSFUL in 27s`).
+
 ## [2026-08-17] Corrección Visual de Icono de Edición de Contacto en Modal de Contactos SOS (Android Nativo)
 - **App Móvil Android Nativa (UX / UI de Bienestar):**
     - Corregido el color del icono de lápiz (`Icons.Default.Edit`) en la lista de contactos de emergencia de [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): actualizado de `PrimaryEmerald` (verde/turquesa) a `PrimaryOrange` (`#F59E0B`, color ámbar/madera estándar representativo de lápiz/edición), unificando la identidad visual con el encabezado de edición (`"✏️ Editar Contacto"`).
