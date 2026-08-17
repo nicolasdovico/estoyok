@@ -200,13 +200,15 @@ class AjustesViewModel @Inject constructor(
             return
         }
 
-        val phoneFormatted = newContactPhone.trim()
-        if (!phoneFormatted.startsWith("+")) {
-            errorMessage = "El teléfono del contacto debe iniciar con '+' (E.164)."
+        val phoneFormatted = newContactPhone.trim().replace(" ", "").replace("-", "")
+        val withPlus = if (phoneFormatted.startsWith("+")) phoneFormatted else "+$phoneFormatted"
+        val digitsOnly = withPlus.drop(1)
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
+            errorMessage = "El teléfono debe tener entre 8 y 15 dígitos con prefijo internacional (Ej: +549...)."
             return
         }
 
-        if (newContactEmail.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(newContactEmail).matches()) {
+        if (newContactEmail.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(newContactEmail.trim()).matches()) {
             errorMessage = "El correo del contacto no tiene formato válido."
             return
         }

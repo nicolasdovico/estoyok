@@ -1,14 +1,15 @@
 # Progress Log
 
-## [2026-08-17] Validación Estricta en Tiempo Real de Teléfono Celular y Email en Contactos SOS (Android Nativo)
-- **App Móvil Android Nativa (Validaciones & UX):**
-    - Implementada validación en tiempo real de número telefónico en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): comprueba que el valor ingresado contenga únicamente dígitos válidos con prefijo `+` opcional/automático y una longitud reglamentaria de 8 a 15 dígitos (estándar internacional E.164), impidiendo guardar valores incompletos o de un solo dígito.
-    - Agregado estado de error visual (`isError = true`) y textos de ayuda reactivos en `supportingText` (*"Solo se permiten números y '+'"*, *"Número muy corto (mínimo 8 dígitos)"*, *"Número muy largo (máximo 15 dígitos)"*).
-    - Implementada validación de formato de correo electrónico (`Patterns.EMAIL_ADDRESS`) si el campo opcional no está vacío.
-    - Configuradas opciones de teclado nativo `KeyboardOptions(keyboardType = KeyboardType.Phone)` para celular, `KeyboardType.Email` para correo y `KeyboardCapitalization.Words` para nombres.
-    - Deshabilitado reactivamente el botón de guardado (*"Guardar / Actualizar"*) hasta que el nombre esté completo, el teléfono sea válido y el email tenga formato correcto.
-    - Incorporada salvaguarda defensiva en `addContact` y `updateContact` dentro de [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) con notificaciones Toast descriptivas ante intentos de carga inválidos.
-    - Verificada la compilación exitosa en Kotlin (`BUILD SUCCESSFUL in 26s`).
+## [2026-08-17] Validación Estricta en Tiempo Real (Alta y Modificación) de Teléfono, Email y Nombre en Contactos SOS
+- **App Móvil Android Nativa (Validaciones Reactivas & UX):**
+    - Corregida y blindada la validación reactiva en tiempo real tanto en el modo **Alta** como en el modo **Modificación / Edición** de contactos existentes en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt):
+      - Si al modificar un contacto existente se borran dígitos dejando menos de 8 caracteres o más de 15, el campo se tiñe inmediatamente en rojo con el mensaje *"Número muy corto (mínimo 8 dígitos)"* / *"Número muy largo (máximo 15 dígitos)"* y el botón *"Actualizar Contacto ✏️"* se deshabilita instantáneamente.
+      - Si se vacía el campo de teléfono al modificar, se muestra *"El teléfono celular es obligatorio"* en rojo.
+      - Si se vacía el nombre al modificar, se muestra *"El nombre completo es obligatorio"* en rojo con soporte de `nameError` e `isError = true`.
+      - Si se introduce un correo electrónico inválido al modificar o dar de alta, se muestra *"Formato de correo electrónico inválido"* y se inhabilita el guardado.
+    - Sincronizada la lógica en [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) y [`mobile/src/app/contacts.tsx`](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/contacts.tsx).
+    - **Backend Laravel:** Actualizado [`EmergencyContactController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php) en `store()` y `update()` para sanitizar espacios/guiones y validar la expresión regular E.164 (`/^\+[1-9]\d{7,14}$/`).
+    - Verificada la compilación nativa en Kotlin (`BUILD SUCCESSFUL in 23s`) y el 100% de la suite de pruebas del backend (141/141 passed).
 
 ## [2026-08-17] Rediseño a Pantalla Completa y Navegación de 2 Vistas en Modal de Contactos SOS (Android Nativo)
 - **App Móvil Android Nativa (UX / UI de Bienestar):**

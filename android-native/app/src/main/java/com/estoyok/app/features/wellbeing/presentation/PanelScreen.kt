@@ -1296,13 +1296,19 @@ fun ManageContactsModal(
     var newEmail by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
 
-    // Validaciones en tiempo real para teléfono y email
+    // Validaciones en tiempo real para nombre, teléfono y email
     val cleanedPhone = newPhone.trim().replace(" ", "").replace("-", "")
     val isPhoneStartedWithPlus = cleanedPhone.startsWith("+")
     val digitsOnly = if (isPhoneStartedWithPlus) cleanedPhone.drop(1) else cleanedPhone
     val isDigitsValid = digitsOnly.all { it.isDigit() }
 
+    val nameError: String? = when {
+        newName.isBlank() && (editingContactId != null || newName.isNotEmpty()) -> "El nombre completo es obligatorio"
+        else -> null
+    }
+
     val phoneError: String? = when {
+        newPhone.isBlank() && editingContactId != null -> "El teléfono celular es obligatorio"
         newPhone.isBlank() -> null
         !isDigitsValid -> "Solo se permiten números y el '+' al inicio"
         digitsOnly.length < 8 -> "Número muy corto (mínimo 8 dígitos)"
@@ -1313,12 +1319,14 @@ fun ManageContactsModal(
     val isEmailFormatValid = newEmail.isBlank() || android.util.Patterns.EMAIL_ADDRESS.matcher(newEmail.trim()).matches()
     val emailError: String? = when {
         newEmail.isBlank() -> null
-        !isEmailFormatValid -> "Formato de correo electrónico inválido"
+        !isEmailFormatValid -> "Formato de correo electrónico inválido (ej: usuario@correo.com)"
         else -> null
     }
 
-    val isPhoneValid = newPhone.isNotBlank() && phoneError == null && digitsOnly.length in 8..15
-    val isFormValid = newName.isNotBlank() && isPhoneValid && emailError == null
+    val isNameValid = newName.trim().isNotBlank()
+    val isPhoneValid = newPhone.trim().isNotBlank() && isDigitsValid && digitsOnly.length in 8..15
+    val isEmailValid = newEmail.isBlank() || isEmailFormatValid
+    val isFormValid = isNameValid && isPhoneValid && isEmailValid
 
     // Interceptar botón atrás físico o por gestos del sistema
     BackHandler {
@@ -1773,6 +1781,12 @@ fun ManageContactsModal(
                                     onValueChange = { newName = it },
                                     label = { Text("Nombre Completo", fontSize = 12.sp) },
                                     placeholder = { Text("Ej. María García", fontSize = 12.sp, color = TextMuted) },
+                                    supportingText = {
+                                        if (nameError != null) {
+                                            Text(nameError, fontSize = 11.sp, color = PrimaryRed)
+                                        }
+                                    },
+                                    isError = nameError != null,
                                     singleLine = true,
                                     keyboardOptions = KeyboardOptions(
                                         keyboardType = KeyboardType.Text,
@@ -1783,7 +1797,9 @@ fun ManageContactsModal(
                                     colors = OutlinedTextFieldDefaults.colors(
                                         focusedBorderColor = PrimaryEmerald,
                                         unfocusedBorderColor = BorderColor,
-                                        focusedLabelColor = PrimaryEmerald
+                                        focusedLabelColor = PrimaryEmerald,
+                                        errorBorderColor = PrimaryRed,
+                                        errorLabelColor = PrimaryRed
                                     )
                                 )
 

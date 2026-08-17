@@ -48,9 +48,17 @@ class EmergencyContactController extends Controller
     )]
     public function store(Request $request)
     {
+        if ($request->has('phone') && is_string($request->phone)) {
+            $cleaned = preg_replace('/[\s\-\(\)]+/', '', $request->phone);
+            if (!empty($cleaned) && !str_starts_with($cleaned, '+')) {
+                $cleaned = '+' . $cleaned;
+            }
+            $request->merge(['phone' => $cleaned]);
+        }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => 'required|string|max:20',
+            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{7,14}$/', 'max:20'],
             'email' => 'nullable|email|max:255',
             'relationship' => 'nullable|string|max:100',
             'is_active' => 'boolean',
@@ -113,9 +121,17 @@ class EmergencyContactController extends Controller
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
+        if ($request->has('phone') && is_string($request->phone)) {
+            $cleaned = preg_replace('/[\s\-\(\)]+/', '', $request->phone);
+            if (!empty($cleaned) && !str_starts_with($cleaned, '+')) {
+                $cleaned = '+' . $cleaned;
+            }
+            $request->merge(['phone' => $cleaned]);
+        }
+
         $validated = $request->validate([
-            'name' => 'string|max:255',
-            'phone' => 'string|max:20',
+            'name' => 'sometimes|required|string|max:255',
+            'phone' => ['sometimes', 'required', 'string', 'regex:/^\+[1-9]\d{7,14}$/', 'max:20'],
             'email' => 'nullable|email|max:255',
             'relationship' => 'nullable|string|max:100',
             'is_active' => 'boolean',

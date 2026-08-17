@@ -51,13 +51,16 @@ export default function ContactsScreen() {
   }, []);
 
   const handleSave = async () => {
-    if (!formData.name || !formData.phone) {
+    if (!formData.name.trim() || !formData.phone.trim()) {
       Alert.alert('Error', 'Nombre y teléfono son obligatorios.');
       return;
     }
 
-    if (!formData.phone.trim().startsWith('+')) {
-      Alert.alert('Formato Incorrecto', 'El número de teléfono debe comenzar con "+". Ejemplo: +54911...');
+    const cleanedPhone = formData.phone.trim().replace(/\s+/g, '').replace(/-/g, '');
+    const withPlus = cleanedPhone.startsWith('+') ? cleanedPhone : `+${cleanedPhone}`;
+    const digitsOnly = withPlus.substring(1);
+    if (!/^\d+$/.test(digitsOnly) || digitsOnly.length < 8 || digitsOnly.length > 15) {
+      Alert.alert('Teléfono Inválido', 'El número de teléfono debe tener entre 8 y 15 dígitos con código de país (Ej: +54911...).');
       return;
     }
 
@@ -67,11 +70,19 @@ export default function ContactsScreen() {
       return;
     }
 
+    const dataToSend = {
+      ...formData,
+      name: formData.name.trim(),
+      phone: withPlus,
+      email: formData.email.trim() || undefined,
+      relationship: formData.relationship.trim() || undefined,
+    };
+
     try {
       if (editingContact) {
-        await emergencyContactsService.update(editingContact.id!, formData);
+        await emergencyContactsService.update(editingContact.id!, dataToSend);
       } else {
-        await emergencyContactsService.create(formData);
+        await emergencyContactsService.create(dataToSend);
       }
       setModalVisible(false);
       setEditingContact(null);
