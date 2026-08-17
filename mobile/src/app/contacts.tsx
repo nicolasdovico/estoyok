@@ -59,8 +59,12 @@ export default function ContactsScreen() {
     const cleanedPhone = formData.phone.trim().replace(/\s+/g, '').replace(/-/g, '');
     const withPlus = cleanedPhone.startsWith('+') ? cleanedPhone : `+${cleanedPhone}`;
     const digitsOnly = withPlus.substring(1);
-    if (!/^\d+$/.test(digitsOnly) || digitsOnly.length < 8 || digitsOnly.length > 15) {
-      Alert.alert('Teléfono Inválido', 'El número de teléfono debe tener entre 8 y 15 dígitos con código de país (Ej: +54911...).');
+    const isArg = withPlus.startsWith('+54');
+    const minLen = isArg ? 12 : 10;
+    const maxLen = isArg ? 13 : 15;
+
+    if (!/^\d+$/.test(digitsOnly) || digitsOnly.length < minLen || digitsOnly.length > maxLen) {
+      Alert.alert('Teléfono Inválido', 'El número de teléfono debe ser completo, incluyendo código de país y código de área.');
       return;
     }
 

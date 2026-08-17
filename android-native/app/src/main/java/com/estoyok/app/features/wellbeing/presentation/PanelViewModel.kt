@@ -172,8 +172,12 @@ class PanelViewModel @Inject constructor(
         val cleaned = phone.trim().replace(" ", "").replace("-", "")
         val formattedPhone = if (cleaned.startsWith("+")) cleaned else "+$cleaned"
         val digitsOnly = formattedPhone.drop(1)
-        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
-            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono válido (mínimo 8 dígitos, Ej: +54911...)", android.widget.Toast.LENGTH_LONG).show()
+        val isArg = formattedPhone.startsWith("+54")
+        val minLen = if (isArg) 12 else 10
+        val maxLen = if (isArg) 13 else 15
+
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in minLen..maxLen) {
+            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono completo con código de país y de área", android.widget.Toast.LENGTH_LONG).show()
             return
         }
         if (email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {
@@ -207,8 +211,12 @@ class PanelViewModel @Inject constructor(
         val cleaned = phone.trim().replace(" ", "").replace("-", "")
         val formattedPhone = if (cleaned.startsWith("+")) cleaned else "+$cleaned"
         val digitsOnly = formattedPhone.drop(1)
-        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
-            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono válido (mínimo 8 dígitos, Ej: +54911...)", android.widget.Toast.LENGTH_LONG).show()
+        val isArg = formattedPhone.startsWith("+54")
+        val minLen = if (isArg) 12 else 10
+        val maxLen = if (isArg) 13 else 15
+
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in minLen..maxLen) {
+            android.widget.Toast.makeText(context, "Por favor ingresa un número de teléfono completo con código de país y de área", android.widget.Toast.LENGTH_LONG).show()
             return
         }
         if (email.isNotBlank() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches()) {

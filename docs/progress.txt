@@ -1,15 +1,14 @@
 # Progress Log
 
-## [2026-08-17] Validación Estricta en Tiempo Real (Alta y Modificación) de Teléfono, Email y Nombre en Contactos SOS
-- **App Móvil Android Nativa (Validaciones Reactivas & UX):**
-    - Corregida y blindada la validación reactiva en tiempo real tanto en el modo **Alta** como en el modo **Modificación / Edición** de contactos existentes en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt):
-      - Si al modificar un contacto existente se borran dígitos dejando menos de 8 caracteres o más de 15, el campo se tiñe inmediatamente en rojo con el mensaje *"Número muy corto (mínimo 8 dígitos)"* / *"Número muy largo (máximo 15 dígitos)"* y el botón *"Actualizar Contacto ✏️"* se deshabilita instantáneamente.
-      - Si se vacía el campo de teléfono al modificar, se muestra *"El teléfono celular es obligatorio"* en rojo.
-      - Si se vacía el nombre al modificar, se muestra *"El nombre completo es obligatorio"* en rojo con soporte de `nameError` e `isError = true`.
-      - Si se introduce un correo electrónico inválido al modificar o dar de alta, se muestra *"Formato de correo electrónico inválido"* y se inhabilita el guardado.
-    - Sincronizada la lógica en [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) y [`mobile/src/app/contacts.tsx`](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/contacts.tsx).
-    - **Backend Laravel:** Actualizado [`EmergencyContactController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php) en `store()` y `update()` para sanitizar espacios/guiones y validar la expresión regular E.164 (`/^\+[1-9]\d{7,14}$/`).
-    - Verificada la compilación nativa en Kotlin (`BUILD SUCCESSFUL in 23s`) y el 100% de la suite de pruebas del backend (141/141 passed).
+## [2026-08-17] Validación Inteligente y Genérica de Teléfonos E.164 (Prefijo de País y Área) en Contactos SOS
+- **App Móvil Android Nativa (Validaciones Inteligentes & UX Genérica):**
+    - Implementada validación adaptativa de longitud telefónica en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt):
+      - Para prefijos de Argentina (`+54`): exige entre 12 y 13 dígitos totales (contemplando código de país + indicador móvil `9` + código de área y número de 10 dígitos).
+      - Para otros prefijos internacionales (`+1`, `+34`, `+598`, etc.): exige entre 10 y 15 dígitos totales (evitando números truncados que rompan el envío de alertas WhatsApp / SMS).
+      - Los mensajes de error y ayuda se mantuvieron completamente **genéricos y universales** (*"Número incompleto (mínimo X dígitos con código de país y área)"*, *"Formato internacional (código de país, área y número)"*), aptos para cualquier usuario de cualquier país.
+    - Sincronizadas las validaciones en [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt), [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) y [`mobile/src/app/contacts.tsx`](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/contacts.tsx).
+    - **Backend Laravel:** Actualizado [`EmergencyContactController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php) aplicando las reglas de validación en `store()` y `update()` con mensajes genéricos.
+    - Verificada la compilación limpia de Kotlin (`BUILD SUCCESSFUL in 16s`, 0 advertencias) y la suite completa de pruebas del backend (141/141 passed).
 
 ## [2026-08-17] Rediseño a Pantalla Completa y Navegación de 2 Vistas en Modal de Contactos SOS (Android Nativo)
 - **App Móvil Android Nativa (UX / UI de Bienestar):**

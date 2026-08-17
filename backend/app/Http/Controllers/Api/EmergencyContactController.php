@@ -58,7 +58,17 @@ class EmergencyContactController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'phone' => ['required', 'string', 'regex:/^\+[1-9]\d{7,14}$/', 'max:20'],
+            'phone' => ['required', 'string', function ($attribute, $value, $fail) {
+                if (str_starts_with($value, '+54')) {
+                    if (!preg_match('/^\+54\d{10,11}$/', $value)) {
+                        $fail('El número de teléfono celular no tiene un formato completo válido.');
+                    }
+                } else {
+                    if (!preg_match('/^\+[1-9]\d{9,14}$/', $value)) {
+                        $fail('El número de teléfono debe incluir código de país, área y número completo (mínimo 10 dígitos).');
+                    }
+                }
+            }, 'max:20'],
             'email' => 'nullable|email|max:255',
             'relationship' => 'nullable|string|max:100',
             'is_active' => 'boolean',
@@ -131,7 +141,17 @@ class EmergencyContactController extends Controller
 
         $validated = $request->validate([
             'name' => 'sometimes|required|string|max:255',
-            'phone' => ['sometimes', 'required', 'string', 'regex:/^\+[1-9]\d{7,14}$/', 'max:20'],
+            'phone' => ['sometimes', 'required', 'string', function ($attribute, $value, $fail) {
+                if (str_starts_with($value, '+54')) {
+                    if (!preg_match('/^\+54\d{10,11}$/', $value)) {
+                        $fail('El número de teléfono celular no tiene un formato completo válido.');
+                    }
+                } else {
+                    if (!preg_match('/^\+[1-9]\d{9,14}$/', $value)) {
+                        $fail('El número de teléfono debe incluir código de país, área y número completo (mínimo 10 dígitos).');
+                    }
+                }
+            }, 'max:20'],
             'email' => 'nullable|email|max:255',
             'relationship' => 'nullable|string|max:100',
             'is_active' => 'boolean',

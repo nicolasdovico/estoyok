@@ -203,8 +203,12 @@ class AjustesViewModel @Inject constructor(
         val phoneFormatted = newContactPhone.trim().replace(" ", "").replace("-", "")
         val withPlus = if (phoneFormatted.startsWith("+")) phoneFormatted else "+$phoneFormatted"
         val digitsOnly = withPlus.drop(1)
-        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in 8..15) {
-            errorMessage = "El teléfono debe tener entre 8 y 15 dígitos con prefijo internacional (Ej: +549...)."
+        val isArg = withPlus.startsWith("+54")
+        val minLen = if (isArg) 12 else 10
+        val maxLen = if (isArg) 13 else 15
+
+        if (!digitsOnly.all { it.isDigit() } || digitsOnly.length !in minLen..maxLen) {
+            errorMessage = "El teléfono debe ser un número completo con código de país y de área."
             return
         }
 

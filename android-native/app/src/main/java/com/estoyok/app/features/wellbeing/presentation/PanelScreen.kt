@@ -1299,8 +1299,13 @@ fun ManageContactsModal(
     // Validaciones en tiempo real para nombre, teléfono y email
     val cleanedPhone = newPhone.trim().replace(" ", "").replace("-", "")
     val isPhoneStartedWithPlus = cleanedPhone.startsWith("+")
-    val digitsOnly = if (isPhoneStartedWithPlus) cleanedPhone.drop(1) else cleanedPhone
+    val withPlus = if (isPhoneStartedWithPlus) cleanedPhone else "+$cleanedPhone"
+    val digitsOnly = withPlus.drop(1)
     val isDigitsValid = digitsOnly.all { it.isDigit() }
+
+    val isArgPrefix = withPlus.startsWith("+54")
+    val minPhoneDigits = if (isArgPrefix) 12 else 10
+    val maxPhoneDigits = if (isArgPrefix) 13 else 15
 
     val nameError: String? = when {
         newName.isBlank() && (editingContactId != null || newName.isNotEmpty()) -> "El nombre completo es obligatorio"
@@ -1311,8 +1316,8 @@ fun ManageContactsModal(
         newPhone.isBlank() && editingContactId != null -> "El teléfono celular es obligatorio"
         newPhone.isBlank() -> null
         !isDigitsValid -> "Solo se permiten números y el '+' al inicio"
-        digitsOnly.length < 8 -> "Número muy corto (mínimo 8 dígitos)"
-        digitsOnly.length > 15 -> "Número muy largo (máximo 15 dígitos)"
+        digitsOnly.length < minPhoneDigits -> "Número incompleto (mínimo $minPhoneDigits dígitos con código de país y área)"
+        digitsOnly.length > maxPhoneDigits -> "Número demasiado largo (máximo $maxPhoneDigits dígitos)"
         else -> null
     }
 
@@ -1324,8 +1329,8 @@ fun ManageContactsModal(
     }
 
     val isNameValid = newName.trim().isNotBlank()
-    val isPhoneValid = newPhone.trim().isNotBlank() && isDigitsValid && digitsOnly.length in 8..15
-    val isEmailValid = newEmail.isBlank() || isEmailFormatValid
+    val isPhoneValid = newPhone.trim().isNotBlank() && isDigitsValid && digitsOnly.length in minPhoneDigits..maxPhoneDigits
+    val isEmailValid = emailError == null
     val isFormValid = isNameValid && isPhoneValid && isEmailValid
 
     // Interceptar botón atrás físico o por gestos del sistema
