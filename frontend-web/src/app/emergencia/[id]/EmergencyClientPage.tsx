@@ -44,6 +44,18 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [submitSuccess, setSubmitSuccess] = useState(false);
 
+  // Pre-fill contact name from URL params if available (?contact=Nombre or ?name=Nombre)
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const urlContact = searchParams.get('contact') || searchParams.get('name');
+      if (urlContact && urlContact.trim()) {
+        setContactName(urlContact.trim());
+        localStorage.setItem('contact_name', urlContact.trim());
+      }
+    }
+  }, []);
+
   const getApiUrl = () => {
     const envUrl = process.env.NEXT_PUBLIC_API_URL;
     if (envUrl && envUrl.startsWith('http')) {
@@ -92,7 +104,20 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   }, [id, alertStatus, alertType]);
 
   const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
-    const nameToSend = contactName.trim() || 'Contacto de Emergencia';
+    const trimmedName = contactName.trim();
+    if (!trimmedName) {
+      setSubmitError('Por favor escribe tu nombre antes de confirmar tu respuesta.');
+      if (typeof document !== 'undefined') {
+        const inputEl = document.getElementById('contact-name-input');
+        if (inputEl) {
+          inputEl.focus();
+          inputEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }
+      return;
+    }
+
+    const nameToSend = trimmedName;
     setIsSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(false);
@@ -328,10 +353,13 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
             <div className="space-y-4">
               <div>
-                <label className="block text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-1.5 ml-1">Tu Nombre (Opcional)</label>
+                <label htmlFor="contact-name-input" className="block text-[10px] font-bold text-gray-500 uppercase tracking-widest mb-1.5 ml-1">
+                  Tu Nombre o Parentesco <span className="text-red-500">*</span>
+                </label>
                 <input
+                  id="contact-name-input"
                   type="text"
-                  placeholder="Ej: Juan Pérez (Opcional)"
+                  placeholder="Ej: Carlos Gómez / Mamá"
                   value={contactName}
                   onChange={(e) => {
                     setContactName(e.target.value);
