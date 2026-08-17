@@ -92,15 +92,17 @@ class SendCrashAlertJob implements ShouldQueue
         // Send WhatsApp to Emergency Contacts
         $contacts = $user->emergencyContacts()->where('is_active', true)->get();
         $gForceText = $this->crashEvent->g_force ? " de {$this->crashEvent->g_force} G" : "";
-        $message = "🚨 ¡ALERTA DE ACCIDENTE! Detectamos un fuerte impacto vehicular{$gForceText} en la ubicación de {$user->name}. Ver mapa en vivo: {$emergencyUrl}";
 
         foreach ($contacts as $contact) {
             if ($contact->phone) {
+                $contactNameParam = urlencode($contact->name);
+                $contactUrl = "{$emergencyUrl}?contact={$contactNameParam}";
+                $message = "🚨 ¡ALERTA DE ACCIDENTE! Detectamos un fuerte impacto vehicular{$gForceText} en la ubicación de {$user->name}. Ver mapa en vivo: {$contactUrl}";
                 try {
                     $whatsAppService->sendWhatsApp($contact->phone, $message);
                     Log::info("Crash alert WhatsApp sent to contact {$contact->phone} for user {$user->id}");
                 } catch (\Exception $e) {
-                    Log::error("Failed to send UltraMsg alert to contact {$contact->id}: " . $e->getMessage());
+                    Log::error("Failed to send WhatsApp alert to contact {$contact->id}: " . $e->getMessage());
                 }
             }
         }

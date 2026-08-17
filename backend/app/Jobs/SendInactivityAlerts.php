@@ -174,8 +174,10 @@ class SendInactivityAlerts implements ShouldQueue
         if ($contact->phone) {
             $relationshipText = $contact->relationship ? " (Usted figura como '{$contact->relationship}')" : '';
             $hours = $this->user->checkin_interval_hours;
+            $contactNameParam = urlencode($contact->name);
+            $contactUrl = "{$emergencyUrl}?contact={$contactNameParam}";
 
-            $message = "Aviso de seguridad: Su contacto '{$this->user->name}' no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas {$hours} horas.{$relationshipText} Ver última ubicación y estado aquí: {$emergencyUrl}";
+            $message = "Aviso de seguridad: Su contacto '{$this->user->name}' no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas {$hours} horas.{$relationshipText} Ver última ubicación y estado aquí: {$contactUrl}";
 
             $success = $whatsAppService->sendWhatsApp($contact->phone, $message);
 
