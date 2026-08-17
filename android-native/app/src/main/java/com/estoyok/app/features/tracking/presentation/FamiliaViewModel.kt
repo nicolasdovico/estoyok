@@ -121,7 +121,7 @@ class FamiliaViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         isActionInProgress = false
-                        errorMessage = resource.message ?: "Error al crear el círculo."
+                        errorMessage = resource.message ?: "Error al crear el núcleo."
                     }
                 }
             }
@@ -145,7 +145,7 @@ class FamiliaViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         isActionInProgress = false
-                        errorMessage = resource.message ?: "Error al unirse al círculo."
+                        errorMessage = resource.message ?: "Error al unirse al núcleo."
                     }
                 }
             }
@@ -187,7 +187,7 @@ class FamiliaViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         isActionInProgress = false
-                        errorMessage = resource.message ?: "No se pudo eliminar el círculo."
+                        errorMessage = resource.message ?: "No se pudo eliminar el núcleo."
                     }
                 }
             }

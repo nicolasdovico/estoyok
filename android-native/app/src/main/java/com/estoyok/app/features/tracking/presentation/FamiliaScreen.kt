@@ -417,9 +417,9 @@ fun FamiliaScreen(
                         colors = ButtonDefaults.buttonColors(containerColor = PrimaryRed.copy(alpha = 0.1f), contentColor = PrimaryRed),
                         shape = RoundedCornerShape(10.dp)
                     ) {
-                        Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "Eliminar Círculo")
+                        Icon(imageVector = Icons.Default.DeleteForever, contentDescription = "Eliminar Núcleo")
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Eliminar Círculo Completo", fontWeight = FontWeight.Bold)
+                        Text("Eliminar Núcleo Completo", fontWeight = FontWeight.Bold)
                     }
                 }
             }
@@ -452,9 +452,11 @@ fun FamiliaScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedTextField(
                         value = inviteCodeInput,
-                        onValueChange = { inviteCodeInput = it.take(10).uppercase() },
-                        label = { Text("Código de invitación") },
-                        placeholder = { Text("Ej. ABC123XYZ0") },
+                        onValueChange = { 
+                            if (it.length <= 10) inviteCodeInput = it.uppercase()
+                        },
+                        label = { Text("Código de Invitación (10 dígitos)") },
+                        placeholder = { Text("Ej. ABC1234567") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
@@ -487,7 +489,7 @@ fun FamiliaScreen(
             ) {
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
-                        text = "Crear Nuevo Círculo",
+                        text = "Crear Nuevo Núcleo",
                         fontWeight = FontWeight.Bold,
                         fontSize = 14.sp,
                         color = TextPrimary

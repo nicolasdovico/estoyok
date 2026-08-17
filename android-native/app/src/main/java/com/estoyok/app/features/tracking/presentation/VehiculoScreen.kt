@@ -195,7 +195,7 @@ fun VehiculoScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = "No tienes ningún círculo de confianza seleccionado o activo.",
+                        text = "No tienes ningún núcleo de confianza seleccionado o activo.",
                         color = TextMuted,
                         textAlign = TextAlign.Center,
                         fontSize = 14.sp
@@ -885,7 +885,7 @@ fun VehiculoScreen(
     // Infraction details dialog
     if (activeExplanationDialog != ExplanationType.NONE) {
         val (title, explanation) = when (activeExplanationDialog) {
-            ExplanationType.SPEEDING -> "Exceso de Velocidad" to "Se registra cuando la velocidad del vehículo supera el límite configurado para el círculo (por defecto 120 km/h) o límites urbanos."
+            ExplanationType.SPEEDING -> "Exceso de Velocidad" to "Se registra cuando la velocidad del vehículo supera el límite configurado para el núcleo (por defecto 120 km/h) o límites urbanos."
             ExplanationType.DISTRACTION -> "Distracción (Celular)" to "Se registra cuando se detecta el uso o manipulación del teléfono móvil con la pantalla encendida mientras el vehículo está en movimiento."
             ExplanationType.ACCELERATION -> "Aceleración Rápida" to "Se registra cuando el vehículo incrementa su velocidad de forma brusca (12 km/h o más en un lapso de 3 segundos)."
             ExplanationType.BRAKING -> "Frenada Brusca" to "Se registra cuando el vehículo disminuye su velocidad bruscamente (15 km/h o más en un lapso de 3 segundos)."

@@ -460,7 +460,7 @@ fun PanelContent(
                         border = BorderStroke(1.dp, BorderColor)
                     ) {
                         Text(
-                            text = "Sin otros miembros en tu círculo. Invita a tu familia para ver su estado de bienestar aquí.",
+                            text = "Sin otros miembros en tu núcleo. Invita a tu familia para ver su estado de bienestar aquí.",
                             fontSize = 12.sp,
                             color = TextMuted,
                             modifier = Modifier.padding(14.dp),

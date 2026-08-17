@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-08-17] Unificación Global de Nomenclatura a "Núcleo" en UI y Mensajería (Android Nativo)
+- **App Móvil Android Nativa (Consistencia Terminológica):**
+    - Corregido el título de la tarjeta de creación en [`FamiliaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaScreen.kt): de `"Crear Nuevo Círculo"` a `"Crear Nuevo Núcleo"`.
+    - Actualizados textos de botones y accesibilidad: `"Eliminar Núcleo Completo"`, `"Unirse al Núcleo"`, `"Nombre del núcleo"`.
+    - Actualizados mensajes de error y feedback en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) a terminología uniforme (*"Error al crear el núcleo"*, *"Error al unirse al núcleo"*, *"No se pudo eliminar el núcleo"*).
+    - Unificados textos descriptivos en [`VehiculoScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/VehiculoScreen.kt) y [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 47s`.
+    - Backend Tests: 141/141 passed (458 assertions).
+
 ## [2026-08-17] Sincronización Dinámica de Miembros del Núcleo Seleccionado en Pestaña "Estoy OK" (Android Nativo)
 - **App Móvil Android Nativa (UX & Consistencia de Núcleo Activo):**
     - Sincronizado [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) inyectando `SessionManager`:
