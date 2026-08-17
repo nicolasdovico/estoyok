@@ -30,6 +30,8 @@ class EvolutionApiService implements WhatsAppServiceInterface
         }
 
         try {
+            $this->ensureWebhookConfigured();
+
             $cleanTo = preg_replace('/[^0-9]/', '', $to);
 
             $url = "{$this->baseUrl}/message/sendText/{$this->instance}";
@@ -53,6 +55,51 @@ class EvolutionApiService implements WhatsAppServiceInterface
             Log::error('Evolution API Exception: ' . $e->getMessage());
 
             return false;
+        }
+    }
+
+    /**
+     * Auto-registra el webhook de recepción en Evolution API si no se ha registrado aún
+     */
+    public function ensureWebhookConfigured(): void
+    {
+        if (! $this->baseUrl || ! $this->apiKey) {
+            return;
+        }
+
+        // Cache check once per day to avoid redundant HTTP requests
+        $cacheKey = "evolution_webhook_configured_{$this->instance}";
+        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+            return;
+        }
+
+        try {
+            $webhookUrl = 'https://api.estoyok24.com/api/webhooks/evolution/message';
+            $url = "{$this->baseUrl}/webhook/set/{$this->instance}";
+
+            $response = Http::withHeaders([
+                'apikey' => $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(4)->post($url, [
+                'webhook' => [
+                    'enabled' => true,
+                    'url' => $webhookUrl,
+                    'byEvents' => false,
+                    'base64' => false,
+                    'events' => [
+                        'MESSAGES_UPSERT',
+                        'MESSAGES_UPDATE',
+                        'SEND_MESSAGE',
+                    ],
+                ],
+            ]);
+
+            if ($response->successful()) {
+                \Illuminate\Support\Facades\Cache::put($cacheKey, true, now()->addDay());
+                Log::info("Evolution API Webhook auto-configured successfully for instance {$this->instance}");
+            }
+        } catch (\Throwable $e) {
+            Log::warning("Could not auto-configure Evolution webhook: " . $e->getMessage());
         }
     }
 }
