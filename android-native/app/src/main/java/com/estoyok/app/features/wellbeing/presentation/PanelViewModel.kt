@@ -392,8 +392,11 @@ class PanelViewModel @Inject constructor(
                     }
                     is Resource.Error -> {
                         isSosTriggered = false
-                        // Fallback SMS to contacts
-                        triggerSmsFallback(context)
+                        val msg = resource.message ?: "No se pudo activar el SOS."
+                        android.widget.Toast.makeText(context, msg, android.widget.Toast.LENGTH_LONG).show()
+                        if (!msg.contains("Límite", ignoreCase = true) && !msg.contains("alcanzado", ignoreCase = true)) {
+                            triggerSmsFallback(context)
+                        }
                     }
                 }
             }

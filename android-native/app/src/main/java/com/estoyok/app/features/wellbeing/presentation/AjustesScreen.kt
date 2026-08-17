@@ -434,6 +434,37 @@ fun AjustesScreen(
                 }
             }
 
+            // 6. Respuestas y Coordinación de Emergencia
+            SettingsCard(title = "Respuestas y Coordinación de Rescate 🛡️") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Compartir Respuestas de Apoyo",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Notifica por WhatsApp y Push a tus contactos y a ti cuando alguien responde 'Voy en camino' o 'Enterado' en tu mapa de alerta.",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 15.sp
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = viewModel.shareContactResponses,
+                        onCheckedChange = { viewModel.toggleShareContactResponses(it) },
+                        modifier = Modifier.scale(0.75f)
+                    )
+                }
+            }
+
             // 6. Passive Auto-Check-in
             SettingsCard(title = "Auto-Check-in Pasivo") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {

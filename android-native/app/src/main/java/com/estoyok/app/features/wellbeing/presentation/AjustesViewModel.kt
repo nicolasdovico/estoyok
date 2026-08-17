@@ -60,6 +60,9 @@ class AjustesViewModel @Inject constructor(
     var proximityAlertsEnabled by mutableStateOf(true)
         private set
 
+    var shareContactResponses by mutableStateOf(true)
+        private set
+
     // Emergency Contacts list state
     var contacts by mutableStateOf<List<EmergencyContactDto>>(emptyList())
         private set
@@ -103,9 +106,24 @@ class AjustesViewModel @Inject constructor(
                             safeWifiSsid = data.safeWifiSsid ?: ""
                             sensorCheckinEnabled = data.sensorCheckinEnabled ?: false
                             proximityAlertsEnabled = data.proximityAlertsEnabled ?: true
+                            shareContactResponses = data.shareContactResponses ?: true
                         }
                     }
                     else -> {}
+                }
+            }
+        }
+    }
+
+    fun toggleShareContactResponses(enabled: Boolean) {
+        shareContactResponses = enabled
+        viewModelScope.launch {
+            settingsRepository.updatePrivacy(shareContactResponses = enabled, lowBatteryAlertsEnabled = null).collectLatest { resource ->
+                if (resource is Resource.Success) {
+                    messageSuccess = if (enabled) "Compartir respuestas activado." else "Respuestas de rescate ahora son privadas."
+                } else if (resource is Resource.Error) {
+                    shareContactResponses = !enabled
+                    errorMessage = resource.message ?: "No se pudo actualizar la privacidad."
                 }
             }
         }
