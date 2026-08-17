@@ -1540,7 +1540,7 @@ fun ManageContactsModal(
                             ) {
                                 Text("📞 ", fontSize = 14.sp)
                                 Text(
-                                    text = "Contactos Externos (SMS / WhatsApp)",
+                                    text = "Contactos Externos (WhatsApp)",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = TextPrimary

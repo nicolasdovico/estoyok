@@ -152,10 +152,10 @@ export default function BillingSection({
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-yellow-400 text-sm">💬</span>
-                  <h4 className="text-xs font-bold text-neutral-100 font-sans">WhatsApp & SMS Ilimitados</h4>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">WhatsApp Ilimitado</h4>
                 </div>
                 <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
-                  Tus familiares reciben alertas instantáneas por SMS y WhatsApp si algo ocurre, sin necesitar internet ni tener la app instalada.
+                  Tus familiares reciben alertas instantáneas por WhatsApp si algo ocurre, sin necesitar tener la app instalada.
                 </p>
               </div>
 
@@ -367,7 +367,7 @@ export default function BillingSection({
             </div>
 
             <p className="text-[9px] text-gray-400 text-center leading-relaxed font-sans">
-              *Los mensajes se envían de forma automática por SMS o WhatsApp directo mediante nuestra API integrada.*
+              *Los mensajes se envían de forma automática por WhatsApp directo mediante nuestra pasarela integrada.*
             </p>
           </div>
         </div>
@@ -415,7 +415,7 @@ export default function BillingSection({
                 </td>
                 <td className="py-3 px-4 text-center bg-indigo-50/15 border-x border-gray-100">
                   <span className="inline-block text-[10px] bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full font-black">
-                    WhatsApp & SMS Ilimitados
+                    WhatsApp Ilimitado
                   </span>
                 </td>
               </tr>

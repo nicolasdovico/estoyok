@@ -1,5 +1,17 @@
 # Progress Log
 
+## [2026-08-17] Eliminación Global de Sigla y Menciones de "SMS" en la UI de Contactos y Membresías
+- **App Móvil Android Nativa:**
+    - Modificado el título de la sección de contactos de emergencia en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): de `"Contactos Externos (SMS / WhatsApp)"` a `"Contactos Externos (WhatsApp)"`.
+    - Eliminadas las menciones de SMS en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) y [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) unificando la comunicación de alertas a canal exclusivo de WhatsApp.
+- **Frontend Móvil (Expo React Native):**
+    - Actualizados [`mobile/src/app/index.tsx`](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/index.tsx) y [`mobile/src/app/settings.tsx`](file:///home/usuario/aplicaciones/estoyok/mobile/src/app/settings.tsx) renombrando beneficios y el switch a *"Reporte por WhatsApp"*.
+- **Frontend Web (Next.js):**
+    - Actualizados [`frontend-web/src/components/BillingSection.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx), [`frontend-web/src/components/SecuritySettings.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/SecuritySettings.tsx), [`frontend-web/src/app/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx) y [`frontend-web/src/app/politica-de-privacidad/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/politica-de-privacidad/page.tsx).
+- **Verificación:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 27s`.
+    - Backend Tests: 141/141 passed (458 assertions).
+
 ## [2026-08-17] Validación Inteligente y Genérica de Teléfonos E.164 (Prefijo de País y Área) en Contactos SOS
 - **App Móvil Android Nativa (Validaciones Inteligentes & UX Genérica):**
     - Implementada validación adaptativa de longitud telefónica en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt):

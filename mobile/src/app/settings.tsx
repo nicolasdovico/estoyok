@@ -127,7 +127,7 @@ export default function SettingsScreen() {
     setIsUpdating(true);
     try {
       await settingsService.updateSmsWhatsappCheckin(enabled);
-      Alert.alert('Éxito', `Check-in por SMS/WhatsApp ${enabled ? 'activado' : 'desactivado'}.`);
+      Alert.alert('Éxito', `Reporte por WhatsApp ${enabled ? 'activado' : 'desactivado'}.`);
     } catch (error) {
       setAllowSmsWhatsappCheckin(!enabled); // revert
       Alert.alert('Error', 'No se pudo actualizar la configuración.');
@@ -498,7 +498,7 @@ export default function SettingsScreen() {
         <View style={[styles.section, { borderTopWidth: 1, borderTopColor: '#e5e7eb', marginTop: 10, paddingTop: 20 }]}>
           <View style={styles.row}>
             <View style={{ flex: 1, marginRight: 10 }}>
-              <Text style={styles.sectionTitle}>Check-in por SMS / WhatsApp</Text>
+              <Text style={styles.sectionTitle}>Reporte por WhatsApp</Text>
               <Text style={styles.description}>Permite confirmar tu bienestar respondiendo directamente a los mensajes preventivos.</Text>
             </View>
             <Switch

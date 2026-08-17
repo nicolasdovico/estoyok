@@ -240,14 +240,14 @@ fun AjustesScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (viewModel.userProfile?.isPremium == true) {
                         Text(
-                            text = "Tu cuenta cuenta con protección completa PRO activa: WhatsApp/SMS, SOS ambiental, telemetría vehicular e historial por 30 días.",
+                            text = "Tu cuenta cuenta con protección completa PRO activa: WhatsApp, SOS ambiental, telemetría vehicular e historial por 30 días.",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             lineHeight = 16.sp
                         )
                     } else {
                         Text(
-                            text = "Actualmente estás en el Plan Gratuito (Limitado). Obtén Zonas Seguras ilimitadas, alertas por WhatsApp/SMS y SOS con grabación de audio.",
+                            text = "Actualmente estás en el Plan Gratuito (Limitado). Obtén Zonas Seguras ilimitadas, alertas por WhatsApp y SOS con grabación de audio.",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             lineHeight = 16.sp

@@ -81,10 +81,10 @@ export default function Home() {
       },
       {
         '@type': 'Question',
-        name: '¿Cómo funciona la respuesta de contingencia por WhatsApp o SMS?',
+        name: '¿Cómo funciona la respuesta de contingencia por WhatsApp?',
         acceptedAnswer: {
           '@type': 'Answer',
-          text: 'Si vence el plazo de check-in y no se recibe respuesta pasiva ni manual, el servidor envía mensajes automáticos por WhatsApp y SMS a tus contactos de emergencia con un enlace seguro a la web de crisis.',
+          text: 'Si vence el plazo de check-in y no se recibe respuesta pasiva ni manual, el servidor envía mensajes automáticos por WhatsApp a tus contactos de emergencia con un enlace seguro a la web de crisis.',
         },
       },
     ],
@@ -368,7 +368,7 @@ export default function Home() {
                       <svg className="w-4 h-4 text-amber-500 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
-                      <span><strong className="font-bold text-white">Respaldo por SMS:</strong> Transmite coordenadas por SMS si se interrumpe la red de datos móviles.</span>
+                      <span><strong className="font-bold text-white">Canal de Contingencia:</strong> Transmite coordenadas y alertas prioritarias si se interrumpe la conexión habitual.</span>
                     </li>
                   </ul>
                 </div>
@@ -399,7 +399,7 @@ export default function Home() {
                   <div className="flex gap-3">
                     <div className="w-6 h-6 rounded-full bg-red-950 border border-red-500/20 flex items-center justify-center text-red-400 text-xs font-black shrink-0 mt-1">1</div>
                     <div>
-                      <h4 className="font-bold text-white text-sm">Mensajería Prioritaria vía WhatsApp &amp; SMS</h4>
+                      <h4 className="font-bold text-white text-sm">Mensajería Prioritaria vía WhatsApp</h4>
                       <p className="text-xs text-neutral-400 mt-1">Tus contactos de emergencia reciben un mensaje con un enlace seguro de crisis cifrado.</p>
                     </div>
                   </div>
@@ -514,8 +514,8 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
                       <div>
-                        <span className="font-bold text-white block">Alertas por WhatsApp &amp; SMS</span>
-                        <span className="text-xs text-neutral-400 block leading-relaxed">Alertas de inactividad o SOS enviadas de inmediato por canales de alta lectura, sin requerir que tengan internet o la app abierta.</span>
+                        <span className="font-bold text-white block">Alertas por WhatsApp</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Alertas de inactividad o SOS enviadas de inmediato por canales de alta lectura, sin requerir que tengan la app abierta.</span>
                       </div>
                     </li>
                     <li className="flex items-start gap-2.5">
@@ -672,7 +672,7 @@ export default function Home() {
                 },
                 {
                   q: "¿Cómo funciona el S.O.S. Silencioso de Emergencia?",
-                  a: "Es un botón de auxilio instantáneo para situaciones de peligro inmediato. Al presionarlo en la app móvil, se dispara de forma discreta una alerta crítica: la tasa de actualización de tu ubicación aumenta a cada 5 segundos y se graban 15 segundos de audio ambiente de fondo de forma imperceptible. Tu núcleo familiar recibe notificaciones prioritarias, SMS y WhatsApp (según el plan) con un enlace para ver tu ubicación y escuchar el audio."
+                  a: "Es un botón de auxilio instantáneo para situaciones de peligro inmediato. Al presionarlo en la app móvil, se dispara de forma discreta una alerta crítica: la tasa de actualización de tu ubicación aumenta a cada 5 segundos y se graban 15 segundos de audio ambiente de fondo de forma imperceptible. Tu núcleo familiar recibe notificaciones prioritarias y WhatsApp (según el plan) con un enlace para ver tu ubicación y escuchar el audio."
                 },
                 {
                   q: "¿Cómo invito a mis familiares a unirse a mi Núcleo?",
@@ -688,11 +688,11 @@ export default function Home() {
                 },
                 {
                   q: "¿Cómo funciona la detección automática de accidentes vehiculares?",
-                  a: "Utiliza el sensor del acelerómetro físico en teléfonos inteligentes para registrar desaceleraciones extremas o impactos severos (umbrales superiores a 4.5G) característicos de un accidente de tránsito. Si el sistema detecta un impacto y el dispositivo permanece inmóvil por 3 segundos (indicando una colisión), se inicia una pre-alerta de 15 segundos con un sonido fuerte de sirena. Si no se cancela pulsando 'Estoy bien', se activa de inmediato el protocolo de crisis máxima: se envía la ubicación GPS exacta y una grabación ambiental de audio a los familiares vía WhatsApp, SMS y notificaciones Push críticas."
+                  a: "Utiliza el sensor del acelerómetro físico en teléfonos inteligentes para registrar desaceleraciones extremas o impactos severos (umbrales superiores a 4.5G) característicos de un accidente de tránsito. Si el sistema detecta un impacto y el dispositivo permanece inmóvil por 3 segundos (indicando una colisión), se inicia una pre-alerta de 15 segundos con un sonido fuerte de sirena. Si no se cancela pulsando 'Estoy bien', se activa de inmediato el protocolo de crisis máxima: se envía la ubicación GPS exacta y una grabación ambiental de audio a los familiares vía WhatsApp y notificaciones Push críticas."
                 },
                 {
                   q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
-                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp y SMS."
+                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp."
                 },
                 {
                   q: "¿Cómo funciona la prueba gratuita de 7 días y la cancelación?",

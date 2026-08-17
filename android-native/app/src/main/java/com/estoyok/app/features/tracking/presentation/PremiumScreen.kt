@@ -122,7 +122,7 @@ fun PremiumScreen(
                         )
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
-                            text = "Tu núcleo familiar cuenta con la máxima protección: alertas ilimitadas por WhatsApp/SMS, S.O.S con grabación de audio ambiental, telemetría vehicular e historial de 30 días.",
+                            text = "Tu núcleo familiar cuenta con la máxima protección: alertas ilimitadas por WhatsApp, S.O.S con grabación de audio ambiental, telemetría vehicular e historial de 30 días.",
                             fontSize = 13.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center,

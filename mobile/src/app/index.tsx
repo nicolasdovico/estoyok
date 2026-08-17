@@ -1658,7 +1658,7 @@ export default function HomeScreen() {
                   <Text style={{ fontSize: 16, fontWeight: '800', color: '#713f12' }}>Socio Premium Activo</Text>
                 </View>
                 <Text style={styles.activePremiumText}>
-                  ¡Gracias por proteger a tu núcleo familiar con la máxima tecnología de Estoy Ok! Tienes habilitadas todas las alertas de WhatsApp/SMS, S.O.S. Silencioso con audio, sensores y geolocalización avanzada.
+                  ¡Gracias por proteger a tu núcleo familiar con la máxima tecnología de Estoy Ok! Tienes habilitadas todas las alertas de WhatsApp, S.O.S. Silencioso con audio, sensores y geolocalización avanzada.
                 </Text>
               </View>
             ) : (
@@ -1678,8 +1678,8 @@ export default function HomeScreen() {
                   <View style={styles.benefitRow}>
                     <Shield size={14} color="#eab308" style={styles.benefitIcon} />
                     <View style={{ flex: 1 }}>
-                      <Text style={styles.benefitText}>WhatsApp &amp; SMS Ilimitados</Text>
-                      <Text style={styles.benefitSub}>Alertas críticas directas a la red, incluso si no tienen internet.</Text>
+                      <Text style={styles.benefitText}>WhatsApp Ilimitado</Text>
+                      <Text style={styles.benefitSub}>Alertas críticas directas por WhatsApp.</Text>
                     </View>
                   </View>
                   <View style={styles.benefitRow}>

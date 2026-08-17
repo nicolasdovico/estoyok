@@ -65,7 +65,7 @@ export default function PoliticaDePrivacidadPage() {
               <li className="flex items-start gap-3">
                 <span className="text-red-500 mt-0.5">•</span>
                 <div>
-                  <strong className="text-white">Información de Registro y Cuenta:</strong> Nombre y apellido, dirección de correo electrónico, fotografía de perfil / Avatar (opcional) y número de teléfono (opcional, para alertas por SMS/WhatsApp).
+                  <strong className="text-white">Información de Registro y Cuenta:</strong> Nombre y apellido, dirección de correo electrónico, fotografía de perfil / Avatar (opcional) y número de teléfono (opcional, para alertas por WhatsApp).
                 </div>
               </li>
               <li className="flex items-start gap-3">

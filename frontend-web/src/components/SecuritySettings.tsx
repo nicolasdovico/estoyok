@@ -233,7 +233,7 @@ export default function SecuritySettings({
 
       if (response.ok) {
         setAllowSmsWhatsappCheckin(enabled);
-        setMessage('Configuración de check-in por SMS/WhatsApp actualizada');
+        setMessage('Configuración de reporte por WhatsApp actualizada');
         setTimeout(() => setMessage(''), 3000);
       } else {
         const errorData = await response.json();
@@ -504,7 +504,7 @@ export default function SecuritySettings({
           <div className="flex items-center justify-between">
             <div>
               <label className="flex items-center text-xs font-bold text-gray-500 uppercase tracking-widest ml-1">
-                <span>Check-in por SMS / WhatsApp</span>
+                <span>Reporte por WhatsApp</span>
                 <div className="relative group inline-block ml-1.5 align-middle cursor-help normal-case font-normal">
                   <span className="text-[10px] text-gray-400 hover:text-gray-600 bg-gray-100 hover:bg-gray-200 w-3.5 h-3.5 rounded-full inline-flex items-center justify-center font-black">?</span>
                   <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-56 p-3 bg-gray-900 text-[10px] text-white rounded-xl shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 font-medium leading-relaxed normal-case">
