@@ -94,14 +94,39 @@ class WebhookController extends Controller
             return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
         }
 
-        $from = data_get($item, 'key.remoteJid') 
-            ?? data_get($item, 'remoteJid') 
-            ?? data_get($item, 'sender') 
-            ?? data_get($item, 'from') 
-            ?? data_get($item, 'participant') 
-            ?? data_get($payload, 'sender') 
-            ?? data_get($payload, 'from')
-            ?? data_get($payload, 'remoteJid');
+        // Extract real phone number ignoring @lid identifiers
+        $from = null;
+
+        // 1. Check top-level sender (e.g. 5492323610697@s.whatsapp.net)
+        $topSender = data_get($payload, 'sender');
+        if ($topSender && !str_contains($topSender, '@lid') && (str_contains($topSender, '@s.whatsapp.net') || str_contains($topSender, '@c.us'))) {
+            $from = $topSender;
+        }
+
+        // 2. Check item remoteJid if it is not a @lid
+        if (! $from) {
+            $remoteJid = data_get($item, 'key.remoteJid') ?? data_get($item, 'remoteJid');
+            if ($remoteJid && !str_contains($remoteJid, '@lid') && (str_contains($remoteJid, '@s.whatsapp.net') || str_contains($remoteJid, '@c.us'))) {
+                $from = $remoteJid;
+            }
+        }
+
+        // 3. Check participant in message
+        if (! $from) {
+            $participant = data_get($item, 'key.participant') ?? data_get($item, 'participant') ?? data_get($item, 'sender');
+            if ($participant && !str_contains($participant, '@lid')) {
+                $from = $participant;
+            }
+        }
+
+        // 4. Fallback to any identifier
+        if (! $from) {
+            $from = data_get($item, 'key.remoteJid') 
+                ?? data_get($item, 'remoteJid') 
+                ?? data_get($item, 'sender') 
+                ?? data_get($payload, 'sender') 
+                ?? data_get($payload, 'from');
+        }
 
         if (! $from) {
             Log::info("Evolution Webhook: Missing sender/from in payload");
@@ -115,7 +140,7 @@ class WebhookController extends Controller
             return response()->json(['status' => 'ignored', 'reason' => 'group_or_broadcast_message']);
         }
 
-        // Clean @s.whatsapp.net or @c.us or whatsapp: prefix
+        // Clean @s.whatsapp.net, @lid, @c.us or whatsapp: prefix
         if (str_contains($from, '@')) {
             $from = explode('@', $from)[0];
         }
