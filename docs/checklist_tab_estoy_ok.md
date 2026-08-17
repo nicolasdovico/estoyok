@@ -169,7 +169,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     3. Presiona *"Actualizar Contacto ✏️"*. (O prueba presionar *"Cancelar Edición"*).
   * **Resultado Esperado:** El contacto cambia a estado resaltado durante la edición. Al guardar, ejecuta `PUT /api/emergency-contacts/{id}` y actualiza la tarjeta con los nuevos datos.
 
-- [ ] **5.6 Eliminación con Diálogo de Confirmación**
+- [x] **5.6 Eliminación con Diálogo de Confirmación**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1194-L1233) y [`EmergencyContactController.php@destroy`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php#L129-L150)
   * **Instrucciones de Prueba:**
     1. Presiona el icono de papelera roja (🗑️) junto a un contacto.
