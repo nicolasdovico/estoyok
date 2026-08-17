@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.estoyok.app.core.util.CryptoManager
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -31,6 +32,21 @@ class SessionManager @Inject constructor(
         private val ENCRYPTED_PASSWORD = stringPreferencesKey("encrypted_password")
         private val DEVICE_UUID = stringPreferencesKey("device_uuid")
         private val SAFE_WIFI_SSID = stringPreferencesKey("safe_wifi_ssid")
+        private val SELECTED_CIRCLE_ID = intPreferencesKey("selected_circle_id")
+    }
+
+    val selectedCircleIdFlow: Flow<Int?> = context.dataStore.data.map { preferences ->
+        preferences[SELECTED_CIRCLE_ID]
+    }
+
+    suspend fun saveSelectedCircleId(circleId: Int?) {
+        context.dataStore.edit { preferences ->
+            if (circleId != null) {
+                preferences[SELECTED_CIRCLE_ID] = circleId
+            } else {
+                preferences.remove(SELECTED_CIRCLE_ID)
+            }
+        }
     }
 
     val safeWifiSsidFlow: Flow<String?> = context.dataStore.data.map { preferences ->
@@ -123,6 +139,7 @@ class SessionManager @Inject constructor(
             preferences.remove(USER_EMAIL)
             preferences.remove(USER_PHONE)
             preferences.remove(ENCRYPTED_PASSWORD)
+            preferences.remove(SELECTED_CIRCLE_ID)
         }
     }
 }

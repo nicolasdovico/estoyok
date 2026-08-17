@@ -12,8 +12,10 @@ import com.estoyok.app.features.tracking.data.model.StartTrialResponse
 import com.estoyok.app.features.tracking.domain.repository.CircleRepository
 import com.estoyok.app.features.tracking.domain.repository.SubscriptionRepository
 import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+import com.estoyok.app.core.data.local.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -21,7 +23,8 @@ import javax.inject.Inject
 class FamiliaViewModel @Inject constructor(
     private val circleRepository: CircleRepository,
     private val subscriptionRepository: SubscriptionRepository,
-    private val settingsRepository: SettingsRepository
+    private val settingsRepository: SettingsRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     var user by mutableStateOf<UserDto?>(null)
@@ -69,6 +72,7 @@ class FamiliaViewModel @Inject constructor(
     }
 
     private suspend fun fetchCircles() {
+        val savedCircleId = sessionManager.selectedCircleIdFlow.firstOrNull()
         circleRepository.getCircles().collectLatest { resource ->
             when (resource) {
                 is Resource.Loading -> {
@@ -78,12 +82,15 @@ class FamiliaViewModel @Inject constructor(
                     isRefreshing = false
                     circles = resource.data ?: emptyList()
                     
-                    // Maintain previous selected circle or default to first
-                    if (selectedCircle == null && circles.isNotEmpty()) {
-                        selectedCircle = circles.first()
-                    } else if (selectedCircle != null) {
-                        selectedCircle = circles.find { it.id == selectedCircle!!.id } ?: circles.firstOrNull()
-                    }
+                    val targetCircle = if (selectedCircle != null) {
+                        circles.find { it.id == selectedCircle!!.id }
+                    } else if (savedCircleId != null) {
+                        circles.find { it.id == savedCircleId }
+                    } else {
+                        null
+                    } ?: circles.firstOrNull()
+
+                    selectedCircle = targetCircle
                 }
                 is Resource.Error -> {
                     isRefreshing = false
@@ -95,6 +102,9 @@ class FamiliaViewModel @Inject constructor(
 
     fun selectCircle(circle: CircleDto) {
         selectedCircle = circle
+        viewModelScope.launch {
+            sessionManager.saveSelectedCircleId(circle.id)
+        }
     }
 
     fun createCircle(name: String) {
@@ -172,6 +182,7 @@ class FamiliaViewModel @Inject constructor(
                     is Resource.Success -> {
                         isActionInProgress = false
                         selectedCircle = null
+                        sessionManager.saveSelectedCircleId(null)
                         refreshData()
                     }
                     is Resource.Error -> {

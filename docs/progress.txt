@@ -1,5 +1,17 @@
 # Progress Log
 
+## [2026-08-17] Persistencia y Sincronización Global del Núcleo/Círculo Seleccionado (Android Nativo)
+- **App Móvil Android Nativa (UX & Persistencia de Estado):**
+    - Añadida la clave `SELECTED_CIRCLE_ID` y métodos `saveSelectedCircleId` / `selectedCircleIdFlow` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) mediante DataStore Preferences.
+    - Sincronizada la lógica en [`MapaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaViewModel.kt):
+      - `selectCircle(circle)` ahora persiste de inmediato el ID del núcleo seleccionado.
+      - `refreshCircles()` y el polling periódico recuperan primero el `selectedCircleId` persistido antes de consultar la lista de núcleos; si coincide con un núcleo existente, lo mantiene seleccionado de forma determinista, evitando que la app vuelva al primer núcleo ("Familia") al alternar entre pestañas (`Mapa` $\leftrightarrow$ `Estoy Ok` $\leftrightarrow$ `Vehículo`).
+    - Sincronizada la lógica en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt): `selectCircle` y `fetchCircles` ahora comparten la misma fuente de verdad persistente (`SessionManager`), y `deleteCircle` limpia adecuadamente el ID si el círculo activo es eliminado.
+    - Limpieza automática de `SELECTED_CIRCLE_ID` en `clearSession()` durante el cierre de sesión.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 38s`.
+    - Backend Tests: 141/141 passed (458 assertions).
+
 ## [2026-08-17] Eliminación Global de Sigla y Menciones de "SMS" en la UI de Contactos y Membresías
 - **App Móvil Android Nativa:**
     - Modificado el título de la sección de contactos de emergencia en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): de `"Contactos Externos (SMS / WhatsApp)"` a `"Contactos Externos (WhatsApp)"`.

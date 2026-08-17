@@ -24,6 +24,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -125,6 +126,7 @@ class MapaViewModel @Inject constructor(
 
     fun refreshCircles() {
         viewModelScope.launch {
+            val savedCircleId = sessionManager.selectedCircleIdFlow.firstOrNull()
             circleRepository.getCircles().collectLatest { resource ->
                 when (resource) {
                     is Resource.Loading -> {
@@ -134,14 +136,20 @@ class MapaViewModel @Inject constructor(
                         isRefreshing = false
                         circles = resource.data ?: emptyList()
                         
-                        // Default to the first circle or preserve active selection
-                        if (selectedCircle == null && circles.isNotEmpty()) {
-                            selectCircle(circles.first())
-                        } else if (selectedCircle != null) {
-                            val updated = circles.find { it.id == selectedCircle!!.id }
-                            if (updated != null) {
-                                selectCircle(updated)
-                            }
+                        // Preserve active selection or load persisted selection or fallback to first circle
+                        val targetCircle = if (selectedCircle != null) {
+                            circles.find { it.id == selectedCircle!!.id }
+                        } else if (savedCircleId != null) {
+                            circles.find { it.id == savedCircleId }
+                        } else {
+                            null
+                        } ?: circles.firstOrNull()
+
+                        if (targetCircle != null) {
+                            selectCircle(targetCircle)
+                        } else {
+                            selectedCircle = null
+                            selectedCircleMembers = emptyList()
                         }
                     }
                     is Resource.Error -> {
@@ -156,6 +164,9 @@ class MapaViewModel @Inject constructor(
     fun selectCircle(circle: CircleDto) {
         selectedCircle = circle
         selectedCircleMembers = circle.members
+        viewModelScope.launch {
+            sessionManager.saveSelectedCircleId(circle.id)
+        }
     }
 
     private fun startPolling() {
@@ -163,10 +174,12 @@ class MapaViewModel @Inject constructor(
             while (isActive) {
                 delay(10000L) // Poll every 10 seconds
                 fetchActiveDynamicGeofences()
+                val currentSavedId = sessionManager.selectedCircleIdFlow.firstOrNull()
                 circleRepository.getCircles().collectLatest { resource ->
                     if (resource is Resource.Success) {
                         circles = resource.data ?: emptyList()
-                        val updated = circles.find { it.id == selectedCircle?.id }
+                        val targetId = selectedCircle?.id ?: currentSavedId
+                        val updated = (if (targetId != null) circles.find { it.id == targetId } else null) ?: circles.firstOrNull()
                         if (updated != null) {
                             selectedCircle = updated
                             selectedCircleMembers = updated.members
