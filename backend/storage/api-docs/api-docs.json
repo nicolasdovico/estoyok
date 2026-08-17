@@ -588,6 +588,49 @@
                 ]
             }
         },
+        "/circles/{circle}/members/{member}/remind": {
+            "post": {
+                "tags": [
+                    "Círculos"
+                ],
+                "summary": "Enviar recordatorio push de bienestar a un miembro del círculo",
+                "operationId": "456e6bdcea59f1fe37339807ccf3de9e",
+                "parameters": [
+                    {
+                        "name": "circle",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    },
+                    {
+                        "name": "member",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Recordatorio enviado exitosamente"
+                    },
+                    "403": {
+                        "description": "No tienes permisos en este círculo"
+                    },
+                    "429": {
+                        "description": "Debes esperar antes de enviar otro recordatorio a esta persona"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/dynamic-geofences/active": {
             "get": {
                 "tags": [

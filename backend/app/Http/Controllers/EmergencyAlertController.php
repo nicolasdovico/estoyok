@@ -6,6 +6,7 @@ use App\Models\CurrentLocation;
 use App\Models\EmergencyAlert;
 use App\Models\CrashEvent;
 use App\Jobs\SendCrashAlertJob;
+use App\Jobs\BroadcastEmergencyResponseJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -158,6 +159,8 @@ class EmergencyAlertController extends Controller
             'status' => $validated['status'],
         ]);
 
+        BroadcastEmergencyResponseJob::dispatch((string) $alert->id, (int) $response->id);
+
         return response()->json($response, 201);
     }
 
@@ -184,6 +187,28 @@ class EmergencyAlertController extends Controller
     public function storeSos(Request $request): JsonResponse
     {
         $user = $request->user();
+
+        // Cooldown check for Free accounts (15 minutes limit)
+        if (! $user->hasPremiumAccess()) {
+            $cooldownMinutes = 15;
+            $recentSos = EmergencyAlert::where('user_id', $user->id)
+                ->where('type', 'silent_sos')
+                ->where('created_at', '>=', now()->subMinutes($cooldownMinutes))
+                ->latest()
+                ->first();
+
+            if ($recentSos) {
+                $diffSeconds = (int) now()->diffInSeconds($recentSos->created_at->addMinutes($cooldownMinutes), false);
+                if ($diffSeconds > 0) {
+                    $minutesLeft = (int) ceil($diffSeconds / 60);
+                    return response()->json([
+                        'message' => "Límite de alertas SOS para cuenta gratuita alcanzado. Podrás emitir una nueva alerta en {$minutesLeft} min o pásate a Premium para alertas SOS ilimitadas.",
+                        'retry_after_seconds' => $diffSeconds,
+                        'is_rate_limited' => true,
+                    ], 429);
+                }
+            }
+        }
 
         // Create the silent SOS alert
         $alert = EmergencyAlert::create([

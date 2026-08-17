@@ -356,4 +356,58 @@ class EmergencyAlertTest extends TestCase
                 'audio' => $audioFile,
             ])->assertStatus(400);
     }
+
+    public function test_respond_dispatches_broadcast_job()
+    {
+        \Illuminate\Support\Facades\Queue::fake();
+
+        $user = User::factory()->create(['share_contact_responses' => true]);
+        $alert = EmergencyAlert::create([
+            'user_id' => $user->id,
+            'type' => 'silent_sos',
+            'status' => 'active',
+            'expires_at' => now()->addHours(1),
+        ]);
+
+        $this->postJson("/api/emergency-alerts/{$alert->id}/respond", [
+            'contact_name' => 'Carlos Gomez',
+            'status' => 'on_my_way',
+        ])->assertStatus(201);
+
+        \Illuminate\Support\Facades\Queue::assertPushed(\App\Jobs\BroadcastEmergencyResponseJob::class, function ($job) use ($alert) {
+            return $job->alertId === (string) $alert->id;
+        });
+    }
+
+    public function test_free_user_sos_rate_limit_cooldown()
+    {
+        $user = User::factory()->create([
+            'is_premium' => false,
+            'trial_ends_at' => null,
+        ]);
+
+        // First SOS should succeed
+        $response1 = $this->actingAs($user)->postJson('/api/emergency-alerts/sos');
+        $response1->assertStatus(201);
+
+        // Second SOS immediately after should be rate limited (429)
+        $response2 = $this->actingAs($user)->postJson('/api/emergency-alerts/sos');
+        $response2->assertStatus(429)
+            ->assertJson([
+                'is_rate_limited' => true,
+            ]);
+    }
+
+    public function test_premium_user_can_create_unlimited_sos()
+    {
+        $user = User::factory()->create([
+            'is_premium' => true,
+        ]);
+
+        // First SOS
+        $this->actingAs($user)->postJson('/api/emergency-alerts/sos')->assertStatus(201);
+
+        // Second SOS immediately after should also succeed for Premium
+        $this->actingAs($user)->postJson('/api/emergency-alerts/sos')->assertStatus(201);
+    }
 }
