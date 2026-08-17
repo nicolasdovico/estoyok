@@ -149,6 +149,14 @@ class SettingsController extends Controller
         $user = Auth::user();
         $user->update($validated);
 
+        if ($user->allow_sms_whatsapp_checkin) {
+            try {
+                app(\App\Services\EvolutionApiService::class)->ensureWebhookConfigured();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not auto-configure Evolution webhook on toggle: " . $e->getMessage());
+            }
+        }
+
         return response()->json([
             'message' => 'SMS/WhatsApp check-in settings updated successfully',
             'allow_sms_whatsapp_checkin' => $user->allow_sms_whatsapp_checkin,
@@ -545,6 +553,14 @@ class SettingsController extends Controller
         }
 
         $user->update(['phone' => $cleanPhone]);
+
+        if ($user->allow_sms_whatsapp_checkin) {
+            try {
+                app(\App\Services\EvolutionApiService::class)->ensureWebhookConfigured();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not auto-configure Evolution webhook on phone update: " . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Número de teléfono actualizado correctamente',

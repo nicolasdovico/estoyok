@@ -81,6 +81,14 @@ class EvolutionApiService implements WhatsAppServiceInterface
                 'apikey' => $this->apiKey,
                 'Content-Type' => 'application/json',
             ])->timeout(4)->post($url, [
+                'enabled' => true,
+                'url' => $webhookUrl,
+                'webhookByEvents' => false,
+                'events' => [
+                    'MESSAGES_UPSERT',
+                    'MESSAGES_UPDATE',
+                    'SEND_MESSAGE',
+                ],
                 'webhook' => [
                     'enabled' => true,
                     'url' => $webhookUrl,
