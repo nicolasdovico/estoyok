@@ -73,7 +73,7 @@ class EmergencyAlertController extends Controller
             }
         }
 
-        $shareResponses = (bool) $user->share_contact_responses;
+        $shareResponses = $user->share_contact_responses !== false;
         $responses = $shareResponses 
             ? $alert->responses()->orderBy('created_at', 'desc')->get() 
             : [];
@@ -159,7 +159,12 @@ class EmergencyAlertController extends Controller
             'status' => $validated['status'],
         ]);
 
-        BroadcastEmergencyResponseJob::dispatch((string) $alert->id, (int) $response->id);
+        try {
+            BroadcastEmergencyResponseJob::dispatchSync((string) $alert->id, (int) $response->id);
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::warning("Immediate response broadcast fallback to queued: " . $e->getMessage());
+            BroadcastEmergencyResponseJob::dispatch((string) $alert->id, (int) $response->id);
+        }
 
         return response()->json($response, 201);
     }

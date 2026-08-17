@@ -27,21 +27,21 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
     public function handle(WhatsAppServiceInterface $whatsAppService, PushNotificationService $pushService): void
     {
         try {
-            $alert = EmergencyAlert::with(['user.emergencyContacts', 'user.circles.users'])->find($this->alertId);
+            $alert = EmergencyAlert::with(['user.emergencyContacts', 'user.circles.users', 'user.devices'])->find($this->alertId);
             if (! $alert || ! $alert->user) {
-                Log::info("BroadcastEmergencyResponseJob: Alert or user not found for ID {$this->alertId}");
+                Log::warning("BroadcastEmergencyResponseJob: Alert or user not found for ID {$this->alertId}");
                 return;
             }
 
             $user = $alert->user;
-            if (! (bool) $user->share_contact_responses) {
+            if ($user->share_contact_responses === false) {
                 Log::info("BroadcastEmergencyResponseJob: User {$user->id} has disabled share_contact_responses");
                 return;
             }
 
             $response = EmergencyResponse::find($this->responseId);
             if (! $response) {
-                Log::info("BroadcastEmergencyResponseJob: Response not found for ID {$this->responseId}");
+                Log::warning("BroadcastEmergencyResponseJob: Response not found for ID {$this->responseId}");
                 return;
             }
 
@@ -80,10 +80,23 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
                 return;
             }
 
-            // 1. Send Push notification to the alert initiator (User)
-            if (! empty($user->expo_push_token) && ! empty($userPushBody)) {
+            // 1. Collect all Push tokens for the alert initiator (User)
+            $userTokens = [];
+            if (! empty($user->expo_push_token)) {
+                $userTokens[] = $user->expo_push_token;
+            }
+            $activeDeviceTokens = $user->devices()->where('is_active', true)->whereNotNull('push_token')->pluck('push_token')->toArray();
+            foreach ($activeDeviceTokens as $token) {
+                if (! empty($token) && ! in_array($token, $userTokens)) {
+                    $userTokens[] = $token;
+                }
+            }
+
+            Log::info("BroadcastEmergencyResponseJob: Found " . count($userTokens) . " push token(s) for user {$user->id}");
+
+            foreach ($userTokens as $token) {
                 $pushService->sendPush(
-                    $user->expo_push_token,
+                    $token,
                     $pushTitle,
                     $userPushBody,
                     [
@@ -91,6 +104,8 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
                         'alert_id' => (string) $alert->id,
                         'status' => $status,
                         'contact_name' => $contactName,
+                        'title' => $pushTitle,
+                        'body' => $userPushBody,
                     ],
                     true
                 );
@@ -131,9 +146,20 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
                 }
 
                 foreach ($members as $member) {
+                    $memberTokens = [];
                     if (! empty($member->expo_push_token)) {
+                        $memberTokens[] = $member->expo_push_token;
+                    }
+                    $memberDeviceTokens = $member->devices()->where('is_active', true)->whereNotNull('push_token')->pluck('push_token')->toArray();
+                    foreach ($memberDeviceTokens as $token) {
+                        if (! empty($token) && ! in_array($token, $memberTokens)) {
+                            $memberTokens[] = $token;
+                        }
+                    }
+
+                    foreach ($memberTokens as $mt) {
                         $pushService->sendPush(
-                            $member->expo_push_token,
+                            $mt,
                             $pushTitle,
                             $circlePushBody,
                             [
@@ -142,6 +168,8 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
                                 'status' => $status,
                                 'contact_name' => $contactName,
                                 'user_id' => (string) $user->id,
+                                'title' => $pushTitle,
+                                'body' => $circlePushBody,
                             ],
                             true
                         );
@@ -157,3 +185,4 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
         }
     }
 }
+
