@@ -1,5 +1,16 @@
 # Progress Log
 
+## [2026-08-17] Sincronización Dinámica de Miembros del Núcleo Seleccionado en Pestaña "Estoy OK" (Android Nativo)
+- **App Móvil Android Nativa (UX & Consistencia de Núcleo Activo):**
+    - Sincronizado [`PanelViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt) inyectando `SessionManager`:
+      - `fetchCircleMembers()` ahora consulta `selectedCircleId` persistido en DataStore en lugar de tomar ciegamente el primer núcleo (`circles.first()`).
+      - Si el usuario selecciona en "Mapa" el núcleo "Amigos" (o cualquier otro), al ingresar a "Estoy Ok" se contabilizan y listan los miembros específicos de ese núcleo (`circleMembers`) junto a los contactos externos globales (`emergencyContacts`).
+      - `totalAlertRecipients` refleja con exactitud la suma de los miembros del núcleo activo + contactos externos.
+    - Actualizado el modal de contactos en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) mostrando dinámicamente *"Miembros de [Nombre del Núcleo] (Automáticos)"* para brindar total claridad al usuario sobre qué núcleo se está visualizando.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 50s`.
+    - Backend Tests: 141/141 passed (458 assertions).
+
 ## [2026-08-17] Persistencia y Sincronización Global del Núcleo/Círculo Seleccionado (Android Nativo)
 - **App Móvil Android Nativa (UX & Persistencia de Estado):**
     - Añadida la clave `SELECTED_CIRCLE_ID` y métodos `saveSelectedCircleId` / `selectedCircleIdFlow` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) mediante DataStore Preferences.

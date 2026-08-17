@@ -159,6 +159,7 @@ fun PanelScreen(
         status = viewModel.status,
         checkInHistory = viewModel.checkInHistory,
         circleMembers = viewModel.circleMembers,
+        activeCircleName = viewModel.activeCircleName,
         contactsCount = viewModel.totalAlertRecipients,
         emergencyContacts = viewModel.emergencyContacts,
         showManageContactsModal = viewModel.showManageContactsModal,
@@ -192,6 +193,7 @@ fun PanelContent(
     status: WellbeingStatus,
     checkInHistory: List<CheckInDto>,
     circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
+    activeCircleName: String? = null,
     contactsCount: Int,
     emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
     showManageContactsModal: Boolean,
@@ -240,6 +242,7 @@ fun PanelContent(
         if (showManageContactsModal) {
             ManageContactsModal(
                 circleMembers = circleMembers,
+                circleName = activeCircleName,
                 emergencyContacts = emergencyContacts,
                 onDismiss = onDismissManageContactsModal,
                 onAddContact = onAddContact,
@@ -1280,6 +1283,7 @@ fun CheckInSuccessDialog(
 @Composable
 fun ManageContactsModal(
     circleMembers: List<com.estoyok.app.features.tracking.data.model.CircleMemberDto>,
+    circleName: String? = null,
     emergencyContacts: List<com.estoyok.app.features.wellbeing.data.model.EmergencyContactDto>,
     onDismiss: () -> Unit,
     onAddContact: (String, String, String, String) -> Unit,
@@ -1475,7 +1479,7 @@ fun ManageContactsModal(
                             ) {
                                 Text("🛡️ ", fontSize = 14.sp)
                                 Text(
-                                    text = "Miembros del Núcleo (Automáticos)",
+                                    text = if (!circleName.isNullOrBlank()) "Miembros de $circleName (Automáticos)" else "Miembros del Núcleo (Automáticos)",
                                     fontSize = 13.sp,
                                     fontWeight = FontWeight.Bold,
                                     color = PrimaryEmerald

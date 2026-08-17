@@ -29,10 +29,12 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import com.estoyok.app.core.data.local.SessionManager
 
 sealed interface WellbeingStatus {
     object NoReports : WellbeingStatus
@@ -50,7 +52,8 @@ class PanelViewModel @Inject constructor(
     private val settingsRepository: SettingsRepository,
     private val sosRepository: SosRepository,
     private val contactsRepository: EmergencyContactsRepository,
-    private val circleRepository: CircleRepository
+    private val circleRepository: CircleRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     var user by mutableStateOf<UserDto?>(null)
@@ -63,6 +66,9 @@ class PanelViewModel @Inject constructor(
         private set
 
     var activeCircleId by mutableStateOf<Int?>(null)
+        private set
+
+    var activeCircleName by mutableStateOf<String?>(null)
         private set
 
     var contactsCount by mutableStateOf(0)
@@ -270,13 +276,25 @@ class PanelViewModel @Inject constructor(
     }
 
     private suspend fun fetchCircleMembers() {
+        val savedCircleId = sessionManager.selectedCircleIdFlow.firstOrNull()
         circleRepository.getCircles().collectLatest { resource ->
             if (resource is Resource.Success) {
                 val circles = resource.data ?: emptyList()
                 if (circles.isNotEmpty()) {
                     val currentUserId = user?.id ?: -1
-                    activeCircleId = circles.first().id
-                    circleMembers = circles.first().members.filter { it.id != currentUserId }
+                    val targetCircle = if (savedCircleId != null) {
+                        circles.find { it.id == savedCircleId }
+                    } else {
+                        null
+                    } ?: circles.first()
+
+                    activeCircleId = targetCircle.id
+                    activeCircleName = targetCircle.name
+                    circleMembers = targetCircle.members.filter { it.id != currentUserId }
+                } else {
+                    activeCircleId = null
+                    activeCircleName = null
+                    circleMembers = emptyList()
                 }
             }
         }
