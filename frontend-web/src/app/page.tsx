@@ -568,6 +568,15 @@ export default function Home() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
                       </svg>
                       <div>
+                        <span className="font-bold text-white block">SOS Ilimitado y Coordinación de Rescate</span>
+                        <span className="text-xs text-neutral-400 block leading-relaxed">Emisión ilimitada de alertas SOS sin tiempo de espera. Cuando un familiar responde &quot;Voy en camino&quot; o &quot;Enterado&quot;, todos los contactos y tú reciben avisos inmediatos por WhatsApp y Push.</span>
+                      </div>
+                    </li>
+                    <li className="flex items-start gap-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M5 13l4 4L19 7" />
+                      </svg>
+                      <div>
                         <span className="font-bold text-white block">Monitoreo de Sensores y Batería</span>
                         <span className="text-xs text-neutral-400 block leading-relaxed">Recibe notificaciones inmediatas si un miembro apaga su GPS, activa el Modo Avión, pierde señal o le queda menos de 15% de batería.</span>
                       </div>

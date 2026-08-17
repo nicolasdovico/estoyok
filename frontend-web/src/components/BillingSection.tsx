@@ -209,6 +209,16 @@ export default function BillingSection({
                 </p>
               </div>
 
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="text-yellow-400 text-sm">🤝</span>
+                  <h4 className="text-xs font-bold text-neutral-100 font-sans">SOS Ilimitado y Rescate en Vivo</h4>
+                </div>
+                <p className="text-[10px] text-neutral-400 leading-relaxed font-sans pl-6">
+                  Emite alertas SOS sin tiempo de espera. Cuando un contacto responde &quot;Voy en camino&quot; o &quot;Enterado&quot;, toda la red recibe avisos por WhatsApp al instante.
+                </p>
+              </div>
+
             </div>
 
             {/* Microcopy de valor y ahorro */}
