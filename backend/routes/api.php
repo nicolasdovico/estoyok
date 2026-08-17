@@ -491,14 +491,23 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
                 $autoSetupResponse = ['error' => $e->getMessage()];
             }
         }
+        $connState = null;
+        try {
+            $stateRes = Http::withHeaders(['apikey' => $evoKey])->timeout(3)->get(rtrim($evoUrl, '/') . '/instance/connectionState/' . $evoInstance);
+            $connState = $stateRes->json() ?? $stateRes->body();
+        } catch (\Throwable $e) {
+            $connState = ['error' => $e->getMessage()];
+        }
     }
 
     $report['whatsapp_evolution_audit'] = [
         'evolution_url' => $evoUrl,
         'evolution_instance' => $evoInstance,
         'evolution_api_key_configured' => !empty($evoKey),
+        'instance_connection_state' => $connState ?? null,
         'live_webhook_from_evolution' => $evoLiveStatus,
         'auto_setup_response' => $autoSetupResponse,
+        'recent_incoming_webhooks_history' => \Illuminate\Support\Facades\Cache::get('evolution_webhook_history', []),
         'users_phone_status' => $users->map(fn($u) => [
             'id' => $u->id,
             'name' => $u->name,

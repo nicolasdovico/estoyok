@@ -68,31 +68,50 @@ class WebhookController extends Controller
             'headers' => $request->headers->all(),
         ]);
 
+        $payload = $request->all();
+        $data = $request->input('data', $payload);
+
+        // Unwrap if data is a list of messages (e.g. data: [ { key: ... } ])
+        if (is_array($data) && isset($data[0]) && is_array($data[0])) {
+            $item = $data[0];
+        } elseif (is_array($data) && isset($data['messages'][0]) && is_array($data['messages'][0])) {
+            $item = $data['messages'][0];
+        } elseif (is_array($data)) {
+            $item = $data;
+        } else {
+            $item = $payload;
+        }
+
         // Ignore messages sent by ourselves
-        $fromMe = $request->input('data.key.fromMe') 
-            ?? $request->input('key.fromMe') 
-            ?? $request->input('data.fromMe') 
+        $fromMe = data_get($item, 'key.fromMe') 
+            ?? data_get($item, 'fromMe') 
+            ?? data_get($payload, 'data.key.fromMe') 
+            ?? data_get($payload, 'key.fromMe') 
             ?? false;
 
         if ($fromMe === true) {
+            $this->recordWebhookCall($payload, 'ignored_from_me');
             return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
         }
 
-        $from = $request->input('data.key.remoteJid') 
-            ?? $request->input('key.remoteJid') 
-            ?? $request->input('data.sender') 
-            ?? $request->input('sender') 
-            ?? $request->input('data.from') 
-            ?? $request->input('from')
-            ?? $request->input('remoteJid');
+        $from = data_get($item, 'key.remoteJid') 
+            ?? data_get($item, 'remoteJid') 
+            ?? data_get($item, 'sender') 
+            ?? data_get($item, 'from') 
+            ?? data_get($item, 'participant') 
+            ?? data_get($payload, 'sender') 
+            ?? data_get($payload, 'from')
+            ?? data_get($payload, 'remoteJid');
 
         if (! $from) {
             Log::info("Evolution Webhook: Missing sender/from in payload");
+            $this->recordWebhookCall($payload, 'ignored_missing_from');
             return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
         }
 
         // Ignore group messages
         if (str_contains($from, '@g.us') || str_contains($from, '@broadcast')) {
+            $this->recordWebhookCall($payload, 'ignored_group_or_broadcast');
             return response()->json(['status' => 'ignored', 'reason' => 'group_or_broadcast_message']);
         }
 
@@ -137,25 +156,28 @@ class WebhookController extends Controller
 
         if (! $user) {
             Log::info("Evolution Webhook: User not found for phone {$fromCleaned}");
+            $this->recordWebhookCall($payload, "user_not_found_for_phone_{$fromCleaned}");
             return response()->json(['status' => 'user_not_found']);
         }
 
         // Check if configuration is enabled (defaults to true if null)
         if ($user->allow_sms_whatsapp_checkin === false) {
             Log::info("Evolution Webhook: Check-in disabled for user {$user->id}");
+            $this->recordWebhookCall($payload, 'checkin_disabled_for_user', $user);
             return response()->json(['status' => 'checkin_disabled']);
         }
 
-        $rawBody = $request->input('data.message.conversation')
-            ?? $request->input('data.message.extendedTextMessage.text')
-            ?? $request->input('message.conversation')
-            ?? $request->input('message.extendedTextMessage.text')
-            ?? $request->input('data.messageText')
-            ?? $request->input('messageText')
-            ?? $request->input('data.body')
-            ?? $request->input('body')
-            ?? $request->input('data.text')
-            ?? $request->input('text')
+        $rawBody = data_get($item, 'message.conversation')
+            ?? data_get($item, 'message.extendedTextMessage.text')
+            ?? data_get($item, 'message.buttonsResponseMessage.selectedDisplayText')
+            ?? data_get($item, 'message.templateButtonReplyMessage.selectedDisplayText')
+            ?? data_get($item, 'message.listResponseMessage.title')
+            ?? data_get($item, 'messageText')
+            ?? data_get($item, 'body')
+            ?? data_get($item, 'text')
+            ?? data_get($payload, 'data.message.conversation')
+            ?? data_get($payload, 'data.message.extendedTextMessage.text')
+            ?? data_get($payload, 'body')
             ?? '';
 
         $body = mb_strtolower(trim((string) $rawBody), 'UTF-8');
@@ -178,6 +200,7 @@ class WebhookController extends Controller
 
         if (! $isValidPattern) {
             Log::info("Evolution Webhook: Unrecognized body '{$rawBody}' (normalized: '{$bodyClean}') from user {$user->id}");
+            $this->recordWebhookCall($payload, "unrecognized_body_{$bodyClean}", $user);
             return response()->json(['status' => 'unrecognized_body']);
         }
 
@@ -191,6 +214,7 @@ class WebhookController extends Controller
         ]);
 
         Log::info("Evolution Webhook: Check-in successfully registered via WhatsApp for user {$user->id} ({$user->name})");
+        $this->recordWebhookCall($payload, 'SUCCESS_CHECKIN_PROCESSED', $user);
 
         // Send Silent Push / Refresh event to the user's mobile app if token exists
         if (! empty($user->expo_push_token)) {
@@ -219,5 +243,25 @@ class WebhookController extends Controller
         }
 
         return response()->json(['status' => 'success', 'message' => 'Check-in processed successfully']);
+    }
+
+    protected function recordWebhookCall(array $payload, string $decision, ?User $user = null): void
+    {
+        try {
+            $history = \Illuminate\Support\Facades\Cache::get('evolution_webhook_history', []);
+            array_unshift($history, [
+                'time' => now()->toIso8601String(),
+                'decision' => $decision,
+                'user_id' => $user?->id,
+                'user_name' => $user?->name,
+                'payload_summary' => [
+                    'event' => $payload['event'] ?? null,
+                    'instance' => $payload['instance'] ?? null,
+                    'keys' => array_keys($payload),
+                ],
+                'full_payload' => $payload,
+            ]);
+            \Illuminate\Support\Facades\Cache::put('evolution_webhook_history', array_slice($history, 0, 10), now()->addHours(24));
+        } catch (\Throwable $e) {}
     }
 }
