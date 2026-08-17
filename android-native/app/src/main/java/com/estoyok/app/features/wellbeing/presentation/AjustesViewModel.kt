@@ -195,13 +195,36 @@ class AjustesViewModel @Inject constructor(
 
     fun saveUserPhone() {
         val trimmed = userPhone.trim().replace(" ", "").replace("-", "")
-        val formatted = if (trimmed.isNotEmpty() && !trimmed.startsWith("+")) "+$trimmed" else trimmed
+        if (trimmed.isBlank()) {
+            errorMessage = "El número de teléfono no puede estar vacío."
+            return
+        }
+        val formatted = if (trimmed.startsWith("+")) trimmed else "+$trimmed"
+        val digitsOnly = formatted.drop(1)
+        if (!digitsOnly.all { it.isDigit() }) {
+            errorMessage = "Solo se permiten números y el '+' al inicio."
+            return
+        }
+
+        val isArg = formatted.startsWith("+54")
+        val minDigits = if (isArg) 12 else 10
+        val maxDigits = if (isArg) 13 else 15
+
+        if (digitsOnly.length < minDigits) {
+            errorMessage = "Número incompleto (mínimo $minDigits dígitos con código de país y área)."
+            return
+        }
+        if (digitsOnly.length > maxDigits) {
+            errorMessage = "Número demasiado largo (máximo $maxDigits dígitos)."
+            return
+        }
+
         isSavingPhone = true
         errorMessage = null
         messageSuccess = null
 
         viewModelScope.launch {
-            settingsRepository.updatePhone(formatted.ifEmpty { null }).collectLatest { resource ->
+            settingsRepository.updatePhone(formatted).collectLatest { resource ->
                 when (resource) {
                     is Resource.Success -> {
                         isSavingPhone = false

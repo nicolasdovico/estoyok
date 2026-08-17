@@ -412,6 +412,26 @@ fun AjustesScreen(
                         modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
+                        // Validación de teléfono E.164 en tiempo real
+                        val cleanedUserPhone = viewModel.userPhone.trim().replace(" ", "").replace("-", "")
+                        val isPhoneStartedWithPlus = cleanedUserPhone.startsWith("+")
+                        val userPhoneWithPlus = if (isPhoneStartedWithPlus) cleanedUserPhone else "+$cleanedUserPhone"
+                        val userPhoneDigitsOnly = userPhoneWithPlus.drop(1)
+                        val isUserPhoneDigitsValid = userPhoneDigitsOnly.all { it.isDigit() }
+                        val isArgUserPhone = userPhoneWithPlus.startsWith("+54")
+                        val minUserPhoneDigits = if (isArgUserPhone) 12 else 10
+                        val maxUserPhoneDigits = if (isArgUserPhone) 13 else 15
+
+                        val userPhoneError: String? = when {
+                            viewModel.userPhone.isBlank() -> null
+                            !isUserPhoneDigitsValid -> "Solo se permiten números y el '+' al inicio"
+                            userPhoneDigitsOnly.length < minUserPhoneDigits -> "Número incompleto (mínimo $minUserPhoneDigits dígitos con código de país y área)"
+                            userPhoneDigitsOnly.length > maxUserPhoneDigits -> "Número demasiado largo (máximo $maxUserPhoneDigits dígitos)"
+                            else -> null
+                        }
+
+                        val isPhoneValidToSave = viewModel.userPhone.isNotBlank() && userPhoneError == null
+
                         Text(
                             text = "Tu Número de WhatsApp Vinculado",
                             fontSize = 13.sp,
@@ -419,7 +439,7 @@ fun AjustesScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "Es el número desde el cual le escribirás al bot para reportarte. Debe coincidir exactamente con tu WhatsApp.",
+                            text = "Es el número desde el cual le escribirás al bot para reportarte. Debe incluir código de país (ej: +54 para Argentina).",
                             fontSize = 11.sp,
                             color = TextSecondary,
                             lineHeight = 15.sp
@@ -433,17 +453,33 @@ fun AjustesScreen(
                                 Icon(
                                     imageVector = Icons.Default.Phone,
                                     contentDescription = "Teléfono",
-                                    tint = PrimaryEmerald,
+                                    tint = if (userPhoneError != null) PrimaryRed else PrimaryEmerald,
                                     modifier = Modifier.size(20.dp)
                                 )
+                            },
+                            isError = userPhoneError != null,
+                            supportingText = {
+                                if (userPhoneError != null) {
+                                    Text(
+                                        text = userPhoneError,
+                                        color = PrimaryRed,
+                                        fontSize = 11.sp
+                                    )
+                                } else {
+                                    Text(
+                                        text = if (isArgUserPhone) "Formato Argentina: +54 9 [código de área sin 0] [número sin 15]" else "Formato internacional E.164 con código de país",
+                                        color = TextMuted,
+                                        fontSize = 10.sp
+                                    )
+                                }
                             },
                             singleLine = true,
                             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
                             colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = PrimaryEmerald,
-                                unfocusedBorderColor = BorderColor,
+                                focusedBorderColor = if (userPhoneError != null) PrimaryRed else PrimaryEmerald,
+                                unfocusedBorderColor = if (userPhoneError != null) PrimaryRed else BorderColor,
                                 focusedContainerColor = CardBackground,
                                 unfocusedContainerColor = CardBackground
                             )
@@ -471,10 +507,13 @@ fun AjustesScreen(
 
                         Button(
                             onClick = { viewModel.saveUserPhone() },
-                            enabled = !viewModel.isSavingPhone,
+                            enabled = isPhoneValidToSave && !viewModel.isSavingPhone,
                             modifier = Modifier.fillMaxWidth(),
                             shape = RoundedCornerShape(10.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = PrimaryEmerald,
+                                disabledContainerColor = BorderColor.copy(alpha = 0.5f)
+                            )
                         ) {
                             if (viewModel.isSavingPhone) {
                                 CircularProgressIndicator(
@@ -488,7 +527,7 @@ fun AjustesScreen(
                                 text = if (viewModel.userPhone.isBlank()) "Guardar Número de WhatsApp" else "Actualizar Número de WhatsApp",
                                 fontSize = 12.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = androidx.compose.ui.graphics.Color.White
+                                color = if (isPhoneValidToSave) androidx.compose.ui.graphics.Color.White else TextMuted
                             )
                         }
                     }
