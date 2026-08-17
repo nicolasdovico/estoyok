@@ -29,6 +29,8 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.ui.text.input.KeyboardCapitalization
@@ -225,6 +227,15 @@ fun PanelContent(
     val spacingHeaderToBanner = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 12.dp else 20.dp
     val spacingBannerToButton = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 16.dp else 30.dp
     val spacingButtonToTitle = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 20.dp else 36.dp
+
+    var isHistoryExpanded by remember { mutableStateOf(false) }
+    val visibleCheckInHistory = remember(isHistoryExpanded, checkInHistory) {
+        if (isHistoryExpanded || checkInHistory.size <= 5) {
+            checkInHistory
+        } else {
+            checkInHistory.take(5)
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -476,14 +487,33 @@ fun PanelContent(
 
             item {
                 Spacer(modifier = Modifier.height(spacingButtonToTitle))
-                // 3. History Title
-                Text(
-                    text = "Historial de Reportes",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.onBackground,
-                    modifier = Modifier.padding(bottom = 12.dp)
-                )
+                // 3. History Title & Counter
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Historial de Reportes",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
+                    )
+                    if (checkInHistory.isNotEmpty()) {
+                        Text(
+                            text = if (checkInHistory.size > 5) {
+                                if (isHistoryExpanded) "Mostrando todos (${checkInHistory.size})" else "Últimos 5 de ${checkInHistory.size}"
+                            } else {
+                                "${checkInHistory.size} reporte${if (checkInHistory.size > 1) "s" else ""}"
+                            },
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
             }
 
             // 4. History List
@@ -505,8 +535,42 @@ fun PanelContent(
                     }
                 }
             } else {
-                items(checkInHistory) { checkIn ->
+                items(visibleCheckInHistory) { checkIn ->
                     CheckInItemRow(checkIn = checkIn)
+                }
+
+                if (checkInHistory.size > 5) {
+                    item {
+                        val remainingCount = checkInHistory.size - 5
+                        OutlinedButton(
+                            onClick = { isHistoryExpanded = !isHistoryExpanded },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 4.dp, bottom = 8.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f),
+                                contentColor = MaterialTheme.colorScheme.primary
+                            ),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.3f))
+                        ) {
+                            Icon(
+                                imageVector = if (isHistoryExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = if (isHistoryExpanded) {
+                                    "Mostrar menos (últimos 5)"
+                                } else {
+                                    "Ver anteriores (+${remainingCount} reportes)"
+                                },
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
                 }
             }
         }

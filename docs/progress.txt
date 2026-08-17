@@ -1621,3 +1621,10 @@
 - **Frontend Web (Next.js):**
     - Actualizado el listado de funcionalidades PRO en la Landing Page ([`page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx)) y en la sección de suscripción ([`BillingSection.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/components/BillingSection.tsx)) destacando el SOS Ilimitado y los avisos de "Voy en camino" por WhatsApp en tiempo real.
     - Actualizada la página de emergencia pública ([`EmergencyClientPage.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/emergencia/[id]/EmergencyClientPage.tsx)) para auto-completar el nombre del contacto desde los parámetros de la URL (`?contact=...`), impidiendo nombres genéricos y requiriendo un nombre válido para enviar respuestas.
+
+## [2026-08-17] Historial de Reportes Expansible (Top 5 + Desplegable) en Pestaña "Estoy OK"
+- **App Móvil Nativa (Android/Kotlin):**
+    - Implementado en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) un límite visual inicial a los últimos 5 reportes guardados (`visibleCheckInHistory`).
+    - Agregado contador contextual en el encabezado (`"Últimos 5 de X"` / `"Mostrando todos (X)"`).
+    - Incorporado botón interactivo con icono animado `KeyboardArrowDown` / `KeyboardArrowUp` para expandir y colapsar los reportes anteriores (`"Ver anteriores (+X reportes)"` $\leftrightarrow$ `"Mostrar menos (últimos 5)"`).
+
