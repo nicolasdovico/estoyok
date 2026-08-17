@@ -1,5 +1,10 @@
 # Progress Log
 
+## [2026-08-17] Corrección Visual de Icono de Edición de Contacto en Modal de Contactos SOS (Android Nativo)
+- **App Móvil Android Nativa (UX / UI de Bienestar):**
+    - Corregido el color del icono de lápiz (`Icons.Default.Edit`) en la lista de contactos de emergencia de [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): actualizado de `PrimaryEmerald` (verde/turquesa) a `PrimaryOrange` (`#F59E0B`, color ámbar/madera estándar representativo de lápiz/edición), unificando la identidad visual con el encabezado de edición (`"✏️ Editar Contacto"`).
+    - Verificada la compilación exitosa de la app nativa en Kotlin (`BUILD SUCCESSFUL in 1m 16s`).
+
 ## [2026-08-15] Optimización de Resiliencia en Segundo Plano, Lifecycle-Aware Polling y Despertar por Geocercas (Android 12+)
 - **App Móvil Android Nativa (Prevención de Cierres de Proceso & Polling Inteligente de Bienestar):**
     - Corregido el bucle infinito incondicional de sondeo en `PanelViewModel.kt`: desacoplado el refresco en `startActivePolling()` y `stopActivePolling()`, activando el sondeo de bienestar cada 25s únicamente cuando la pantalla está visible en primer plano (`Lifecycle.Event.ON_RESUME` en `PanelScreen.kt`) y pausándolo inmediatamente al bloquear el dispositivo o cambiar de pestaña (`ON_PAUSE` / `ON_STOP` / `onDispose`). Esto elimina más de 1.400 peticiones nocturnas innecesarias y previene que los administradores de batería de Android (Doze Mode / Device Care) maten el proceso de Estoy Ok.

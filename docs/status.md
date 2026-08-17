@@ -49,6 +49,7 @@
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
   - [x] **FASE 8: Gestión de Círculos y Seguridad Avanzada**
+    - [x] Corrección Visual de Icono de Lápiz en Modal de Contactos SOS: Actualizado el color del icono `Icons.Default.Edit` en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) a `PrimaryOrange` (`#F59E0B`), unificando la tonalidad con el emoji de edición `"✏️ Editar Contacto"`.
     - [x] Confección de Checklist Exhaustivo de Pruebas QA para la Pestaña "Estoy OK":
       - Creado el documento interactivo [`docs/checklist_tab_estoy_ok.md`](file:///home/usuario/aplicaciones/estoyok/docs/checklist_tab_estoy_ok.md) con 37 ítems de verificación que recorren el 100% de los flujos de código en `PanelScreen.kt`, `PanelViewModel.kt`, `AjustesScreen.kt`, controladores de backend, consola y webhooks de Evolution API.
       - Incluidas instrucciones paso a paso de prueba, resultados esperados y referencias exactas a archivos y líneas de código.

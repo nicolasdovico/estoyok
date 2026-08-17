@@ -1484,7 +1484,7 @@ fun ManageContactsModal(
                                     Icon(
                                         imageVector = Icons.Default.Edit,
                                         contentDescription = "Editar contacto",
-                                        tint = PrimaryEmerald
+                                        tint = PrimaryOrange
                                     )
                                 }
 

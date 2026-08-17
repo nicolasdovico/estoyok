@@ -89,7 +89,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     1. Con un usuario que no tenga check-ins registrados (`last_check_in_at = NULL`).
   * **Resultado Esperado:** La tarjeta se muestra en tono gris/neutro con el emoji `ℹ️`, título *"Sin Reportes"* y descripción explicativa. El contador indica `--h --m --s (Pendiente)` y la barra de progreso en 0%.
 
-- [ ] **3.2 Estado "Protegido y a Salvo" con Cuenta Regresiva Activa**
+- [x] **3.2 Estado "Protegido y a Salvo" con Cuenta Regresiva Activa**
   * **Código:** [`PanelScreen.kt@StatusBanner`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L423-L428) y [`PanelViewModel.kt@calculateStatus`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L396-L450)
   * **Instrucciones de Prueba:**
     1. Realiza un check-in manual.
@@ -100,7 +100,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * El reloj digital (`%02dh %02dm %02ds`) descuenta en vivo segundo a segundo sin trabas ni parpadeos.
     * La barra de progreso refleja el porcentaje de tiempo restante (Verde > 25%, Naranja entre 10% y 25%, Rojo < 10%).
 
-- [ ] **3.3 Estado "Reporte Vencido" (Alerta Crítica)**
+- [x] **3.3 Estado "Reporte Vencido" (Alerta Crítica)**
   * **Código:** [`PanelScreen.kt@StatusBanner`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L429-L434)
   * **Instrucciones de Prueba:**
     1. En base de datos o mediante API actualiza `last_check_in_at` a una fecha anterior al intervalo (ej. hace 48 horas).
@@ -111,7 +111,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 4. Tarjeta Resumen de Protección (ProtectionSummaryCard)
 
-- [ ] **4.1 Visualización de Métricas Clave**
+- [x] **4.1 Visualización de Métricas Clave**
   * **Código:** [`PanelScreen.kt@ProtectionSummaryCard`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L956-L1120)
   * **Instrucciones de Prueba:**
     1. Revisa los 3 bloques de datos en la tarjeta de resumen.
@@ -120,13 +120,13 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * **Contactos SOS:** Muestra la píldora verde interactiva con el conteo (ej. `1 Contacto ✏️` o `3 Contactos ✏️`).
     * **Auto-Checkin:** Muestra `Wi-Fi Activo 📶` si la opción está encendida en ajustes, o `Manual 🟢` si está apagada.
 
-- [ ] **4.2 Botón "Configurar ⚙️" de la Tarjeta**
+- [x] **4.2 Botón "Configurar ⚙️" de la Tarjeta**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L996-L1007)
   * **Instrucciones de Prueba:**
     1. Toca el botón *"Configurar ⚙️"* situado a la derecha del título de la tarjeta.
   * **Resultado Esperado:** Redirige a la pantalla de Ajustes.
 
-- [ ] **4.3 Apertura Rápida del Modal de Contactos desde la Tarjeta**
+- [x] **4.3 Apertura Rápida del Modal de Contactos desde la Tarjeta**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1037-L1064)
   * **Instrucciones de Prueba:**
     1. Toca directamente la pastilla `[X Contactos ✏️]`.
@@ -136,32 +136,32 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 5. Modal de Gestión de Contactos SOS (ManageContactsModal)
 
-- [ ] **5.1 Lista de Miembros del Círculo Automáticos**
+- [x] **5.1 Lista de Miembros del Círculo Automáticos**
   * **Código:** [`PanelScreen.kt@ManageContactsModal`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1267-L1297)
   * **Instrucciones de Prueba:**
     1. Abre el modal de contactos teniendo un núcleo con otros integrantes.
   * **Resultado Esperado:** La sección superior lista a los familiares del círculo con el badge `🛡️ Núcleo`, nombre y correo, indicando que están protegidos automáticamente.
 
-- [ ] **5.2 Lista de Contactos Externos y Numeración de Prioridad**
+- [x] **5.2 Lista de Contactos Externos y Numeración de Prioridad**
   * **Código:** [`PanelScreen.kt@ManageContactsModal`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1315-L1353)
   * **Instrucciones de Prueba:**
     1. Revisa los contactos externos cargados.
   * **Resultado Esperado:** Cada contacto muestra su badge de orden `#1`, `#2`, etc., nombre, teléfono, email opcional y parentesco (ej. "Madre", "Hermano").
 
-- [ ] **5.3 Reordenamiento de Prioridad Secuencial (Flechas ⬆️ / ⬇️)**
+- [x] **5.3 Reordenamiento de Prioridad Secuencial (Flechas ⬆️ / ⬇️)**
   * **Código:** [`PanelViewModel.kt@moveContactUp / moveContactDown`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L197-L222) y [`EmergencyContactController.php@reorder`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php#L152-L200)
   * **Instrucciones de Prueba:**
     1. Teniendo 2 o más contactos, presiona la flecha ⬇️ en el contacto `#1` o ⬆️ en el contacto `#2`.
   * **Resultado Esperado:** La lista se reordena en la interfaz de inmediato y el backend persiste el nuevo orden en `emergency_contacts.priority` (`POST /api/emergency-contacts/reorder`). La flecha ⬆️ está deshabilitada en el primer contacto y la ⬇️ en el último.
 
-- [ ] **5.4 Alta de Nuevo Contacto Externo**
+- [x] **5.4 Alta de Nuevo Contacto Externo**
   * **Código:** [`PanelViewModel.kt@addContact`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L147-L170) y [`EmergencyContactController.php@store`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/EmergencyContactController.php#L27-L62)
   * **Instrucciones de Prueba:**
     1. En el formulario inferior del modal, ingresa Nombre ("Papá"), Teléfono ("+5491122334455"), Email opcional y Parentesco ("Padre").
     2. Presiona *"Guardar Contacto"*.
   * **Resultado Esperado:** Valida campos requeridos, formatea el teléfono a formato internacional E.164 (`+`), lo crea en backend (`POST /api/emergency-contacts`), limpia los campos y refresca la lista con el nuevo contacto al final.
 
-- [ ] **5.5 Edición de Contacto Existente**
+- [x] **5.5 Edición de Contacto Existente**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1379-L1395) y [`PanelViewModel.kt@updateContact`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L172-L195)
   * **Instrucciones de Prueba:**
     1. Presiona el icono de lápiz (✏️) en un contacto.
