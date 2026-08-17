@@ -42,5 +42,3 @@ pass: tomas1234
 
 ## Chequeo de notificaciones push
 `https://api.estoyok24.com/api/maintenance/diagnose-push`
-
-aa
