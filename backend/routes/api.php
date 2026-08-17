@@ -454,7 +454,99 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
         }
     }
 
-    // 7. Actionable Diagnosis
+    // 7. WhatsApp & Evolution API Audit
+    $evoUrl = config('services.evolution.url');
+    $evoKey = config('services.evolution.api_key');
+    $evoInstance = config('services.evolution.instance', 'estoyok_main');
+
+    $evoLiveStatus = null;
+    $autoSetupResponse = null;
+
+    if ($evoUrl && $evoKey) {
+        try {
+            $findRes = Http::withHeaders(['apikey' => $evoKey])->timeout(3)->get(rtrim($evoUrl, '/') . '/webhook/find/' . $evoInstance);
+            $evoLiveStatus = $findRes->json() ?? $findRes->body();
+        } catch (\Throwable $e) {
+            $evoLiveStatus = ['error' => $e->getMessage()];
+        }
+
+        // Si se solicita ?setup_webhook=true o si no está configurado, auto-configurarlo
+        if ($request->query('setup_webhook') || $request->query('auto_setup')) {
+            try {
+                $setRes = Http::withHeaders(['apikey' => $evoKey, 'Content-Type' => 'application/json'])->timeout(4)->post(rtrim($evoUrl, '/') . '/webhook/set/' . $evoInstance, [
+                    'enabled' => true,
+                    'url' => 'https://api.estoyok24.com/api/webhooks/evolution/message',
+                    'webhookByEvents' => false,
+                    'events' => ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'SEND_MESSAGE'],
+                    'webhook' => [
+                        'enabled' => true,
+                        'url' => 'https://api.estoyok24.com/api/webhooks/evolution/message',
+                        'byEvents' => false,
+                        'base64' => false,
+                        'events' => ['MESSAGES_UPSERT', 'MESSAGES_UPDATE', 'SEND_MESSAGE'],
+                    ],
+                ]);
+                $autoSetupResponse = $setRes->json() ?? $setRes->body();
+            } catch (\Throwable $e) {
+                $autoSetupResponse = ['error' => $e->getMessage()];
+            }
+        }
+    }
+
+    $report['whatsapp_evolution_audit'] = [
+        'evolution_url' => $evoUrl,
+        'evolution_instance' => $evoInstance,
+        'evolution_api_key_configured' => !empty($evoKey),
+        'live_webhook_from_evolution' => $evoLiveStatus,
+        'auto_setup_response' => $autoSetupResponse,
+        'users_phone_status' => $users->map(fn($u) => [
+            'id' => $u->id,
+            'name' => $u->name,
+            'email' => $u->email,
+            'phone' => $u->phone,
+            'allow_sms_whatsapp_checkin' => (bool) $u->allow_sms_whatsapp_checkin,
+            'last_check_in_at' => (string) $u->last_check_in_at,
+            'email_verified_at' => (string) $u->email_verified_at,
+        ]),
+        'recent_checkins' => \App\Models\CheckIn::with('user')->latest()->take(8)->get()->map(fn($ci) => [
+            'id' => $ci->id,
+            'user_id' => $ci->user_id,
+            'user_name' => $ci->user?->name ?? 'Unknown',
+            'source' => $ci->source,
+            'created_at' => (string) $ci->created_at,
+        ]),
+    ];
+
+    // Simulación de matching de WhatsApp si se pasa ?simulate_phone=54911...
+    $simPhone = $request->query('simulate_phone');
+    if ($simPhone) {
+        $cleanSim = preg_replace('/[^0-9]/', '', $simPhone);
+        $matchedUser = $users->first(function ($u) use ($cleanSim) {
+            if (empty($u->phone)) return false;
+            $uPhone = preg_replace('/[^0-9]/', '', $u->phone);
+            if ($uPhone === $cleanSim) return true;
+            if (str_ends_with($cleanSim, $uPhone) || str_ends_with($uPhone, $cleanSim)) return true;
+            if (strlen(substr($cleanSim, -10)) >= 8 && substr($cleanSim, -10) === substr($uPhone, -10)) return true;
+            if (strlen(substr($cleanSim, -8)) >= 8 && substr($cleanSim, -8) === substr($uPhone, -8)) return true;
+            return false;
+        });
+
+        $report['simulation_result'] = [
+            'simulated_phone_input' => $simPhone,
+            'cleaned_phone' => $cleanSim,
+            'matched_user' => $matchedUser ? [
+                'id' => $matchedUser->id,
+                'name' => $matchedUser->name,
+                'email' => $matchedUser->email,
+                'phone_in_db' => $matchedUser->phone,
+                'allow_sms_whatsapp_checkin' => (bool) $matchedUser->allow_sms_whatsapp_checkin,
+                'email_verified_at' => (string) $matchedUser->email_verified_at,
+            ] : null,
+            'decision' => $matchedUser ? 'SUCCESS_USER_FOUND' : 'FAILED_USER_NOT_FOUND',
+        ];
+    }
+
+    // 8. Actionable Diagnosis
     $diagnoses = [];
     if ($firebaseStatus['sdk_status'] !== 'operational') {
         $diagnoses[] = 'CRITICAL: Google FCM Firebase SDK is NOT operational on Railway backend because FIREBASE_CREDENTIALS (or GOOGLE_APPLICATION_CREDENTIALS) is missing or invalid in Railway environment variables.';
