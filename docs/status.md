@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Gestión y Edición de Teléfono de WhatsApp Personal en Ajustes (Android Nativo & Backend):
+      - Creado el endpoint `PUT /api/settings/phone` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php) y [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) para permitir actualizar y formatear el número de celular del usuario.
+      - Añadida sección interactiva con campo de texto, advertencia informativa y botón de guardado dentro de la tarjeta *"Reporte por WhatsApp"* en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) y [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt), permitiendo a usuarios vinculados vía Google OAuth o sin teléfono registrar su número para el check-in automático por WhatsApp.
     - [x] Historial de Reportes Expansible (Top 5 + Desplegable) en Pestaña "Estoy OK" (Android Nativo):
       - Implementado en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) un límite visual inicial de los últimos 5 reportes guardados con contador dinámico en la cabecera.
       - Agregado botón desplegable interactivo (`"Ver anteriores (+X reportes)"` $\leftrightarrow$ `"Mostrar menos (últimos 5)"`) cuando la cantidad de reportes supera 5, permitiendo consultar el historial completo sin saturar la pantalla ni requerir modales.

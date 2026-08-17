@@ -513,5 +513,43 @@ class SettingsController extends Controller
             'user' => $user->fresh(),
         ]);
     }
+
+    #[OA\Put(
+        path: '/settings/phone',
+        summary: 'Actualizar número de teléfono/WhatsApp personal del usuario',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                properties: [
+                    new OA\Property(property: 'phone', type: 'string', example: '+5491122334455'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(response: 200, description: 'Teléfono actualizado'),
+        ]
+    )]
+    public function updatePhone(Request $request)
+    {
+        $validated = $request->validate([
+            'phone' => 'nullable|string|max:30',
+        ]);
+
+        $user = Auth::user();
+        $rawPhone = $validated['phone'] ?? null;
+        $cleanPhone = !empty($rawPhone) ? preg_replace('/[^0-9+]/', '', $rawPhone) : null;
+        if ($cleanPhone && !str_starts_with($cleanPhone, '+')) {
+            $cleanPhone = '+' . $cleanPhone;
+        }
+
+        $user->update(['phone' => $cleanPhone]);
+
+        return response()->json([
+            'message' => 'Número de teléfono actualizado correctamente',
+            'phone' => $user->phone,
+        ]);
+    }
 }
 

@@ -63,6 +63,11 @@ interface SettingsApiService {
         @Body request: PushTokenRequest
     ): Response<MessageResponse>
 
+    @PUT("settings/phone")
+    suspend fun updatePhone(
+        @Body request: UpdatePhoneRequest
+    ): Response<MessageResponse>
+
     @POST("settings/accept-disclaimer")
     suspend fun acceptDisclaimer(): Response<UserDto>
 }

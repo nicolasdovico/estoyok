@@ -49,6 +49,11 @@ class AjustesViewModel @Inject constructor(
     var allowSmsWhatsappCheckin by mutableStateOf(false)
         private set
 
+    var userPhone by mutableStateOf("")
+
+    var isSavingPhone by mutableStateOf(false)
+        private set
+
     var wifiCheckinEnabled by mutableStateOf(false)
         private set
 
@@ -99,6 +104,7 @@ class AjustesViewModel @Inject constructor(
                             userProfile = data
                             checkinIntervalHours = data.checkinIntervalHours
                             allowSmsWhatsappCheckin = data.allowSmsWhatsappCheckin
+                            userPhone = data.phone ?: ""
                             quietHoursEnabled = data.quietHoursEnabled ?: false
                             quietHoursStart = data.quietHoursStart ?: "22:00"
                             quietHoursEnd = data.quietHoursEnd ?: "08:00"
@@ -178,6 +184,38 @@ class AjustesViewModel @Inject constructor(
                 if (resource is Resource.Success) {
                     allowSmsWhatsappCheckin = enabled
                     messageSuccess = "Ajustes de WhatsApp actualizados."
+                }
+            }
+        }
+    }
+
+    fun onUserPhoneChange(newValue: String) {
+        userPhone = newValue
+    }
+
+    fun saveUserPhone() {
+        val trimmed = userPhone.trim().replace(" ", "").replace("-", "")
+        val formatted = if (trimmed.isNotEmpty() && !trimmed.startsWith("+")) "+$trimmed" else trimmed
+        isSavingPhone = true
+        errorMessage = null
+        messageSuccess = null
+
+        viewModelScope.launch {
+            settingsRepository.updatePhone(formatted.ifEmpty { null }).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        isSavingPhone = false
+                        userPhone = formatted
+                        messageSuccess = "Número de WhatsApp guardado correctamente."
+                        loadSettings()
+                    }
+                    is Resource.Error -> {
+                        isSavingPhone = false
+                        errorMessage = resource.message ?: "No se pudo actualizar el número de teléfono."
+                    }
+                    is Resource.Loading -> {
+                        isSavingPhone = true
+                    }
                 }
             }
         }

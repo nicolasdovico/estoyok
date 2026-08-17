@@ -74,6 +74,10 @@ class SettingsRepositoryImpl @Inject constructor(
         apiService.updatePushToken(PushTokenRequest(pushToken, deviceUuid))
     }
 
+    override fun updatePhone(phone: String?): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.updatePhone(UpdatePhoneRequest(phone))
+    }
+
     override fun acceptDisclaimer(): Flow<Resource<UserDto>> = safeApiCall {
         apiService.acceptDisclaimer()
     }

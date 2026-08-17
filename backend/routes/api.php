@@ -533,6 +533,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/checkin-interval', [SettingsController::class, 'updateCheckinInterval']);
     Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
     Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
+    Route::put('/settings/phone', [SettingsController::class, 'updatePhone']);
     Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
     Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
     Route::put('/settings/automation', [SettingsController::class, 'updateAutomation']);

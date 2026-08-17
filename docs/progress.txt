@@ -1,5 +1,18 @@
 # Progress Log
 
+## [2026-08-17] Gestión y Edición de Teléfono de WhatsApp Personal en Ajustes (Android Nativo & Backend)
+- **Backend (Laravel API):**
+    - Creado el endpoint `PUT /api/settings/phone` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
+    - Permite actualizar y formatear el número de teléfono con prefijo internacional (`+54...`).
+- **App Móvil Android Nativa:**
+    - Creado `UpdatePhoneRequest` en [`SettingsModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/model/SettingsModels.kt).
+    - Agregado `updatePhone` en [`SettingsApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/remote/SettingsApiService.kt), [`SettingsRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/domain/repository/SettingsRepository.kt) y [`SettingsRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/repository/SettingsRepositoryImpl.kt).
+    - Implementada la reactividad en [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) (`userPhone`, `isSavingPhone`, `onUserPhoneChange`, `saveUserPhone`).
+    - Actualizada la tarjeta *"Reporte por WhatsApp"* en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) con campo interactivo para ver y actualizar el número de WhatsApp, advertencia contextual si no tiene número y botón de guardado.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 1m 6s`.
+    - Backend Tests: 144 passed (465 assertions).
+
 ## [2026-08-17] Unificación Global de Nomenclatura a "Núcleo" en UI y Mensajería (Android Nativo)
 - **App Móvil Android Nativa (Consistencia Terminológica):**
     - Corregido el título de la tarjeta de creación en [`FamiliaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaScreen.kt): de `"Crear Nuevo Círculo"` a `"Crear Nuevo Núcleo"`.

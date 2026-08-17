@@ -372,34 +372,126 @@ fun AjustesScreen(
                 }
             }
 
-            // 4. WhatsApp (UltraMsg Webhook Toggle)
+            // 4. WhatsApp (UltraMsg / Evolution API Webhook Toggle & Phone Registration)
             SettingsCard(title = "Reporte por WhatsApp") {
-                Row(
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    Column(modifier = Modifier.weight(1f)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Permitir Reporte por WhatsApp",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "Habilita responder a las notificaciones o escribir 'ok' / 'estoy ok' al bot de Estoy Ok para confirmar tu bienestar.",
+                                fontSize = 11.sp,
+                                color = TextSecondary,
+                                lineHeight = 15.sp
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(16.dp))
+                        Switch(
+                            checked = viewModel.allowSmsWhatsappCheckin,
+                            onCheckedChange = { viewModel.toggleSmsWhatsapp(it) },
+                            modifier = Modifier.scale(0.75f)
+                        )
+                    }
+
+                    HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
+
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
                         Text(
-                            text = "Reporte por WhatsApp",
-                            fontSize = 14.sp,
+                            text = "Tu Número de WhatsApp Vinculado",
+                            fontSize = 13.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary
                         )
-                        Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Habilita responder a las notificaciones de emergencia directamente con un mensaje de WhatsApp para confirmar que estás a salvo.",
+                            text = "Es el número desde el cual le escribirás al bot para reportarte. Debe coincidir exactamente con tu WhatsApp.",
                             fontSize = 11.sp,
                             color = TextSecondary,
                             lineHeight = 15.sp
                         )
+
+                        OutlinedTextField(
+                            value = viewModel.userPhone,
+                            onValueChange = { viewModel.onUserPhoneChange(it) },
+                            placeholder = { Text("Ej: +5491149790220", fontSize = 13.sp, color = TextMuted) },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Default.Phone,
+                                    contentDescription = "Teléfono",
+                                    tint = PrimaryEmerald,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone),
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = PrimaryEmerald,
+                                unfocusedBorderColor = BorderColor,
+                                focusedContainerColor = CardBackground,
+                                unfocusedContainerColor = CardBackground
+                            )
+                        )
+
+                        if (viewModel.userPhone.isBlank()) {
+                            Surface(
+                                color = PrimaryOrange.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp),
+                                border = BorderStroke(1.dp, PrimaryOrange.copy(alpha = 0.3f))
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(10.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = "⚠️ Aún no tienes un número registrado. Ingresa tu número arriba y presiona 'Guardar' para que el sistema reconozca tus mensajes.",
+                                        fontSize = 11.sp,
+                                        color = TextPrimary,
+                                        lineHeight = 15.sp
+                                    )
+                                }
+                            }
+                        }
+
+                        Button(
+                            onClick = { viewModel.saveUserPhone() },
+                            enabled = !viewModel.isSavingPhone,
+                            modifier = Modifier.fillMaxWidth(),
+                            shape = RoundedCornerShape(10.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald)
+                        ) {
+                            if (viewModel.isSavingPhone) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = androidx.compose.ui.graphics.Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                            }
+                            Text(
+                                text = if (viewModel.userPhone.isBlank()) "Guardar Número de WhatsApp" else "Actualizar Número de WhatsApp",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = androidx.compose.ui.graphics.Color.White
+                            )
+                        }
                     }
-                    Spacer(modifier = Modifier.width(16.dp))
-                    Switch(
-                        checked = viewModel.allowSmsWhatsappCheckin,
-                        onCheckedChange = { viewModel.toggleSmsWhatsapp(it) },
-                        modifier = Modifier.scale(0.75f)
-                    )
                 }
             }
 

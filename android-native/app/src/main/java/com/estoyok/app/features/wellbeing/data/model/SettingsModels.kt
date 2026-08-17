@@ -41,3 +41,7 @@ data class PushTokenRequest(
     @SerializedName("push_token") val pushToken: String,
     @SerializedName("device_uuid") val deviceUuid: String? = null
 )
+
+data class UpdatePhoneRequest(
+    @SerializedName("phone") val phone: String?
+)
