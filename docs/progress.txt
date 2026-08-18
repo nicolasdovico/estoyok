@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-08-17] Check-In de Bienestar Vía WhatsApp y Soporte Multi-Dispositivo @lid (Backend & Evolution API)
+- **Backend (Laravel 12 API):**
+    - Corregido y optimizado [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php) con desempaquetador universal de payloads para Evolution API v2, soporte de identificadores de privacidad `@lid` mediante resolución inteligente por `pushName` y coincidencia por `national number` (8-10 dígitos).
+    - Implementada respuesta automática de confirmación por WhatsApp (*«✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!»*) y emisión de silent push `check_in_update` para refresco en tiempo real de la UI móvil.
+    - Creado sistema de auto-provisión y verificación del webhook en [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php) y auditoría en vivo en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) (`/api/maintenance/diagnose-push`).
+- **Verificación en Producción:**
+    - Verificado con éxito el flujo completo de reporte por WhatsApp para el usuario Nicolás (ID #20, emisor desde `+54 9 11 4979-0220` hacia el bot `+54 9 2323 61-0697`).
+    - Backend Tests: 144 passed (465 assertions).
+
 ## [2026-08-17] Gestión y Edición de Teléfono de WhatsApp Personal en Ajustes (Android Nativo & Backend)
 - **Backend (Laravel API):**
     - Creado el endpoint `PUT /api/settings/phone` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
