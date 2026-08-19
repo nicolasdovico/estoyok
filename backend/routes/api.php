@@ -66,18 +66,24 @@ Route::post('/maintenance/delete-user', function (Request $request) {
     if (!$email) {
         return response()->json(['error' => 'Email required'], 400);
     }
+    \App\Models\EmailVerification::where('email', $email)->delete();
     $user = \App\Models\User::where('email', $email)->first();
     if (!$user) {
-        return response()->json(['message' => 'User not found']);
+        return response()->json(['message' => "User {$email} not found or already deleted (email verifications purged)."]);
     }
     \App\Models\EmergencyContact::where('user_id', $user->id)->delete();
     \App\Models\CheckIn::where('user_id', $user->id)->delete();
     \App\Models\CurrentLocation::where('user_id', $user->id)->delete();
     \App\Models\LocationHistory::where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('drive_events')->where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('user_devices')->where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('emergency_alerts')->where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('dynamic_geofences')->where('user_id', $user->id)->delete();
+    \Illuminate\Support\Facades\DB::table('personal_access_tokens')->where('tokenable_type', \App\Models\User::class)->where('tokenable_id', $user->id)->delete();
     \Illuminate\Support\Facades\DB::table('circle_user')->where('user_id', $user->id)->delete();
     $user->delete();
 
-    return response()->json(['message' => "User {$email} deleted successfully from Railway DB."]);
+    return response()->json(['message' => "User {$email} deleted successfully in cascade from Railway DB."]);
 });
 
 Route::post('/maintenance/send-test-email', function (Request $request) {
