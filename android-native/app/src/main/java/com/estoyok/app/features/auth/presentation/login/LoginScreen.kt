@@ -115,7 +115,7 @@ fun LoginScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Email,
-                                contentDescription = "Email Icon",
+                                contentDescription = "Icono de correo electrónico",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -135,7 +135,7 @@ fun LoginScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Lock Icon",
+                                contentDescription = "Icono de candado",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -148,7 +148,7 @@ fun LoginScreen(
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = iconImage,
-                                    contentDescription = "Toggle Password Visibility",
+                                    contentDescription = "Alternar visibilidad de contraseña",
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }

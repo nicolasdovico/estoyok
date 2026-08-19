@@ -52,6 +52,16 @@ class AuthController extends Controller
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
             'phone' => 'nullable|string|unique:users',
+        ], [
+            'name.required' => 'El nombre completo es obligatorio.',
+            'name.max' => 'El nombre no puede tener más de 255 caracteres.',
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico es inválido.',
+            'email.unique' => 'Este correo electrónico ya está siendo utilizado por otra cuenta.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
+            'phone.unique' => 'Este número de teléfono ya está registrado.',
         ]);
 
         $user = User::create([
@@ -102,6 +112,12 @@ class AuthController extends Controller
         $request->validate([
             'email' => 'required|email|exists:users,email',
             'code' => 'required|string|size:6',
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico es inválido.',
+            'email.exists' => 'No se encontró ningún usuario con este correo electrónico.',
+            'code.required' => 'El código de verificación es obligatorio.',
+            'code.size' => 'El código debe tener exactamente 6 dígitos.',
         ]);
 
         $verification = EmailVerification::where('email', $request->email)
@@ -152,6 +168,10 @@ class AuthController extends Controller
     {
         $request->validate([
             'email' => 'required|email|exists:users,email',
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico es inválido.',
+            'email.exists' => 'No se encontró ningún usuario con este correo electrónico.',
         ]);
 
         $user = User::where('email', $request->email)->first();
@@ -221,6 +241,10 @@ class AuthController extends Controller
             'device_name' => 'nullable|string',
             'device_uuid' => 'nullable|string',
             'platform' => 'nullable|string',
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'El formato del correo electrónico es inválido.',
+            'password.required' => 'La contraseña es obligatoria.',
         ]);
 
         $user = User::where('email', $request->email)->first();

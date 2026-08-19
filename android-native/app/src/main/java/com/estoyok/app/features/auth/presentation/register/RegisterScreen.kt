@@ -94,7 +94,7 @@ fun RegisterScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Person,
-                                contentDescription = "Person Icon",
+                                contentDescription = "Icono de persona",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -113,7 +113,7 @@ fun RegisterScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Email,
-                                contentDescription = "Email Icon",
+                                contentDescription = "Icono de correo electrónico",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -135,7 +135,7 @@ fun RegisterScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Phone,
-                                contentDescription = "Phone Icon",
+                                contentDescription = "Icono de teléfono",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -155,7 +155,7 @@ fun RegisterScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Lock Icon",
+                                contentDescription = "Icono de candado",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -168,7 +168,7 @@ fun RegisterScreen(
                             IconButton(onClick = { passwordVisible = !passwordVisible }) {
                                 Icon(
                                     imageVector = iconImage,
-                                    contentDescription = "Toggle Password Visibility",
+                                    contentDescription = "Alternar visibilidad de contraseña",
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }
@@ -190,7 +190,7 @@ fun RegisterScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Lock,
-                                contentDescription = "Lock Icon",
+                                contentDescription = "Icono de candado",
                                 tint = MaterialTheme.colorScheme.primary
                             )
                         },
@@ -203,7 +203,7 @@ fun RegisterScreen(
                             IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
                                 Icon(
                                     imageVector = iconImage,
-                                    contentDescription = "Toggle Password Visibility",
+                                    contentDescription = "Alternar visibilidad de contraseña",
                                     tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                                 )
                             }

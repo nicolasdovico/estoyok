@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Traducción Integral de Validaciones y Accesibilidad al Castellano (Backend & Android Nativo):
+      - Creado el diccionario oficial de validación en [`lang/es/validation.php`](file:///home/usuario/aplicaciones/estoyok/backend/lang/es/validation.php) y configurado `'locale' => 'es'` en [`config/app.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/app.php).
+      - Añadidos mensajes de validación explícitos en español en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) para el registro (*"Este correo electrónico ya está siendo utilizado por otra cuenta."*, etc.) y traducidos los atributos `contentDescription` en [`RegisterScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterScreen.kt) y [`LoginScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt).
     - [x] Corrección de Envío Síncrono de Códigos OTP de Registro y Desvío Global de Emails (Backend Laravel):
       - Desacoplada la interfaz `ShouldQueue` en [`OtpVerificationMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/OtpVerificationMail.php) para enviar el correo con el código OTP de verificación de registro y reenvío de forma síncrona e inmediata vía SMTP, eliminando la dependencia de workers en segundo plano en Railway.
       - Removida la intercepción global `Mail::alwaysTo()` en [`AppServiceProvider.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Providers/AppServiceProvider.php) asegurando que los correos transaccionales se envíen siempre al email ingresado por el usuario.

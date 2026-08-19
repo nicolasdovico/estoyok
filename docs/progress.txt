@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-08-19] Traducción Integral de Mensajes de Validación y Accesibilidad al Castellano (Backend & Android Nativo)
+- **Backend (Laravel 12 API):**
+    - Creado el diccionario oficial de validación en español en [`lang/es/validation.php`](file:///home/usuario/aplicaciones/estoyok/backend/lang/es/validation.php) y configurado `'locale' => 'es'` / `'fallback_locale' => 'es'` en [`config/app.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/app.php).
+    - Agregados mensajes de validación personalizados y explícitos en español en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) para el registro (*"Este correo electrónico ya está siendo utilizado por otra cuenta."*, *"El formato del correo electrónico es inválido."*, *"Las contraseñas no coinciden."*, *"Este número de teléfono ya está registrado."*), verificación OTP y login.
+- **App Móvil Android Nativa (UI & Accesibilidad):**
+    - Traducidos al castellano todos los `contentDescription` de accesibilidad en [`RegisterScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterScreen.kt) y [`LoginScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) (*"Icono de persona"*, *"Icono de correo electrónico"*, *"Icono de teléfono"*, *"Icono de candado"*, *"Alternar visibilidad de contraseña"*).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 1m 48s` (0 advertencias).
+    - Backend Tests: 144 passed (465 assertions).
+
 ## [2026-08-19] Corrección de Envío Síncrono de Códigos OTP de Registro y Desvío Global de Emails (Backend Laravel)
 - **Backend (Laravel 12 API & Mails):**
     - Desacoplada la interfaz `ShouldQueue` en [`OtpVerificationMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/OtpVerificationMail.php), permitiendo que el correo con el código OTP de verificación de registro y reenvío se despache de forma síncrona e instantánea directamente al servidor SMTP en Railway sin depender de un proceso background worker.
