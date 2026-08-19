@@ -42,6 +42,11 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
                 $user->subscriptions()->delete();
             }
         });
+
+        static::deleting(function (User $user) {
+            $user->tokens()->delete();
+            EmailVerification::where('email', $user->email)->delete();
+        });
     }
 
     /**
