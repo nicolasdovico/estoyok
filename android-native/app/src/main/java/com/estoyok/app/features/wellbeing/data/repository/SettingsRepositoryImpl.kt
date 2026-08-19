@@ -1,5 +1,6 @@
 package com.estoyok.app.features.wellbeing.data.repository
 
+import com.estoyok.app.core.data.local.SessionManager
 import com.estoyok.app.core.util.Resource
 import com.estoyok.app.features.auth.data.model.MessageResponse
 import com.estoyok.app.features.auth.data.model.UserDto
@@ -16,11 +17,26 @@ import javax.inject.Singleton
 
 @Singleton
 class SettingsRepositoryImpl @Inject constructor(
-    private val apiService: SettingsApiService
+    private val apiService: SettingsApiService,
+    private val sessionManager: SessionManager
 ) : SettingsRepository {
 
-    override fun getUserProfile(): Flow<Resource<UserDto>> = safeApiCall {
-        apiService.getUserProfile()
+    override fun getUserProfile(): Flow<Resource<UserDto>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.getUserProfile()
+            if (response.isSuccessful && response.body() != null) {
+                val user = response.body()!!
+                sessionManager.saveDisclaimerAccepted(!user.disclaimerAcceptedAt.isNullOrBlank())
+                emit(Resource.Success(user))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado."))
+        }
     }
 
     override fun updateCheckinInterval(hours: Int): Flow<Resource<MessageResponse>> = safeApiCall {
@@ -78,8 +94,22 @@ class SettingsRepositoryImpl @Inject constructor(
         apiService.updatePhone(UpdatePhoneRequest(phone))
     }
 
-    override fun acceptDisclaimer(): Flow<Resource<UserDto>> = safeApiCall {
-        apiService.acceptDisclaimer()
+    override fun acceptDisclaimer(): Flow<Resource<UserDto>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.acceptDisclaimer()
+            if (response.isSuccessful && response.body() != null) {
+                val user = response.body()!!
+                sessionManager.saveDisclaimerAccepted(true)
+                emit(Resource.Success(user))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado."))
+        }
     }
 
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {

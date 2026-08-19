@@ -50,7 +50,8 @@ class AuthRepositoryImpl @Inject constructor(
                     token = body.token,
                     name = body.user.name,
                     email = body.user.email,
-                    phone = body.user.phone
+                    phone = body.user.phone,
+                    isDisclaimerAccepted = !body.user.disclaimerAcceptedAt.isNullOrBlank()
                 )
                 sessionManager.saveEncryptedPassword(request.password)
                 emit(Resource.Success(body))
@@ -74,7 +75,8 @@ class AuthRepositoryImpl @Inject constructor(
                     token = body.token,
                     name = body.user.name,
                     email = body.user.email,
-                    phone = body.user.phone
+                    phone = body.user.phone,
+                    isDisclaimerAccepted = !body.user.disclaimerAcceptedAt.isNullOrBlank()
                 )
                 emit(Resource.Success(body))
             } else {
@@ -133,8 +135,8 @@ class AuthRepositoryImpl @Inject constructor(
         return sessionManager.authTokenFlow
     }
 
-    override suspend fun saveSession(token: String, name: String, email: String, phone: String?) {
-        sessionManager.saveSession(token, name, email, phone)
+    override suspend fun saveSession(token: String, name: String, email: String, phone: String?, isDisclaimerAccepted: Boolean?) {
+        sessionManager.saveSession(token, name, email, phone, isDisclaimerAccepted)
     }
 
     override suspend fun clearSession() {

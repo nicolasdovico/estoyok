@@ -31,6 +31,7 @@ import com.estoyok.app.features.tracking.presentation.VehiculoScreen
 import com.estoyok.app.features.tracking.presentation.PremiumScreen
 import com.estoyok.app.features.wellbeing.presentation.AjustesScreen
 import com.estoyok.app.features.wellbeing.presentation.PanelScreen
+import com.estoyok.app.features.wellbeing.presentation.DisclaimerMandatoryDialog
 
 @Composable
 fun MainScreen(
@@ -40,6 +41,8 @@ fun MainScreen(
     onDeepLinkHandled: () -> Unit = {}
 ) {
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
+    val isDisclaimerAccepted by authViewModel.isDisclaimerAccepted.collectAsState()
+    val showMandatoryDisclaimer = isAuthenticated && (isDisclaimerAccepted == false)
     
     val items = listOf(
         Screen.Mapa,
@@ -216,6 +219,13 @@ fun MainScreen(
                         contentDescription = if (isSubScreen) "Volver" else "Ajustes"
                     )
                 }
+            }
+
+            // Mandatory Onboarding Disclaimer for freshly registered or unaccepted users
+            if (showMandatoryDisclaimer) {
+                DisclaimerMandatoryDialog(
+                    onAccept = { authViewModel.acceptDisclaimer() }
+                )
             }
         }
     }

@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-08-19] Despliegue Global del Disclaimer Bloqueante en Onboarding Inicial (Android Nativo)
+- **App Móvil Android Nativa (Flujo de Entrada & Legal):**
+    - Elevado el modal bloqueante [`DisclaimerMandatoryDialog`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) a nivel raíz en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) (`MainScreen`), asegurando que cualquier usuario recién registrado o que no haya aceptado las condiciones vea la ventana modal inmediatamente tras el registro/login sobre la pantalla inicial (Mapa o cualquier pestaña), sin requerir entrar a la 3ª pestaña ("Estoy OK").
+    - Añadida la preferencia `DISCLAIMER_ACCEPTED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) y guardada durante `login` y `verifyEmail` en [`AuthRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/repository/AuthRepositoryImpl.kt).
+    - Integrado el flujo de verificación y aceptación en [`AuthViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/AuthViewModel.kt) y [`SettingsRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/repository/SettingsRepositoryImpl.kt) para sincronizar en tiempo real con el endpoint `POST /api/settings/accept-disclaimer` y desbloquear la app sin parpadeos.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 1m 32s` (0 advertencias).
+    - Backend Tests: 144 passed (465 assertions).
+
 ## [2026-08-19] Traducción Integral de Mensajes de Validación y Accesibilidad al Castellano (Backend & Android Nativo)
 - **Backend (Laravel 12 API):**
     - Creado el diccionario oficial de validación en español en [`lang/es/validation.php`](file:///home/usuario/aplicaciones/estoyok/backend/lang/es/validation.php) y configurado `'locale' => 'es'` / `'fallback_locale' => 'es'` en [`config/app.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/app.php).

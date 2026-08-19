@@ -33,6 +33,7 @@ class SessionManager @Inject constructor(
         private val DEVICE_UUID = stringPreferencesKey("device_uuid")
         private val SAFE_WIFI_SSID = stringPreferencesKey("safe_wifi_ssid")
         private val SELECTED_CIRCLE_ID = intPreferencesKey("selected_circle_id")
+        private val DISCLAIMER_ACCEPTED = booleanPreferencesKey("disclaimer_accepted")
     }
 
     val selectedCircleIdFlow: Flow<Int?> = context.dataStore.data.map { preferences ->
@@ -103,13 +104,32 @@ class SessionManager @Inject constructor(
         preferences[USER_NAME]
     }
 
-    suspend fun saveSession(token: String, name: String, email: String, phone: String?) {
+    val isDisclaimerAcceptedFlow: Flow<Boolean?> = context.dataStore.data.map { preferences ->
+        preferences[DISCLAIMER_ACCEPTED]
+    }
+
+    suspend fun saveDisclaimerAccepted(accepted: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[DISCLAIMER_ACCEPTED] = accepted
+        }
+    }
+
+    suspend fun saveSession(
+        token: String,
+        name: String,
+        email: String,
+        phone: String?,
+        isDisclaimerAccepted: Boolean? = null
+    ) {
         context.dataStore.edit { preferences ->
             preferences[AUTH_TOKEN] = token
             preferences[USER_NAME] = name
             preferences[USER_EMAIL] = email
             if (phone != null) {
                 preferences[USER_PHONE] = phone
+            }
+            if (isDisclaimerAccepted != null) {
+                preferences[DISCLAIMER_ACCEPTED] = isDisclaimerAccepted
             }
         }
     }
@@ -140,6 +160,7 @@ class SessionManager @Inject constructor(
             preferences.remove(USER_PHONE)
             preferences.remove(ENCRYPTED_PASSWORD)
             preferences.remove(SELECTED_CIRCLE_ID)
+            preferences.remove(DISCLAIMER_ACCEPTED)
         }
     }
 }

@@ -26,7 +26,7 @@ interface AuthRepository {
 
     fun getAuthToken(): Flow<String?>
 
-    suspend fun saveSession(token: String, name: String, email: String, phone: String?)
+    suspend fun saveSession(token: String, name: String, email: String, phone: String?, isDisclaimerAccepted: Boolean? = null)
 
     suspend fun clearSession()
 }
