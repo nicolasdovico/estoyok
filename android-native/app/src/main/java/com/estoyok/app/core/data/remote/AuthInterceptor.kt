@@ -34,21 +34,7 @@ class AuthInterceptor @Inject constructor(
             requestBuilder.header("Authorization", "Bearer $token")
         }
 
-        val savedUrl = runBlocking {
-            sessionManager.apiBaseUrlFlow.firstOrNull()
-        }
-
-        val finalRequest = if (!savedUrl.isNullOrEmpty() && savedUrl != "http://127.0.0.1:8000/api/") {
-            val newHttpUrl = originalRequest.url.toString().replace("http://127.0.0.1:8000/api/", savedUrl)
-            val newUrl = newHttpUrl.toHttpUrlOrNull()
-            if (newUrl != null) {
-                requestBuilder.url(newUrl).build()
-            } else {
-                requestBuilder.build()
-            }
-        } else {
-            requestBuilder.build()
-        }
+        val finalRequest = requestBuilder.build()
 
         val response = chain.proceed(finalRequest)
         

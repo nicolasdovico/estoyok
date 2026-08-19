@@ -33,8 +33,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.PrimaryEmerald
 import com.estoyok.app.core.theme.PrimaryTeal
 import com.estoyok.app.core.theme.TextOnPrimary
-import com.estoyok.app.core.util.rememberWindowInfo
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -43,7 +41,6 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel()
 ) {
     var passwordVisible by remember { mutableStateOf(false) }
-    val windowInfo = rememberWindowInfo()
 
     LaunchedEffect(key1 = true) {
         viewModel.loginSuccess.collect {
@@ -207,99 +204,6 @@ fun LoginScreen(
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.onPrimary
                             )
-                        }
-                    }
-
-                    Spacer(modifier = Modifier.height(24.dp))
-
-                    // Environment Selector
-                    val context = LocalContext.current
-                    Text(
-                        text = "Servidor / Entorno:",
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f)
-                    )
-                    Spacer(modifier = Modifier.height(6.dp))
-                    
-                    val isLocalSelected = viewModel.currentBaseUrl == "http://127.0.0.1:8000/api/"
-                    val useVerticalLayout = windowInfo.isNarrowScreen || windowInfo.isHugeFont
-                    
-                    if (useVerticalLayout) {
-                        Column(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.updateBaseUrl("http://127.0.0.1:8000/api/")
-                                    Toast.makeText(context, "Servidor cambiado a Local (USB)", Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isLocalSelected) PrimaryEmerald else Color.Transparent,
-                                    contentColor = if (isLocalSelected) TextOnPrimary else PrimaryEmerald
-                                ),
-                                border = BorderStroke(1.dp, if (isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
-                            ) {
-                                Text("💻 Local (USB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.updateBaseUrl("https://api.estoyok24.com/api/")
-                                    Toast.makeText(context, "Servidor cambiado a Railway", Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.fillMaxWidth(),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (!isLocalSelected) PrimaryEmerald else Color.Transparent,
-                                    contentColor = if (!isLocalSelected) TextOnPrimary else PrimaryEmerald
-                                ),
-                                border = BorderStroke(1.dp, if (!isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
-                            ) {
-                                Text("🌐 Railway", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-                        }
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.updateBaseUrl("http://127.0.0.1:8000/api/")
-                                    Toast.makeText(context, "Servidor cambiado a Local (USB)", Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (isLocalSelected) PrimaryEmerald else Color.Transparent,
-                                    contentColor = if (isLocalSelected) TextOnPrimary else PrimaryEmerald
-                                ),
-                                border = BorderStroke(1.dp, if (isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
-                            ) {
-                                Text("💻 Local (USB)", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
-
-                            OutlinedButton(
-                                onClick = {
-                                    viewModel.updateBaseUrl("https://api.estoyok24.com/api/")
-                                    Toast.makeText(context, "Servidor cambiado a Railway", Toast.LENGTH_SHORT).show()
-                                },
-                                modifier = Modifier.weight(1f),
-                                shape = RoundedCornerShape(8.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    containerColor = if (!isLocalSelected) PrimaryEmerald else Color.Transparent,
-                                    contentColor = if (!isLocalSelected) TextOnPrimary else PrimaryEmerald
-                                ),
-                                border = BorderStroke(1.dp, if (!isLocalSelected) PrimaryEmerald else PrimaryEmerald.copy(alpha = 0.5f))
-                            ) {
-                                Text("🌐 Railway", fontSize = 11.sp, fontWeight = FontWeight.Bold)
-                            }
                         }
                     }
                 }

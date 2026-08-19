@@ -84,8 +84,8 @@
       - Actualizado `WebhookController.php` (`evolutionMessage`) y `routes/api.php` para procesar webhooks de Evolution API (`POST /api/webhooks/evolution/message`) y ejecutar auto check-in al responder "OK".
       - Creada la suite `EvolutionWebhookTest.php` e inmunizada la suite completa (141/141 tests passing).
       - Documentada la guía completa de despliegue en Railway en `docs/plan_migracion_evolution_api.md`.
-    - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`):
-      - Actualizado [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) en la App Nativa Kotlin para vincular el botón **🌐 Railway** a `https://api.estoyok24.com/api/`.
+    - [x] Configuración de Dominio Personalizado de Producción (`estoyok24.com`) y Unificación de Servidor:
+      - Fijado `BASE_URL = "https://api.estoyok24.com/api/"` en [`NetworkModule.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/di/NetworkModule.kt) y removido el selector de entorno ("Local" vs "Railway") en [LoginScreen.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) y [LoginViewModel.kt](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginViewModel.kt), garantizando conexión directa e incondicional al backend de producción.
     - [x] Diagnóstico e Inmunización de Notificaciones Push FCM en Producción (Railway):
       - Verificada la operatividad del SDK de Firebase (`Kreait\Firebase\Contract\Messaging`) tras la carga de `FIREBASE_CREDENTIALS` en Railway.
     - [x] Optimización de UX y Resiliencia en Correos y Mapa Público de Emergencia:

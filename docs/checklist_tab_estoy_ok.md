@@ -180,7 +180,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 6. Botón Principal "Estoy OK" y Flujo de Check-in Manual
 
-- [ ] **6.1 Animación y Feedback de Registro**
+- [x] **6.1 Animación y Feedback de Registro**
   * **Código:** [`PanelScreen.kt@CheckInButton`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L557-L606) y [`PanelViewModel.kt@performCheckIn`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L289-L308)
   * **Instrucciones de Prueba:**
     1. Presiona el botón circular verde *"Estoy OK"*.
@@ -191,7 +191,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * Si el usuario tenía alertas activas en `emergency_alerts`, se resuelven a `resolved`.
     * Se limpia el candado de caché de Redis `auto_checkin_wifi_{user_id}`.
 
-- [ ] **6.2 Diálogo Modal de Éxito (CheckInSuccessDialog)**
+- [x] **6.2 Diálogo Modal de Éxito (CheckInSuccessDialog)**
   * **Código:** [`PanelScreen.kt@CheckInSuccessDialog`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L1122-L1174)
   * **Instrucciones de Prueba:**
     1. Tras pulsar el botón "Estoy OK".
@@ -201,13 +201,13 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 7. Sección "Tranquilidad del Núcleo" (Monitoreo Familiar)
 
-- [ ] **7.1 Estado Vacío (Sin Otros Miembros)**
+- [x] **7.1 Estado Vacío (Sin Otros Miembros)**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L345-L363)
   * **Instrucciones de Prueba:**
     1. Inicia sesión con un usuario que no pertenezca a ningún núcleo o esté solo en su círculo.
   * **Resultado Esperado:** Se muestra una tarjeta con el texto: *"Sin otros miembros en tu círculo. Invita a tu familia para ver su estado de bienestar aquí."*.
 
-- [ ] **7.2 Tarjeta de Miembro Familiar y Vencimiento Relativo**
+- [x] **7.2 Tarjeta de Miembro Familiar y Vencimiento Relativo**
   * **Código:** [`PanelScreen.kt@CircleMemberWellbeingCard`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L727-L953)
   * **Instrucciones de Prueba:**
     1. Agrega a otro usuario al núcleo y observa su tarjeta en la lista "Tranquilidad del Núcleo".
@@ -216,7 +216,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * **Estado:** Muestra `🟢 Reportado OK (hace Xm)` con borde verde si está al día, o `⚠️ Reporte Vencido (hace Xh)` con borde naranja si expiró.
     * **Subtexto dinámico de vencimiento:** Si está al día, calcula si vence hoy (`Vence hoy a las 18:30 hs`) o mañana (`Vence mañana a las 09:15 hs`).
 
-- [ ] **7.3 Botón "Recordar 🔔" (Push Notification con Rate-Limit)**
+- [x] **7.3 Botón "Recordar 🔔" (Push Notification con Rate-Limit)**
   * **Código:** [`PanelViewModel.kt@sendReminderPing`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelViewModel.kt#L237-L256) y [`CircleController.php@remindMember`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/CircleController.php#L265-L300)
   * **Instrucciones de Prueba:**
     1. Presiona el botón *"Recordar 🔔"* en la tarjeta de un familiar.
@@ -229,13 +229,13 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 8. Sección "Historial de Reportes"
 
-- [ ] **8.1 Estado Vacío de Historial**
+- [x] **8.1 Estado Vacío de Historial**
   * **Código:** [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L383-L399)
   * **Instrucciones de Prueba:**
     1. Con una cuenta recién creada sin check-ins.
   * **Resultado Esperado:** Muestra el recuadro centrado *"Aún no tienes reportes guardados."*.
 
-- [ ] **8.2 Distinción Visual por Origen (`source`)**
+- [x] **8.2 Distinción Visual por Origen (`source`)**
   * **Código:** [`PanelScreen.kt@CheckInItemRow`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt#L608-L725)
   * **Instrucciones de Prueba:**
     1. Genera reportes desde distintos orígenes (manual, por Wi-Fi, sensor o WhatsApp).
@@ -250,14 +250,14 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 9. Pantalla de Ajustes de Seguridad (`AjustesScreen.kt`)
 
-- [ ] **9.1 Selector de Intervalo de Reporte (Chips 12h, 24h, 48h)**
+- [x] **9.1 Selector de Intervalo de Reporte (Chips 12h, 24h, 48h)**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L271-L298) y [`SettingsController.php@updateCheckinInterval`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php#L13-L44)
   * **Instrucciones de Prueba:**
     1. En Ajustes, selecciona el chip de "12 Horas" o "48 Horas".
     2. Regresa a la pestaña "Estoy OK".
   * **Resultado Esperado:** Guarda en backend `PUT /api/settings/checkin-interval`, muestra Toast de éxito y la tarjeta de protección y el banner recalculan inmediatamente el nuevo tiempo límite en base a esas horas.
 
-- [ ] **9.2 Modo Sueño (Horas Silenciosas con Cruce de Medianoche)**
+- [x] **9.2 Modo Sueño (Horas Silenciosas con Cruce de Medianoche)**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L300-L373) y [`SettingsController.php@updateQuietHours`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php#L46-L115)
   * **Instrucciones de Prueba:**
     1. Activa el toggle de *"Habilitar Modo Sueño"*.
@@ -265,13 +265,13 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     3. Presiona *"Guardar Horas"*.
   * **Resultado Esperado:** Persiste en base de datos (`quiet_hours_enabled = true`, `quiet_hours_start = "22:00"`, `quiet_hours_end = "08:00"` y la zona horaria del dispositivo). Durante esta franja, los comandos de recordatorio e inactividad se suspenden automáticamente sin molestar al usuario.
 
-- [ ] **9.3 Toggle de Reporte por WhatsApp**
+- [x] **9.3 Toggle de Reporte por WhatsApp**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L375-L404) y [`SettingsController.php@updateSmsWhatsappCheckin`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php#L116-L157)
   * **Instrucciones de Prueba:**
     1. Activa el interruptor *"Reporte por WhatsApp"*.
   * **Resultado Esperado:** Se actualiza `allow_sms_whatsapp_checkin = true` en la base de datos y muestra confirmación mediante Toast.
 
-- [ ] **9.4 Auto Check-in Pasivo por Wi-Fi Seguro y Botón "📶 Usar Wi-Fi Actual"**
+- [x] **9.4 Auto Check-in Pasivo por Wi-Fi Seguro y Botón "📶 Usar Wi-Fi Actual"**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L437-L545) y [`LocationController.php@handlePassiveWifiAutoCheckin`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/LocationController.php#L307-L352)
   * **Instrucciones de Prueba:**
     1. Conéctate a tu red Wi-Fi hogareña.
@@ -283,25 +283,25 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * Guarda en backend `wifi_checkin_enabled = true` y `safe_wifi_ssid = "TuSSID"`.
     * En segundo plano, al enviar reportes periódicos de ubicación (latido cada 15 min), si coincide la red, ejecuta el check-in automático pasivo (`source: 'wifi'`) y envía una notificación push al usuario confirmándole la protección.
 
-- [ ] **9.5 Auto Check-in Pasivo por Actividad Física (Podómetro)**
+- [x] **9.5 Auto Check-in Pasivo por Actividad Física (Podómetro)**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L549-L575)
   * **Instrucciones de Prueba:**
     1. Activa *"Auto-reportarse por Actividad Física"*.
   * **Resultado Esperado:** Guarda `sensor_checkin_enabled = true` en backend.
 
-- [ ] **9.6 Toggle de Compartir Ubicación (Rastreo en Segundo Plano)**
+- [x] **9.6 Toggle de Compartir Ubicación (Rastreo en Segundo Plano)**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L578-L651) y [`TrackingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt)
   * **Instrucciones de Prueba:**
     1. Activa o desactiva el switch *"Compartir Ubicación (Rastreo)"*.
   * **Resultado Esperado:** Si faltan permisos de segundo plano, despliega el diálogo de advertencia prominente ("Prominent Disclosure") solicitando *"Permitir todo el tiempo"*. Al concederse, inicia el Foreground Service con su notificación persistente y comienza el envío adaptativo de telemetría.
 
-- [ ] **9.7 Modal de Condiciones de Servicio**
+- [x] **9.7 Modal de Condiciones de Servicio**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L653-L671)
   * **Instrucciones de Prueba:**
     1. Presiona el botón *"Condiciones del Servicio 📋"*.
   * **Resultado Esperado:** Despliega el modal de términos operativos de 6 puntos con botón de cierre.
 
-- [ ] **9.8 Cierre de Sesión (Logout)**
+- [x] **9.8 Cierre de Sesión (Logout)**
   * **Código:** [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt#L673-L697) y [`AuthController.php@logout`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php)
   * **Instrucciones de Prueba:**
     1. Presiona el botón rojo *"Cerrar Sesión"*.
@@ -311,14 +311,14 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
 
 ## 10. Procesos Backend Automatizados y Webhooks
 
-- [ ] **10.1 Comando de Recordatorios Preventivos (`checkins:send-reminders`)**
+- [x] **10.1 Comando de Recordatorios Preventivos (`checkins:send-reminders`)**
   * **Código:** [`SendCheckInReminders.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/SendCheckInReminders.php)
   * **Instrucciones de Prueba:**
     1. Ubica a un usuario que se encuentre dentro de la ventana previa al vencimiento.
     2. Ejecuta: `docker compose exec backend php artisan checkins:send-reminders`.
   * **Resultado Esperado:** El usuario recibe una notificación Push (*"¿Estás por ahí? Recuerda confirmar tu bienestar..."*) y un correo electrónico recordatorio. Si está en Modo Sueño, el envío se omite y se registra en logs.
 
-- [ ] **10.2 Comando de Detección de Inactividad y Escalamiento (`checkins:verify-inactivity`)**
+- [x] **10.2 Comando de Detección de Inactividad y Escalamiento (`checkins:verify-inactivity`)**
   * **Código:** [`VerifyInactivity.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php) y [`SendInactivityAlerts.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendInactivityAlerts.php)
   * **Instrucciones de Prueba:**
     1. Con un usuario cuyo último reporte esté vencido (`last_check_in_at < NOW() - intervalo`).
@@ -330,7 +330,7 @@ Esta ventana modal bloqueante se presenta únicamente la primera vez que un usua
     * Si tiene contactos de emergencia, despacha el correo electrónico y mensaje de WhatsApp oficial (vía Evolution API) con el enlace público `https://estoyok24.com/emergencia/{uuid}`.
     * Si el escalamiento está habilitado, encola al contacto siguiente con delay de $X$ minutos.
 
-- [ ] **10.3 Auto Check-in por Webhook de WhatsApp (Evolution API)**
+- [x] **10.3 Auto Check-in por Webhook de WhatsApp (Evolution API)**
   * **Código:** [`WebhookController.php@evolutionMessage`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php#L64-L141)
   * **Instrucciones de Prueba:**
     1. Habiendo recibido una alerta o mensaje de WhatsApp de la pasarela de Estoy Ok.

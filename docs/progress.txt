@@ -1,5 +1,19 @@
 # Progress Log
 
+## [2026-08-19] Unificación de Servidor a Railway y Eliminación del Selector de Entorno (Android Nativo)
+- **App Móvil Android Nativa:**
+    - Actualizado [`NetworkModule.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/di/NetworkModule.kt) fijando `BASE_URL = "https://api.estoyok24.com/api/"` como endpoint único oficial de producción.
+    - Limpiado [`AuthInterceptor.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/remote/AuthInterceptor.kt) eliminando reemplazos de host local para asegurar conexión directa incondicional al servidor de producción en Railway.
+    - Removida la botonera y selector de entorno ("💻 Local (USB)" vs "🌐 Railway") en [`LoginScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) y limpiada la lógica de `currentBaseUrl` / `updateBaseUrl` en [`LoginViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginViewModel.kt).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin: `BUILD SUCCESSFUL in 15s` (0 advertencias).
+    - Backend Tests: 144 passed (465 assertions).
+
+## [2026-08-19] Guía Oficial de Transición de Pasarelas de Pago a Producción (Railway & Live Mode)
+- **Documentación de Infraestructura & Monetización:**
+    - Creado el documento maestro [`docs/transicion_pasarelas_produccion.md`](file:///home/usuario/aplicaciones/estoyok/docs/transicion_pasarelas_produccion.md) con la guía paso a paso para migrar las pasarelas (Stripe, Mercado Pago y PayPal) de Sandbox a Producción en Railway.
+    - Detalladas las variables de entorno para Railway, catálogo de productos y precios (Mensual $4.99 / Anual $35.99), configuración de webhooks y flujo de liquidación bancaria (Payouts) sin requerir modificaciones de código en la app ni en el backend.
+
 ## [2026-08-17] Check-In de Bienestar Vía WhatsApp y Soporte Multi-Dispositivo @lid (Backend & Evolution API)
 - **Backend (Laravel 12 API):**
     - Corregido y optimizado [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php) con desempaquetador universal de payloads para Evolution API v2, soporte de identificadores de privacidad `@lid` mediante resolución inteligente por `pushName` y coincidencia por `national number` (8-10 dígitos).
