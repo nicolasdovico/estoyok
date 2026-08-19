@@ -30,7 +30,7 @@ class EmailVerificationTest extends TestCase
         $this->assertDatabaseHas('users', ['email' => 'juan@example.com']);
         $this->assertDatabaseHas('email_verifications', ['email' => 'juan@example.com']);
 
-        Mail::assertQueued(OtpVerificationMail::class, function ($mail) {
+        Mail::assertSent(OtpVerificationMail::class, function ($mail) {
             return $mail->hasTo('juan@example.com') && strlen($mail->code) === 6;
         });
     }
@@ -117,7 +117,7 @@ class EmailVerificationTest extends TestCase
 
         $response->assertStatus(200);
 
-        Mail::assertQueued(OtpVerificationMail::class, function ($mail) use ($user) {
+        Mail::assertSent(OtpVerificationMail::class, function ($mail) use ($user) {
             return $mail->hasTo($user->email);
         });
     }

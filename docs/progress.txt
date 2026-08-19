@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-08-19] Corrección de Envío Síncrono de Códigos OTP de Registro y Desvío Global de Emails (Backend Laravel)
+- **Backend (Laravel 12 API & Mails):**
+    - Desacoplada la interfaz `ShouldQueue` en [`OtpVerificationMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/OtpVerificationMail.php), permitiendo que el correo con el código OTP de verificación de registro y reenvío se despache de forma síncrona e instantánea directamente al servidor SMTP en Railway sin depender de un proceso background worker.
+    - Removida la intercepción global `Mail::alwaysTo()` en [`AppServiceProvider.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Providers/AppServiceProvider.php), garantizando que los correos transaccionales (OTP de registro, reseteo de claves) se envíen siempre al email real proporcionado por el usuario sin desvíos.
+    - Actualizada la suite de pruebas en [`EmailVerificationTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/EmailVerificationTest.php) a `Mail::assertSent`.
+- **Verificación de No Regresión:**
+    - Backend Tests: 144 passed (465 assertions).
+
 ## [2026-08-19] Unificación de Servidor a Railway y Eliminación del Selector de Entorno (Android Nativo)
 - **App Móvil Android Nativa:**
     - Actualizado [`NetworkModule.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/di/NetworkModule.kt) fijando `BASE_URL = "https://api.estoyok24.com/api/"` como endpoint único oficial de producción.

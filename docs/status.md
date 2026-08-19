@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Corrección de Envío Síncrono de Códigos OTP de Registro y Desvío Global de Emails (Backend Laravel):
+      - Desacoplada la interfaz `ShouldQueue` en [`OtpVerificationMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/OtpVerificationMail.php) para enviar el correo con el código OTP de verificación de registro y reenvío de forma síncrona e inmediata vía SMTP, eliminando la dependencia de workers en segundo plano en Railway.
+      - Removida la intercepción global `Mail::alwaysTo()` en [`AppServiceProvider.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Providers/AppServiceProvider.php) asegurando que los correos transaccionales se envíen siempre al email ingresado por el usuario.
     - [x] Check-In de Bienestar Vía WhatsApp y Soporte Multi-Dispositivo @lid (Backend & Evolution API):
       - Implementado en [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php) un desempaquetador universal de payloads de Evolution API v2 (arrays, sub-arrays y objetos), normalizador de mensajes con tolerancia a emojis/puntuación/tildes y emparejamiento inteligente por número telefónico (`national number` 8-10 dígitos) y fallback por `pushName` ante identificadores de privacidad `@lid`.
       - Agregada auto-configuración y verificación en segundo plano del webhook de Evolution API en [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php) y panel de diagnóstico en tiempo real en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) (`/api/maintenance/diagnose-push`).
