@@ -117,4 +117,6 @@ return [
 
     'always_to' => env('MAIL_ALWAYS_TO'),
 
+    'admin_notification_email' => env('ADMIN_NOTIFICATION_EMAIL'),
+
 ];

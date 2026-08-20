@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-08-19] Notificación Automática al Administrador por Nuevo Registro de Usuario (Backend Laravel)
+- **Backend (Laravel 12 API & Mails):**
+    - Creado el mailable [`NewUserRegisteredMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/NewUserRegisteredMail.php) y la plantilla visual [`new-user-registered.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/emails/new-user-registered.blade.php) con diseño oficial Estoy Ok (detalles del usuario, timestamp formateado en zona horaria local y métrica del total acumulado de usuarios en la plataforma).
+    - Configurada la variable de entorno `ADMIN_NOTIFICATION_EMAIL` en [`config/mail.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/mail.php).
+    - Implementado el despacho seguro con aislamiento de excepciones en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) (`register()`), asegurando que la notificación se envíe al administrador sin bloquear ni afectar el flujo de registro del usuario.
+    - Creada la suite de tests en [`NewUserAdminNotificationTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/NewUserAdminNotificationTest.php).
+- **Verificación de No Regresión:**
+    - Backend Tests: **147 passed (473 assertions)**.
+
 ## [2026-08-19] Despliegue Global del Disclaimer Bloqueante en Onboarding Inicial (Android Nativo)
 - **App Móvil Android Nativa (Flujo de Entrada & Legal):**
     - Elevado el modal bloqueante [`DisclaimerMandatoryDialog`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) a nivel raíz en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) (`MainScreen`), asegurando que cualquier usuario recién registrado o que no haya aceptado las condiciones vea la ventana modal inmediatamente tras el registro/login sobre la pantalla inicial (Mapa o cualquier pestaña), sin requerir entrar a la 3ª pestaña ("Estoy OK").

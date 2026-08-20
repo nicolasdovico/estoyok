@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NewUserRegisteredMail;
 use App\Mail\OtpVerificationMail;
 use App\Models\EmailVerification;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
@@ -72,6 +74,17 @@ class AuthController extends Controller
         ]);
 
         $this->sendOtp($user->email);
+
+        // Notify administrator about new user registration if configured
+        $adminEmail = config('mail.admin_notification_email');
+        if (!empty($adminEmail)) {
+            try {
+                $totalUsers = User::count();
+                Mail::to($adminEmail)->send(new NewUserRegisteredMail($user, $totalUsers));
+            } catch (\Throwable $e) {
+                Log::warning("No se pudo enviar la notificación de nuevo usuario al administrador: " . $e->getMessage());
+            }
+        }
 
         return response()->json([
             'message' => 'Usuario registrado exitosamente. Por favor verifica tu email con el código enviado.',
