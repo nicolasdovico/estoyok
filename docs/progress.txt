@@ -6,6 +6,7 @@
     - Elevado el código de versión a `versionCode = 4` y nombre a `versionName = "1.0.1"`.
     - Actualizado `android.suppressUnsupportedCompileSdk=36` en [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) y enlazada la plataforma SDK 36 en el entorno de desarrollo.
     - Generado y firmado el bundle de producción final `versionCode = 4` en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+    - Enviado el paquete `versionCode = 4` a revisión en Google Play Console para la pista de Pruebas Cerradas (Closed Testing).
 - **Verificación de Compilación & No Regresión:**
     - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 4m 36s` (0 errores).
     - Backend Tests: **147 passed (473 assertions)**.

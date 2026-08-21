@@ -52,7 +52,7 @@
       - Actualizado `targetSdk = 36` y `compileSdk = 36` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para cumplir con el requisito de nivel de API objetivo de Google Play.
       - Actualizado `versionCode = 4` y `versionName = "1.0.1"`.
       - Actualizado `android.suppressUnsupportedCompileSdk=36` en [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) y enlazada la plataforma SDK 36.
-      - Generado y firmado el bundle de producción final `app-release.aab` (`versionCode = 4`).
+      - Generado, firmado y enviado a revisión en Google Play Console el bundle final `app-release.aab` (`versionCode = 4`) para la pista de Pruebas Cerradas.
     - [x] Compilación de Producción v3 (Target API 35 Android 15) y Envío a Google Play Console (Prueba Cerrada):
       - Actualizado `targetSdk = 35` y `compileSdk = 35` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
       - Optimizado [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) con límites seguros de memoria (`-Xmx1536m`, `max-workers=2`, `parallel=false`).
