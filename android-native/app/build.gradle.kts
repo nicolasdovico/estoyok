@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.estoyok.app"
-    compileSdk = 34
+    compileSdk = 35
 
     val localProperties = Properties()
     val localPropertiesFile = rootProject.file("local.properties")
@@ -23,8 +23,8 @@ android {
     defaultConfig {
         applicationId = "com.estoyok.app"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 1
+        targetSdk = 35
+        versionCode = 3
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
