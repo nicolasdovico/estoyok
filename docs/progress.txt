@@ -1,6 +1,31 @@
 # Progress Log
 
-## [2026-08-19] Notificación Automática al Administrador por Nuevo Registro de Usuario (Backend Laravel)
+## [2026-08-21] Compilación de Producción v4 (Target API 36 Android 16) para Cumplimiento de Políticas Google Play
+- **App Móvil Android Nativa (Google Play Target API 36 Compliance):**
+    - Actualizado `targetSdk = 36` y `compileSdk = 36` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para cumplir con el requisito estricto de nivel de API objetivo de Google Play (Android 16).
+    - Elevado el código de versión a `versionCode = 4` y nombre a `versionName = "1.0.1"`.
+    - Actualizado `android.suppressUnsupportedCompileSdk=36` en [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) y enlazada la plataforma SDK 36 en el entorno de desarrollo.
+    - Generado y firmado el bundle de producción final `versionCode = 4` en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+- **Verificación de Compilación & No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 4m 36s` (0 errores).
+    - Backend Tests: **147 passed (473 assertions)**.
+
+## [2026-08-21] Compilación de Producción v3 (Target API 35 Android 15) y Envío a Revisión en Google Play Console (Prueba Cerrada)
+- **App Móvil Android Nativa (Google Play Compliance & Build Optimization):**
+    - Actualizado `targetSdk = 35` y `compileSdk = 35` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para dar cumplimiento estricto a las directivas de seguridad y rendimiento de Google Play (Android 15).
+    - Optimizado [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) con límites de memoria y paralelismo seguro (`org.gradle.workers.max=2`, `org.gradle.jvmargs=-Xmx1536m`, `kotlin.daemon.jvmargs=-Xmx1024m`, `org.gradle.parallel=false`) para garantizar compilaciones limpias sin congelamiento del sistema.
+    - Removido el permiso no utilizado `ACTIVITY_RECOGNITION` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml), eliminando las restricciones de la política de Apps de Salud de Google Play al preservarse la detección telemétrica vehicular y de choques mediante hardware directo (`Sensor.TYPE_ACCELEROMETER` y GPS `location.speed`).
+    - Generado y firmado el bundle de producción final `versionCode = 3` (`app-release.aab`).
+    - Completadas las declaraciones obligatorias en Google Play Console:
+      - Acceso a ubicación en segundo plano (`ACCESS_BACKGROUND_LOCATION`) con video demostrativo de YouTube.
+      - Permisos de servicio en primer plano (`FOREGROUND_SERVICE_LOCATION`).
+      - Declaración de apps de salud (sin datos de salud).
+      - Ficha de tienda, seguridad de los datos (Data Safety) y clasificación de contenido IARC.
+    - Enviados los 14 cambios a revisión formal para el inicio del ciclo de 14 días de Pruebas Cerradas (*Closed Testing Alpha*).
+- **Verificación de Compilación:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 11s` (0 errores).
+
+
 - **Backend (Laravel 12 API & Mails):**
     - Creado el mailable [`NewUserRegisteredMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/NewUserRegisteredMail.php) y la plantilla visual [`new-user-registered.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/emails/new-user-registered.blade.php) con diseño oficial Estoy Ok (detalles del usuario, timestamp formateado en zona horaria local y métrica del total acumulado de usuarios en la plataforma).
     - Configurada la variable de entorno `ADMIN_NOTIFICATION_EMAIL` en [`config/mail.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/mail.php).

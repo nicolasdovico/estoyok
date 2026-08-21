@@ -11,7 +11,7 @@ plugins {
 
 android {
     namespace = "com.estoyok.app"
-    compileSdk = 35
+    compileSdk = 36
 
     val localProperties = Properties()
     val localPropertiesFile = rootProject.file("local.properties")
@@ -23,9 +23,9 @@ android {
     defaultConfig {
         applicationId = "com.estoyok.app"
         minSdk = 26
-        targetSdk = 35
-        versionCode = 3
-        versionName = "1.0.0"
+        targetSdk = 36
+        versionCode = 4
+        versionName = "1.0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

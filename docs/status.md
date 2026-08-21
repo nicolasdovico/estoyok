@@ -48,6 +48,17 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación de Producción v4 (Target API 36 Android 16) para Cumplimiento de Políticas Google Play:
+      - Actualizado `targetSdk = 36` y `compileSdk = 36` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para cumplir con el requisito de nivel de API objetivo de Google Play.
+      - Actualizado `versionCode = 4` y `versionName = "1.0.1"`.
+      - Actualizado `android.suppressUnsupportedCompileSdk=36` en [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) y enlazada la plataforma SDK 36.
+      - Generado y firmado el bundle de producción final `app-release.aab` (`versionCode = 4`).
+    - [x] Compilación de Producción v3 (Target API 35 Android 15) y Envío a Google Play Console (Prueba Cerrada):
+      - Actualizado `targetSdk = 35` y `compileSdk = 35` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+      - Optimizado [`gradle.properties`](file:///home/usuario/aplicaciones/estoyok/android-native/gradle.properties) con límites seguros de memoria (`-Xmx1536m`, `max-workers=2`, `parallel=false`).
+      - Removido el permiso no utilizado `ACTIVITY_RECOGNITION` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml), eliminando la traba de políticas de salud de Google Play.
+      - Generado el `.aab` de producción final `versionCode = 3` firmado con certificado de producción.
+      - Completadas y aprobadas las declaraciones de Ubicación en segundo plano con video de YouTube, Servicios en primer plano (`FOREGROUND_SERVICE_LOCATION`), Apps de salud, Ficha de tienda y Seguridad de datos (14 cambios enviados formalmente a revisión).
     - [x] Notificación Automática al Administrador por Nuevo Registro de Usuario (Backend Laravel):
       - Creado el mailable [`NewUserRegisteredMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/NewUserRegisteredMail.php) y la plantilla visual [`new-user-registered.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/emails/new-user-registered.blade.php) con resumen de datos del usuario y métricas acumuladas.
       - Configurada la variable `ADMIN_NOTIFICATION_EMAIL` en [`config/mail.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/mail.php), despacho seguro en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) (`register()`) y tests de cobertura en [`NewUserAdminNotificationTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/NewUserAdminNotificationTest.php) (147 tests pasando).
