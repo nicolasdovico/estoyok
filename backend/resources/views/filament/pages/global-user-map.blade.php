@@ -10,17 +10,20 @@
                 }
                 if (this.map) return;
 
-                this.map = L.map(this.$refs.mapContainer, {
+                const mapEl = this.$refs.mapContainer;
+                if (!mapEl) return;
+
+                this.map = L.map(mapEl, {
                     center: [-34.6037, -58.3816],
                     zoom: 4,
                     maxZoom: 18,
                     minZoom: 2,
                 });
 
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    attribution: '&copy; CARTO &copy; OpenStreetMap',
-                    subdomains: 'abcd',
-                    maxZoom: 20
+                // Capa de mosaicos estándar OpenStreetMap (100% confiable y sin bloqueos)
+                L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href=\'https://www.openstreetmap.org/copyright\'>OpenStreetMap</a>',
+                    maxZoom: 19
                 }).addTo(this.map);
 
                 const cluster = L.markerClusterGroup({
@@ -83,6 +86,19 @@
                 if (latLngs.length > 0) {
                     this.map.fitBounds(latLngs, { padding: [50, 50], maxZoom: 14 });
                 }
+
+                // Forzar re-cálculo de dimensiones de Leaflet para evitar áreas grises
+                setTimeout(() => {
+                    if (this.map) {
+                        this.map.invalidateSize();
+                    }
+                }, 200);
+
+                setTimeout(() => {
+                    if (this.map) {
+                        this.map.invalidateSize();
+                    }
+                }, 600);
             },
             fitBounds() {
                 if (!this.map || this.usersData.length === 0) return;
@@ -90,6 +106,7 @@
                 if (bounds.length > 0) {
                     this.map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
                 }
+                this.map.invalidateSize();
             },
             focusUser(lat, lng) {
                 if (!this.map) return;
@@ -171,7 +188,7 @@
             </div>
 
             {{-- Leaflet Map DOM Element --}}
-            <div x-ref="mapContainer" wire:ignore class="w-full h-[620px] rounded-xl z-0 border border-gray-100 dark:border-gray-800"></div>
+            <div x-ref="mapContainer" wire:ignore class="w-full h-[620px] rounded-xl z-0 border border-gray-100 dark:border-gray-800" style="min-height: 620px;"></div>
         </div>
 
         {{-- Tabla de Últimas Conexiones --}}
@@ -249,6 +266,21 @@
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
     <style>
+        /* Corrección de colisión entre Tailwind Preflight y Leaflet Tiles */
+        .leaflet-container img,
+        .leaflet-tile-pane img,
+        .leaflet-tile {
+            max-width: none !important;
+            max-height: none !important;
+            box-shadow: none !important;
+            border: none !important;
+            padding: 0 !important;
+        }
+
+        .leaflet-container {
+            font-family: inherit !important;
+        }
+
         .custom-user-marker {
             display: flex;
             align-items: center;
