@@ -1,5 +1,11 @@
 # Progress Log
 
+## [2026-08-22] Aprobación de Versión 4 en Google Play Console, Lanzamiento con Testers Community y Guía Operativa de 14 Días
+- **Google Play Console & Closed Testing:**
+    - Verificada la aprobación exitosa por parte de Google Play de la versión 4 (`1.0.1`, `versionCode = 4`) para el canal de Prueba Cerrada (*Alpha*), pasando a estado *«Disponible para los verificadores en Google Play / Lanzamiento completo»* en los 177 países con 0% de errores.
+    - Vinculados los Grupos de Google de [Testers Community](https://testerscommunity.com) (`testers-community@googlegroups.com` y `testers-community-2@googlegroups.com`) en la configuración de verificadores de Google Play Console.
+    - Creado el documento maestro [`docs/guia_pruebas_cerradas_14_dias.md`](file:///home/usuario/aplicaciones/estoyok/docs/guia_pruebas_cerradas_14_dias.md) con la estrategia de 2 a 3 parches menores (v5 y v6) para generar engagement y telemetría activa en Play Store, cronograma detallado (días 1 al 16) y plantillas de respuestas pre-redactadas para el formulario final de solicitud a Producción.
+
 ## [2026-08-21] Compilación de Producción v4 (Target API 36 Android 16) para Cumplimiento de Políticas Google Play
 - **App Móvil Android Nativa (Google Play Target API 36 Compliance):**
     - Actualizado `targetSdk = 36` y `compileSdk = 36` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para cumplir con el requisito estricto de nivel de API objetivo de Google Play (Android 16).

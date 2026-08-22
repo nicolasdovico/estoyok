@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Aprobación de Versión 4 en Google Play Console & Guía Operativa de 14 Días:
+      - Aprobada la versión 4 (`1.0.1`, `versionCode = 4`) en Google Play Console con lanzamiento completo en 177 países y 0% de errores.
+      - Vinculados los grupos de Google de Testers Community (`testers-community@googlegroups.com` y `testers-community-2@googlegroups.com`).
+      - Creada la guía maestra [`docs/guia_pruebas_cerradas_14_dias.md`](file:///home/usuario/aplicaciones/estoyok/docs/guia_pruebas_cerradas_14_dias.md) con cronograma de parches menores (v5 y v6) para telemetría activa y plantillas de respuestas para el formulario de paso a Producción.
     - [x] Compilación de Producción v4 (Target API 36 Android 16) para Cumplimiento de Políticas Google Play:
       - Actualizado `targetSdk = 36` y `compileSdk = 36` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para cumplir con el requisito de nivel de API objetivo de Google Play.
       - Actualizado `versionCode = 4` y `versionName = "1.0.1"`.
