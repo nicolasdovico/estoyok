@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Mapa Global de Conexiones de Usuarios en Filament Admin Panel:
+      - Creada la página de administración privada [`GlobalUserMap.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Filament/Pages/GlobalUserMap.php) y vista interactiva con Leaflet / MarkerCluster [`global-user-map.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/filament/pages/global-user-map.blade.php).
+      - Incorporadas tarjetas de magnitud (Total Usuarios, Con Coordenadas, En Línea < 15 min), marcadores con popups informativos, centrado automático y tabla de conexiones con foco al instante.
+      - Creado test de integración [`FilamentGlobalUserMapTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/FilamentGlobalUserMapTest.php) con 150 tests pasando al 100%.
     - [x] Aprobación de Versión 4 en Google Play Console & Guía Operativa de 14 Días:
       - Aprobada la versión 4 (`1.0.1`, `versionCode = 4`) en Google Play Console con lanzamiento completo en 177 países y 0% de errores.
       - Vinculados los grupos de Google de Testers Community (`testers-community@googlegroups.com` y `testers-community-2@googlegroups.com`).

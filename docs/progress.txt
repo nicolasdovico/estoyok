@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-08-22] Implementación del Mapa Global de Conexiones de Usuarios en Panel Filament Admin
+- **Backend (Laravel 12 & Filament Admin Panel):**
+    - Creada la página de Filament [`GlobalUserMap.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Filament/Pages/GlobalUserMap.php) accesible de forma privada y segura exclusivamente para administradores autenticados (`/admin/mapa-global`).
+    - Desarrollada la vista interactiva [`global-user-map.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/filament/pages/global-user-map.blade.php) integrada con Leaflet, OpenStreetMap/CartoDB Voyager y Leaflet.markercluster mediante AlpineJS (`wire:ignore` y `@assets`).
+    - Incorporadas tarjetas de magnitud en tiempo real (*Total Usuarios*, *Con Coordenadas GPS*, *En Línea < 15 min*), marcadores personalizados por iniciales con estado (*En línea* vs *Inactivo*), auto-ajuste de vista (`fitBounds`) y tabla interactiva con acción de foco inmediato sobre el mapa (`focusUser`).
+    - Creada la suite de tests de integración en [`FilamentGlobalUserMapTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/FilamentGlobalUserMapTest.php) verificando redirección para invitados, rechazo `403` a usuarios comunes y renderizado `200 OK` para administradores.
+- **Verificación de No Regresión:**
+    - Backend Tests: **150 passed (482 assertions)** (100% pasando).
+
 ## [2026-08-22] Aprobación de Versión 4 en Google Play Console, Lanzamiento con Testers Community y Guía Operativa de 14 Días
 - **Google Play Console & Closed Testing:**
     - Verificada la aprobación exitosa por parte de Google Play de la versión 4 (`1.0.1`, `versionCode = 4`) para el canal de Prueba Cerrada (*Alpha*), pasando a estado *«Disponible para los verificadores en Google Play / Lanzamiento completo»* en los 177 países con 0% de errores.
