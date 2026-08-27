@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación de Producción v5 (1.0.2 - Actualización Menor 1 Pruebas Cerradas):
+      - Actualizado `versionCode = 5` y `versionName = "1.0.2"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+      - Mejorado el contraste de tipografía secundaria y bordes en modo oscuro en [`Color.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) para legibilidad en pantallas OLED.
+      - Compilado y firmado el bundle `app-release.aab` (`versionCode = 5`) de 21 MB para desplegar en la pista de Pruebas Cerradas de Google Play Console.
     - [x] Mapa Global de Conexiones de Usuarios en Filament Admin Panel:
       - Creada la página de administración privada [`GlobalUserMap.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Filament/Pages/GlobalUserMap.php) y vista interactiva con Leaflet / MarkerCluster [`global-user-map.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/filament/pages/global-user-map.blade.php).
       - Incorporadas tarjetas de magnitud (Total Usuarios, Con Coordenadas, En Línea < 15 min), marcadores con popups informativos, centrado automático y tabla de conexiones con foco al instante.

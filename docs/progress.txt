@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-08-27] Compilación de Producción v5 (1.0.2) - Actualización Menor 1 (Pruebas Cerradas 14 Días)
+- **App Móvil Android Nativa (UX, Contraste & Closed Testing Engagement):**
+    - Actualizado `versionCode = 5` y `versionName = "1.0.2"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para la Actualización Menor 1 del ciclo de 14 días de Pruebas Cerradas.
+    - Mejorada la legibilidad y contraste en modo oscuro en [`Color.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) ajustando `TextPrimary` (`#F9FAFB`), `TextSecondary` (`#D1D5DB`), `TextMuted` (`#9CA3AF`) y `BorderColor` (`#374151`) para cumplimiento estricto de contraste WCAG AA en pantallas OLED.
+    - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 5`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB) listo para su publicación en Google Play Console (Pista Alpha).
+- **Verificación de Compilación:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 7m 13s` (0 errores).
+
 ## [2026-08-22] Implementación del Mapa Global de Conexiones de Usuarios en Panel Filament Admin
 - **Backend (Laravel 12 & Filament Admin Panel):**
     - Creada la página de Filament [`GlobalUserMap.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Filament/Pages/GlobalUserMap.php) accesible de forma privada y segura exclusivamente para administradores autenticados (`/admin/mapa-global`).
