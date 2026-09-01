@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación de Producción v6 (1.0.3 - Actualización Menor 2 / Release Candidate Pruebas Cerradas):
+      - Actualizado `versionCode = 6` y `versionName = "1.0.3"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+      - Incorporada la tarjeta *"Información y Soporte 🛡️"* en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) con versión de build (`v1.0.3 Compilación 6`), envío directo de feedback a `contacto@estoyok24.com` y enlace a Políticas de Privacidad.
+      - Compilado y firmado el bundle `app-release.aab` (`versionCode = 6`) de 21 MB para la pista de Pruebas Cerradas.
     - [x] Compilación de Producción v5 (1.0.2 - Actualización Menor 1 Pruebas Cerradas):
       - Actualizado `versionCode = 5` y `versionName = "1.0.2"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
       - Mejorado el contraste de tipografía secundaria y bordes en modo oscuro en [`Color.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/theme/Color.kt) para legibilidad en pantallas OLED.

@@ -9,6 +9,8 @@ import androidx.core.content.ContextCompat
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Build
+import android.content.Intent
+import android.net.Uri
 import android.widget.Toast
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.BorderStroke
@@ -832,7 +834,78 @@ fun AjustesScreen(
                 }
             }
 
-            // 8. Logout Button
+            // 8. App Information & Support / Feedback Card
+            SettingsCard(title = "Información y Soporte 🛡️") {
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Versión de la App",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "v1.0.3 (Compilación 6)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+
+                    Text(
+                        text = "Tus comentarios nos ayudan a mejorar continuamente la seguridad y estabilidad de la plataforma.",
+                        fontSize = 11.sp,
+                        color = TextSecondary,
+                        lineHeight = 15.sp
+                    )
+
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                        data = Uri.parse("mailto:contacto@estoyok24.com")
+                                        putExtra(Intent.EXTRA_SUBJECT, "Comentarios Estoy Ok v1.0.3")
+                                    }
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Escríbenos a contacto@estoyok24.com", Toast.LENGTH_LONG).show()
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary)
+                        ) {
+                            Text("Feedback ✉️", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.primary)
+                        }
+
+                        OutlinedButton(
+                            onClick = {
+                                try {
+                                    val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://estoyok24.com/politica-de-privacidad"))
+                                    context.startActivity(intent)
+                                } catch (e: Exception) {
+                                    Toast.makeText(context, "Visita estoyok24.com/politica-de-privacidad", Toast.LENGTH_LONG).show()
+                                }
+                            },
+                            modifier = Modifier.weight(1f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, BorderColor)
+                        ) {
+                            Text("Privacidad 🔒", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
+                        }
+                    }
+                }
+            }
+
+            // 9. Logout Button
             Button(
                 onClick = { authViewModel.logout() },
                 modifier = Modifier
