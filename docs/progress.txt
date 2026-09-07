@@ -1,5 +1,18 @@
 # Progress Log
 
+## [2026-09-07] Compilación de Producción v7 (1.0.4) - Activación Directa de Trial 7 Días para Cumplimiento Estricto de Google Play Billing
+- **App Móvil Android Nativa (Google Play Billing Policy Compliance & Safe Review Mode):**
+    - Actualizado `versionCode = 7` y `versionName = "1.0.4"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en la visualización de versión (`v1.0.4 (Compilación 7)`) en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
+    - Removido en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) el selector de medios de pago externos (*"🏦 Elige tu Medio de Pago"*, Stripe, Mercado Pago, PayPal) y eliminado el intent externo de navegador web.
+    - Implementado `startFreeTrial` en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) y actualizado el botón CTA en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) (*"Activar Prueba Gratis (7 Días) 👑"*) con activación in-app instantánea sin tarjeta, transformando la UI a *"¡Eres Socio Premium! ⭐"* sin infracción de políticas de pago de Google Play.
+    - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 7`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB) listo para su envío a Producción Abierta en Google Play Console.
+- **Backend (Laravel 12 API):**
+    - Actualizado el endpoint `POST /api/subscriptions/start-trial` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) para activar directamente 7 días de acceso Premium (`subscription_status = 'trialing'`, `trial_ends_at = now() + 7 days`, `is_premium = true`) sin requerir pasarelas web externas ni tarjetas previas durante la evaluación de la tienda.
+    - Actualizada la suite de integración en [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 3m 5s` (0 errores).
+    - Backend Tests: **150 passed (487 assertions)** (100% pasando).
+
 ## [2026-09-01] Compilación de Producción v6 (1.0.3) - Actualización Menor 2 (Release Candidate / Closed Testing Feedback)
 - **App Móvil Android Nativa (Feedback de Testers & Versión Final de Pruebas Cerradas):**
     - Actualizado `versionCode = 6` y `versionName = "1.0.3"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) para la Actualización Menor 2 del ciclo de 14 días de Pruebas Cerradas con Testers Community.
