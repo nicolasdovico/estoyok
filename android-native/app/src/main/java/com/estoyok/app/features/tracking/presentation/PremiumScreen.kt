@@ -44,7 +44,6 @@ fun PremiumScreen(
 ) {
     val context = LocalContext.current
     val scrollState = rememberScrollState()
-    var selectedPayProvider by remember { mutableStateOf("stripe") }
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isUserPremium == true
 
@@ -193,7 +192,7 @@ fun PremiumScreen(
                             TimelineStepItem(
                                 number = "7",
                                 title = "Día 7 (Final del Trial)",
-                                subtitle = if (selectedBillingCycle == "annual") "Comienza la facturación anual ($35.99/año • $2.99/mes)." else "Comienza la facturación mensual ($4.99/mes).",
+                                subtitle = "Finaliza el período de prueba de 7 días sin costo alguno.",
                                 isFirst = false
                             )
                         }
@@ -238,84 +237,11 @@ fun PremiumScreen(
 
                         Spacer(modifier = Modifier.height(22.dp))
 
-                        // Payment Provider Selector (Option B - Clear User-Friendly Labels)
-                        Text(
-                            text = "🏦 Elige tu Medio de Pago:",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            modifier = Modifier.align(Alignment.Start)
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            listOf(
-                                Triple("stripe", "💳 Tarjeta de Crédito / Débito", "Procesamiento seguro internacional (Visa, Mastercard, Amex)"),
-                                Triple("mercadopago", "Mercado Pago", "Suscripción mensual en pesos (ARS) para Argentina"),
-                                Triple("paypal", "PayPal", "Débito automático en dólares (USD) para el resto del mundo")
-                            ).forEach { (id, label, subtext) ->
-                                val selected = selectedPayProvider == id
-                                Card(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .clickable { selectedPayProvider = id },
-                                    shape = RoundedCornerShape(12.dp),
-                                    colors = CardDefaults.cardColors(
-                                        containerColor = if (selected) PrimaryEmerald.copy(alpha = 0.15f) else DarkSurfaceVariant
-                                    ),
-                                    border = BorderStroke(
-                                        width = if (selected) 2.dp else 1.dp,
-                                        color = if (selected) PrimaryEmerald else DarkSurfaceVariant
-                                    )
-                                ) {
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(horizontal = 14.dp, vertical = 12.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        RadioButton(
-                                            selected = selected,
-                                            onClick = { selectedPayProvider = id },
-                                            colors = RadioButtonDefaults.colors(
-                                                selectedColor = PrimaryEmerald,
-                                                unselectedColor = TextMuted
-                                            )
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Column {
-                                            Text(
-                                                text = label,
-                                                color = if (selected) PrimaryEmerald else TextPrimary,
-                                                fontSize = 13.sp,
-                                                fontWeight = FontWeight.Bold
-                                            )
-                                            Text(
-                                                text = subtext,
-                                                color = TextSecondary,
-                                                fontSize = 10.5.sp,
-                                                lineHeight = 14.sp
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        Spacer(modifier = Modifier.height(22.dp))
-
-                        // CTA Button
+                        // CTA Button - Direct in-app trial activation without external gateway
                         Button(
                             onClick = {
-                                viewModel.startTrialAndCheckout(selectedPayProvider) { checkoutUrl ->
-                                    try {
-                                        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(checkoutUrl))
-                                        context.startActivity(intent)
-                                    } catch (e: Exception) {
-                                        Toast.makeText(context, "Error al abrir enlace de pago: ${e.message}", Toast.LENGTH_LONG).show()
-                                    }
+                                viewModel.startFreeTrial { msg ->
+                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                 }
                             },
                             modifier = Modifier
@@ -333,13 +259,13 @@ fun PremiumScreen(
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = "Iniciar Prueba Gratis (7 Días)",
+                                        text = "Activar Prueba Gratis (7 Días) 👑",
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 15.sp,
                                         color = TextOnPrimary
                                     )
                                     Text(
-                                        text = "Hoy $0.00 • Cancela en cualquier momento",
+                                        text = "Sin tarjeta requerida • Acceso completo inmediato",
                                         fontSize = 10.sp,
                                         color = TextOnPrimary.copy(alpha = 0.85f)
                                     )

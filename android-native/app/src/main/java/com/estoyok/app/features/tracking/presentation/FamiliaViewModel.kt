@@ -235,6 +235,33 @@ class FamiliaViewModel @Inject constructor(
         }
     }
 
+    fun startFreeTrial(onSuccess: (String) -> Unit) {
+        viewModelScope.launch {
+            subscriptionRepository.startTrial("direct").collectLatest { resource: Resource<StartTrialResponse> ->
+                when (resource) {
+                    is Resource.Loading -> {
+                        checkoutLoading = true
+                        errorMessage = null
+                    }
+                    is Resource.Success -> {
+                        checkoutLoading = false
+                        val message = resource.data?.message ?: "¡Prueba gratuita de 7 días activada con éxito!"
+                        user = user?.copy(
+                            isPremium = true,
+                            hasPremiumAccess = true
+                        )
+                        refreshData()
+                        onSuccess(message)
+                    }
+                    is Resource.Error -> {
+                        checkoutLoading = false
+                        errorMessage = resource.message ?: "No se pudo activar la prueba gratuita."
+                    }
+                }
+            }
+        }
+    }
+
     fun startTrialAndCheckout(provider: String, onUrlReceived: (String) -> Unit) {
         viewModelScope.launch {
             subscriptionRepository.startTrial(provider).collectLatest { resource: Resource<StartTrialResponse> ->
