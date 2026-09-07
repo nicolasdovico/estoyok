@@ -133,7 +133,19 @@ class SubscriptionController extends Controller
             ], 422);
         }
 
-        return $this->checkout($request, $mpService, $paypalService);
+        // Direct in-app 7-day trial activation (Google Play compliance & safe review mode)
+        $user->update([
+            'is_premium' => true,
+            'subscription_status' => 'trialing',
+            'subscription_provider' => 'trial',
+            'trial_ends_at' => now()->addDays(7),
+        ]);
+
+        return response()->json([
+            'message' => '¡Prueba gratuita de 7 días activada con éxito! Disfruta de Estoy Ok PRO.',
+            'checkout_url' => null,
+            'user' => $user->fresh(),
+        ]);
     }
 
     /**

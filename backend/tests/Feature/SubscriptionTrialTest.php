@@ -24,12 +24,11 @@ class SubscriptionTrialTest extends TestCase
             'provider' => 'stripe'
         ]);
 
-        // Returns 422 if Stripe keys/price IDs are missing, or 200 with checkout_url
-        $this->assertTrue(in_array($response->getStatusCode(), [200, 422]));
-
-        if ($response->getStatusCode() === 200) {
-            $response->assertJsonStructure(['checkout_url']);
-        }
+        $response->assertStatus(200);
+        $response->assertJsonStructure(['checkout_url', 'message', 'user']);
+        $user->refresh();
+        $this->assertTrue($user->is_premium);
+        $this->assertEquals('trialing', $user->subscription_status);
     }
 
     public function test_user_cannot_start_trial_twice()
