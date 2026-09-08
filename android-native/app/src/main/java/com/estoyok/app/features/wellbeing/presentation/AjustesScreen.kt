@@ -849,7 +849,7 @@ fun AjustesScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "v1.0.5 (Compilación 9)",
+                            text = "v1.0.5 (Compilación 10)",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary

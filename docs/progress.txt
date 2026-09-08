@@ -1,22 +1,23 @@
 # Progress Log
 
-## [2026-09-08] Compilación de Producción v9 (1.0.5) - Integración Nativa de Google Play Billing 8.0 y Catálogo en Play Console
+## [2026-09-08] Compilación de Producción v10 (1.0.5) - Integración Nativa de Google Play Billing 8.0 y Catálogo en Play Console
 - **Google Play Console (Configuración y Publicación de Suscripciones PRO):**
     - Creado y activado el producto de suscripción `estoyok_premium` en Google Play Console con distribución internacional en los 174 países.
     - Configurado el plan base mensual `monthly-plan` ($4.99 USD) con oferta de prueba gratuita de 7 días `free-trial-7d` ($0.00).
     - Configurado el plan base anual `annual-plan` ($35.99 USD, ahorro del 40%) con oferta de prueba gratuita de 7 días `annual-free-trial-7d` ($0.00).
     - Configurada la lista de evaluadores de licencias (*License Testing*) con respuesta `RESPOND_NORMALLY` para pruebas con tarjetas de sandbox sin cobro real.
 - **App Móvil Android Nativa (Google Play Billing 8.0 Flow):**
+    - Actualizado `versionCode = 10` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (`v1.0.5 (Compilación 10)`).
     - Creado [`PlayBillingManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/billing/PlayBillingManager.kt) implementando `BillingClient` 8.0 oficial (`QueryProductDetailsResult`, consulta asíncrona de ofertas, lanzamiento de compra biométrica con `launchBillingFlow`, recepción de compras en `onPurchasesUpdated` y acuse de recibo con `acknowledgePurchase`).
     - Actualizado [`SubscriptionModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/SubscriptionModels.kt), [`SubscriptionApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/remote/SubscriptionApiService.kt), [`SubscriptionRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/domain/repository/SubscriptionRepository.kt) y [`SubscriptionRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/repository/SubscriptionRepositoryImpl.kt).
     - Integrado en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) (`launchGooglePlaySubscription` con registro seguro y actualización de estado de usuario) y en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) con fallback resiliente.
-    - Compilado y firmado el bundle final `app-release.aab` (`versionCode = 9`, `versionName = "1.0.5"`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
+    - Compilado y firmado el bundle final `app-release.aab` (`versionCode = 10`, `versionName = "1.0.5"`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
 - **Backend (Laravel 12 API):**
     - Creado el endpoint `POST /api/subscriptions/verify-google-play` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
     - Regenerada la documentación OpenAPI/Swagger con `php artisan l5-swagger:generate`.
     - Creada suite de pruebas automatizadas en [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php).
 - **Verificación de No Regresión:**
-    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 1m 59s` (0 errores).
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 2s` (0 errores).
     - Backend Tests: **153 passed (504 assertions)** (100% pasando).
 
 ## [2026-09-08] Compilación de Producción v8 (1.0.5) - Integración de Google Play Billing y Permiso BILLING
