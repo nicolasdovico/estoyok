@@ -426,6 +426,8 @@
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
+- Monitorear aprobación de Google Play Console para la versión 11 (1.0.5) en Producción.
+- Planificado para v12 (post-aprobación v11): Optimizar el flujo de SOS para disparo 100% instantáneo sin modales bloqueantes en momentos de peligro, trasladando la solicitud del permiso de micrófono a una tarjeta de configuración preventiva en el Panel/Ajustes.
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
