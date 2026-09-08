@@ -49,6 +49,10 @@ fun AjustesScreen(
 ) {
     val scrollState = rememberScrollState()
     val context = LocalContext.current
+    var showLocationDisclosureDialog by remember { mutableStateOf(false) }
+    var pendingPermissionsToRequest by remember { mutableStateOf<List<String>>(emptyList()) }
+    var showWifiDisclosureDialog by remember { mutableStateOf(false) }
+    var pendingWifiPermissions by remember { mutableStateOf<List<String>>(emptyList()) }
     var showBackgroundLocationDialog by remember { mutableStateOf(false) }
     var showDisclaimerDialog by remember { mutableStateOf(false) }
 
@@ -682,7 +686,8 @@ fun AjustesScreen(
                                     }
 
                                     if (permissionsToRequest.isNotEmpty()) {
-                                        wifiPermissionLauncher.launch(permissionsToRequest.toTypedArray())
+                                        pendingWifiPermissions = permissionsToRequest
+                                        showWifiDisclosureDialog = true
                                     } else {
                                         val detectedSsid = detectConnectedWifiSsid(context)
                                         if (!detectedSsid.isNullOrBlank()) {
@@ -799,7 +804,8 @@ fun AjustesScreen(
                                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                                         reqs.add(Manifest.permission.POST_NOTIFICATIONS)
                                     }
-                                    permissionsLauncher.launch(reqs.toTypedArray())
+                                    pendingPermissionsToRequest = reqs
+                                    showLocationDisclosureDialog = true
                                 }
                             } else {
                                 if (viewModel.isTrackingServiceRunning) {
@@ -849,7 +855,7 @@ fun AjustesScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "v1.0.5 (Compilación 10)",
+                            text = "v1.0.5 (Compilación 11)",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -929,6 +935,132 @@ fun AjustesScreen(
                     fontWeight = FontWeight.Bold
                 )
             }
+        }
+
+        if (showLocationDisclosureDialog) {
+            AlertDialog(
+                onDismissRequest = { showLocationDisclosureDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Ubicación y Protección Familiar",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Para activar el rastreo en tiempo real, Estoy Ok necesita acceso a tu ubicación y notificaciones:",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "• Visualización en tiempo real en el mapa.\n" +
+                                   "• Compartir ubicación con tu Círculo Familiar.\n" +
+                                   "• Monitoreo de llegada/salida de Zonas Seguras.\n" +
+                                   "• Detección de posibles impactos o caídas.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Divulgación importante sobre segundo plano:\n" +
+                                   "Estoy Ok recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso para mantener la protección familiar y emitir alertas continuas de seguridad.",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Tus datos nunca se comparten con terceros ni se comercializan.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLocationDisclosureDialog = false
+                            if (pendingPermissionsToRequest.isNotEmpty()) {
+                                permissionsLauncher.launch(pendingPermissionsToRequest.toTypedArray())
+                            }
+                        }
+                    ) {
+                        Text("Continuar y conceder", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLocationDisclosureDialog = false }) {
+                        Text("Ahora no", color = MaterialTheme.colorScheme.outline)
+                    }
+                }
+            )
+        }
+
+        if (showWifiDisclosureDialog) {
+            AlertDialog(
+                onDismissRequest = { showWifiDisclosureDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.Wifi,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Detección de Wi-Fi",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = "Para detectar y configurar automáticamente el nombre de tu red Wi-Fi segura, Android requiere permisos de ubicación y dispositivos cercanos.",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Esta información solo se procesa de forma local en tu teléfono para confirmar tu presencia en el hogar sin necesidad de usar el GPS continuo.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showWifiDisclosureDialog = false
+                            if (pendingWifiPermissions.isNotEmpty()) {
+                                wifiPermissionLauncher.launch(pendingWifiPermissions.toTypedArray())
+                            }
+                        }
+                    ) {
+                        Text("Continuar", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showWifiDisclosureDialog = false }) {
+                        Text("Cancelar", color = MaterialTheme.colorScheme.outline)
+                    }
+                }
+            )
         }
 
         if (showBackgroundLocationDialog) {

@@ -211,6 +211,8 @@ fun MapaScreen(
             }
     }
 
+    var showLocationDisclosureDialog by remember { mutableStateOf(false) }
+    var pendingPermissionsToRequest by remember { mutableStateOf<List<String>>(emptyList()) }
     var showBackgroundLocationDialog by remember { mutableStateOf(false) }
     var showBatteryOptimizationDialog by remember { mutableStateOf(false) }
 
@@ -271,11 +273,6 @@ fun MapaScreen(
             true
         }
 
-        val hasAudio = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-
         if (hasLocation && hasNotifications) {
             val hasBackground = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContextCompat.checkSelfPermission(
@@ -299,22 +296,20 @@ fun MapaScreen(
                     viewModel.toggleTrackingService(context)
                 }
             }
-        }
+        } else {
+            val reqs = mutableListOf<String>()
+            if (!hasLocation) {
+                reqs.add(Manifest.permission.ACCESS_FINE_LOCATION)
+                reqs.add(Manifest.permission.ACCESS_COARSE_LOCATION)
+            }
+            if (!hasNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                reqs.add(Manifest.permission.POST_NOTIFICATIONS)
+            }
 
-        val reqs = mutableListOf<String>()
-        if (!hasLocation) {
-            reqs.add(Manifest.permission.ACCESS_FINE_LOCATION)
-            reqs.add(Manifest.permission.ACCESS_COARSE_LOCATION)
-        }
-        if (!hasNotifications && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            reqs.add(Manifest.permission.POST_NOTIFICATIONS)
-        }
-        if (!hasAudio) {
-            reqs.add(Manifest.permission.RECORD_AUDIO)
-        }
-
-        if (reqs.isNotEmpty()) {
-            permissionsLauncher.launch(reqs.toTypedArray())
+            if (reqs.isNotEmpty()) {
+                pendingPermissionsToRequest = reqs
+                showLocationDisclosureDialog = true
+            }
         }
     }
 
@@ -2048,6 +2043,78 @@ fun MapaScreen(
                 dismissButton = {
                     TextButton(onClick = { showRadarDialogForMember = null }) {
                         Text("Cancelar", color = TextMuted)
+                    }
+                }
+            )
+        }
+
+        if (showLocationDisclosureDialog) {
+            AlertDialog(
+                onDismissRequest = { showLocationDisclosureDialog = false },
+                title = {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            imageVector = Icons.Default.MyLocation,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = "Ubicación y Protección Familiar",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        )
+                    }
+                },
+                text = {
+                    Column(
+                        modifier = Modifier.verticalScroll(rememberScrollState()),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Estoy Ok recopila y procesa datos de tu ubicación (precisa y aproximada) para brindarte las siguientes funciones esenciales de seguridad:",
+                            fontSize = 14.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "• Visualización en tiempo real: Ver tu ubicación y la de tus familiares en el mapa.\n" +
+                                   "• Círculo Familiar: Compartir tu posición en vivo con tus contactos de confianza.\n" +
+                                   "• Zonas Seguras (Geocercas): Notificar llegadas o salidas automáticas de hogares, colegios y lugares seguros.\n" +
+                                   "• Detección de Accidentes: Alertar a tus contactos ante caídas o choques vehiculares repentinos.",
+                            fontSize = 13.sp,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Divulgación importante sobre segundo plano:\n" +
+                                   "Estoy Ok recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso para poder monitorear zonas seguras y enviar alertas de emergencia de forma continua.",
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                        Text(
+                            text = "Tus datos son privados, están encriptados y nunca se comparten ni se venden a terceros con fines comerciales ni publicitarios.",
+                            fontSize = 12.sp,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showLocationDisclosureDialog = false
+                            if (pendingPermissionsToRequest.isNotEmpty()) {
+                                permissionsLauncher.launch(pendingPermissionsToRequest.toTypedArray())
+                            }
+                        }
+                    ) {
+                        Text("Continuar y conceder", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showLocationDisclosureDialog = false }) {
+                        Text("Ahora no", color = MaterialTheme.colorScheme.outline)
                     }
                 }
             )

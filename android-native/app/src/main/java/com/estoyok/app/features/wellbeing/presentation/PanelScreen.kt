@@ -128,19 +128,7 @@ fun PanelScreen(
         }
     }
 
-    val proactiveAudioPermissionLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission()
-    ) { _ -> }
-
-    LaunchedEffect(Unit) {
-        val hasAudio = ContextCompat.checkSelfPermission(
-            context,
-            Manifest.permission.RECORD_AUDIO
-        ) == PackageManager.PERMISSION_GRANTED
-        if (!hasAudio) {
-            proactiveAudioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
-        }
-    }
+    var showSosAudioDisclosureDialog by remember { mutableStateOf(false) }
 
     val handleSosAction: (android.content.Context) -> Unit = { ctx ->
         val hasAudioPermission = ContextCompat.checkSelfPermission(
@@ -152,7 +140,7 @@ fun PanelScreen(
             viewModel.triggerSos(ctx)
             Toast.makeText(ctx, "¡SOS Silencioso Enviado!", Toast.LENGTH_LONG).show()
         } else {
-            audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            showSosAudioDisclosureDialog = true
         }
     }
 
@@ -186,6 +174,65 @@ fun PanelScreen(
         showMandatoryDisclaimer = (viewModel.user != null && viewModel.user?.disclaimerAcceptedAt.isNullOrBlank()),
         onAcceptDisclaimer = { viewModel.acceptDisclaimer() }
     )
+
+    if (showSosAudioDisclosureDialog) {
+        AlertDialog(
+            onDismissRequest = { showSosAudioDisclosureDialog = false },
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Permiso de Micrófono para SOS",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                }
+            },
+            text = {
+                Column {
+                    Text(
+                        text = "Para situaciones de auxilio o emergencia, Estoy Ok solicita acceso al micrófono para grabar un breve fragmento de audio ambiental (15 segundos) que se enviará a tus contactos de emergencia junto a tu alerta de auxilio.",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = "El micrófono solo se activará de forma puntual durante el envío de esta señal de auxilio y nunca en segundo plano sin tu consentimiento.",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showSosAudioDisclosureDialog = false
+                        audioPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                    }
+                ) {
+                    Text("Permitir y Enviar SOS", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showSosAudioDisclosureDialog = false
+                        viewModel.triggerSos(context)
+                        Toast.makeText(context, "¡SOS Silencioso Enviado (sin audio)!", Toast.LENGTH_LONG).show()
+                    }
+                ) {
+                    Text("Enviar SOS sin audio", color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
