@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-09-08] Lanzamiento Oficial a Producción v7 (1.0.4) Enviado a Revisión en Google Play Console
+- **Google Play Console (Lanzamiento Abierto en 177 Países):**
+    - Concedido el Acceso a Producción formal por parte del equipo de revisión de Google Play tras finalizar con éxito el ciclo de 14 días y 20 evaluadores.
+    - Habilitado el canal de **Producción** (*Release to Production*).
+    - Configurada la distribución internacional completa en la pestaña de Países y Regiones (177 países).
+    - Adjuntado el bundle firmado de producción `app-release.aab` (`versionCode = 7`, `versionName = "1.0.4"`).
+    - Enviada la versión a revisión formal ante Google Play Console. Estado actual: *«Cambios en proceso de revisión»* listo para su despliegue público en la Play Store.
+
 ## [2026-09-07] Compilación de Producción v7 (1.0.4) - Activación Directa de Trial 7 Días para Cumplimiento Estricto de Google Play Billing
 - **App Móvil Android Nativa (Google Play Billing Policy Compliance & Safe Review Mode):**
     - Actualizado `versionCode = 7` y `versionName = "1.0.4"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en la visualización de versión (`v1.0.4 (Compilación 7)`) en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).

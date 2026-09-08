@@ -48,11 +48,13 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
-    - [x] Compilación de Producción v7 (1.0.4 - Google Play Billing Compliance & Producción Abierta):
+    - [x] Lanzamiento Oficial de Producción v7 (1.0.4 - Google Play Console):
+      - Aprobado el Acceso a Producción por Google Play tras superar los 14 días con 20 evaluadores.
+      - Habilitado el canal de Producción para 177 países y regiones.
+      - Cargado y enviado a revisión el bundle de producción final `app-release.aab` (`versionCode = 7`, `versionName = "1.0.4"`). Estado actual: *«Cambios en proceso de revisión»*.
       - Actualizado `versionCode = 7` y `versionName = "1.0.4"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
-      - Removido en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) el selector de medios de pago externos (Stripe, Mercado Pago, PayPal) e implementada activación directa in-app de prueba de 7 días sin tarjeta ni pasarelas web externas para estricto cumplimiento de la Política de Pagos de Google Play.
-      - Actualizado [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) (`startTrial`) para activación directa de 7 días de acceso Premium y actualizada la suite [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php) (150 tests pasando).
-      - Compilado y firmado el bundle final `app-release.aab` (`versionCode = 7`) de 21 MB listo para subir a Google Play Console.
+      - Activación in-app de prueba de 7 días directa sin pasarelas web externas para estricto cumplimiento de la Política de Pagos de Google Play.
+      - Suite de tests del backend pasando al 100% (150 tests pasando).
     - [x] Compilación de Producción v6 (1.0.3 - Actualización Menor 2 / Release Candidate Pruebas Cerradas):
       - Actualizado `versionCode = 6` y `versionName = "1.0.3"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
       - Incorporada la tarjeta *"Información y Soporte 🛡️"* en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) con versión de build (`v1.0.3 Compilación 6`), envío directo de feedback a `contacto@estoyok24.com` y enlace a Políticas de Privacidad.
