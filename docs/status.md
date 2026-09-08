@@ -48,6 +48,11 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación v8 (1.0.5 - Integración de Google Play Billing Library & Permiso BILLING):
+      - Actualizado `versionCode = 8` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
+      - Integrada la librería oficial `com.android.billingclient:billing-ktx:7.1.1` y declarado el permiso `<uses-permission android:name="com.android.vending.BILLING" />` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).
+      - Generado el bundle firmado `app-release.aab` (21 MB) para desplegar en la pista de Pruebas Internas y desbloquear la creación de suscripciones en Google Play Console.
+      - Garantía de no regresión verificada (compilación Gradle exitosa y 150 tests del backend pasando al 100%).
     - [x] Lanzamiento Oficial de Producción v7 (1.0.4 - Google Play Console):
       - Aprobado el Acceso a Producción por Google Play tras superar los 14 días con 20 evaluadores.
       - Habilitado el canal de Producción para 177 países y regiones.

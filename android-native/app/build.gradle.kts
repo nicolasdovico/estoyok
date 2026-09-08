@@ -24,8 +24,8 @@ android {
         applicationId = "com.estoyok.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 7
-        versionName = "1.0.4"
+        versionCode = 8
+        versionName = "1.0.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -131,6 +131,9 @@ dependencies {
 
     // Play Services Appset (sometimes needed for Stripe or telemetry)
     implementation("com.google.android.gms:play-services-appset:16.0.2")
+
+    // Google Play Billing
+    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
     // Local SMS sending & media recording
     implementation("androidx.legacy:legacy-support-v4:1.0.0")

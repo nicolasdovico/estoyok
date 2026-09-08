@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-09-08] Compilación de Producción v8 (1.0.5) - Integración de Google Play Billing y Permiso BILLING
+- **App Móvil Android Nativa (Google Play Billing Readiness):**
+    - Actualizado `versionCode = 8` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (`v1.0.5 (Compilación 8)`).
+    - Agregada la dependencia oficial `com.android.billingclient:billing-ktx:7.1.1` en `build.gradle.kts`.
+    - Declarado el permiso `<uses-permission android:name="com.android.vending.BILLING" />` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).
+    - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 8`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB) para desplegar en Pruebas Internas y desbloquear la creación de suscripciones en Play Console sin afectar la revisión de producción de la versión v7.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 5m 20s` (0 errores).
+    - Backend Tests: **150 passed (487 assertions)** (100% pasando).
+
 ## [2026-09-08] Lanzamiento Oficial a Producción v7 (1.0.4) Enviado a Revisión en Google Play Console
 - **Google Play Console (Lanzamiento Abierto en 177 Países):**
     - Concedido el Acceso a Producción formal por parte del equipo de revisión de Google Play tras finalizar con éxito el ciclo de 14 días y 20 evaluadores.
