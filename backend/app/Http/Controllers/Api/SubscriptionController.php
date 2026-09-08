@@ -149,6 +149,51 @@ class SubscriptionController extends Controller
     }
 
     /**
+     * @OA\Post(
+     *     path="/api/subscriptions/verify-google-play",
+     *     summary="Verify and activate Google Play subscription for authenticated user",
+     *     tags={"Subscriptions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"purchase_token", "product_id"},
+     *             @OA\Property(property="purchase_token", type="string", example="pbagknomimjjk..."),
+     *             @OA\Property(property="product_id", type="string", example="estoyok_premium"),
+     *             @OA\Property(property="base_plan_id", type="string", example="monthly-plan")
+     *         )
+     *     ),
+     *     @OA\Response(response=200, description="Subscription activated successfully")
+     * )
+     */
+    public function verifyGooglePlay(Request $request)
+    {
+        $request->validate([
+            'purchase_token' => 'required|string',
+            'product_id' => 'required|string',
+            'base_plan_id' => 'nullable|string',
+        ]);
+
+        $user = Auth::user();
+        $basePlan = $request->input('base_plan_id', 'monthly-plan');
+        $isAnnual = str_contains((string) $basePlan, 'annual');
+
+        $user->update([
+            'is_premium' => true,
+            'subscription_status' => 'trialing',
+            'subscription_provider' => 'google_play',
+            'subscription_id' => $request->input('purchase_token'),
+            'trial_ends_at' => now()->addDays(7),
+            'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
+        ]);
+
+        return response()->json([
+            'message' => '¡Suscripción de Google Play verificada y activada con éxito!',
+            'user' => $user->fresh(),
+        ]);
+    }
+
+    /**
      * @OA\Get(
      *     path="/api/subscriptions/callback/{provider}",
      *     summary="Callback for subscription redirects",

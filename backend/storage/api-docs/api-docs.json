@@ -1728,6 +1728,41 @@
                     }
                 ]
             }
+        },
+        "/settings/phone": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Actualizar número de teléfono/WhatsApp personal del usuario",
+                "operationId": "6a4215a608d85e2176902583abc74896",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "properties": {
+                                    "phone": {
+                                        "type": "string",
+                                        "example": "+5491122334455"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Teléfono actualizado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
         }
     },
     "tags": [

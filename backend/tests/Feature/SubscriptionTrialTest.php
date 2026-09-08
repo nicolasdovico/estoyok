@@ -68,4 +68,69 @@ class SubscriptionTrialTest extends TestCase
         $this->assertEquals('canceled', $user->subscription_status);
         $this->assertFalse($user->is_premium);
     }
+
+    public function test_user_can_verify_google_play_subscription_monthly()
+    {
+        $user = User::factory()->create([
+            'is_premium' => false,
+            'subscription_status' => 'inactive',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/verify-google-play', [
+            'purchase_token' => 'tok_monthly_test_12345',
+            'product_id' => 'estoyok_premium',
+            'base_plan_id' => 'monthly-plan',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'message' => '¡Suscripción de Google Play verificada y activada con éxito!',
+            ]);
+
+        $user->refresh();
+        $this->assertTrue($user->is_premium);
+        $this->assertEquals('trialing', $user->subscription_status);
+        $this->assertEquals('google_play', $user->subscription_provider);
+        $this->assertEquals('tok_monthly_test_12345', $user->subscription_id);
+        $this->assertNotNull($user->trial_ends_at);
+        $this->assertNotNull($user->billing_cycle_ends_at);
+    }
+
+    public function test_user_can_verify_google_play_subscription_annual()
+    {
+        $user = User::factory()->create([
+            'is_premium' => false,
+            'subscription_status' => 'inactive',
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/verify-google-play', [
+            'purchase_token' => 'tok_annual_test_67890',
+            'product_id' => 'estoyok_premium',
+            'base_plan_id' => 'annual-plan',
+        ]);
+
+        $response->assertStatus(200);
+
+        $user->refresh();
+        $this->assertTrue($user->is_premium);
+        $this->assertEquals('google_play', $user->subscription_provider);
+        $this->assertEquals('tok_annual_test_67890', $user->subscription_id);
+        // Annual should be ~1 year in the future
+        $this->assertTrue(now()->diffInDays($user->billing_cycle_ends_at) > 300);
+    }
+
+    public function test_verify_google_play_requires_parameters()
+    {
+        $user = User::factory()->create();
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/verify-google-play', []);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['purchase_token', 'product_id']);
+    }
 }
