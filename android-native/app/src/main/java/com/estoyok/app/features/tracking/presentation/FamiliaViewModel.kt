@@ -24,7 +24,8 @@ class FamiliaViewModel @Inject constructor(
     private val circleRepository: CircleRepository,
     private val subscriptionRepository: SubscriptionRepository,
     private val settingsRepository: SettingsRepository,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val playBillingManager: com.estoyok.app.core.billing.PlayBillingManager
 ) : ViewModel() {
 
     var user by mutableStateOf<UserDto?>(null)
@@ -50,6 +51,7 @@ class FamiliaViewModel @Inject constructor(
 
     init {
         refreshData()
+        playBillingManager.initialize()
     }
 
     fun refreshData() {
@@ -260,6 +262,55 @@ class FamiliaViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    val isGooglePlayBillingReady: Boolean
+        get() = playBillingManager.isReady.value && playBillingManager.productDetails.value != null
+
+    fun launchGooglePlaySubscription(
+        activity: android.app.Activity,
+        billingCycle: String,
+        onSuccess: (String) -> Unit
+    ) {
+        checkoutLoading = true
+        errorMessage = null
+
+        playBillingManager.launchSubscription(
+            activity = activity,
+            billingCycle = billingCycle,
+            onSuccess = { purchaseToken, basePlanId ->
+                viewModelScope.launch {
+                    subscriptionRepository.verifyGooglePlay(
+                        purchaseToken = purchaseToken,
+                        productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM,
+                        basePlanId = basePlanId
+                    ).collectLatest { resource ->
+                        when (resource) {
+                            is Resource.Loading -> {
+                                checkoutLoading = true
+                            }
+                            is Resource.Success -> {
+                                checkoutLoading = false
+                                user = user?.copy(
+                                    isPremium = true,
+                                    hasPremiumAccess = true
+                                )
+                                refreshData()
+                                onSuccess(resource.data?.message ?: "¡Suscripción de Google Play activada con éxito!")
+                            }
+                            is Resource.Error -> {
+                                checkoutLoading = false
+                                errorMessage = resource.message ?: "Error al registrar la suscripción en el servidor."
+                            }
+                        }
+                    }
+                }
+            },
+            onError = { errorMsg ->
+                checkoutLoading = false
+                errorMessage = errorMsg
+            }
+        )
     }
 
     fun startTrialAndCheckout(provider: String, onUrlReceived: (String) -> Unit) {

@@ -15,3 +15,14 @@ data class StartTrialResponse(
     @SerializedName("message") val message: String? = null,
     @SerializedName("checkout_url") val checkoutUrl: String? = null
 )
+
+data class VerifyGooglePlayRequest(
+    @SerializedName("purchase_token") val purchaseToken: String,
+    @SerializedName("product_id") val productId: String,
+    @SerializedName("base_plan_id") val basePlanId: String? = null
+)
+
+data class VerifyGooglePlayResponse(
+    @SerializedName("message") val message: String,
+    @SerializedName("user") val user: com.estoyok.app.features.auth.data.model.UserDto? = null
+)

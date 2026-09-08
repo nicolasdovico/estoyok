@@ -18,4 +18,9 @@ interface SubscriptionApiService {
     suspend fun startTrial(
         @Body request: CheckoutRequest
     ): Response<StartTrialResponse>
+
+    @POST("subscriptions/verify-google-play")
+    suspend fun verifyGooglePlay(
+        @Body request: com.estoyok.app.features.tracking.data.model.VerifyGooglePlayRequest
+    ): Response<com.estoyok.app.features.tracking.data.model.VerifyGooglePlayResponse>
 }

@@ -237,11 +237,18 @@ fun PremiumScreen(
 
                         Spacer(modifier = Modifier.height(22.dp))
 
-                        // CTA Button - Direct in-app trial activation without external gateway
+                        // CTA Button - Google Play Billing with resilient fallback
                         Button(
                             onClick = {
-                                viewModel.startFreeTrial { msg ->
-                                    Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                val activity = context as? android.app.Activity
+                                if (activity != null && viewModel.isGooglePlayBillingReady) {
+                                    viewModel.launchGooglePlaySubscription(activity, selectedBillingCycle) { msg ->
+                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                    }
+                                } else {
+                                    viewModel.startFreeTrial { msg ->
+                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
+                                    }
                                 }
                             },
                             modifier = Modifier
@@ -265,7 +272,7 @@ fun PremiumScreen(
                                         color = TextOnPrimary
                                     )
                                     Text(
-                                        text = "Sin tarjeta requerida • Acceso completo inmediato",
+                                        text = "Google Play • 7 días sin cargo • Cancela cuando quieras",
                                         fontSize = 10.sp,
                                         color = TextOnPrimary.copy(alpha = 0.85f)
                                     )

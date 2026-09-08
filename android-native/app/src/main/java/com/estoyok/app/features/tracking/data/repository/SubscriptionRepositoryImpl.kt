@@ -51,6 +51,32 @@ class SubscriptionRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun verifyGooglePlay(
+        purchaseToken: String,
+        productId: String,
+        basePlanId: String?
+    ): Flow<Resource<com.estoyok.app.features.tracking.data.model.VerifyGooglePlayResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.verifyGooglePlay(
+                com.estoyok.app.features.tracking.data.model.VerifyGooglePlayRequest(
+                    purchaseToken = purchaseToken,
+                    productId = productId,
+                    basePlanId = basePlanId
+                )
+            )
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado al verificar la suscripción de Google Play."))
+        }
+    }
+
     private fun parseErrorMessage(response: Response<*>): String {
         return try {
             val errorBody = response.errorBody()?.string() ?: return "Error desconocido"

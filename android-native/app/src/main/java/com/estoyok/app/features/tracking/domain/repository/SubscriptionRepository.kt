@@ -14,4 +14,10 @@ interface SubscriptionRepository {
     fun startTrial(
         provider: String
     ): Flow<Resource<StartTrialResponse>>
+
+    fun verifyGooglePlay(
+        purchaseToken: String,
+        productId: String,
+        basePlanId: String?
+    ): Flow<Resource<com.estoyok.app.features.tracking.data.model.VerifyGooglePlayResponse>>
 }
