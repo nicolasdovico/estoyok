@@ -133,7 +133,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-appset:16.0.2")
 
     // Google Play Billing
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
 
     // Local SMS sending & media recording
     implementation("androidx.legacy:legacy-support-v4:1.0.0")
