@@ -48,6 +48,14 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación v11 (1.0.5 - Cumplimiento Estricto de Prominent Disclosure & Consent de Google Play):
+      - Resuelto el rechazo de Google Play (*«Inadequate Prominent Disclosure: Requests for in-app user consent and runtime permission are not immediately preceded by an in-app disclosure»*).
+      - [`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt): Eliminada la solicitud de micrófono al abrir el mapa e implementado el diálogo modal de Prominent Disclosure previo a la solicitud en tiempo de ejecución de permisos de ubicación y notificaciones, explicando con claridad qué datos se recopilan, propósitos (mapa en tiempo real, círculo familiar, geocercas, detección de choques), divulgación explícita de recolección en segundo plano y ausencia de fines publicitarios o cesión a terceros.
+      - [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt): Eliminada la solicitud proactiva no solicitada de permiso de micrófono (`RECORD_AUDIO`) al abrir la pantalla. Implementado diálogo modal de Prominent Disclosure contextual al presionar el botón SOS, ofreciendo conceder el micrófono para adjuntar 15s de audio o enviar el SOS sin audio.
+      - [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt): Añadidos modales de divulgación destacada para activación manual del rastreo y para lectura de Wi-Fi. Actualizada la versión visual a `v1.0.5 (Compilación 11)`.
+      - [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts): Actualizado a `versionCode = 11` y `versionName = "1.0.5"`.
+      - Generado y firmado el bundle de producción final `app-release.aab` (`versionCode = 11`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
+      - Garantía de no regresión verificada (compilación Gradle exitosa y 153 tests del backend pasando al 100%).
     - [x] Compilación v10 (1.0.5 - Integración Completa de Google Play Billing 8.0 & Catálogo en Play Console):
       - Configurada y activada en Google Play Console la suscripción `estoyok_premium` con planes base `monthly-plan` ($4.99/mes) y `annual-plan` ($35.99/año), ambos con ofertas de 7 días de prueba gratis (`free-trial-7d` y `annual-free-trial-7d`) en los 174 países.
       - Configurada la lista de evaluadores de licencias (*License Testing*) con respuesta `RESPOND_NORMALLY` para pruebas con tarjetas de sandbox gratuitas.

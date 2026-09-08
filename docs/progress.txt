@@ -1,5 +1,24 @@
 # Progress Log
 
+## [2026-09-08] Compilación de Producción v11 (1.0.5) - Corrección de Rechazo de Google Play: Prominent Disclosure & Consent
+- **Resolución de Política de Google Play (Prominent Disclosure and Consent Requirement):**
+    - Subsanado el rechazo *«Inadequate Prominent Disclosure: Requests for in-app user consent and runtime permission are not immediately preceded by an in-app disclosure»*.
+    - **Ubicación y Notificaciones ([`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt)):**
+        - Eliminada la petición prematura e innecesaria de micrófono en el mapa.
+        - Se reemplazó el lanzamiento directo del diálogo del sistema por un modal previo (*Prominent Disclosure Dialog*) que describe explícitamente los datos recopilados, propósitos (mapa en tiempo real, círculo familiar, geocercas y detección de choques), divulgación de recolección en segundo plano (*«incluso cuando la aplicación está cerrada o no está en uso»*) y la no utilización de datos con fines publicitarios.
+    - **Micrófono en SOS ([`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt)):**
+        - Eliminada la solicitud proactiva automática de micrófono al inicio de la pantalla del panel de bienestar.
+        - Ahora el permiso de micrófono se solicita de forma contextual únicamente cuando el usuario presiona el botón SOS, precedido por un diálogo de divulgación destacada con la opción de permitir y grabar los 15s de audio, o enviar el SOS sin audio.
+    - **Pantalla de Ajustes ([`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt)):**
+        - Incorporados diálogos de divulgación antes de solicitar permisos al activar el rastreo o al detectar la red Wi-Fi.
+        - Actualizada la visualización de versión a `v1.0.5 (Compilación 11)`.
+    - **Control de Versión y Empaquetado:**
+        - Incrementado `versionCode = 11` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+        - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 11`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
+- **Verificación de No Regresión:**
+    - Compilación Gradle: `BUILD SUCCESSFUL in 2m` (0 errores).
+    - Backend Tests: **153 passed (504 assertions)** (100% pasando).
+
 ## [2026-09-08] Compilación de Producción v10 (1.0.5) - Integración Nativa de Google Play Billing 8.0 y Catálogo en Play Console
 - **Google Play Console (Configuración y Publicación de Suscripciones PRO):**
     - Creado y activado el producto de suscripción `estoyok_premium` en Google Play Console con distribución internacional en los 174 países.
