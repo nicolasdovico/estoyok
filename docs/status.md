@@ -48,9 +48,16 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación v9 (1.0.5 - Integración Completa de Google Play Billing 8.0 & Catálogo en Play Console):
+      - Configurada y activada en Google Play Console la suscripción `estoyok_premium` con planes base `monthly-plan` ($4.99/mes) y `annual-plan` ($35.99/año), ambos con ofertas de 7 días de prueba gratis (`free-trial-7d` y `annual-free-trial-7d`) en los 174 países.
+      - Configurada la lista de evaluadores de licencias (*License Testing*) con respuesta `RESPOND_NORMALLY` para pruebas con tarjetas de sandbox gratuitas.
+      - Desarrollado [`PlayBillingManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/billing/PlayBillingManager.kt) gestionando `BillingClient` 8.0 (`queryProductDetailsAsync` con `QueryProductDetailsResult`, `launchBillingFlow` con biometría, `onPurchasesUpdated` y `acknowledgePurchase`).
+      - Conectado el flujo nativo en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) y en el CTA de [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) con fallback resiliente.
+      - Backend: Creado endpoint `POST /api/subscriptions/verify-google-play` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php), documentado en Swagger y verificado con tests en [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php) (153 tests pasando al 100%).
+      - Generado y firmado el bundle final `app-release.aab` (`versionCode = 9`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
     - [x] Compilación v8 (1.0.5 - Integración de Google Play Billing Library & Permiso BILLING):
       - Actualizado `versionCode = 8` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
-      - Integrada la librería oficial `com.android.billingclient:billing-ktx:7.1.1` y declarado el permiso `<uses-permission android:name="com.android.vending.BILLING" />` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).
+      - Integrada la librería oficial `com.android.billingclient:billing:8.0.0` y declarado el permiso `<uses-permission android:name="com.android.vending.BILLING" />` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).
       - Generado el bundle firmado `app-release.aab` (21 MB) para desplegar en la pista de Pruebas Internas y desbloquear la creación de suscripciones en Google Play Console.
       - Garantía de no regresión verificada (compilación Gradle exitosa y 150 tests del backend pasando al 100%).
     - [x] Lanzamiento Oficial de Producción v7 (1.0.4 - Google Play Console):
