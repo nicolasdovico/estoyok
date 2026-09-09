@@ -110,6 +110,7 @@ import kotlinx.coroutines.withContext
 @Composable
 fun MapaScreen(
     navController: NavHostController? = null,
+    isDisclaimerPending: Boolean = false,
     viewModel: MapaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -258,7 +259,9 @@ fun MapaScreen(
         }
     }
 
-    LaunchedEffect(Unit) {
+    LaunchedEffect(isDisclaimerPending) {
+        if (isDisclaimerPending) return@LaunchedEffect
+
         val hasLocation = ContextCompat.checkSelfPermission(
             context,
             Manifest.permission.ACCESS_FINE_LOCATION
@@ -2061,7 +2064,7 @@ fun MapaScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Ubicación y Protección Familiar",
+                            text = "Ubicación y Notificaciones",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -2073,21 +2076,21 @@ fun MapaScreen(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "Estoy Ok recopila y procesa datos de tu ubicación (precisa y aproximada) para brindarte las siguientes funciones esenciales de seguridad:",
+                            text = "Estoy Ok recopila y procesa datos de tu ubicación (precisa y aproximada) y solicita permiso de notificaciones para brindarte las siguientes funciones esenciales de seguridad:",
                             fontSize = 14.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "• Visualización en tiempo real: Ver tu ubicación y la de tus familiares en el mapa.\n" +
-                                   "• Círculo Familiar: Compartir tu posición en vivo con tus contactos de confianza.\n" +
-                                   "• Zonas Seguras (Geocercas): Notificar llegadas o salidas automáticas de hogares, colegios y lugares seguros.\n" +
-                                   "• Detección de Accidentes: Alertar a tus contactos ante caídas o choques vehiculares repentinos.",
+                                   "• Núcleo Familiar: Compartir tu posición en vivo con tus contactos de confianza.\n" +
+                                   "• Zonas Seguras: Recibir notificaciones inmediatas de llegada y salida de lugares clave (hogar, trabajo, colegio).\n" +
+                                   "• Alertas de Emergencia: Enviar y recibir avisos críticos de auxilio (SOS) y detección de choques vehiculares.",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Divulgación importante sobre segundo plano:\n" +
+                            text = "Divulgación sobre segundo plano:\n" +
                                    "Estoy Ok recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso para poder monitorear zonas seguras y enviar alertas de emergencia de forma continua.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
@@ -2109,7 +2112,7 @@ fun MapaScreen(
                             }
                         }
                     ) {
-                        Text("Continuar y conceder", fontWeight = FontWeight.Bold)
+                        Text("Aceptar y continuar", fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -2133,7 +2136,7 @@ fun MapaScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Rastreo en Segundo Plano",
+                            text = "Rastreo de Ubicación en Segundo Plano",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -2148,7 +2151,7 @@ fun MapaScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Para activar esta protección continua, selecciona 'Permitir todo el tiempo' en la configuración de ubicación.",
+                            text = "Para activar esta protección continua, en la siguiente pantalla selecciona la opción 'Permitir todo el tiempo'.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
@@ -2164,7 +2167,7 @@ fun MapaScreen(
                             }
                         }
                     ) {
-                        Text("Configurar", fontWeight = FontWeight.Bold)
+                        Text("Aceptar y configurar", fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {

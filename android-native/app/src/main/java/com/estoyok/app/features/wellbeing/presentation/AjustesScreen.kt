@@ -855,7 +855,7 @@ fun AjustesScreen(
                             color = TextPrimary
                         )
                         Text(
-                            text = "v1.0.5 (Compilación 11)",
+                            text = "v1.0.5 (Compilación 12)",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary
@@ -950,7 +950,7 @@ fun AjustesScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Ubicación y Protección Familiar",
+                            text = "Ubicación y Notificaciones",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -968,22 +968,22 @@ fun AjustesScreen(
                         )
                         Text(
                             text = "• Visualización en tiempo real en el mapa.\n" +
-                                   "• Compartir ubicación con tu Círculo Familiar.\n" +
+                                   "• Compartir ubicación con tu Núcleo Familiar.\n" +
                                    "• Monitoreo de llegada/salida de Zonas Seguras.\n" +
-                                   "• Detección de posibles impactos o caídas.",
+                                   "• Alertas de Emergencia: Notificaciones inmediatas de auxilio (SOS) y detección de choques.",
                             fontSize = 13.sp,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Spacer(modifier = Modifier.height(4.dp))
                         Text(
-                            text = "Divulgación importante sobre segundo plano:\n" +
+                            text = "Divulgación sobre segundo plano:\n" +
                                    "Estoy Ok recopila datos de ubicación incluso cuando la aplicación está cerrada o no está en uso para mantener la protección familiar y emitir alertas continuas de seguridad.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.primary
                         )
                         Text(
-                            text = "Tus datos nunca se comparten con terceros ni se comercializan.",
+                            text = "Tus datos nunca se comparten con terceros ni se comercializan con fines publicitarios.",
                             fontSize = 12.sp,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -998,7 +998,7 @@ fun AjustesScreen(
                             }
                         }
                     ) {
-                        Text("Continuar y conceder", fontWeight = FontWeight.Bold)
+                        Text("Aceptar y continuar", fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {
@@ -1076,7 +1076,7 @@ fun AjustesScreen(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Rastreo en Segundo Plano",
+                            text = "Rastreo de Ubicación en Segundo Plano",
                             fontWeight = FontWeight.Bold,
                             fontSize = 18.sp
                         )
@@ -1091,7 +1091,7 @@ fun AjustesScreen(
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                         Text(
-                            text = "Para activar esta protección continua, selecciona 'Permitir todo el tiempo' en la configuración de ubicación.",
+                            text = "Para activar esta protección continua, en la siguiente pantalla selecciona la opción 'Permitir todo el tiempo'.",
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
                             color = MaterialTheme.colorScheme.onSurface
@@ -1107,7 +1107,7 @@ fun AjustesScreen(
                             }
                         }
                     ) {
-                        Text("Configurar", fontWeight = FontWeight.Bold)
+                        Text("Aceptar y configurar", fontWeight = FontWeight.Bold)
                     }
                 },
                 dismissButton = {

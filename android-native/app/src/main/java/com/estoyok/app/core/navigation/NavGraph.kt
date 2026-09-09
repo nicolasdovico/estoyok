@@ -175,7 +175,12 @@ fun MainScreen(
                         }
                     )
                 }
-                composable(Screen.Mapa.route) { MapaScreen(navController = navController) }
+                composable(Screen.Mapa.route) { 
+                    MapaScreen(
+                        navController = navController,
+                        isDisclaimerPending = showMandatoryDisclaimer
+                    ) 
+                }
                 composable(Screen.Vehiculo.route) { VehiculoScreen(navController = navController) }
                 composable(Screen.Familia.route) { FamiliaScreen() }
                 composable(Screen.Premium.route) { PremiumScreen() }
