@@ -1,5 +1,23 @@
 # Progress Log
 
+## [2026-09-08] Compilación de Producción v12 (1.0.5) - Blindaje Integral de Prominent Disclosure & Consent (Resolución IN_APP_EXPERIENCE-9005.png)
+- **Diagnóstico y Resolución del Rechazo de Google Play ([`docs/IN_APP_EXPERIENCE-9005.png`](file:///home/usuario/aplicaciones/estoyok/docs/IN_APP_EXPERIENCE-9005.png)):**
+    - Analizada la captura comparativa oficial remitida por Google Play (`IN_APP_EXPERIENCE-9005.png`), confirmando que en la versión evaluada el diálogo del sistema para ubicación en primer plano (*"¿Permitir que Estoy Ok acceda a la ubicación de este dispositivo?"*) aparecía de forma directa y sin divulgación previa destacada, mientras que el diálogo de segundo plano ("Rastreo en Segundo Plano") sí se mostraba con posterioridad.
+    - **Sincronización con Onboarding ([`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt)):**
+        - Inyectado el parámetro `isDisclaimerPending = showMandatoryDisclaimer` en la ruta de `Screen.Mapa.route`.
+        - En [`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt), `LaunchedEffect(isDisclaimerPending)` suspende reactivamente la solicitud de permisos mientras el usuario tenga pendiente aceptar los Términos y Condiciones obligatorios (`DisclaimerMandatoryDialog`), erradicando colisiones de diálogos en el arranque inicial.
+    - **Divulgación Integral de Ubicación y Notificaciones ([`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) y [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt)):**
+        - Actualizado el título a *"Ubicación y Notificaciones"*, detallando explícitamente tanto el procesamiento de coordenadas GPS (precisas y aproximadas) como el envío de Notificaciones críticas (alertas de emergencia SOS, detección de impactos vehiculares y avisos de llegada/salida de Zonas Seguras).
+        - Unificada la nomenclatura a *"Núcleo Familiar"* y *"Zonas Seguras"*.
+        - Actualizados los botones de consentimiento afirmativo a *"Aceptar y continuar"* (primer plano) y *"Aceptar y configurar"* (segundo plano), garantizando el cumplimiento estricto de la política de consentimiento inequívoco de Google Play.
+    - **Visualización de Versión y Control de Empaquetado:**
+        - Actualizada la tarjeta de información de [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) a `v1.0.5 (Compilación 12)`.
+        - Elevado `versionCode = 12` y `versionName = "1.0.5"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+        - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 12`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 41s` (0 errores).
+    - Backend Tests: **153 passed (504 assertions)** (100% pasando).
+
 ## [2026-09-08] Compilación de Producción v11 (1.0.5) - Corrección de Rechazo de Google Play: Prominent Disclosure & Consent
 - **Resolución de Política de Google Play (Prominent Disclosure and Consent Requirement):**
     - Subsanado el rechazo *«Inadequate Prominent Disclosure: Requests for in-app user consent and runtime permission are not immediately preceded by an in-app disclosure»*.
