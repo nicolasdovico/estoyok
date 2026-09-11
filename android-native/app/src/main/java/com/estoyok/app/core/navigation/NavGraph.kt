@@ -43,6 +43,7 @@ fun MainScreen(
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     val isDisclaimerAccepted by authViewModel.isDisclaimerAccepted.collectAsState()
     val showMandatoryDisclaimer = isAuthenticated && (isDisclaimerAccepted == false)
+    val isDisclaimerPending = (isDisclaimerAccepted != true)
     
     val items = listOf(
         Screen.Mapa,
@@ -178,7 +179,7 @@ fun MainScreen(
                 composable(Screen.Mapa.route) { 
                     MapaScreen(
                         navController = navController,
-                        isDisclaimerPending = showMandatoryDisclaimer
+                        isDisclaimerPending = isDisclaimerPending
                     ) 
                 }
                 composable(Screen.Vehiculo.route) { VehiculoScreen(navController = navController) }
