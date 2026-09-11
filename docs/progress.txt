@@ -1,5 +1,20 @@
 # Progress Log
 
+## [2026-09-11] Compilación de Producción v13 (1.0.6) - Blindaje de Condición de Carrera en Onboarding & Resolución Definitiva Prominent Disclosure (IN_APP_EXPERIENCE-1887.png e IN_APP_EXPERIENCE-8135.png)
+- **Diagnóstico del Rechazo de Google Play ([`IN_APP_EXPERIENCE-1887.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-1887.png) e [`IN_APP_EXPERIENCE-8135.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-8135.png)):**
+    - Confirmado mediante análisis de las capturas remitidas por Google que la evaluación rechazada correspondió a la Versión 11 (la captura `IN_APP_EXPERIENCE-8135.png` evidencia el botón histórico *"Configurar"* y título *"Rastreo en Segundo Plano"*, modificados con posterioridad en la base de código).
+    - En la Versión 11, la solicitud inicial del sistema para ubicación en primer plano (`IN_APP_EXPERIENCE-1887.png`) se presentaba directamente sin una divulgación previa destacada (*Prominent Disclosure*), mientras que la de segundo plano se mostraba posteriormente.
+- **Blindaje de Condición de Carrera y Secuencia de Consentimiento ([`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt)):**
+    - Definido `isDisclaimerPending = (isDisclaimerAccepted != true)` para bloquear de forma determinista cualquier evaluación o solicitud de permisos en `MapaScreen` mientras el estado de aceptación de términos esté pendiente (`false`) o inicializándose desde DataStore (`null`).
+    - Garantizada la secuencia estricta: Onboarding / Disclaimer obligatorio $\rightarrow$ Diálogo Prominent Disclosure de Primer Plano ("Ubicación y Notificaciones") con botón afirmativo *"Aceptar y continuar"* $\rightarrow$ Diálogo del Sistema (Primer Plano) $\rightarrow$ Diálogo Prominent Disclosure de Segundo Plano ("Rastreo de Ubicación en Segundo Plano") con botón afirmativo *"Aceptar y configurar"* $\rightarrow$ Configuración del Sistema ("Permitir todo el tiempo").
+- **Visualización de Versión y Control de Empaquetado:**
+    - Elevado `versionCode = 13` y `versionName = "1.0.6"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+    - Actualizada la tarjeta de información de [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) a `v1.0.6 (Compilación 13)`.
+    - Compilado y firmado con éxito el bundle final `app-release.aab` (`versionCode = 13`, 21 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 39s` (0 errores).
+    - Backend Tests: **153 passed (504 assertions)** (100% pasando).
+
 ## [2026-09-08] Compilación de Producción v12 (1.0.5) - Blindaje Integral de Prominent Disclosure & Consent (Resolución IN_APP_EXPERIENCE-9005.png)
 - **Diagnóstico y Resolución del Rechazo de Google Play ([`docs/IN_APP_EXPERIENCE-9005.png`](file:///home/usuario/aplicaciones/estoyok/docs/IN_APP_EXPERIENCE-9005.png)):**
     - Analizada la captura comparativa oficial remitida por Google Play (`IN_APP_EXPERIENCE-9005.png`), confirmando que en la versión evaluada el diálogo del sistema para ubicación en primer plano (*"¿Permitir que Estoy Ok acceda a la ubicación de este dispositivo?"*) aparecía de forma directa y sin divulgación previa destacada, mientras que el diálogo de segundo plano ("Rastreo en Segundo Plano") sí se mostraba con posterioridad.

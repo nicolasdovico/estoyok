@@ -48,6 +48,13 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación v13 (1.0.6 - Blindaje de Condición de Carrera en Onboarding & Resolución Definitiva Prominent Disclosure):
+      - Resuelto el rechazo ilustrado en las capturas de Google Play ([`IN_APP_EXPERIENCE-1887.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-1887.png) e [`IN_APP_EXPERIENCE-8135.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-8135.png)), confirmando que la evaluación rechazada correspondió a la Versión 11 histórica.
+      - Blindada la sincronización en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) y [`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) definiendo `isDisclaimerPending = (isDisclaimerAccepted != true)`: la solicitud de permisos no se activa bajo ningún concepto mientras el estado de aceptación de términos esté pendiente (`false`) o inicializándose desde DataStore (`null`).
+      - Preservada la secuencia estricta: Onboarding obligatorio $\rightarrow$ Prominent Disclosure de Primer Plano ("Ubicación y Notificaciones") con botón afirmativo *"Aceptar y continuar"* $\rightarrow$ Permisos del Sistema $\rightarrow$ Prominent Disclosure de Segundo Plano ("Rastreo de Ubicación en Segundo Plano") con botón afirmativo *"Aceptar y configurar"* $\rightarrow$ Permiso de Fondo en Ajustes del Sistema ("Permitir todo el tiempo").
+      - Actualizado `versionCode = 13` y `versionName = "1.0.6"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (`v1.0.6 (Compilación 13)`).
+      - Compilado y firmado el bundle de producción final `app-release.aab` (`versionCode = 13`) en `android-native/app/build/outputs/bundle/release/app-release.aab` (21 MB).
+      - Garantía de no regresión verificada (compilación Gradle exitosa y 153 tests del backend pasando al 100%).
     - [x] Compilación v12 (1.0.5 - Blindaje Integral de Prominent Disclosure & Consent ante Rechazo Google Play IN_APP_EXPERIENCE-9005.png):
       - Resuelto el rechazo ilustrado en la captura de Google Play ([`docs/IN_APP_EXPERIENCE-9005.png`](file:///home/usuario/aplicaciones/estoyok/docs/IN_APP_EXPERIENCE-9005.png)), donde la solicitud inicial de ubicación se disparaba sin divulgación previa.
       - Sincronización en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) y [`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) mediante `isDisclaimerPending`: la solicitud de permisos no se activa hasta que el usuario recién registrado acepte el descargo de responsabilidad obligatorio (`DisclaimerMandatoryDialog`), evitando superposición de modales.
@@ -434,8 +441,8 @@
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
-- Monitorear aprobación de Google Play Console para la versión 11 (1.0.5) en Producción.
-- Planificado para v12 (post-aprobación v11): Optimizar el flujo de SOS para disparo 100% instantáneo sin modales bloqueantes en momentos de peligro, trasladando la solicitud del permiso de micrófono a una tarjeta de configuración preventiva en el Panel/Ajustes.
+- Subir y enviar a revisión en Google Play Console el bundle de producción app-release.aab (versionCode = 13, versionName = "1.0.6") en el canal de Producción.
+- Monitorear aprobación de Google Play Console para la versión 13 (1.0.6) en Producción.
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
