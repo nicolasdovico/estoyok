@@ -1,6 +1,15 @@
 # Progress Log
 
-## [2026-09-11] Compilación de Producción v13 (1.0.6) - Blindaje de Condición de Carrera en Onboarding & Resolución Definitiva Prominent Disclosure (IN_APP_EXPERIENCE-1887.png e IN_APP_EXPERIENCE-8135.png)
+## [2026-09-16] Envío a Revisión Oficial v13 (1.0.6) - Resolución de Causa Raíz de Prominent Disclosure (IN_APP_EXPERIENCE-367.png) & Actualización de Video de Declaración en Google Play Console
+- **Diagnóstico Definitivo de Rechazo Recurrente ([`IN_APP_EXPERIENCE-367.png`](file:///home/usuario/aplicaciones/estoyok/docs/IN_APP_EXPERIENCE-367.png)):**
+    - Identificada la causa raíz exacta de los rechazos sucesivos (`IN_APP_EXPERIENCE-9005.png`, `4320.png`, `1887.png`, `8135.png` y `367.png`): las capturas enviadas por Google no provenían de pruebas automatizadas sobre la nueva APK, sino de fotogramas del **video de YouTube de 29 segundos** enlazado en la declaración de *Ubicación en segundo plano* (`ACCESS_BACKGROUND_LOCATION`) en Google Play Console (grabado históricamente el 21 de agosto de 2026 con la versión 3).
+    - En dicho video de 29 segundos, en el segundo `0:06` saltaba directamente el permiso del sistema de Android sin divulgación previa, y en el segundo `0:14` aparecía el diálogo con el botón histórico *"Configurar"*.
+- **Actualización de Demostración y Declaración:**
+    - Verificado el orden del flujo en la versión 13: diálogo de *Divulgación Destacada* ("Ubicación y Notificaciones") con botón afirmativo *"Aceptar y continuar"* $\rightarrow$ Permiso del sistema en primer plano $\rightarrow$ Diálogo de segundo plano ("Rastreo de Ubicación en Segundo Plano") con botón afirmativo *"Aceptar y configurar"* $\rightarrow$ Configuración del sistema ("Permitir todo el tiempo") $\rightarrow$ Notificación persistente de servicio en primer plano sin peticiones de micrófono.
+    - Grabado nuevo video demostrativo de pantalla completa, subido a YouTube como "No listado" y reemplazado el enlace en la declaración de *Ubicación en segundo plano* en Play Console.
+- **Envío a Revisión en Producción:**
+    - Enviados a revisión en Google Play Console todos los cambios pendientes acumulados: bundle de producción `app-release.aab` (`versionCode = 13`, `versionName = "1.0.6"`), distribución en 177 países y nueva declaración de permisos de ubicación con el video actualizado.
+
 - **Diagnóstico del Rechazo de Google Play ([`IN_APP_EXPERIENCE-1887.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-1887.png) e [`IN_APP_EXPERIENCE-8135.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-8135.png)):**
     - Confirmado mediante análisis de las capturas remitidas por Google que la evaluación rechazada correspondió a la Versión 11 (la captura `IN_APP_EXPERIENCE-8135.png` evidencia el botón histórico *"Configurar"* y título *"Rastreo en Segundo Plano"*, modificados con posterioridad en la base de código).
     - En la Versión 11, la solicitud inicial del sistema para ubicación en primer plano (`IN_APP_EXPERIENCE-1887.png`) se presentaba directamente sin una divulgación previa destacada (*Prominent Disclosure*), mientras que la de segundo plano se mostraba posteriormente.

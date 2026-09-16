@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Envío a Revisión v13 (1.0.6 - Resolución Definitiva de Rechazo IN_APP_EXPERIENCE-367.png & Video Demostrativo Actualizado en Google Play Console):
+      - Identificada la causa raíz de los rechazos reiterados de *Prominent Disclosure*: las capturas provenían del video de YouTube de 29 segundos subido en agosto a la declaración de `ACCESS_BACKGROUND_LOCATION` en Play Console.
+      - Grabado nuevo video demostrativo de pantalla completa con la versión 13 cumpliendo la secuencia estricta de consentimiento y sin peticiones de micrófono.
+      - Actualizado el enlace de YouTube en la declaración de *Ubicación en segundo plano* y enviados a revisión formal en Google Play Console todos los cambios acumulados (bundle `app-release.aab` v13, distribución internacional en 177 países y declaración de permisos).
     - [x] Compilación v13 (1.0.6 - Blindaje de Condición de Carrera en Onboarding & Resolución Definitiva Prominent Disclosure):
       - Resuelto el rechazo ilustrado en las capturas de Google Play ([`IN_APP_EXPERIENCE-1887.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-1887.png) e [`IN_APP_EXPERIENCE-8135.png`](file:///home/usuario/aplicaciones/estoyok/IN_APP_EXPERIENCE-8135.png)), confirmando que la evaluación rechazada correspondió a la Versión 11 histórica.
       - Blindada la sincronización en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) y [`MapaScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/MapaScreen.kt) definiendo `isDisclaimerPending = (isDisclaimerAccepted != true)`: la solicitud de permisos no se activa bajo ningún concepto mientras el estado de aceptación de términos esté pendiente (`false`) o inicializándose desde DataStore (`null`).
@@ -441,8 +445,7 @@
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
-- Subir y enviar a revisión en Google Play Console el bundle de producción app-release.aab (versionCode = 13, versionName = "1.0.6") en el canal de Producción.
-- Monitorear aprobación de Google Play Console para la versión 13 (1.0.6) en Producción.
+- Monitorear la aprobación de Google Play Console para la versión 13 (1.0.6) en Producción (enviada a revisión junto con el nuevo video demostrativo de ubicación en segundo plano).
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
