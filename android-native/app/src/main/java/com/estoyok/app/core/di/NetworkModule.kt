@@ -1,5 +1,6 @@
 package com.estoyok.app.core.di
 
+import com.estoyok.app.BuildConfig
 import com.estoyok.app.core.data.remote.AuthInterceptor
 import dagger.Module
 import dagger.Provides
@@ -16,8 +17,8 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
 
-    // Production API Base URL (Railway)
-    private const val BASE_URL = "https://api.estoyok24.com/api/"
+    // API Base URL dynamically resolved by Build Type (Debug: Dev / Release: Prod)
+    private val BASE_URL = BuildConfig.BASE_URL
 
     @Provides
     @Singleton

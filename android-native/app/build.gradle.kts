@@ -44,7 +44,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            val devApiUrl = localProperties.getProperty("DEV_API_URL")
+                ?: System.getenv("DEV_API_URL")
+                ?: "https://api-dev.estoyok24.com/api/"
+            buildConfigField("String", "BASE_URL", "\"$devApiUrl\"")
+        }
         release {
+            buildConfigField("String", "BASE_URL", "\"https://api.estoyok24.com/api/\"")
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
