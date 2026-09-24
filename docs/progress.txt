@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-09-23] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6) - Disponible a Nivel Mundial
+- **Google Play Console (Producción Abierta Aprobada y Publicada):**
+    - Aprobada por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026 a las 8:41 a.m.
+    - Distribución global habilitada en **177 países y regiones**, alcanzando compatibilidad con **17,795 dispositivos Android**.
+    - Ficha pública de la tienda en línea y accesible para instalación: [`https://play.google.com/store/apps/details?id=com.estoyok.app`](https://play.google.com/store/apps/details?id=com.estoyok.app).
+    - Quedan formalmente reemplazadas en el historial de versiones las compilaciones anteriores (v7, v11 y v12).
+    - Cierre definitivo de los requerimientos y rechazos de *Prominent Disclosure* y declaración de ubicación en segundo plano (`ACCESS_BACKGROUND_LOCATION`).
+
 ## [2026-09-16] Envío a Revisión Oficial v13 (1.0.6) - Resolución de Causa Raíz de Prominent Disclosure (IN_APP_EXPERIENCE-367.png) & Actualización de Video de Declaración en Google Play Console
 - **Diagnóstico Definitivo de Rechazo Recurrente ([`IN_APP_EXPERIENCE-367.png`](file:///home/usuario/aplicaciones/estoyok/docs/IN_APP_EXPERIENCE-367.png)):**
     - Identificada la causa raíz exacta de los rechazos sucesivos (`IN_APP_EXPERIENCE-9005.png`, `4320.png`, `1887.png`, `8135.png` y `367.png`): las capturas enviadas por Google no provenían de pruebas automatizadas sobre la nueva APK, sino de fotogramas del **video de YouTube de 29 segundos** enlazado en la declaración de *Ubicación en segundo plano* (`ACCESS_BACKGROUND_LOCATION`) en Google Play Console (grabado históricamente el 21 de agosto de 2026 con la versión 3).

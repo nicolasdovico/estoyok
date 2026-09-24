@@ -48,6 +48,11 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6 - Disponible a Nivel Mundial):
+      - Aprobada formalmente por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026.
+      - Distribución global activa en **177 países y regiones**, alcanzando compatibilidad con **17,795 modelos de dispositivos Android**.
+      - Ficha pública oficial en vivo y descargable: [`https://play.google.com/store/apps/details?id=com.estoyok.app`](https://play.google.com/store/apps/details?id=com.estoyok.app).
+      - Historial de versiones consolidado, reemplazando con éxito a todas las versiones intermedias previas (v7, v11 y v12).
     - [x] Envío a Revisión v13 (1.0.6 - Resolución Definitiva de Rechazo IN_APP_EXPERIENCE-367.png & Video Demostrativo Actualizado en Google Play Console):
       - Identificada la causa raíz de los rechazos reiterados de *Prominent Disclosure*: las capturas provenían del video de YouTube de 29 segundos subido en agosto a la declaración de `ACCESS_BACKGROUND_LOCATION` en Play Console.
       - Grabado nuevo video demostrativo de pantalla completa con la versión 13 cumpliendo la secuencia estricta de consentimiento y sin peticiones de micrófono.
@@ -445,7 +450,7 @@
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
-- Monitorear la aprobación de Google Play Console para la versión 13 (1.0.6) en Producción (enviada a revisión junto con el nuevo video demostrativo de ubicación en segundo plano).
+- Monitorear métricas, primeras instalaciones y telemetría de la versión 13 (1.0.6) en Producción en Google Play Console.
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
 - Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
