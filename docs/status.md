@@ -446,13 +446,15 @@
           - [x] Incorporación de Campo Email en Contactos de Emergencia (Android Nativo): Agregado el campo `Email / Correo (Opcional)` al modal de creación y edición en `PanelScreen.kt` y `PanelViewModel.kt` enviando la propiedad a la API REST.
 
 ### In Progress:
-- [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
+- [x] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
+  - [x] Configuración de entorno dual en Railway: entorno `production` (`main` $\rightarrow$ `api.estoyok24.com`) y entorno `dev` (`dev` $\rightarrow$ `backend-api-dev-2a56.up.railway.app`).
+  - [x] Inyección dinámica de `BASE_URL` en Android nativo mediante `buildTypes` (`debug` vs `release`) y consumo reactivo en `NetworkModule.kt` vía `BuildConfig.BASE_URL`.
+  - [x] Creación de la guía maestra operativa de desarrollo y despliegue en [`docs/flujo_desarrollo_y_despliegue.md`](file:///home/usuario/aplicaciones/estoyok/docs/flujo_desarrollo_y_despliegue.md).
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
 - Monitorear métricas, primeras instalaciones y telemetría de la versión 13 (1.0.6) en Producción en Google Play Console.
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
-- Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
 
 ---

@@ -1,5 +1,18 @@
 # Progress Log
 
+## [2026-09-24] Configuración de Entornos Duales (Dev vs Prod), Inyección Dinámica de API y Guía de Flujo de Trabajo
+- **Arquitectura de Entornos y Branching:**
+    - Creado el esquema de ramas seguras: rama `dev` (desarrollo, laboratorio y pruebas de campo en 4G) conectada al entorno `dev` en Railway (`backend-api-dev-2a56.up.railway.app`), y rama `main` conectada exclusivamente al backend de producción (`api.estoyok24.com`).
+    - Blindada la base de datos de producción contra contaminación de datos o ejecución de migraciones accidentales durante el desarrollo de nuevas features.
+- **Inyección Dinámica de API en Android Nativo (Kotlin & Gradle):**
+    - Configurado `buildTypes` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) con `buildConfigField("String", "BASE_URL", ...)`:
+      - `debug`: Inyecta la URL de desarrollo desde `local.properties` (`DEV_API_URL`) con fallback a `https://api-dev.estoyok24.com/api/`.
+      - `release`: Fija estrictamente la URL oficial de producción `https://api.estoyok24.com/api/`.
+    - Actualizado [`NetworkModule.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/di/NetworkModule.kt) para consumir de forma reactiva `BuildConfig.BASE_URL`, garantizando que Retrofit use el entorno correcto según el tipo de compilación.
+    - Configurado el dominio de staging en `android-native/local.properties` (`DEV_API_URL=https://backend-api-dev-2a56.up.railway.app/api/`).
+- **Documentación Operativa:**
+    - Creada la guía maestra [`docs/flujo_desarrollo_y_despliegue.md`](file:///home/usuario/aplicaciones/estoyok/docs/flujo_desarrollo_y_despliegue.md) con el procedimiento paso a paso para desarrollar features en dev, comandos Gradle (`./gradlew installDebug`, `./gradlew bundleRelease`), pruebas en la calle con 4G y pase seguro a Google Play Store.
+
 ## [2026-09-23] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6) - Disponible a Nivel Mundial
 - **Google Play Console (Producción Abierta Aprobada y Publicada):**
     - Aprobada por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026 a las 8:41 a.m.
