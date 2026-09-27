@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Implementación de Inicio de Sesión y Registro con Google OAuth (Android Nativo & Backend):
+      - Backend: Migración `add_google_id_to_users_table`, `GoogleAuthService.php`, endpoint `POST /api/auth/google`, OpenAPI/Swagger y suite `GoogleAuthTest.php` (158 tests pasando).
+      - Vinculación transparente con cuentas tradicionales de email (verificación automática de email garantizada por Google) y preservación estricta del flujo tradicional con OTP.
+      - App Nativa: Integración de Credential Manager (`androidx.credentials`), vector oficial `ic_google_logo.xml`, botón `GoogleSignInButton.kt`, y conexión en `LoginScreen.kt`, `RegisterScreen.kt`, `LoginViewModel.kt` y `RegisterViewModel.kt`. Compilación Android exitosa (`BUILD SUCCESSFUL`).
     - [x] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6 - Disponible a Nivel Mundial):
       - Aprobada formalmente por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026.
       - Distribución global activa en **177 países y regiones**, alcanzando compatibilidad con **17,795 modelos de dispositivos Android**.

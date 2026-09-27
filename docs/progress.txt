@@ -1,5 +1,27 @@
 # Progress Log
 
+## [2026-09-27] Implementación de Inicio de Sesión y Registro con Google OAuth (Android Nativo & Backend Laravel)
+- **Backend (Laravel 12 API):**
+    - Creada la migración `2026_09_27_181200_add_google_id_to_users_table` agregando la columna `google_id` indexada y única en `users`, y añadido `google_id` y `email_verified_at` al array `$fillable` de [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php).
+    - Desarrollado el servicio [`GoogleAuthService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/GoogleAuthService.php) para validar tokens `id_token` contra la API de Google (`tokeninfo`), verificando emisor, expiración, correo verificado y audiencia del Web Client ID.
+    - Creado el endpoint `POST /api/auth/google` en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php). Soporta:
+      - Registro automático de nuevos usuarios con email verificado (`email_verified_at = now()`), contraseña aleatoria segura y notificación al administrador vía [`NewUserRegisteredMail`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/NewUserRegisteredMail.php).
+      - Vinculación transparente con cuentas tradicionales existentes por email (marcando el correo verificado si estaba pendiente).
+      - Cumplimiento de la política de dispositivo móvil único (Life360 style) con silent push `action => logout` a dispositivos previos y emisión de token Sanctum.
+    - Agregada configuración `services.google.client_id` en [`config/services.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/services.php) y variable `GOOGLE_CLIENT_ID` en [`backend/.env.example`](file:///home/usuario/aplicaciones/estoyok/backend/.env.example) y `.env`.
+    - Regenerada documentación OpenAPI/Swagger (`php artisan l5-swagger:generate`).
+    - Creada suite de integración en [`GoogleAuthTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/GoogleAuthTest.php) (5/5 tests pasando).
+- **App Móvil Android Nativa (Jetpack Compose & Credential Manager):**
+    - Integradas las librerías oficiales de Google Identity en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts): `androidx.credentials:credentials:1.3.0`, `credentials-play-services-auth` y `com.google.android.libraries.identity.googleid:googleid:1.1.1`.
+    - Añadido `buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", ...)` en `build.gradle.kts` configurable desde `local.properties`.
+    - Añadido vector oficial de Google [`ic_google_logo.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable/ic_google_logo.xml) y componente reutilizable [`GoogleSignInButton.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/components/GoogleSignInButton.kt) adaptado al tema oscuro premium de Estoy Ok.
+    - Creado modelo de red `GoogleLoginRequest` en [`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt) y conectado en [`AuthApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/remote/AuthApiService.kt), [`AuthRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/domain/repository/AuthRepository.kt) y [`AuthRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/repository/AuthRepositoryImpl.kt).
+    - Integrado flujo de Credential Manager en [`LoginViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginViewModel.kt) y [`RegisterViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterViewModel.kt) con sincronización reactiva de tokens FCM.
+    - Incorporado el botón *"Continuar con Google"* y divisor en [`LoginScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) y [`RegisterScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterScreen.kt).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 30s` (0 errores).
+    - Backend Tests: **158 passed (528 assertions)** (100% pasando).
+
 ## [2026-09-24] Configuración de Entornos Duales (Dev vs Prod), Inyección Dinámica de API y Guía de Flujo de Trabajo
 - **Arquitectura de Entornos y Branching:**
     - Creado el esquema de ramas seguras: rama `dev` (desarrollo, laboratorio y pruebas de campo en 4G) conectada al entorno `dev` en Railway (`backend-api-dev-2a56.up.railway.app`), y rama `main` conectada exclusivamente al backend de producción (`api.estoyok24.com`).
