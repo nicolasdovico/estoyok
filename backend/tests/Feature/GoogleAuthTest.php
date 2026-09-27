@@ -12,18 +12,26 @@ class GoogleAuthTest extends TestCase
 {
     use RefreshDatabase;
 
+    private function getValidGooglePayload(array $overrides = []): array
+    {
+        $clientId = config('services.google.client_id') ?: 'test-google-client-id';
+
+        return array_merge([
+            'iss' => 'https://accounts.google.com',
+            'aud' => $clientId,
+            'sub' => 'google-user-id-12345',
+            'email' => 'nuevo.google@example.com',
+            'email_verified' => 'true',
+            'name' => 'Carlos Google',
+            'picture' => 'https://example.com/avatar.jpg',
+            'exp' => (string) (time() + 3600),
+        ], $overrides);
+    }
+
     public function test_new_user_can_register_and_login_with_google()
     {
         Http::fake([
-            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
-                'iss' => 'https://accounts.google.com',
-                'sub' => 'google-user-id-12345',
-                'email' => 'nuevo.google@example.com',
-                'email_verified' => 'true',
-                'name' => 'Carlos Google',
-                'picture' => 'https://example.com/avatar.jpg',
-                'exp' => (string) (time() + 3600),
-            ], 200),
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response($this->getValidGooglePayload(), 200),
         ]);
 
         $response = $this->postJson('/api/auth/google', [
@@ -69,14 +77,12 @@ class GoogleAuthTest extends TestCase
         ]);
 
         Http::fake([
-            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response($this->getValidGooglePayload([
                 'iss' => 'accounts.google.com',
                 'sub' => 'google-user-id-99999',
                 'email' => 'existente@example.com',
-                'email_verified' => 'true',
                 'name' => 'Usuario Existente',
-                'exp' => (string) (time() + 3600),
-            ], 200),
+            ]), 200),
         ]);
 
         $response = $this->postJson('/api/auth/google', [
@@ -103,13 +109,10 @@ class GoogleAuthTest extends TestCase
         ]);
 
         Http::fake([
-            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
-                'iss' => 'https://accounts.google.com',
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response($this->getValidGooglePayload([
                 'sub' => 'google-user-id-77777',
                 'email' => 'recurrente@example.com',
-                'email_verified' => 'true',
-                'exp' => (string) (time() + 3600),
-            ], 200),
+            ]), 200),
         ]);
 
         $response = $this->postJson('/api/auth/google', [
@@ -162,13 +165,10 @@ class GoogleAuthTest extends TestCase
         ]);
 
         Http::fake([
-            'https://oauth2.googleapis.com/tokeninfo*' => Http::response([
-                'iss' => 'https://accounts.google.com',
+            'https://oauth2.googleapis.com/tokeninfo*' => Http::response($this->getValidGooglePayload([
                 'sub' => 'google-sub-multidevice',
                 'email' => 'multidevice@example.com',
-                'email_verified' => 'true',
-                'exp' => (string) (time() + 3600),
-            ], 200),
+            ]), 200),
         ]);
 
         $response = $this->postJson('/api/auth/google', [

@@ -35,7 +35,7 @@ android {
 
         val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
             ?: System.getenv("GOOGLE_WEB_CLIENT_ID")
-            ?: "your_google_web_client_id_here"
+            ?: "443709343955-evk64gqrp6hnhr6br5dkfuh1sr48favn.apps.googleusercontent.com"
         buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
