@@ -65,6 +65,30 @@ class AuthRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun loginWithGoogle(request: GoogleLoginRequest): Flow<Resource<AuthResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.loginWithGoogle(request)
+            if (response.isSuccessful && response.body() != null) {
+                val body = response.body()!!
+                sessionManager.saveSession(
+                    token = body.token,
+                    name = body.user.name,
+                    email = body.user.email,
+                    phone = body.user.phone,
+                    isDisclaimerAccepted = !body.user.disclaimerAcceptedAt.isNullOrBlank()
+                )
+                emit(Resource.Success(body))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado al conectar con Google."))
+        }
+    }
+
     override fun verifyEmail(request: VerifyEmailRequest): Flow<Resource<AuthResponse>> = flow {
         emit(Resource.Loading())
         try {

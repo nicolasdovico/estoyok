@@ -14,6 +14,10 @@ interface AuthRepository {
         request: LoginRequest
     ): Flow<Resource<AuthResponse>>
 
+    fun loginWithGoogle(
+        request: GoogleLoginRequest
+    ): Flow<Resource<AuthResponse>>
+
     fun verifyEmail(
         request: VerifyEmailRequest
     ): Flow<Resource<AuthResponse>>

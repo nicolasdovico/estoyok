@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.PrimaryEmerald
 import com.estoyok.app.core.theme.PrimaryTeal
 import com.estoyok.app.core.theme.TextOnPrimary
+import com.estoyok.app.features.auth.presentation.components.GoogleSignInButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(
@@ -40,6 +41,7 @@ fun LoginScreen(
     onLoginSuccess: () -> Unit,
     viewModel: LoginViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var passwordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
@@ -206,6 +208,36 @@ fun LoginScreen(
                             )
                         }
                     }
+
+                    // Divider
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+                        )
+                        Text(
+                            text = "  o  ",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+                        )
+                    }
+
+                    // Google Sign-In Button
+                    GoogleSignInButton(
+                        onClick = { viewModel.loginWithGoogle(context) },
+                        isLoading = viewModel.isLoading,
+                        text = "Continuar con Google"
+                    )
                 }
             }
 

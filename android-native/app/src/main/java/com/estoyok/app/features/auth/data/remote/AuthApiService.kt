@@ -17,6 +17,11 @@ interface AuthApiService {
         @Body request: LoginRequest
     ): Response<AuthResponse>
 
+    @POST("auth/google")
+    suspend fun loginWithGoogle(
+        @Body request: GoogleLoginRequest
+    ): Response<AuthResponse>
+
     @POST("verify-email")
     suspend fun verifyEmail(
         @Body request: VerifyEmailRequest

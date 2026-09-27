@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
@@ -31,20 +32,29 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.estoyok.app.core.theme.PrimaryEmerald
 import com.estoyok.app.core.theme.PrimaryTeal
 import com.estoyok.app.core.theme.TextOnPrimary
+import com.estoyok.app.features.auth.presentation.components.GoogleSignInButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
     onNavigateToLogin: () -> Unit,
     onRegisterSuccess: (String) -> Unit, // Returns email to verify
+    onGoogleLoginSuccess: () -> Unit = {},
     viewModel: RegisterViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
 
     LaunchedEffect(key1 = true) {
         viewModel.registerSuccess.collect { email ->
             onRegisterSuccess(email)
+        }
+    }
+
+    LaunchedEffect(key1 = true) {
+        viewModel.googleLoginSuccess.collect {
+            onGoogleLoginSuccess()
         }
     }
 
@@ -261,6 +271,36 @@ fun RegisterScreen(
                             )
                         }
                     }
+
+                    // Divider
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+                        )
+                        Text(
+                            text = "  o  ",
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+                            fontSize = 13.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        HorizontalDivider(
+                            modifier = Modifier.weight(1f),
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.15f)
+                        )
+                    }
+
+                    // Google Sign-In Button
+                    GoogleSignInButton(
+                        onClick = { viewModel.loginWithGoogle(context) },
+                        isLoading = viewModel.isLoading,
+                        text = "Registrarse con Google"
+                    )
                 }
             }
 
