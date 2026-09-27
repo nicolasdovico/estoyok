@@ -55,4 +55,8 @@ return [
         'instance' => env('EVOLUTION_INSTANCE_NAME', 'estoyok_main'),
     ],
 
+    'google' => [
+        'client_id' => env('GOOGLE_CLIENT_ID'),
+    ],
+
 ];

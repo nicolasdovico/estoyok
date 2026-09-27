@@ -7,11 +7,13 @@ use App\Mail\NewUserRegisteredMail;
 use App\Mail\OtpVerificationMail;
 use App\Models\EmailVerification;
 use App\Models\User;
+use App\Services\GoogleAuthService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use OpenApi\Attributes as OA;
 
@@ -299,6 +301,151 @@ class AuthController extends Controller
         }
 
         // 3. Register or reactivate the current device
+        $device = \App\Models\UserDevice::updateOrCreate(
+            ['user_id' => $user->id, 'device_uuid' => $deviceUuid],
+            [
+                'device_name' => $deviceName,
+                'platform' => $platform,
+                'is_active' => true,
+                'last_active_at' => now(),
+            ]
+        );
+
+        $token = $user->createToken($deviceName)->plainTextToken;
+
+        return response()->json([
+            'user' => $user,
+            'token' => $token,
+            'device_uuid' => $device->device_uuid,
+        ]);
+    }
+
+    #[OA\Post(
+        path: '/auth/google',
+        summary: 'Autenticación con cuenta de Google',
+        tags: ['Autenticación'],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['id_token'],
+                properties: [
+                    new OA\Property(property: 'id_token', type: 'string', description: 'Google ID Token JWT'),
+                    new OA\Property(property: 'device_name', type: 'string', example: 'Samsung Galaxy S23'),
+                    new OA\Property(property: 'device_uuid', type: 'string', example: 'uuid-12345'),
+                    new OA\Property(property: 'platform', type: 'string', example: 'android'),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Inicio de sesión o registro con Google exitoso',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'token', type: 'string', example: '1|abcde...'),
+                        new OA\Property(property: 'user', type: 'object'),
+                        new OA\Property(property: 'device_uuid', type: 'string', example: 'uuid-12345'),
+                    ]
+                )
+            ),
+            new OA\Response(response: 422, description: 'Token de Google inválido o expirado'),
+        ]
+    )]
+    public function googleLogin(Request $request, GoogleAuthService $googleAuthService)
+    {
+        $request->validate([
+            'id_token' => 'required|string',
+            'device_name' => 'nullable|string',
+            'device_uuid' => 'nullable|string',
+            'platform' => 'nullable|string',
+        ], [
+            'id_token.required' => 'El token de Google es obligatorio.',
+        ]);
+
+        $googlePayload = $googleAuthService->verifyIdToken($request->id_token);
+
+        if (!$googlePayload) {
+            throw ValidationException::withMessages([
+                'id_token' => ['El token de Google es inválido o ha expirado.'],
+            ]);
+        }
+
+        $googleId = $googlePayload['sub'];
+        $email = $googlePayload['email'];
+        $name = $googlePayload['name'];
+
+        // 1. Check if user already exists by google_id
+        $user = User::where('google_id', $googleId)->first();
+
+        if (!$user) {
+            // 2. Check if user already exists by email
+            $user = User::where('email', $email)->first();
+
+            if ($user) {
+                // Link Google account and ensure email is verified
+                $user->google_id = $googleId;
+                if (empty($user->email_verified_at)) {
+                    $user->email_verified_at = Carbon::now();
+                }
+                $user->save();
+            } else {
+                // 3. Register new user automatically
+                $user = User::create([
+                    'name' => $name,
+                    'email' => $email,
+                    'google_id' => $googleId,
+                    'password' => Hash::make(Str::random(32)),
+                    'email_verified_at' => Carbon::now(),
+                ]);
+
+                // Notify administrator about new user registration if configured
+                $adminEmail = config('mail.admin_notification_email');
+                if (!empty($adminEmail)) {
+                    try {
+                        $totalUsers = User::count();
+                        Mail::to($adminEmail)->send(new NewUserRegisteredMail($user, $totalUsers));
+                    } catch (\Throwable $e) {
+                        Log::warning("No se pudo enviar la notificación de nuevo usuario al administrador: " . $e->getMessage());
+                    }
+                }
+            }
+        } else {
+            // Ensure email is verified
+            if (empty($user->email_verified_at)) {
+                $user->email_verified_at = Carbon::now();
+                $user->save();
+            }
+        }
+
+        // 4. Device management & single mobile device policy (same as standard login)
+        $deviceUuid = $request->input('device_uuid') ?: 'web-' . md5($request->ip() . ($request->userAgent() ?? ''));
+        $deviceName = $request->input('device_name') ?? ($request->input('device_uuid') ? 'Android Device' : 'Navegador Web');
+        $platform = $request->input('platform', $request->input('device_uuid') ? 'android' : 'web');
+
+        $isMobileLogin = ($platform !== 'web') && !str_starts_with($deviceUuid, 'web-');
+
+        if ($isMobileLogin) {
+            $previousActiveDevices = \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('is_active', true)
+                ->where('platform', '!=', 'web')
+                ->where('device_uuid', '!=', $deviceUuid)
+                ->get();
+
+            $pushService = app(\App\Services\PushNotificationService::class);
+            foreach ($previousActiveDevices as $prevDevice) {
+                if (!empty($prevDevice->push_token)) {
+                    $pushService->sendPush($prevDevice->push_token, '', '', ['action' => 'logout'], true);
+                }
+            }
+
+            \App\Models\UserDevice::where('user_id', $user->id)
+                ->where('platform', '!=', 'web')
+                ->where('device_uuid', '!=', $deviceUuid)
+                ->update(['is_active' => false]);
+
+            $user->tokens()->delete();
+        }
+
         $device = \App\Models\UserDevice::updateOrCreate(
             ['user_id' => $user->id, 'device_uuid' => $deviceUuid],
             [
