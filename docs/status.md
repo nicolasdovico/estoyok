@@ -48,7 +48,8 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
-    - [x] Compilación de Producción v14 (1.0.7 - Google Sign-In & Sincronización Google Play Billing):
+    - [x] Envío a Revisión Oficial de Producción v14 (1.0.7 - Google Sign-In & Sincronización Google Play Billing):
+      - Promovida la versión 14 (`1.0.7`, `versionCode = 14`) a la pista de **Producción** e iniciado el lanzamiento completo en 177 países. Estado actual: *«Cambios en proceso de revisión»*.
       - Actualizado `versionCode = 14` y `versionName = "1.0.7"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
       - Compilado y firmado el bundle de producción final `app-release.aab` (`versionCode = 14`, 21 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
       - Suite de 165 tests de backend y build de Next.js pasando al 100%.

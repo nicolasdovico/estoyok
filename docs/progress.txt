@@ -1,6 +1,9 @@
 # Progress Log
 
-## [2026-09-28] Compilación de Producción v14 (1.0.7) - Google Sign-In & Sincronización Google Play Billing
+## [2026-09-28] Envío a Revisión Oficial de Producción v14 (1.0.7) - Google Play Console
+- **Google Play Console (Producción Abierta - Revisión en Curso):**
+    - Promovida la versión 14 (`1.0.7`, `versionCode = 14`) desde Pruebas Internas a la pista de **Producción** e iniciado el lanzamiento completo para los 177 países.
+    - Estado actual en Google Play Console: *«Cambios en proceso de revisión»* / *«Tus cambios están en proceso de revisión»*.
 - **App Móvil Android Nativa (Google Play Console Release Readiness):**
     - Elevado `versionCode = 14` y `versionName = "1.0.7"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
     - Actualizada la tarjeta de información y versión en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) a `v1.0.7 (Compilación 14)`.
