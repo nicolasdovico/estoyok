@@ -32,12 +32,14 @@ export default function LoginPage() {
               La funcionalidad de inicio de sesión, registro y gestión de núcleos de seguridad se ha trasladado de forma exclusiva a nuestras aplicaciones móviles para garantizar un mejor rastreo en tiempo real y redundancia de alertas.
             </p>
             <div className="space-y-4">
-              <Link
-                href="/#download"
+              <a
+                href="https://play.google.com/store/apps/details?id=com.estoyok.app"
+                target="_blank"
+                rel="noopener noreferrer"
                 className="w-full inline-flex h-12 items-center justify-center rounded-xl bg-gradient-to-r from-red-600 to-rose-600 px-6 text-sm font-bold text-white shadow-lg shadow-red-500/10 hover:shadow-red-500/30 hover:scale-[1.02] hover:from-red-500 hover:to-rose-500 transition-all duration-200"
               >
-                Descargar Aplicación Móvil
-              </Link>
+                Descargar Aplicación en Google Play
+              </a>
               <Link
                 href="/"
                 className="w-full inline-flex h-12 items-center justify-center rounded-xl border border-neutral-800 bg-neutral-950 text-sm font-bold text-neutral-400 hover:text-white hover:border-neutral-700 transition-all duration-200"

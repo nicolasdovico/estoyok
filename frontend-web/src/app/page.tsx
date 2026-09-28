@@ -168,18 +168,20 @@ export default function Home() {
             </p>
 
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mt-10 max-w-md mx-auto sm:max-w-none">
-              <Link
+              <a
                 className="relative group inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-2xl bg-gradient-to-r from-red-600 to-rose-600 px-8 text-base font-bold text-white shadow-xl shadow-red-500/20 hover:shadow-red-500/40 hover:scale-[1.03] transition-all duration-300"
-                href="#download"
+                href="https://play.google.com/store/apps/details?id=com.estoyok.app"
+                target="_blank"
+                rel="noopener noreferrer"
               >
                 <div className="absolute -inset-0.5 rounded-2xl bg-gradient-to-r from-red-500 to-rose-500 opacity-20 group-hover:opacity-60 blur-sm transition duration-300 pointer-events-none"></div>
                 <span className="relative z-10 flex items-center gap-2">
-                  Descargar &amp; Probar Gratis (7 Días)
-                  <svg className="w-5 h-5 group-hover:translate-y-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                  Descargar en Google Play
+                  <svg className="w-5 h-5 group-hover:translate-x-0.5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3" />
                   </svg>
                 </span>
-              </Link>
+              </a>
               <Link
                 className="inline-flex h-14 w-full sm:w-auto items-center justify-center rounded-2xl border border-neutral-800 bg-neutral-900/40 hover:bg-neutral-900 px-8 text-base font-bold text-neutral-300 hover:text-white hover:border-neutral-700 transition-all duration-200"
                 href="#features"
@@ -487,12 +489,14 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <Link
+                <a
                   className="mt-8 text-center bg-neutral-800 hover:bg-neutral-700 text-white font-bold py-3.5 rounded-xl transition-colors text-sm"
-                  href="/register"
+                  href="https://play.google.com/store/apps/details?id=com.estoyok.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Registrarse Gratis
-                </Link>
+                  Descargar Gratis en Google Play
+                </a>
               </div>
 
               {/* Plan Premium */}
@@ -584,12 +588,14 @@ export default function Home() {
                   </ul>
                 </div>
 
-                <Link
-                  className="mt-8 text-center bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-red-500/20 text-sm"
-                  href="#download"
+                <a
+                  className="mt-8 text-center bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-500 hover:to-rose-500 text-white font-extrabold py-4 rounded-xl transition-all shadow-lg shadow-red-500/20 text-sm block"
+                  href="https://play.google.com/store/apps/details?id=com.estoyok.app"
+                  target="_blank"
+                  rel="noopener noreferrer"
                 >
-                  Comenzar Prueba Gratis de 7 Días
-                </Link>
+                  Comenzar Prueba Gratis (7 Días) en Google Play
+                </a>
               </div>
             </div>
 
@@ -614,40 +620,25 @@ export default function Home() {
             </p>
             
             <div className="flex flex-col sm:flex-row items-center justify-center gap-6 mt-12">
-              {/* Google Play Store Simulator */}
+              {/* Google Play Store Oficial */}
               <a 
-                href="/download/android" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  alert("La aplicación para Android está disponible en la carpeta android-native. Puedes compilarla directamente en Android Studio o generar el APK.");
-                }}
-                className="flex items-center gap-3 bg-neutral-900 border border-neutral-800 rounded-2xl px-6 py-3.5 text-left hover:bg-neutral-850 hover:border-neutral-700 active:scale-95 transition-all w-full sm:w-auto justify-center"
+                href="https://play.google.com/store/apps/details?id=com.estoyok.app" 
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-4 bg-neutral-900 border border-neutral-800 rounded-2xl px-8 py-4 text-left hover:bg-neutral-850 hover:border-neutral-700 hover:scale-[1.03] active:scale-95 transition-all w-full sm:w-auto justify-center group shadow-xl shadow-black/40"
               >
-                <svg className="w-8 h-8 text-neutral-300" viewBox="0 0 24 24" fill="currentColor">
+                <svg className="w-9 h-9 text-neutral-300 group-hover:text-emerald-400 transition-colors shrink-0" viewBox="0 0 24 24" fill="currentColor">
                   <path d="M5.23 2.062a2.38 2.38 0 0 0-.58.375l10.98 10.98 3.5-3.5-13.9-7.855zm-1.07 1.48v16.92L14.73 12 4.16 3.542zm11.75 9.638l3.65 3.65c.29-.16.54-.39.73-.66l-4.38-2.99zm-4.93 1.28L4.65 21.79c.2.14.43.21.68.21.36 0 .7-.1 1-.27l13.68-7.73-3.67-3.67z" />
                 </svg>
                 <div>
-                  <div className="text-[10px] text-neutral-500 uppercase font-black">Consíguelo en</div>
-                  <div className="text-base font-bold text-white leading-tight">Google Play</div>
+                  <div className="text-[11px] text-neutral-400 uppercase font-black tracking-wider">Disponible en</div>
+                  <div className="text-xl font-bold text-white leading-tight">Google Play</div>
                 </div>
               </a>
             </div>
 
-            {/* Direct APK Download option for Android debug/testing */}
-            <div className="mt-8">
-              <span className="text-sm text-neutral-500">¿Eres betatester o desarrollador?</span>
-              <div className="mt-2">
-                <a 
-                  href="/download/apk"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    alert("Para instalar en Android, compila el proyecto de la carpeta android-native/ en Android Studio o descarga el APK generado en tus compilaciones locales.");
-                  }}
-                  className="inline-flex items-center gap-2 text-xs font-semibold text-neutral-400 hover:text-white border border-neutral-800 bg-neutral-900/20 rounded-full px-4 py-2 hover:border-neutral-700 transition-all"
-                >
-                  📥 Descargar APK (Android Beta)
-                </a>
-              </div>
+            <div className="mt-8 text-xs text-neutral-500">
+              <span>🛡️ Verificado por Google Play Protect • Compatible con Android 8.0 y versiones superiores</span>
             </div>
           </div>
         </section>
