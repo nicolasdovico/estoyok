@@ -24,6 +24,9 @@ export const metadata: Metadata = {
   alternates: {
     canonical: "https://estoyok24.com",
   },
+  verification: {
+    google: "Pls-Ut8K7-0alukkT42v6nC4Ro1YzkKXKRBohn54Oiw",
+  },
   title: {
     default: "Estoy Ok - Seguridad y Localizador Familiar GPS | Protección Activa y Pasiva",
     template: "%s | Estoy Ok"
