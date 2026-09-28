@@ -23,4 +23,9 @@ interface SubscriptionApiService {
     suspend fun verifyGooglePlay(
         @Body request: com.estoyok.app.features.tracking.data.model.VerifyGooglePlayRequest
     ): Response<com.estoyok.app.features.tracking.data.model.VerifyGooglePlayResponse>
+
+    @POST("subscriptions/sync-google-play")
+    suspend fun syncGooglePlay(
+        @Body request: com.estoyok.app.features.tracking.data.model.SyncGooglePlayRequest
+    ): Response<com.estoyok.app.features.tracking.data.model.SyncGooglePlayResponse>
 }

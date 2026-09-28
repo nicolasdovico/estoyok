@@ -20,4 +20,11 @@ interface SubscriptionRepository {
         productId: String,
         basePlanId: String?
     ): Flow<Resource<com.estoyok.app.features.tracking.data.model.VerifyGooglePlayResponse>>
+
+    fun syncGooglePlay(
+        hasActiveSubscription: Boolean,
+        purchaseToken: String? = null,
+        productId: String? = null,
+        basePlanId: String? = null
+    ): Flow<Resource<com.estoyok.app.features.tracking.data.model.SyncGooglePlayResponse>>
 }

@@ -26,3 +26,17 @@ data class VerifyGooglePlayResponse(
     @SerializedName("message") val message: String,
     @SerializedName("user") val user: com.estoyok.app.features.auth.data.model.UserDto? = null
 )
+
+data class SyncGooglePlayRequest(
+    @SerializedName("has_active_subscription") val hasActiveSubscription: Boolean,
+    @SerializedName("purchase_token") val purchaseToken: String? = null,
+    @SerializedName("product_id") val productId: String? = null,
+    @SerializedName("base_plan_id") val basePlanId: String? = null
+)
+
+data class SyncGooglePlayResponse(
+    @SerializedName("message") val message: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("is_premium") val isPremium: Boolean,
+    @SerializedName("user") val user: com.estoyok.app.features.auth.data.model.UserDto? = null
+)

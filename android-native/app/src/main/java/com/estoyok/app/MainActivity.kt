@@ -72,10 +72,38 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         autoStartTrackingServiceIfAuthenticated()
+        syncSubscriptionOnResume()
     }
 
     @Inject
     lateinit var settingsRepository: com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+
+    @Inject
+    lateinit var playBillingManager: com.estoyok.app.core.billing.PlayBillingManager
+
+    @Inject
+    lateinit var subscriptionRepository: com.estoyok.app.features.tracking.domain.repository.SubscriptionRepository
+
+    private fun syncSubscriptionOnResume() {
+        lifecycleScope.launch {
+            val token = sessionManager.authTokenFlow.firstOrNull()
+            if (!token.isNullOrEmpty()) {
+                playBillingManager.initialize()
+                val isReady = playBillingManager.isReady.firstOrNull { it }
+                if (isReady == true) {
+                    playBillingManager.queryActivePurchases { activePurchase ->
+                        lifecycleScope.launch {
+                            subscriptionRepository.syncGooglePlay(
+                                hasActiveSubscription = activePurchase != null,
+                                purchaseToken = activePurchase?.purchaseToken,
+                                productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM
+                            ).collect { }
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     private fun autoStartTrackingServiceIfAuthenticated() {
         lifecycleScope.launch {
