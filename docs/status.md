@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Sincronización Híbrida de Google Play Billing y Notificación de Baja al Administrador (Android Nativo & Backend):
+      - Backend: Endpoint `POST /api/subscriptions/sync-google-play`, mailable `SubscriptionCanceledMail.php` con vista `subscription-canceled.blade.php`, comando programado `subscriptions:expire-trials` (`ExpireTrials.php`) y suite de tests `SubscriptionSyncAndCancelTest.php` (163 tests pasando).
+      - App Nativa: `PlayBillingManager.kt` (`queryActivePurchases`), `SubscriptionModels.kt`, `SubscriptionApiService.kt`, `SubscriptionRepositoryImpl.kt`, sincronización reactiva en `FamiliaViewModel.kt` (`syncSubscriptionWithGooglePlay`) y en `MainActivity.kt` (`syncSubscriptionOnResume`). Compilación Android exitosa (`BUILD SUCCESSFUL`).
     - [x] Implementación de Inicio de Sesión y Registro con Google OAuth (Android Nativo & Backend):
       - Backend: Migración `add_google_id_to_users_table`, `GoogleAuthService.php`, endpoint `POST /api/auth/google`, OpenAPI/Swagger y suite `GoogleAuthTest.php` (158 tests pasando).
       - Vinculación transparente con cuentas tradicionales de email (verificación automática de email garantizada por Google) y preservación estricta del flujo tradicional con OTP.
