@@ -96,20 +96,45 @@ defaultConfig {
 ```
 *(Opcional: actualiza el texto de versión en `AjustesScreen.kt` para coincidir con `v1.0.7 (Compilación 14)`).*
 
-### Paso 2: Fusionar `dev` hacia `main` y desplegar el backend
+### Paso 2: Fusionar `dev` hacia `main`, resolver conflictos y desplegar el backend
+
+1. **Asegurar que `main` esté al día con el servidor remoto:**
 ```bash
-# 1. Volver a main
 git checkout main
 git pull origin main
+```
 
-# 2. Fusionar los cambios probados de dev
+2. **Fusionar los cambios probados desde `dev`:**
+```bash
 git merge dev
+```
 
-# 3. Subir a producción
+3. **Resolución de conflictos habituales (Documentación):**
+> [!NOTE]
+> Es muy común que Git señale conflictos únicamente en `docs/progress.txt` y `docs/status.md` si ambas ramas registraron avances en la parte superior del archivo.
+> * Abre ambos archivos y remueve los marcadores (`<<<<<<< HEAD`, `=======`, `>>>>>>> dev`), manteniendo cronológicamente las entradas de ambas ramas.
+> * Marca los conflictos como resueltos y concluye la fusión:
+> ```bash
+> git add docs/progress.txt docs/status.md
+> git commit -m "merge(dev): integrate dev features into main"
+> ```
+
+4. **Garantía de No Regresión (Obligatorio antes del push):**
+Antes de enviar el código a producción, verifica que ambas plataformas compilen y pasen sus tests integrados:
+```bash
+# Backend Tests (100% pasando):
+docker compose exec backend php artisan test
+
+# Frontend Web Build:
+cd frontend-web && npm run build && cd ..
+```
+
+5. **Subir a producción (Railway):**
+```bash
 git push origin main
 ```
 > [!IMPORTANT]
-> Al hacer `git push origin main`, Railway actualizará inmediatamente el backend oficial de producción (`https://api.estoyok24.com/api/`).
+> Al hacer `git push origin main`, Railway detectará el push y ejecutará automáticamente el build, las migraciones pendientes (`php artisan migrate --force`) y reiniciará el backend oficial en `https://api.estoyok24.com/api/`.
 
 ---
 
