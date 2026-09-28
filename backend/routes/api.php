@@ -18,6 +18,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/register', [AuthController::class, 'register']);
 Route::post('/login', [AuthController::class, 'login']);
+Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
@@ -604,6 +605,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/subscriptions/checkout', [SubscriptionController::class, 'checkout']);
     Route::post('/subscriptions/start-trial', [SubscriptionController::class, 'startTrial']);
     Route::post('/subscriptions/verify-google-play', [SubscriptionController::class, 'verifyGooglePlay']);
+    Route::post('/subscriptions/sync-google-play', [SubscriptionController::class, 'syncGooglePlay']);
     Route::post('/subscriptions/cancel', [SubscriptionController::class, 'cancelSubscription']);
 
     // Tracking

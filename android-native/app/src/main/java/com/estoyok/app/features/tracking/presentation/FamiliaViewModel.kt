@@ -52,6 +52,51 @@ class FamiliaViewModel @Inject constructor(
     init {
         refreshData()
         playBillingManager.initialize()
+        observeBillingAndSyncPurchases()
+    }
+
+    private fun observeBillingAndSyncPurchases() {
+        viewModelScope.launch {
+            playBillingManager.isReady.collect { ready ->
+                if (ready) {
+                    syncSubscriptionWithGooglePlay()
+                }
+            }
+        }
+    }
+
+    fun syncSubscriptionWithGooglePlay() {
+        if (!playBillingManager.isReady.value) return
+
+        playBillingManager.queryActivePurchases { activePurchase ->
+            viewModelScope.launch {
+                val hasActive = activePurchase != null
+                subscriptionRepository.syncGooglePlay(
+                    hasActiveSubscription = hasActive,
+                    purchaseToken = activePurchase?.purchaseToken,
+                    productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM
+                ).collectLatest { resource ->
+                    when (resource) {
+                        is Resource.Success -> {
+                            val responseData = resource.data
+                            if (responseData?.user != null) {
+                                user = responseData.user
+                            } else {
+                                user = user?.copy(
+                                    isPremium = responseData?.isPremium ?: hasActive,
+                                    hasPremiumAccess = responseData?.isPremium ?: hasActive
+                                )
+                            }
+                        }
+                        is Resource.Error -> {
+                            // Si la sincronización falla (ej: 409 conflicto de titularidad), re-consultar perfil
+                            fetchUserProfile()
+                        }
+                        is Resource.Loading -> {}
+                    }
+                }
+            }
+        }
     }
 
     fun refreshData() {
@@ -59,9 +104,10 @@ class FamiliaViewModel @Inject constructor(
             isRefreshing = true
             errorMessage = null
             
-            // Concurrently fetch profile and circles
+            // Concurrently fetch profile, circles and sync purchases
             launch { fetchUserProfile() }
             launch { fetchCircles() }
+            launch { syncSubscriptionWithGooglePlay() }
         }
     }
 

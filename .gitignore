@@ -16,4 +16,6 @@ firebase_credentials.json
 firebase_credential.json
 google-services.json
 
-
+# Scripts temporales de migracion y chequeo
+sync_db.sh
+check_dev_db.sh

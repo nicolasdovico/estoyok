@@ -42,3 +42,12 @@ pass: tomas1234
 
 ## Chequeo de notificaciones push
 `https://api.estoyok24.com/api/maintenance/diagnose-push`
+
+---
+
+## 🧪 Entorno de Desarrollo en Railway (Dev)
+* **Backend Base URL:** `https://backend-api-dev-2a56.up.railway.app`
+* **Admin Panel (Filament Dev):** `https://backend-api-dev-2a56.up.railway.app/admin/login`
+* **Swagger / Documentación API Dev:** `https://backend-api-dev-2a56.up.railway.app/api/documentation`
+* **API Endpoint (Android Retrofit Debug):** `https://backend-api-dev-2a56.up.railway.app/api/`
+* **Guía Completa de Flujo de Trabajo:** Ver [`docs/flujo_desarrollo_y_despliegue.md`](docs/flujo_desarrollo_y_despliegue.md)

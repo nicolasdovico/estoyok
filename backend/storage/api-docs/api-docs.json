@@ -242,6 +242,74 @@
                 }
             }
         },
+        "/auth/google": {
+            "post": {
+                "tags": [
+                    "Autenticación"
+                ],
+                "summary": "Autenticación con cuenta de Google",
+                "operationId": "445628b3af33186b3260202d04dfe212",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "id_token"
+                                ],
+                                "properties": {
+                                    "id_token": {
+                                        "description": "Google ID Token JWT",
+                                        "type": "string"
+                                    },
+                                    "device_name": {
+                                        "type": "string",
+                                        "example": "Samsung Galaxy S23"
+                                    },
+                                    "device_uuid": {
+                                        "type": "string",
+                                        "example": "uuid-12345"
+                                    },
+                                    "platform": {
+                                        "type": "string",
+                                        "example": "android"
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Inicio de sesión o registro con Google exitoso",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "token": {
+                                            "type": "string",
+                                            "example": "1|abcde..."
+                                        },
+                                        "user": {
+                                            "type": "object"
+                                        },
+                                        "device_uuid": {
+                                            "type": "string",
+                                            "example": "uuid-12345"
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Token de Google inválido o expirado"
+                    }
+                }
+            }
+        },
         "/logout": {
             "post": {
                 "tags": [

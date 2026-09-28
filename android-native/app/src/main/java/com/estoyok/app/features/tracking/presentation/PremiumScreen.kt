@@ -237,7 +237,7 @@ fun PremiumScreen(
 
                         Spacer(modifier = Modifier.height(22.dp))
 
-                        // CTA Button - Google Play Billing with resilient fallback
+                        // CTA Button - Google Play Billing exclusive
                         Button(
                             onClick = {
                                 val activity = context as? android.app.Activity
@@ -246,9 +246,11 @@ fun PremiumScreen(
                                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                     }
                                 } else {
-                                    viewModel.startFreeTrial { msg ->
-                                        Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
-                                    }
+                                    Toast.makeText(
+                                        context,
+                                        "Google Play Billing no está disponible en este momento. Por favor verifica tu cuenta de Google Play o tu conexión a internet.",
+                                        Toast.LENGTH_LONG
+                                    ).show()
                                 }
                             },
                             modifier = Modifier

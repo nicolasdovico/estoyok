@@ -42,6 +42,13 @@ data class LoginRequest(
     @SerializedName("platform") val platform: String = "android"
 )
 
+data class GoogleLoginRequest(
+    @SerializedName("id_token") val idToken: String,
+    @SerializedName("device_name") val deviceName: String = "android",
+    @SerializedName("device_uuid") val deviceUuid: String? = null,
+    @SerializedName("platform") val platform: String = "android"
+)
+
 data class RegisterRequest(
     @SerializedName("name") val name: String,
     @SerializedName("email") val email: String,

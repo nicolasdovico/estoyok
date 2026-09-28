@@ -55,6 +55,18 @@
       - Creado [`PreventIndexingMiddleware.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Middleware/PreventIndexingMiddleware.php) emitiendo `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` globalmente en todas las respuestas del backend.
       - Reemplazada la vista de bienvenida de Laravel en [`routes/web.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/web.php) por un JSON operativo neutro de la API (`{"service": "Estoy Ok API", "status": "operational"}`).
       - Suite de pruebas de backend pasando al 100% (153 tests pasando).
+    - [x] Blindaje y Control de Titularidad Única de Suscripciones Google Play (Android Nativo & Backend):
+      - Backend: Implementado `findConflictingSubscriptionOwner` y `maskEmail` en `SubscriptionController.php`, protegiendo `syncGooglePlay` y `verifyGooglePlay` con HTTP 409 Conflict ante tokens ya vinculados a otra cuenta activa. Suite de tests ampliada (165 tests pasando al 100%).
+      - App Nativa: `FamiliaViewModel.kt` captura el código de conflicto y re-sincroniza el perfil real del usuario (`fetchUserProfile()`). Verificado en dispositivo físico (`installDebug`).
+    - [x] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo):
+      - App Nativa: Eliminado el fallback `else` en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) que permitía pruebas directas sin pasar por Google Play. Reemplazado por validación y Toast informativo si Google Play Billing no está disponible. Verificado en dispositivo físico (`installDebug`).
+    - [x] Sincronización Híbrida de Google Play Billing y Notificación de Baja al Administrador (Android Nativo & Backend):
+      - Backend: Endpoint `POST /api/subscriptions/sync-google-play`, mailable `SubscriptionCanceledMail.php` con vista `subscription-canceled.blade.php`, comando programado `subscriptions:expire-trials` (`ExpireTrials.php`) y suite de tests `SubscriptionSyncAndCancelTest.php` (163 tests pasando).
+      - App Nativa: `PlayBillingManager.kt` (`queryActivePurchases`), `SubscriptionModels.kt`, `SubscriptionApiService.kt`, `SubscriptionRepositoryImpl.kt`, sincronización reactiva en `FamiliaViewModel.kt` (`syncSubscriptionWithGooglePlay`) y en `MainActivity.kt` (`syncSubscriptionOnResume`). Compilación Android exitosa (`BUILD SUCCESSFUL`).
+    - [x] Implementación de Inicio de Sesión y Registro con Google OAuth (Android Nativo & Backend):
+      - Backend: Migración `add_google_id_to_users_table`, `GoogleAuthService.php`, endpoint `POST /api/auth/google`, OpenAPI/Swagger y suite `GoogleAuthTest.php` (158 tests pasando).
+      - Vinculación transparente con cuentas tradicionales de email (verificación automática de email garantizada por Google) y preservación estricta del flujo tradicional con OTP.
+      - App Nativa: Integración de Credential Manager (`androidx.credentials`), vector oficial `ic_google_logo.xml`, botón `GoogleSignInButton.kt`, y conexión en `LoginScreen.kt`, `RegisterScreen.kt`, `LoginViewModel.kt` y `RegisterViewModel.kt`. Compilación Android exitosa (`BUILD SUCCESSFUL`).
     - [x] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6 - Disponible a Nivel Mundial):
       - Aprobada formalmente por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026.
       - Distribución global activa en **177 países y regiones**, alcanzando compatibilidad con **17,795 modelos de dispositivos Android**.
@@ -454,13 +466,15 @@
           - [x] Optimización Integral de SEO y Datos Estructurados en Landing Web (estoyok24.com): Dominio canónico unificado, esquemas Schema.org (SoftwareApplication con rating 4.9 y enlace directo a Google Play, Organization, BreadcrumbList, FAQPage con 11 preguntas sincronizadas), robots.txt / sitemap.xml depurados, noindex en emergencias privadas, optimización de H1 para términos de búsqueda clave y Core Web Vitals.
 
 ### In Progress:
-- [ ] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
+- [x] **FASE 13: Configuración de Entornos de Despliegue y Validación Final**
+  - [x] Configuración de entorno dual en Railway: entorno `production` (`main` $\rightarrow$ `api.estoyok24.com`) y entorno `dev` (`dev` $\rightarrow$ `backend-api-dev-2a56.up.railway.app`).
+  - [x] Inyección dinámica de `BASE_URL` en Android nativo mediante `buildTypes` (`debug` vs `release`) y consumo reactivo en `NetworkModule.kt` vía `BuildConfig.BASE_URL`.
+  - [x] Creación de la guía maestra operativa de desarrollo y despliegue en [`docs/flujo_desarrollo_y_despliegue.md`](file:///home/usuario/aplicaciones/estoyok/docs/flujo_desarrollo_y_despliegue.md).
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
 - Monitorear métricas, primeras instalaciones y telemetría de la versión 13 (1.0.6) en Producción en Google Play Console.
 - Configurar llaves de prueba (Sandbox/License Testers) en Google Play Console y Stripe la próxima semana.
-- Prepare staging and production deployment configurations.
 - Implement advanced analytics/reports for premium users.
 
 ---

@@ -17,6 +17,87 @@
 - **Verificación de No Regresión:**
     - Backend Tests: **153 passed (504 assertions)** (100% pasando).
 
+## [2026-09-27] Blindaje y Control de Titularidad Única de Suscripciones Google Play (Opción A - Anti-Reciclaje de Tokens)
+- **Backend (Laravel 12 API):**
+    - Implementado método `findConflictingSubscriptionOwner` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) para validar si un `purchase_token` de Google Play ya está asociado a otra cuenta de Estoy Ok con suscripción activa (`is_premium = true` o estatus `active`/`trialing`/`grace_period`).
+    - En caso de conflicto de titularidad, tanto en `syncGooglePlay` como en `verifyGooglePlay`:
+      - Se rechaza la solicitud retornando código HTTP `409 Conflict` y `error_code: SUBSCRIPTION_ALREADY_LINKED`.
+      - Se incluye mensaje claro con email ofuscado del titular legítimo (`maskEmail` ej: `ta******p@gmail.com`).
+      - Si la cuenta infractora tenía asignado previamente el token de forma errónea, se le revoca el acceso (`is_premium = false`, `subscription_status = 'free'`, `subscription_id = null`).
+    - Actualizada documentación OpenAPI/Swagger (código 409 documentado).
+    - Creados tests automatizados en [`SubscriptionSyncAndCancelTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionSyncAndCancelTest.php) verificando el rechazo con 409 y la preservación de la cuenta original (7/7 tests pasando).
+- **App Móvil Android Nativa:**
+    - Actualizado `syncSubscriptionWithGooglePlay` en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) para capturar `Resource.Error` (código 409) y reconsultar el perfil del usuario (`fetchUserProfile()`), asegurando que la UI refleje el estado real de la cuenta (Free) sin otorgar accesos no autorizados.
+    - Instalado y verificado en dispositivo físico real `moto g(7) power` vía `./gradlew installDebug`.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 22s` (0 errores).
+    - Despliegue en dispositivo: `Installed on 1 device` (`BUILD SUCCESSFUL in 19s`).
+    - Backend Tests: **165 passed (565 assertions)** (100% pasando).
+
+## [2026-09-27] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo)
+- **App Móvil Android Nativa (Google Play Policy Compliance & Billing Exclusivity):**
+    - Modificado el botón de acción principal (CTA) en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt): eliminado el bloque `else` de respaldo que invocaba `viewModel.startFreeTrial("direct")` evadiendo la pasarela de Google Play.
+    - Ahora, toda activación de prueba o suscripción exige obligatoriamente Google Play Billing. Si Google Play Billing no está disponible o inicializado, se notifica de forma clara al usuario mediante un Toast informativo: *"Google Play Billing no está disponible en este momento. Por favor verifica tu cuenta de Google Play o tu conexión a internet."*.
+    - Instalado y verificado en dispositivo físico real `moto g(7) power` vía `./gradlew installDebug`.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 53s` (0 errores).
+    - Despliegue en dispositivo: `Installed on 1 device` (`BUILD SUCCESSFUL in 20s`).
+    - Backend Tests: **163 passed (555 assertions)** (100% pasando).
+
+## [2026-09-27] Sincronización Híbrida de Google Play Billing y Notificación de Baja de Suscripción al Administrador (Android Nativo & Backend)
+- **Backend (Laravel 12 API & Notificaciones):**
+    - Creado el mailable [`SubscriptionCanceledMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/SubscriptionCanceledMail.php) y la plantilla visual [`subscription-canceled.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/emails/subscription-canceled.blade.php) para notificar al administrador (`ADMIN_NOTIFICATION_EMAIL`) ante cualquier cancelación o expiración de suscripción/prueba, con métrica de usuarios Premium restantes en tiempo real (mismo patrón que `NewUserRegisteredMail`).
+    - Creado el endpoint `POST /api/subscriptions/sync-google-play` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php):
+      - Si Google Play reporta compra activa (`has_active_subscription = true`): actualiza a `active` si el período de prueba ya finalizó (o `trialing` si sigue vigente) con `is_premium = true`.
+      - Si Google Play no reporta compras activas (`has_active_subscription = false`): si el usuario tenía acceso Premium o estaba en prueba, transiciona a `subscription_status = 'canceled'`, `is_premium = false` y dispara `SubscriptionCanceledMail` al administrador.
+    - Actualizado `verifyGooglePlay` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) para asignar `subscription_status = 'active'` si el período de prueba ya expiró.
+    - Actualizado `cancelSubscription` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) para notificar al administrador mediante `SubscriptionCanceledMail`.
+    - Creado el comando de saneamiento programado [`ExpireTrials.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/ExpireTrials.php) (`subscriptions:expire-trials`) y registrado en [`routes/console.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/console.php) para cancelar pruebas vencidas sin confirmación de pago y notificar al administrador.
+    - Creada suite de integración en [`SubscriptionSyncAndCancelTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionSyncAndCancelTest.php) (5/5 tests pasando) y regenerada la documentación OpenAPI/Swagger.
+- **App Móvil Android Nativa (Google Play Billing 8.0 & Lifecycle Sync):**
+    - Agregado el método `queryActivePurchases` en [`PlayBillingManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/billing/PlayBillingManager.kt) utilizando `queryPurchasesAsync` con `QueryPurchasesParams` para suscripciones activas.
+    - Creados modelos `SyncGooglePlayRequest` y `SyncGooglePlayResponse` en [`SubscriptionModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/model/SubscriptionModels.kt) e integrados en [`SubscriptionApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/remote/SubscriptionApiService.kt), [`SubscriptionRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/domain/repository/SubscriptionRepository.kt) y [`SubscriptionRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/data/repository/SubscriptionRepositoryImpl.kt).
+    - Integrada sincronización automática reactiva en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) (`observeBillingAndSyncPurchases` y `syncSubscriptionWithGooglePlay` en `init` y `refreshData`).
+    - Integrada sincronización automática al reanudar la app en [`MainActivity.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/MainActivity.kt) (`syncSubscriptionOnResume` en `onResume`).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 24s` (0 errores).
+    - Backend Tests: **163 passed (555 assertions)** (100% pasando).
+
+## [2026-09-27] Implementación de Inicio de Sesión y Registro con Google OAuth (Android Nativo & Backend Laravel)
+- **Backend (Laravel 12 API):**
+    - Creada la migración `2026_09_27_181200_add_google_id_to_users_table` agregando la columna `google_id` indexada y única en `users`, y añadido `google_id` y `email_verified_at` al array `$fillable` de [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php).
+    - Desarrollado el servicio [`GoogleAuthService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/GoogleAuthService.php) para validar tokens `id_token` contra la API de Google (`tokeninfo`), verificando emisor, expiración, correo verificado y audiencia del Web Client ID.
+    - Creado el endpoint `POST /api/auth/google` en [`AuthController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/AuthController.php) y registrado en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php). Soporta:
+      - Registro automático de nuevos usuarios con email verificado (`email_verified_at = now()`), contraseña aleatoria segura y notificación al administrador vía [`NewUserRegisteredMail`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/NewUserRegisteredMail.php).
+      - Vinculación transparente con cuentas tradicionales existentes por email (marcando el correo verificado si estaba pendiente).
+      - Cumplimiento de la política de dispositivo móvil único (Life360 style) con silent push `action => logout` a dispositivos previos y emisión de token Sanctum.
+    - Agregada configuración `services.google.client_id` en [`config/services.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/services.php) y variable `GOOGLE_CLIENT_ID` en [`backend/.env.example`](file:///home/usuario/aplicaciones/estoyok/backend/.env.example) y `.env`.
+    - Regenerada documentación OpenAPI/Swagger (`php artisan l5-swagger:generate`).
+    - Creada suite de integración en [`GoogleAuthTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/GoogleAuthTest.php) (5/5 tests pasando).
+- **App Móvil Android Nativa (Jetpack Compose & Credential Manager):**
+    - Integradas las librerías oficiales de Google Identity en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts): `androidx.credentials:credentials:1.3.0`, `credentials-play-services-auth` y `com.google.android.libraries.identity.googleid:googleid:1.1.1`.
+    - Añadido `buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", ...)` en `build.gradle.kts` configurable desde `local.properties`.
+    - Añadido vector oficial de Google [`ic_google_logo.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable/ic_google_logo.xml) y componente reutilizable [`GoogleSignInButton.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/components/GoogleSignInButton.kt) adaptado al tema oscuro premium de Estoy Ok.
+    - Creado modelo de red `GoogleLoginRequest` en [`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt) y conectado en [`AuthApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/remote/AuthApiService.kt), [`AuthRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/domain/repository/AuthRepository.kt) y [`AuthRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/repository/AuthRepositoryImpl.kt).
+    - Integrado flujo de Credential Manager en [`LoginViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginViewModel.kt) y [`RegisterViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterViewModel.kt) con sincronización reactiva de tokens FCM.
+    - Incorporado el botón *"Continuar con Google"* y divisor en [`LoginScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/login/LoginScreen.kt) y [`RegisterScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/register/RegisterScreen.kt).
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 2m 30s` (0 errores).
+    - Backend Tests: **158 passed (528 assertions)** (100% pasando).
+
+## [2026-09-24] Configuración de Entornos Duales (Dev vs Prod), Inyección Dinámica de API y Guía de Flujo de Trabajo
+- **Arquitectura de Entornos y Branching:**
+    - Creado el esquema de ramas seguras: rama `dev` (desarrollo, laboratorio y pruebas de campo en 4G) conectada al entorno `dev` en Railway (`backend-api-dev-2a56.up.railway.app`), y rama `main` conectada exclusivamente al backend de producción (`api.estoyok24.com`).
+    - Blindada la base de datos de producción contra contaminación de datos o ejecución de migraciones accidentales durante el desarrollo de nuevas features.
+- **Inyección Dinámica de API en Android Nativo (Kotlin & Gradle):**
+    - Configurado `buildTypes` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) con `buildConfigField("String", "BASE_URL", ...)`:
+      - `debug`: Inyecta la URL de desarrollo desde `local.properties` (`DEV_API_URL`) con fallback a `https://api-dev.estoyok24.com/api/`.
+      - `release`: Fija estrictamente la URL oficial de producción `https://api.estoyok24.com/api/`.
+    - Actualizado [`NetworkModule.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/di/NetworkModule.kt) para consumir de forma reactiva `BuildConfig.BASE_URL`, garantizando que Retrofit use el entorno correcto según el tipo de compilación.
+    - Configurado el dominio de staging en `android-native/local.properties` (`DEV_API_URL=https://backend-api-dev-2a56.up.railway.app/api/`).
+- **Documentación Operativa:**
+    - Creada la guía maestra [`docs/flujo_desarrollo_y_despliegue.md`](file:///home/usuario/aplicaciones/estoyok/docs/flujo_desarrollo_y_despliegue.md) con el procedimiento paso a paso para desarrollar features en dev, comandos Gradle (`./gradlew installDebug`, `./gradlew bundleRelease`), pruebas en la calle con 4G y pase seguro a Google Play Store.
+
 ## [2026-09-23] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6) - Disponible a Nivel Mundial
 - **Google Play Console (Producción Abierta Aprobada y Publicada):**
     - Aprobada por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026 a las 8:41 a.m.

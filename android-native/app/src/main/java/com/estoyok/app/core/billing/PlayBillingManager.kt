@@ -13,6 +13,7 @@ import com.android.billingclient.api.ProductDetails
 import com.android.billingclient.api.Purchase
 import com.android.billingclient.api.PurchasesUpdatedListener
 import com.android.billingclient.api.QueryProductDetailsParams
+import com.android.billingclient.api.QueryPurchasesParams
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -106,6 +107,33 @@ class PlayBillingManager @Inject constructor(
                 Log.i(TAG, "Loaded subscription product: ${details?.productId} with ${details?.subscriptionOfferDetails?.size ?: 0} offers")
             } else {
                 Log.w(TAG, "Error querying product details: ${billingResult.debugMessage}")
+            }
+        }
+    }
+
+    fun queryActivePurchases(
+        onResult: (activePurchase: Purchase?) -> Unit
+    ) {
+        val client = billingClient
+        if (client == null || !_isReady.value) {
+            onResult(null)
+            return
+        }
+
+        val params = QueryPurchasesParams.newBuilder()
+            .setProductType(BillingClient.ProductType.SUBS)
+            .build()
+
+        client.queryPurchasesAsync(params) { billingResult, purchasesList ->
+            if (billingResult.responseCode == BillingClient.BillingResponseCode.OK) {
+                val activeSub = purchasesList.firstOrNull { purchase ->
+                    purchase.purchaseState == Purchase.PurchaseState.PURCHASED &&
+                    purchase.products.contains(PRODUCT_ID_PREMIUM)
+                }
+                onResult(activeSub)
+            } else {
+                Log.w(TAG, "Error querying active purchases: ${billingResult.debugMessage}")
+                onResult(null)
             }
         }
     }

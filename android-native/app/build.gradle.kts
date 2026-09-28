@@ -32,6 +32,11 @@ android {
             useSupportLibrary = true
         }
         manifestPlaceholders["MAPS_API_KEY"] = mapsApiKey
+
+        val googleWebClientId = localProperties.getProperty("GOOGLE_WEB_CLIENT_ID")
+            ?: System.getenv("GOOGLE_WEB_CLIENT_ID")
+            ?: "443709343955-evk64gqrp6hnhr6br5dkfuh1sr48favn.apps.googleusercontent.com"
+        buildConfigField("String", "GOOGLE_WEB_CLIENT_ID", "\"$googleWebClientId\"")
     }
 
     signingConfigs {
@@ -141,6 +146,11 @@ dependencies {
 
     // Google Play Billing
     implementation("com.android.billingclient:billing:8.0.0")
+
+    // Google Identity / Credential Manager for Sign in with Google
+    implementation("androidx.credentials:credentials:1.3.0")
+    implementation("androidx.credentials:credentials-play-services-auth:1.3.0")
+    implementation("com.google.android.libraries.identity.googleid:googleid:1.1.1")
 
     // Local SMS sending & media recording
     implementation("androidx.legacy:legacy-support-v4:1.0.0")

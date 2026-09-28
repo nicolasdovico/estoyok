@@ -14,10 +14,25 @@ import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.content.Context
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.CustomCredential
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import com.estoyok.app.BuildConfig
+import com.estoyok.app.features.auth.data.model.GoogleLoginRequest
+import com.estoyok.app.core.data.local.SessionManager
+import com.estoyok.app.features.wellbeing.domain.repository.SettingsRepository
+import kotlinx.coroutines.flow.collectLatest
 
 @HiltViewModel
 class RegisterViewModel @Inject constructor(
-    private val authRepository: AuthRepository
+    private val authRepository: AuthRepository,
+    private val settingsRepository: SettingsRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     var name by mutableStateOf("")
@@ -43,6 +58,9 @@ class RegisterViewModel @Inject constructor(
 
     private val _registerSuccess = MutableSharedFlow<String>() // Emits email on success
     val registerSuccess: SharedFlow<String> = _registerSuccess.asSharedFlow()
+
+    private val _googleLoginSuccess = MutableSharedFlow<Unit>()
+    val googleLoginSuccess: SharedFlow<Unit> = _googleLoginSuccess.asSharedFlow()
 
     fun onNameChange(newValue: String) {
         name = newValue
@@ -120,6 +138,92 @@ class RegisterViewModel @Inject constructor(
                         errorMessage = resource.message ?: "Error al registrarse."
                     }
                 }
+            }
+        }
+    }
+
+    fun loginWithGoogle(context: Context) {
+        val webClientId = BuildConfig.GOOGLE_WEB_CLIENT_ID
+        if (webClientId.isBlank() || webClientId == "your_google_web_client_id_here") {
+            errorMessage = "Google Web Client ID no configurado. Revisa tu archivo local.properties o .env."
+            return
+        }
+
+        val credentialManager = CredentialManager.create(context)
+        val googleIdOption = GetGoogleIdOption.Builder()
+            .setFilterByAuthorizedAccounts(false)
+            .setServerClientId(webClientId)
+            .setAutoSelectEnabled(false)
+            .build()
+
+        val request = GetCredentialRequest.Builder()
+            .addCredentialOption(googleIdOption)
+            .build()
+
+        viewModelScope.launch {
+            isLoading = true
+            errorMessage = null
+            try {
+                val result = credentialManager.getCredential(
+                    request = request,
+                    context = context
+                )
+                val credential = result.credential
+                if (credential is CustomCredential && credential.type == GoogleIdTokenCredential.TYPE_GOOGLE_ID_TOKEN_CREDENTIAL) {
+                    val googleIdTokenCredential = GoogleIdTokenCredential.createFrom(credential.data)
+                    val idToken = googleIdTokenCredential.idToken
+
+                    val deviceUuid = sessionManager.getOrCreateDeviceUuid()
+                    val deviceName = "${android.os.Build.MANUFACTURER} ${android.os.Build.MODEL}".trim()
+                    val googleRequest = GoogleLoginRequest(
+                        idToken = idToken,
+                        deviceName = if (deviceName.isNotBlank()) deviceName else "Android Device",
+                        deviceUuid = deviceUuid,
+                        platform = "android"
+                    )
+
+                    authRepository.loginWithGoogle(googleRequest).collect { resource ->
+                        when (resource) {
+                            is Resource.Loading -> {
+                                isLoading = true
+                                errorMessage = null
+                            }
+                            is Resource.Success -> {
+                                isLoading = false
+                                try {
+                                    com.google.firebase.messaging.FirebaseMessaging.getInstance().token.addOnCompleteListener { task ->
+                                        if (task.isSuccessful) {
+                                            val token = task.result
+                                            viewModelScope.launch {
+                                                val uuid = sessionManager.getOrCreateDeviceUuid()
+                                                settingsRepository.updatePushToken(token, uuid).collectLatest { }
+                                            }
+                                        }
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("RegisterViewModel", "Error fetching FCM token on Google login: ${e.message}")
+                                }
+                                _googleLoginSuccess.emit(Unit)
+                            }
+                            is Resource.Error -> {
+                                isLoading = false
+                                errorMessage = resource.message ?: "Error al registrarse con Google."
+                            }
+                        }
+                    }
+                } else {
+                    isLoading = false
+                    errorMessage = "Credencial de Google no reconocida."
+                }
+            } catch (e: GetCredentialCancellationException) {
+                isLoading = false
+                // User cancelled the prompt, keep silent
+            } catch (e: GetCredentialException) {
+                isLoading = false
+                errorMessage = "Error de autenticación con Google: ${e.message}"
+            } catch (e: Exception) {
+                isLoading = false
+                errorMessage = "Error inesperado con Google: ${e.message}"
             }
         }
     }

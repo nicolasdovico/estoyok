@@ -77,6 +77,34 @@ class SubscriptionRepositoryImpl @Inject constructor(
         }
     }
 
+    override fun syncGooglePlay(
+        hasActiveSubscription: Boolean,
+        purchaseToken: String?,
+        productId: String?,
+        basePlanId: String?
+    ): Flow<Resource<com.estoyok.app.features.tracking.data.model.SyncGooglePlayResponse>> = flow {
+        emit(Resource.Loading())
+        try {
+            val response = apiService.syncGooglePlay(
+                com.estoyok.app.features.tracking.data.model.SyncGooglePlayRequest(
+                    hasActiveSubscription = hasActiveSubscription,
+                    purchaseToken = purchaseToken,
+                    productId = productId,
+                    basePlanId = basePlanId
+                )
+            )
+            if (response.isSuccessful && response.body() != null) {
+                emit(Resource.Success(response.body()!!))
+            } else {
+                emit(Resource.Error(parseErrorMessage(response)))
+            }
+        } catch (e: IOException) {
+            emit(Resource.Error("Error de conexión. Revisa tu internet."))
+        } catch (e: Exception) {
+            emit(Resource.Error("Ocurrió un error inesperado al sincronizar la suscripción con Google Play."))
+        }
+    }
+
     private fun parseErrorMessage(response: Response<*>): String {
         return try {
             val errorBody = response.errorBody()?.string() ?: return "Error desconocido"

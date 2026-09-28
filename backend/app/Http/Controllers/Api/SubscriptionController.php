@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SubscriptionCanceledMail;
 use App\Services\MercadoPagoService;
 use App\Services\PayPalService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SubscriptionController extends Controller
 {
@@ -163,7 +166,17 @@ class SubscriptionController extends Controller
      *             @OA\Property(property="base_plan_id", type="string", example="monthly-plan")
      *         )
      *     ),
-     *     @OA\Response(response=200, description="Subscription activated successfully")
+     *     @OA\Response(response=200, description="Subscription activated successfully"),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Subscription already linked to another account",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="error_code", type="string", example="SUBSCRIPTION_ALREADY_LINKED"),
+     *             @OA\Property(property="status", type="string", example="conflict"),
+     *             @OA\Property(property="is_premium", type="boolean", example=false)
+     *         )
+     *     )
      * )
      */
     public function verifyGooglePlay(Request $request)
@@ -175,15 +188,30 @@ class SubscriptionController extends Controller
         ]);
 
         $user = Auth::user();
+        $purchaseToken = $request->input('purchase_token');
+
+        $conflictOwner = $this->findConflictingSubscriptionOwner($purchaseToken, $user->id);
+        if ($conflictOwner) {
+            return response()->json([
+                'message' => 'Esta suscripción de Google Play ya se encuentra vinculada a otra cuenta de Estoy Ok (' . $this->maskEmail($conflictOwner->email) . ').',
+                'error_code' => 'SUBSCRIPTION_ALREADY_LINKED',
+                'status' => 'conflict',
+                'is_premium' => false,
+            ], 409);
+        }
+
         $basePlan = $request->input('base_plan_id', 'monthly-plan');
         $isAnnual = str_contains((string) $basePlan, 'annual');
 
+        $isTrialExpired = $user->trial_ends_at && $user->trial_ends_at <= now();
+        $status = $isTrialExpired ? 'active' : 'trialing';
+
         $user->update([
             'is_premium' => true,
-            'subscription_status' => 'trialing',
+            'subscription_status' => $status,
             'subscription_provider' => 'google_play',
-            'subscription_id' => $request->input('purchase_token'),
-            'trial_ends_at' => now()->addDays(7),
+            'subscription_id' => $purchaseToken,
+            'trial_ends_at' => $user->trial_ends_at ?: now()->addDays(7),
             'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
         ]);
 
@@ -191,6 +219,123 @@ class SubscriptionController extends Controller
             'message' => '¡Suscripción de Google Play verificada y activada con éxito!',
             'user' => $user->fresh(),
         ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/subscriptions/sync-google-play",
+     *     summary="Synchronize subscription status with Google Play Billing",
+     *     tags={"Subscriptions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"has_active_subscription"},
+     *             @OA\Property(property="has_active_subscription", type="boolean", example=true),
+     *             @OA\Property(property="purchase_token", type="string", example="GPA.1234..."),
+     *             @OA\Property(property="product_id", type="string", example="estoyok_premium"),
+     *             @OA\Property(property="base_plan_id", type="string", example="monthly-plan")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription synchronized successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="is_premium", type="boolean")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=409,
+     *         description="Subscription already linked to another account",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="error_code", type="string", example="SUBSCRIPTION_ALREADY_LINKED"),
+     *             @OA\Property(property="status", type="string", example="conflict"),
+     *             @OA\Property(property="is_premium", type="boolean", example=false)
+     *         )
+     *     )
+     * )
+     */
+    public function syncGooglePlay(Request $request)
+    {
+        $request->validate([
+            'has_active_subscription' => 'required|boolean',
+            'purchase_token' => 'required_if:has_active_subscription,true|nullable|string',
+            'product_id' => 'nullable|string',
+            'base_plan_id' => 'nullable|string',
+        ]);
+
+        $user = Auth::user();
+        $hasActive = (bool) $request->input('has_active_subscription');
+
+        if ($hasActive) {
+            $purchaseToken = $request->input('purchase_token');
+
+            if (!empty($purchaseToken)) {
+                $conflictOwner = $this->findConflictingSubscriptionOwner($purchaseToken, $user->id);
+                if ($conflictOwner) {
+                    // Si el usuario actual tenía este token asignado erróneamente con anterioridad, revocarlo
+                    if ($user->subscription_id === $purchaseToken && $user->id !== $conflictOwner->id) {
+                        $user->update([
+                            'is_premium' => false,
+                            'subscription_status' => 'free',
+                            'subscription_id' => null,
+                        ]);
+                    }
+
+                    return response()->json([
+                        'message' => 'Esta suscripción de Google Play ya se encuentra vinculada a otra cuenta de Estoy Ok (' . $this->maskEmail($conflictOwner->email) . ').',
+                        'error_code' => 'SUBSCRIPTION_ALREADY_LINKED',
+                        'status' => 'conflict',
+                        'is_premium' => false,
+                        'user' => $user->fresh(),
+                    ], 409);
+                }
+            }
+
+            $basePlan = $request->input('base_plan_id', 'monthly-plan');
+            $isAnnual = str_contains((string) $basePlan, 'annual');
+
+            // Si el período de prueba ya finalizó (o venció), pasa inmediatamente a 'active'
+            $isTrialActive = $user->trial_ends_at && $user->trial_ends_at > now();
+            $newStatus = $isTrialActive ? 'trialing' : 'active';
+
+            $user->update([
+                'is_premium' => true,
+                'subscription_status' => $newStatus,
+                'subscription_provider' => 'google_play',
+                'subscription_id' => $purchaseToken ?: $user->subscription_id,
+                'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
+            ]);
+
+            return response()->json([
+                'message' => 'Suscripción de Google Play sincronizada como activa.',
+                'status' => $newStatus,
+                'is_premium' => true,
+                'user' => $user->fresh(),
+            ]);
+        } else {
+            // Google Play no tiene compras activas
+            $wasPremium = (bool) $user->is_premium || in_array($user->subscription_status, ['trialing', 'active', 'grace_period']);
+
+            if ($wasPremium) {
+                $user->update([
+                    'is_premium' => false,
+                    'subscription_status' => 'canceled',
+                ]);
+
+                $this->notifyAdminSubscriptionCanceled($user, 'Google Play reportó compra inactiva o cancelada');
+            }
+
+            return response()->json([
+                'message' => 'Suscripción sincronizada. El usuario no cuenta con suscripción activa en Google Play.',
+                'status' => 'canceled',
+                'is_premium' => false,
+                'user' => $user->fresh(),
+            ]);
+        }
     }
 
     /**
@@ -325,9 +470,61 @@ class SubscriptionController extends Controller
             'is_premium' => false,
         ]);
 
+        $this->notifyAdminSubscriptionCanceled($user, 'Cancelación voluntaria solicitada por el usuario');
+
         return response()->json([
             'message' => 'Tu prueba gratuita o suscripción ha sido cancelada sin costo alguno.',
             'user' => $user->fresh()
         ]);
+    }
+
+    /**
+     * Notify the administrator via email about a canceled or expired subscription.
+     */
+    protected function notifyAdminSubscriptionCanceled(User $user, string $reason = 'Cancelación o expiración de suscripción'): void
+    {
+        $adminEmail = config('mail.admin_notification_email');
+        if (!empty($adminEmail)) {
+            try {
+                $activePremium = User::where('is_premium', true)->count();
+                Mail::to($adminEmail)->send(new SubscriptionCanceledMail($user, $reason, $activePremium));
+            } catch (\Throwable $e) {
+                Log::warning("No se pudo enviar la notificación de baja al administrador: " . $e->getMessage());
+            }
+        }
+    }
+
+    /**
+     * Check if a Google Play purchase token is already owned by another active user.
+     */
+    protected function findConflictingSubscriptionOwner(string $purchaseToken, int $currentUserId): ?User
+    {
+        return User::where('subscription_id', $purchaseToken)
+            ->where('id', '!=', $currentUserId)
+            ->where(function ($query) {
+                $query->where('is_premium', true)
+                    ->orWhereIn('subscription_status', ['trialing', 'active', 'grace_period']);
+            })
+            ->orderBy('id', 'asc')
+            ->first();
+    }
+
+    /**
+     * Mask an email address for privacy in error responses (e.g. ta******p@gmail.com).
+     */
+    protected function maskEmail(string $email): string
+    {
+        $parts = explode('@', $email);
+        $name = $parts[0];
+        $domain = $parts[1] ?? '';
+        $len = strlen($name);
+
+        if ($len <= 2) {
+            $maskedName = substr($name, 0, 1) . '*';
+        } else {
+            $maskedName = substr($name, 0, 2) . str_repeat('*', max(1, $len - 3)) . substr($name, -1);
+        }
+
+        return $maskedName . '@' . $domain;
     }
 }
