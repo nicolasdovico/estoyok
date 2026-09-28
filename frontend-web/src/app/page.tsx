@@ -4,6 +4,53 @@ import { useState, useEffect } from 'react';
 import Link from "next/link";
 // import Dashboard from '@/components/Dashboard';
 
+const faqs = [
+  {
+    q: "¿Cuál es la diferencia entre Bienestar Pasivo y Bienestar Activo en Estoy Ok?",
+    a: "El Bienestar Pasivo confirma que te encuentras a salvo automáticamente mediante tu Wi-Fi seguro de casa o tu movimiento, sin activar rastreo continuo ni compartir tu ubicación en un mapa (respetando tu privacidad al 100%). El Bienestar Activo habilita el seguimiento GPS en tiempo real, Zonas Seguras y telemetría vehicular para cuando necesites coordinar traslados o cuidar a tus hijos en la calle."
+  },
+  {
+    q: "¿Mi familia puede ver mi ubicación exacta todo el tiempo?",
+    a: "No si utilizas el modo de Bienestar Pasivo. En este modo, tu ubicación geográfica solo se vuelve accesible para tus contactos de emergencia en caso de que venza tu temporizador de seguridad sin confirmación previa o si presionas de forma voluntaria el botón S.O.S. de emergencia."
+  },
+  {
+    q: "¿Qué es y cómo funciona el botón de \"Estoy Ok\"?",
+    a: "Es un sistema de bienestar pasivo diseñado para proteger tu privacidad. Solo debes pulsar el botón una vez al día para confirmar que te encuentras bien y reiniciar tu plazo de seguridad. Si el plazo se vence y olvidas reportarte, el sistema despacha alertas automáticas prioritarias a todos tus contactos de emergencia."
+  },
+  {
+    q: "¿Cómo funciona el Auto-Check-in inteligente?",
+    a: "Es una característica exclusiva del Plan PRO. En lugar de presionar el botón manualmente, la app móvil de Estoy Ok utiliza sensores en segundo plano de manera silenciosa: detecta si tu celular se conecta a la red Wi-Fi segura de tu hogar o si registras más de 100 pasos en una hora mediante el podómetro integrado para confirmar tu bienestar de forma automática."
+  },
+  {
+    q: "¿Cómo funciona el S.O.S. Silencioso de Emergencia?",
+    a: "Es un botón de auxilio instantáneo para situaciones de peligro inmediato. Al presionarlo en la app móvil, se dispara de forma discreta una alerta crítica: la tasa de actualización de tu ubicación aumenta a cada 5 segundos y se graban 15 segundos de audio ambiente de fondo de forma imperceptible. Tu núcleo familiar recibe notificaciones prioritarias y WhatsApp (según el plan) con un enlace para ver tu ubicación y escuchar el audio."
+  },
+  {
+    q: "¿Cómo invito a mis familiares a unirse a mi Núcleo?",
+    a: "Crear y unirse a un núcleo es sumamente simple. En la sección \"Mis Núcleos\", selecciona el núcleo que creaste y copia el código de invitación único de 10 caracteres. Compártelo con tu familiar (por ejemplo, por WhatsApp). Tu familiar solo tendrá que crear su cuenta, pulsar en \"Unirse a un Núcleo\" e ingresar el código para estar vinculados."
+  },
+  {
+    q: "¿Qué son las Zonas Seguras y cómo nos alertan?",
+    a: "Las Zonas Seguras son áreas delimitadas que configuras en el mapa (como la casa, escuela o trabajo). Cuando el GPS del celular de un miembro del núcleo ingresa o sale de este radio de seguridad, todos los demás integrantes reciben una notificación Push instantánea en tiempo real."
+  },
+  {
+    q: "¿Cómo funciona la detección de conducción y alertas de velocidad?",
+    a: "La app móvil de Estoy Ok detecta de manera inteligente si te encuentras viajando en un automóvil mediante el sensor de GPS. Si la velocidad detectada supera los 25 km/h de manera sostenida por más de 1 minuto, el estado del usuario cambia automáticamente a conducción (🚗) y el núcleo puede ver un coche desplazándose en el mapa con su velocidad en vivo. Si en algún momento se supera el límite de velocidad establecido por el creador del núcleo (ej. 120 km/h), el sistema registra el incidente en el backend y envía una notificación push inmediata al creador del núcleo para prevenir posibles imprudencias."
+  },
+  {
+    q: "¿Cómo funciona la detección automática de accidentes vehiculares?",
+    a: "Utiliza el sensor del acelerómetro físico en teléfonos inteligentes para registrar desaceleraciones extremas o impactos severos (umbrales superiores a 4.5G) característicos de un accidente de tránsito. Si el sistema detecta un impacto y el dispositivo permanece inmóvil por 3 segundos (indicando una colisión), se inicia una pre-alerta de 15 segundos con un sonido fuerte de sirena. Si no se cancela pulsando 'Estoy bien', se activa de inmediato el protocolo de crisis máxima: se envía la ubicación GPS exacta y una grabación ambiental de audio a los familiares vía WhatsApp y notificaciones Push críticas."
+  },
+  {
+    q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
+    a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp."
+  },
+  {
+    q: "¿Cómo funciona la prueba gratuita de 7 días y la cancelación?",
+    a: "Al iniciar tu registro o seleccionar el Plan PRO, obtienes 7 días de acceso completo por $0.00. El día 5 te enviamos una notificación preventiva por push e email. Al finalizar los 7 días (día 8), comienza la suscripción mensual flexible de $4.99/mes. Puedes cancelar en cualquier momento durante los 7 días desde tus Ajustes o tiendas de aplicaciones sin que se te efectúe ningún cobro."
+  }
+];
+
 export default function Home() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null);
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
@@ -34,8 +81,19 @@ export default function Home() {
     '@context': 'https://schema.org',
     '@type': 'SoftwareApplication',
     name: 'Estoy Ok',
-    operatingSystem: 'ANDROID',
-    applicationCategory: 'SecurityApplication',
+    url: 'https://estoyok24.com',
+    downloadUrl: 'https://play.google.com/store/apps/details?id=com.estoyok.app',
+    installUrl: 'https://play.google.com/store/apps/details?id=com.estoyok.app',
+    operatingSystem: 'Android 8.0+',
+    applicationCategory: 'SafetyApplication',
+    applicationSubCategory: 'Family Safety & GPS Tracker',
+    screenshot: 'https://estoyok24.com/images/hero_mockup.jpg',
+    image: 'https://estoyok24.com/logo-square.png',
+    author: {
+      '@type': 'Organization',
+      name: 'Estoy Ok',
+      url: 'https://estoyok24.com',
+    },
     offers: {
       '@type': 'Offer',
       price: '0.00',
@@ -43,51 +101,57 @@ export default function Home() {
       priceValidUntil: '2027-12-31',
       description: '7 Días de Prueba Completa Gratis ($0.00 hoy)',
     },
-    description: 'Plataforma de seguridad y asistencia familiar con monitoreo pasivo por Wi-Fi seguro y rastreo GPS activo en tiempo real.',
+    description: 'Plataforma integral de seguridad familiar y bienestar. Combina Bienestar Pasivo (check-in automático por Wi-Fi de casa o movimiento sin invadir la privacidad) con Rastreo GPS en tiempo real, Zonas Seguras, telemetría vehicular y botón SOS con WhatsApp.',
     aggregateRating: {
       '@type': 'AggregateRating',
       ratingValue: '4.9',
-      ratingCount: '128',
+      ratingCount: '142',
+      bestRating: '5',
+      worstRating: '1',
     },
+  };
+
+  const jsonLdOrg = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Estoy Ok',
+    url: 'https://estoyok24.com',
+    logo: 'https://estoyok24.com/logo-square.png',
+    sameAs: [
+      'https://play.google.com/store/apps/details?id=com.estoyok.app',
+    ],
+    contactPoint: {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      url: 'https://estoyok24.com',
+      availableLanguage: ['es'],
+    },
+  };
+
+  const jsonLdBreadcrumb = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      {
+        '@type': 'ListItem',
+        position: 1,
+        name: 'Inicio',
+        item: 'https://estoyok24.com',
+      },
+    ],
   };
 
   const jsonLdFaq = {
     '@context': 'https://schema.org',
     '@type': 'FAQPage',
-    mainEntity: [
-      {
-        '@type': 'Question',
-        name: '¿Cuál es la diferencia entre Bienestar Pasivo y Bienestar Activo en Estoy Ok?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'El Bienestar Pasivo es una protección invisible diseñada para cuidar la intimidad: la app confirma automáticamente que el usuario está bien al conectarse al Wi-Fi seguro del hogar o mediante sensores de movimiento, sin mostrar su ubicación 24/7 en un mapa. El Bienestar Activo es para cuando están en la calle: activa mapa en tiempo real, Zonas Seguras y telemetría vehicular.',
-        },
+    mainEntity: faqs.map((faq) => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: faq.a,
       },
-      {
-        '@type': 'Question',
-        name: '¿Mi familia puede ver mi ubicación exacta todo el tiempo?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Tú eliges el nivel de privacidad. En modo Bienestar Pasivo, tus contactos solo reciben la confirmación de que estás a salvo sin ver tu posición en el mapa. La ubicación GPS exacta solo se activa en modo Activo o cuando se dispara una alerta de SOS / reporte vencido.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: '¿Qué sucede si se me agota la batería o me quedo sin señal?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Estoy Ok registra el estado de los sensores de tu teléfono antes de perder señal. Si la batería baja de 15%, notifica a tus contactos. Si se apaga y el reporte vence, la plataforma despacha las alertas de contingencia con el último punto GPS conocido.',
-        },
-      },
-      {
-        '@type': 'Question',
-        name: '¿Cómo funciona la respuesta de contingencia por WhatsApp?',
-        acceptedAnswer: {
-          '@type': 'Answer',
-          text: 'Si vence el plazo de check-in y no se recibe respuesta pasiva ni manual, el servidor envía mensajes automáticos por WhatsApp a tus contactos de emergencia con un enlace seguro a la web de crisis.',
-        },
-      },
-    ],
+    })),
   };
 
   // Si no está autenticado, mostrar la Landing Page Comercial Premium
@@ -96,6 +160,14 @@ export default function Home() {
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdSoftware) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdOrg) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdBreadcrumb) }}
       />
       <script
         type="application/ld+json"
@@ -156,10 +228,10 @@ export default function Home() {
               Protección Dual: Bienestar Pasivo (Invisible) + Tracking Activo Satelital
             </div>
             
-            <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl text-white leading-none">
-              Tu familia protegida.<br />
+            <h1 className="text-4xl font-extrabold tracking-tight sm:text-6xl md:text-7xl text-white leading-tight">
+              Localizador Familiar GPS y Seguridad.<br />
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-red-500 via-rose-500 to-indigo-500">
-                Sin invadir su privacidad.
+                Tu familia protegida sin invadir su privacidad.
               </span>
             </h1>
             
@@ -195,7 +267,10 @@ export default function Home() {
               <div className="relative rounded-3xl border border-neutral-800/80 bg-neutral-950/60 p-2 md:p-3 shadow-2xl shadow-green-500/10 hover:border-green-500/30 transition-all duration-300 overflow-hidden">
                 <img 
                   src="/images/hero_mockup.jpg" 
-                  alt="Aplicación Móvil Estoy Ok - Monitoreo de Bienestar y Estado A Salvo" 
+                  alt="Aplicación Móvil Estoy Ok - Seguridad y Localizador Familiar GPS con Bienestar Pasivo y Rastreo Activo" 
+                  width={960}
+                  height={540}
+                  loading="eager"
                   className="w-full max-w-3xl h-auto rounded-2xl object-cover hover:scale-[1.01] transition-transform duration-500"
                 />
               </div>
@@ -653,52 +728,7 @@ export default function Home() {
             </div>
 
             <div className="space-y-4">
-              {[
-                {
-                  q: "¿Cuál es la diferencia entre Bienestar Pasivo y Bienestar Activo en Estoy Ok?",
-                  a: "El Bienestar Pasivo confirma que te encuentras a salvo automáticamente mediante tu Wi-Fi seguro de casa o tu movimiento, sin activar rastreo continuo ni compartir tu ubicación en un mapa (respetando tu privacidad al 100%). El Bienestar Activo habilita el seguimiento GPS en tiempo real, Zonas Seguras y telemetría vehicular para cuando necesites coordinar traslados o cuidar a tus hijos en la calle."
-                },
-                {
-                  q: "¿Mi familia puede ver mi ubicación exacta todo el tiempo?",
-                  a: "No si utilizas el modo de Bienestar Pasivo. En este modo, tu ubicación geográfica solo se vuelve accesible para tus contactos de emergencia en caso de que venza tu temporizador de seguridad sin confirmación previa o si presionas de forma voluntaria el botón S.O.S. de emergencia."
-                },
-                {
-                  q: "¿Qué es y cómo funciona el botón de \"Estoy Ok\"?",
-                  a: "Es un sistema de bienestar pasivo diseñado para proteger tu privacidad. Solo debes pulsar el botón una vez al día para confirmar que te encuentras bien y reiniciar tu plazo de seguridad. Si el plazo se vence y olvidas reportarte, el sistema despacha alertas automáticas prioritarias a todos tus contactos de emergencia."
-                },
-                {
-                  q: "¿Cómo funciona el Auto-Check-in inteligente?",
-                  a: "Es una característica exclusiva del Plan PRO. En lugar de presionar el botón manualmente, la app móvil de Estoy Ok utiliza sensores en segundo plano de manera silenciosa: detecta si tu celular se conecta a la red Wi-Fi segura de tu hogar o si registras más de 100 pasos en una hora mediante el podómetro integrado para confirmar tu bienestar de forma automática."
-                },
-                {
-                  q: "¿Cómo funciona el S.O.S. Silencioso de Emergencia?",
-                  a: "Es un botón de auxilio instantáneo para situaciones de peligro inmediato. Al presionarlo en la app móvil, se dispara de forma discreta una alerta crítica: la tasa de actualización de tu ubicación aumenta a cada 5 segundos y se graban 15 segundos de audio ambiente de fondo de forma imperceptible. Tu núcleo familiar recibe notificaciones prioritarias y WhatsApp (según el plan) con un enlace para ver tu ubicación y escuchar el audio."
-                },
-                {
-                  q: "¿Cómo invito a mis familiares a unirse a mi Núcleo?",
-                  a: "Crear y unirse a un núcleo es sumamente simple. En la sección \"Mis Núcleos\", selecciona el núcleo que creaste y copia el código de invitación único de 10 caracteres. Compártelo con tu familiar (por ejemplo, por WhatsApp). Tu familiar solo tendrá que crear su cuenta, pulsar en \"Unirse a un Núcleo\" e ingresar el código para estar vinculados."
-                },
-                {
-                  q: "¿Qué son las Zonas Seguras y cómo nos alertan?",
-                  a: "Las Zonas Seguras son áreas delimitadas que configuras en el mapa (como la casa, escuela o trabajo). Cuando el GPS del celular de un miembro del núcleo ingresa o sale de este radio de seguridad, todos los demás integrantes reciben una notificación Push instantánea en tiempo real."
-                },
-                {
-                  q: "¿Cómo funciona la detección de conducción y alertas de velocidad?",
-                  a: "La app móvil de Estoy Ok detecta de manera inteligente si te encuentras viajando en un automóvil mediante el sensor de GPS. Si la velocidad detectada supera los 25 km/h de manera sostenida por más de 1 minuto, el estado del usuario cambia automáticamente a conducción (🚗) y el núcleo puede ver un coche desplazándose en el mapa con su velocidad en vivo. Si en algún momento se supera el límite de velocidad establecido por el creador del núcleo (ej. 120 km/h), el sistema registra el incidente en el backend y envía una notificación push inmediata al creador del núcleo para prevenir posibles imprudencias."
-                },
-                {
-                  q: "¿Cómo funciona la detección automática de accidentes vehiculares?",
-                  a: "Utiliza el sensor del acelerómetro físico en teléfonos inteligentes para registrar desaceleraciones extremas o impactos severos (umbrales superiores a 4.5G) característicos de un accidente de tránsito. Si el sistema detecta un impacto y el dispositivo permanece inmóvil por 3 segundos (indicando una colisión), se inicia una pre-alerta de 15 segundos con un sonido fuerte de sirena. Si no se cancela pulsando 'Estoy bien', se activa de inmediato el protocolo de crisis máxima: se envía la ubicación GPS exacta y una grabación ambiental de audio a los familiares vía WhatsApp y notificaciones Push críticas."
-                },
-                {
-                  q: "¿Qué pasa si mi celular se queda sin batería o no tiene señal?",
-                  a: "Estoy Ok cuenta con prevención activa: detecta cuando tu batería baja del 15% y alerta a tus familiares. Además, el panel del núcleo diferencia en tiempo real si el dispositivo tiene el GPS apagado, el rastreo desactivado voluntariamente o si está sin señal de internet. Si el celular se apaga por completo y expira tu temporizador, el sistema despacha alertas prioritarias vía WhatsApp."
-                },
-                {
-                  q: "¿Cómo funciona la prueba gratuita de 7 días y la cancelación?",
-                  a: "Al iniciar tu registro o seleccionar el Plan PRO, obtienes 7 días de acceso completo por $0.00. El día 5 te enviamos una notificación preventiva por push e email. Al finalizar los 7 días (día 8), comienza la suscripción mensual flexible de $4.99/mes. Puedes cancelar en cualquier momento durante los 7 días desde tus Ajustes o tiendas de aplicaciones sin que se te efectúe ningún cobro."
-                }
-              ].map((faq, index) => {
+              {faqs.map((faq, index) => {
                 const isOpen = openFaqIndex === index;
                 return (
                   <div 

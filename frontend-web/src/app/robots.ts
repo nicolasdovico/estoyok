@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: '*',
       allow: '/',
-      disallow: ['/api/', '/verify-email/'],
+      disallow: ['/api/', '/verify-email/', '/emergencia/'],
     },
-    sitemap: 'https://estoyok.com/sitemap.xml',
+    sitemap: 'https://estoyok24.com/sitemap.xml',
   };
 }

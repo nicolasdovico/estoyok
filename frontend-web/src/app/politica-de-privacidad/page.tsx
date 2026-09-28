@@ -1,8 +1,19 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 
-export const metadata = {
-  title: 'Política de Privacidad - Estoy Ok',
-  description: 'Política de privacidad y protección de datos personales de la plataforma Estoy Ok.',
+export const metadata: Metadata = {
+  title: 'Política de Privacidad y Protección de Datos - Estoy Ok',
+  description: 'Política de privacidad, protección de datos personales y términos de seguridad de la plataforma de asistencia familiar Estoy Ok.',
+  alternates: {
+    canonical: 'https://estoyok24.com/politica-de-privacidad',
+  },
+  openGraph: {
+    title: 'Política de Privacidad - Estoy Ok',
+    description: 'Conoce cómo Estoy Ok protege la privacidad y los datos de tu núcleo familiar.',
+    url: 'https://estoyok24.com/politica-de-privacidad',
+    siteName: 'Estoy Ok',
+    type: 'website',
+  },
 };
 
 export default function PoliticaDePrivacidadPage() {

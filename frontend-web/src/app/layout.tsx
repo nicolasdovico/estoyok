@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,28 +12,43 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#09090b",
+  colorScheme: "dark",
+  width: "device-width",
+  initialScale: 1,
+};
+
 export const metadata: Metadata = {
-  metadataBase: new URL("https://estoyok.com"),
+  metadataBase: new URL("https://estoyok24.com"),
+  alternates: {
+    canonical: "https://estoyok24.com",
+  },
   title: {
-    default: "Estoy Ok - Protección Pasiva & Rastreo Satelital Familiar",
+    default: "Estoy Ok - Seguridad y Localizador Familiar GPS | Protección Activa y Pasiva",
     template: "%s | Estoy Ok"
   },
-  description: "Plataforma de asistencia familiar con Bienestar Pasivo (monitoreo invisible por Wi-Fi seguro/pasos sin rastreo 24/7) y Rastreo Activo en Tiempo Real, Zonas Seguras, telemetría vehicular y SOS de emergencia.",
+  description: "Plataforma integral de seguridad familiar y bienestar. Combina Bienestar Pasivo (check-in automático por Wi-Fi de casa o movimiento) con Rastreo GPS en tiempo real, Zonas Seguras, telemetría vehicular y botón SOS con WhatsApp.",
   keywords: [
     "seguridad familiar",
-    "monitoreo pasivo",
-    "check-in diario",
-    "rastreo gps familiar",
-    "zonas seguras",
+    "localizador familiar gps",
+    "rastreo gps en tiempo real",
+    "cuidado de adultos mayores",
+    "check-in diario de bienestar",
+    "zonas seguras y geocercas",
+    "boton de panico familiar",
+    "alertas de emergencia whatsapp",
+    "deteccion de choques automotriz",
     "telemetria vehicular",
-    "exceso de velocidad",
     "sos silencioso",
-    "alertas whatsapp",
-    "adultos mayores"
+    "estoy ok app",
+    "proteccion familiar activa y pasiva"
   ],
-  authors: [{ name: "Estoy Ok Team" }],
+  authors: [{ name: "Estoy Ok", url: "https://estoyok24.com" }],
   creator: "Estoy Ok",
   publisher: "Estoy Ok",
+  applicationName: "Estoy Ok",
+  category: "Safety & Security",
   robots: {
     index: true,
     follow: true,
@@ -46,25 +61,26 @@ export const metadata: Metadata = {
     },
   },
   openGraph: {
-    title: "Estoy Ok - Protección Pasiva & Rastreo Satelital Familiar",
-    description: "La primera plataforma de asistencia que combina Protección Pasiva Invisible con Rastreo GPS Activo en Tiempo Real.",
-    url: "https://estoyok.com",
+    title: "Estoy Ok - Seguridad y Localizador Familiar GPS | Protección Activa y Pasiva",
+    description: "Plataforma de asistencia familiar con Bienestar Pasivo (monitoreo invisible sin invadir privacidad) y Rastreo Activo en Tiempo Real.",
+    url: "https://estoyok24.com",
     siteName: "Estoy Ok",
     images: [
       {
         url: "/images/hero_mockup.jpg",
         width: 1200,
         height: 630,
-        alt: "Estoy Ok App - Monitoreo de Seguridad Familiar",
+        alt: "Estoy Ok - Plataforma de Seguridad y Localizador Familiar",
+        type: "image/jpeg",
       },
     ],
-    locale: "es_ES",
+    locale: "es_LA",
     type: "website",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Estoy Ok - Protección Pasiva & Rastreo Satelital Familiar",
-    description: "Plataforma de seguridad familiar con monitoreo pasivo invisible y rastreo activo GPS.",
+    title: "Estoy Ok - Seguridad y Localizador Familiar GPS",
+    description: "Plataforma de seguridad y asistencia familiar con Bienestar Pasivo y Rastreo Activo GPS.",
     images: ["/images/hero_mockup.jpg"],
   },
   icons: {

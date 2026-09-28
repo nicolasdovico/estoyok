@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://estoyok.com';
+  const baseUrl = 'https://estoyok24.com';
   const currentDate = new Date();
 
   return [
@@ -10,12 +10,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
       lastModified: currentDate,
       changeFrequency: 'daily',
       priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/emergencia`,
-      lastModified: currentDate,
-      changeFrequency: 'weekly',
-      priority: 0.9,
     },
     {
       url: `${baseUrl}/politica-de-privacidad`,
