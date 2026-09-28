@@ -1876,5 +1876,18 @@
 - **App Móvil Nativa (Android/Kotlin):**
     - Implementado en [`PanelScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/PanelScreen.kt) un límite visual inicial a los últimos 5 reportes guardados (`visibleCheckInHistory`).
     - Agregado contador contextual en el encabezado (`"Últimos 5 de X"` / `"Mostrando todos (X)"`).
-    - Incorporado botón interactivo con icono animado `KeyboardArrowDown` / `KeyboardArrowUp` para expandir y colapsar los reportes anteriores (`"Ver anteriores (+X reportes)"` $\leftrightarrow$ `"Mostrar menos (últimos 5)"`).
+
+## [2026-09-27] Optimización Integral de SEO y Datos Estructurados en Landing Web (estoyok24.com)
+- **Frontend Web (Next.js):**
+    - Corregida la discrepancia de dominio canónico: migrado de `estoyok.com` a `https://estoyok24.com` en `layout.tsx`, `robots.ts` y `sitemap.ts`.
+    - `robots.ts`: habilitado rastreo general de Googlebot, excluidas rutas de privacidad/crisis (`/emergencia/`, `/api/`, `/verify-email/`) y vinculado el sitemap oficial.
+    - `sitemap.ts`: depurado eliminando ruta inexistente `/emergencia` (evitando 404 a crawlers) y fijando prioridades y frecuencias para `/` (1.0) y `/politica-de-privacidad` (0.5).
+    - `layout.tsx`: enriquecido con meta-etiquetas de alta intención de búsqueda en seguridad familiar y rastreo GPS, configuración de `Viewport` (`themeColor`, `colorScheme`), y etiquetas OpenGraph / Twitter Cards completas.
+    - `page.tsx`:
+        - Incorporados esquemas Schema.org JSON-LD para `SoftwareApplication` (enlace directo a Google Play, categoría, precio de prueba gratuita, rating 4.9), `Organization`, `BreadcrumbList` y `FAQPage` exhaustivo sincronizado reactivamente con las 11 preguntas y respuestas del acordeón visible.
+        - Optimizado encabezado H1 con términos de búsqueda clave: "Localizador Familiar GPS y Seguridad. Tu familia protegida sin invadir su privacidad".
+        - Añadidas dimensiones explícitas (`width`, `height`) y `loading="eager"` en el mockup visual principal para optimización de Core Web Vitals (LCP y CLS).
+    - `emergencia/[id]/page.tsx`: añadido `robots: { index: false, follow: false }` para proteger la privacidad de incidentes en tiempo real.
+    - `politica-de-privacidad/page.tsx`: enriquecida la metadata con URL canónica y OpenGraph.
+    - Build verificado sin errores (`npm run build` con Turbopack exitoso) y desplegado en la rama `main`.
 
