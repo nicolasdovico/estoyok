@@ -3,11 +3,14 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Mail\SubscriptionCanceledMail;
 use App\Services\MercadoPagoService;
 use App\Services\PayPalService;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class SubscriptionController extends Controller
 {
@@ -178,12 +181,15 @@ class SubscriptionController extends Controller
         $basePlan = $request->input('base_plan_id', 'monthly-plan');
         $isAnnual = str_contains((string) $basePlan, 'annual');
 
+        $isTrialExpired = $user->trial_ends_at && $user->trial_ends_at <= now();
+        $status = $isTrialExpired ? 'active' : 'trialing';
+
         $user->update([
             'is_premium' => true,
-            'subscription_status' => 'trialing',
+            'subscription_status' => $status,
             'subscription_provider' => 'google_play',
             'subscription_id' => $request->input('purchase_token'),
-            'trial_ends_at' => now()->addDays(7),
+            'trial_ends_at' => $user->trial_ends_at ?: now()->addDays(7),
             'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
         ]);
 
@@ -191,6 +197,90 @@ class SubscriptionController extends Controller
             'message' => '¡Suscripción de Google Play verificada y activada con éxito!',
             'user' => $user->fresh(),
         ]);
+    }
+
+    /**
+     * @OA\Post(
+     *     path="/api/subscriptions/sync-google-play",
+     *     summary="Synchronize subscription status with Google Play Billing",
+     *     tags={"Subscriptions"},
+     *     security={{"sanctum":{}}},
+     *     @OA\RequestBody(
+     *         required=true,
+     *         @OA\JsonContent(
+     *             required={"has_active_subscription"},
+     *             @OA\Property(property="has_active_subscription", type="boolean", example=true),
+     *             @OA\Property(property="purchase_token", type="string", example="GPA.1234..."),
+     *             @OA\Property(property="product_id", type="string", example="estoyok_premium"),
+     *             @OA\Property(property="base_plan_id", type="string", example="monthly-plan")
+     *         )
+     *     ),
+     *     @OA\Response(
+     *         response=200,
+     *         description="Subscription synchronized successfully",
+     *         @OA\JsonContent(
+     *             @OA\Property(property="message", type="string"),
+     *             @OA\Property(property="status", type="string"),
+     *             @OA\Property(property="is_premium", type="boolean")
+     *         )
+     *     )
+     * )
+     */
+    public function syncGooglePlay(Request $request)
+    {
+        $request->validate([
+            'has_active_subscription' => 'required|boolean',
+            'purchase_token' => 'required_if:has_active_subscription,true|nullable|string',
+            'product_id' => 'nullable|string',
+            'base_plan_id' => 'nullable|string',
+        ]);
+
+        $user = Auth::user();
+        $hasActive = (bool) $request->input('has_active_subscription');
+
+        if ($hasActive) {
+            $purchaseToken = $request->input('purchase_token');
+            $basePlan = $request->input('base_plan_id', 'monthly-plan');
+            $isAnnual = str_contains((string) $basePlan, 'annual');
+
+            // Si el período de prueba ya finalizó (o venció), pasa inmediatamente a 'active'
+            $isTrialActive = $user->trial_ends_at && $user->trial_ends_at > now();
+            $newStatus = $isTrialActive ? 'trialing' : 'active';
+
+            $user->update([
+                'is_premium' => true,
+                'subscription_status' => $newStatus,
+                'subscription_provider' => 'google_play',
+                'subscription_id' => $purchaseToken ?: $user->subscription_id,
+                'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
+            ]);
+
+            return response()->json([
+                'message' => 'Suscripción de Google Play sincronizada como activa.',
+                'status' => $newStatus,
+                'is_premium' => true,
+                'user' => $user->fresh(),
+            ]);
+        } else {
+            // Google Play no tiene compras activas
+            $wasPremium = (bool) $user->is_premium || in_array($user->subscription_status, ['trialing', 'active', 'grace_period']);
+
+            if ($wasPremium) {
+                $user->update([
+                    'is_premium' => false,
+                    'subscription_status' => 'canceled',
+                ]);
+
+                $this->notifyAdminSubscriptionCanceled($user, 'Google Play reportó compra inactiva o cancelada');
+            }
+
+            return response()->json([
+                'message' => 'Suscripción sincronizada. El usuario no cuenta con suscripción activa en Google Play.',
+                'status' => 'canceled',
+                'is_premium' => false,
+                'user' => $user->fresh(),
+            ]);
+        }
     }
 
     /**
@@ -325,9 +415,27 @@ class SubscriptionController extends Controller
             'is_premium' => false,
         ]);
 
+        $this->notifyAdminSubscriptionCanceled($user, 'Cancelación voluntaria solicitada por el usuario');
+
         return response()->json([
             'message' => 'Tu prueba gratuita o suscripción ha sido cancelada sin costo alguno.',
             'user' => $user->fresh()
         ]);
+    }
+
+    /**
+     * Notify the administrator via email about a canceled or expired subscription.
+     */
+    protected function notifyAdminSubscriptionCanceled(User $user, string $reason = 'Cancelación o expiración de suscripción'): void
+    {
+        $adminEmail = config('mail.admin_notification_email');
+        if (!empty($adminEmail)) {
+            try {
+                $activePremium = User::where('is_premium', true)->count();
+                Mail::to($adminEmail)->send(new SubscriptionCanceledMail($user, $reason, $activePremium));
+            } catch (\Throwable $e) {
+                Log::warning("No se pudo enviar la notificación de baja al administrador: " . $e->getMessage());
+            }
+        }
     }
 }
