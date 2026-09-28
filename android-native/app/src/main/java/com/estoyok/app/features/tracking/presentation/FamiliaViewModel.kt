@@ -76,16 +76,23 @@ class FamiliaViewModel @Inject constructor(
                     purchaseToken = activePurchase?.purchaseToken,
                     productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM
                 ).collectLatest { resource ->
-                    if (resource is Resource.Success) {
-                        val responseData = resource.data
-                        if (responseData?.user != null) {
-                            user = responseData.user
-                        } else {
-                            user = user?.copy(
-                                isPremium = responseData?.isPremium ?: hasActive,
-                                hasPremiumAccess = responseData?.isPremium ?: hasActive
-                            )
+                    when (resource) {
+                        is Resource.Success -> {
+                            val responseData = resource.data
+                            if (responseData?.user != null) {
+                                user = responseData.user
+                            } else {
+                                user = user?.copy(
+                                    isPremium = responseData?.isPremium ?: hasActive,
+                                    hasPremiumAccess = responseData?.isPremium ?: hasActive
+                                )
+                            }
                         }
+                        is Resource.Error -> {
+                            // Si la sincronización falla (ej: 409 conflicto de titularidad), re-consultar perfil
+                            fetchUserProfile()
+                        }
+                        is Resource.Loading -> {}
                     }
                 }
             }

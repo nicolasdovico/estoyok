@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Blindaje y Control de Titularidad Única de Suscripciones Google Play (Android Nativo & Backend):
+      - Backend: Implementado `findConflictingSubscriptionOwner` y `maskEmail` en `SubscriptionController.php`, protegiendo `syncGooglePlay` y `verifyGooglePlay` con HTTP 409 Conflict ante tokens ya vinculados a otra cuenta activa. Suite de tests ampliada (165 tests pasando al 100%).
+      - App Nativa: `FamiliaViewModel.kt` captura el código de conflicto y re-sincroniza el perfil real del usuario (`fetchUserProfile()`). Verificado en dispositivo físico (`installDebug`).
     - [x] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo):
       - App Nativa: Eliminado el fallback `else` en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) que permitía pruebas directas sin pasar por Google Play. Reemplazado por validación y Toast informativo si Google Play Billing no está disponible. Verificado en dispositivo físico (`installDebug`).
     - [x] Sincronización Híbrida de Google Play Billing y Notificación de Baja al Administrador (Android Nativo & Backend):

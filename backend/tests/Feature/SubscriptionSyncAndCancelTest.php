@@ -182,4 +182,87 @@ class SubscriptionSyncAndCancelTest extends TestCase
 
         Mail::assertSent(SubscriptionCanceledMail::class, 2);
     }
+
+    public function test_sync_google_play_rejects_with_409_when_token_belongs_to_another_active_user(): void
+    {
+        $owner = User::factory()->create([
+            'name' => 'Titular Original',
+            'email' => 'tamarakshop@gmail.com',
+            'subscription_status' => 'active',
+            'subscription_provider' => 'google_play',
+            'subscription_id' => 'GPA.3355-DUPLICATE-TOKEN',
+            'is_premium' => true,
+        ]);
+
+        $secondUser = User::factory()->create([
+            'name' => 'Segundo Usuario',
+            'email' => 'ndovico@unlu.edu.ar',
+            'subscription_status' => 'free',
+            'is_premium' => false,
+        ]);
+
+        Sanctum::actingAs($secondUser);
+
+        $response = $this->postJson('/api/subscriptions/sync-google-play', [
+            'has_active_subscription' => true,
+            'purchase_token' => 'GPA.3355-DUPLICATE-TOKEN',
+            'product_id' => 'estoyok_premium',
+            'base_plan_id' => 'monthly-plan',
+        ]);
+
+        $response->assertStatus(409)
+            ->assertJson([
+                'error_code' => 'SUBSCRIPTION_ALREADY_LINKED',
+                'status' => 'conflict',
+                'is_premium' => false,
+            ]);
+
+        $secondUser->refresh();
+        $this->assertFalse($secondUser->is_premium);
+        $this->assertEquals('free', $secondUser->subscription_status);
+
+        $owner->refresh();
+        $this->assertTrue($owner->is_premium);
+        $this->assertEquals('active', $owner->subscription_status);
+    }
+
+    public function test_verify_google_play_rejects_with_409_when_token_belongs_to_another_active_user(): void
+    {
+        $owner = User::factory()->create([
+            'name' => 'Titular Original',
+            'email' => 'tamarakshop@gmail.com',
+            'subscription_status' => 'trialing',
+            'subscription_provider' => 'google_play',
+            'subscription_id' => 'GPA.7788-DUPLICATE-TOKEN',
+            'is_premium' => true,
+        ]);
+
+        $secondUser = User::factory()->create([
+            'name' => 'Segundo Usuario',
+            'email' => 'ndovico@unlu.edu.ar',
+            'subscription_status' => 'free',
+            'is_premium' => false,
+        ]);
+
+        Sanctum::actingAs($secondUser);
+
+        $response = $this->postJson('/api/subscriptions/verify-google-play', [
+            'purchase_token' => 'GPA.7788-DUPLICATE-TOKEN',
+            'product_id' => 'estoyok_premium',
+            'base_plan_id' => 'monthly-plan',
+        ]);
+
+        $response->assertStatus(409)
+            ->assertJson([
+                'error_code' => 'SUBSCRIPTION_ALREADY_LINKED',
+                'status' => 'conflict',
+                'is_premium' => false,
+            ]);
+
+        $secondUser->refresh();
+        $this->assertFalse($secondUser->is_premium);
+
+        $owner->refresh();
+        $this->assertTrue($owner->is_premium);
+    }
 }

@@ -1,5 +1,22 @@
 # Progress Log
 
+## [2026-09-27] Blindaje y Control de Titularidad Única de Suscripciones Google Play (Opción A - Anti-Reciclaje de Tokens)
+- **Backend (Laravel 12 API):**
+    - Implementado método `findConflictingSubscriptionOwner` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php) para validar si un `purchase_token` de Google Play ya está asociado a otra cuenta de Estoy Ok con suscripción activa (`is_premium = true` o estatus `active`/`trialing`/`grace_period`).
+    - En caso de conflicto de titularidad, tanto en `syncGooglePlay` como en `verifyGooglePlay`:
+      - Se rechaza la solicitud retornando código HTTP `409 Conflict` y `error_code: SUBSCRIPTION_ALREADY_LINKED`.
+      - Se incluye mensaje claro con email ofuscado del titular legítimo (`maskEmail` ej: `ta******p@gmail.com`).
+      - Si la cuenta infractora tenía asignado previamente el token de forma errónea, se le revoca el acceso (`is_premium = false`, `subscription_status = 'free'`, `subscription_id = null`).
+    - Actualizada documentación OpenAPI/Swagger (código 409 documentado).
+    - Creados tests automatizados en [`SubscriptionSyncAndCancelTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionSyncAndCancelTest.php) verificando el rechazo con 409 y la preservación de la cuenta original (7/7 tests pasando).
+- **App Móvil Android Nativa:**
+    - Actualizado `syncSubscriptionWithGooglePlay` en [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt) para capturar `Resource.Error` (código 409) y reconsultar el perfil del usuario (`fetchUserProfile()`), asegurando que la UI refleje el estado real de la cuenta (Free) sin otorgar accesos no autorizados.
+    - Instalado y verificado en dispositivo físico real `moto g(7) power` vía `./gradlew installDebug`.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 22s` (0 errores).
+    - Despliegue en dispositivo: `Installed on 1 device` (`BUILD SUCCESSFUL in 19s`).
+    - Backend Tests: **165 passed (565 assertions)** (100% pasando).
+
 ## [2026-09-27] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo)
 - **App Móvil Android Nativa (Google Play Policy Compliance & Billing Exclusivity):**
     - Modificado el botón de acción principal (CTA) en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt): eliminado el bloque `else` de respaldo que invocaba `viewModel.startFreeTrial("direct")` evadiendo la pasarela de Google Play.
