@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Desindexación de API y Protección de Búsquedas (Backend Laravel):
+      - Creado [`PreventIndexingMiddleware.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Middleware/PreventIndexingMiddleware.php) emitiendo `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` globalmente en todas las respuestas del backend.
+      - Reemplazada la vista de bienvenida de Laravel en [`routes/web.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/web.php) por un JSON operativo neutro de la API (`{"service": "Estoy Ok API", "status": "operational"}`).
+      - Suite de pruebas de backend pasando al 100% (153 tests pasando).
     - [x] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6 - Disponible a Nivel Mundial):
       - Aprobada formalmente por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026.
       - Distribución global activa en **177 países y regiones**, alcanzando compatibilidad con **17,795 modelos de dispositivos Android**.

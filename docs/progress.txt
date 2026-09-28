@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-09-28] Desindexación de API en Motores de Búsqueda y Header X-Robots-Tag (Backend Laravel)
+- **SEO & Directivas de Indexación:**
+    - Creado el middleware [`PreventIndexingMiddleware.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Middleware/PreventIndexingMiddleware.php) inyectando la cabecera HTTP global `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` a todas las respuestas del backend para impedir la indexación y forzar la desindexación de `https://api.estoyok24.com`.
+    - Registrado el middleware en el pipeline global de [`bootstrap/app.php`](file:///home/usuario/aplicaciones/estoyok/backend/bootstrap/app.php).
+    - Actualizada la ruta raíz `/` en [`routes/web.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/web.php) reemplazando la vista de bienvenida por defecto de Laravel por una respuesta JSON operativa (`{"service": "Estoy Ok API", "status": "operational"}`).
+    - Actualizada la suite de pruebas en [`ExampleTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/ExampleTest.php) para validar el código de estado 200 y la presencia del header `X-Robots-Tag`.
+- **Verificación de No Regresión:**
+    - Backend Tests: **153 passed (504 assertions)** (100% pasando).
+
 ## [2026-09-23] Aprobación Oficial y Lanzamiento Abierto en Google Play Store v13 (1.0.6) - Disponible a Nivel Mundial
 - **Google Play Console (Producción Abierta Aprobada y Publicada):**
     - Aprobada por Google la versión 13 (`versionCode = 13`, `versionName = "1.0.6"`) para la pista de **Producción**, pasando al estado definitivo **«Disponible en Google Play»** el 23 de septiembre de 2026 a las 8:41 a.m.
