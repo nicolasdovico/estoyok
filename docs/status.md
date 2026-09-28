@@ -48,6 +48,9 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Integración de Instagram Oficial @estoyok24 (Frontend Web):
+      - Añadido enlace directo `https://instagram.com/estoyok24` con icono SVG en el navbar (desktop y mobile) y footer de [`page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx) y en el pie de página de [`politica-de-privacidad/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/politica-de-privacidad/page.tsx).
+      - Vinculado en el esquema Schema.org `Organization` (`sameAs`) para reforzar la entidad de marca ante Google.
     - [x] Desindexación de API y Protección de Búsquedas (Backend Laravel):
       - Creado [`PreventIndexingMiddleware.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Middleware/PreventIndexingMiddleware.php) emitiendo `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` globalmente en todas las respuestas del backend.
       - Reemplazada la vista de bienvenida de Laravel en [`routes/web.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/web.php) por un JSON operativo neutro de la API (`{"service": "Estoy Ok API", "status": "operational"}`).

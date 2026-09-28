@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-09-28] Integración de Enlace e Icono Oficial de Instagram @estoyok24 (Frontend Web)
+- **Frontend Web (SEO & Redes Sociales):**
+    - Agregado el enlace oficial de Instagram `https://instagram.com/estoyok24` (`@estoyok24`) con icono SVG nativo en la barra de navegación superior (desktop y mobile) y en el pie de página de [`page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx).
+    - Incorporado el enlace de Instagram en el pie de página de [`politica-de-privacidad/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/politica-de-privacidad/page.tsx).
+    - Actualizado el esquema estructurado `Organization` en Schema.org (`sameAs`) vinculando el perfil oficial de Instagram para reforzar la identidad de marca en el Knowledge Graph de Google.
+- **Verificación de Compilación:**
+    - Next.js 16 (Turbopack) production build: `Compiled successfully in 17.4s` (0 errores).
+
 ## [2026-09-28] Desindexación de API en Motores de Búsqueda y Header X-Robots-Tag (Backend Laravel)
 - **SEO & Directivas de Indexación:**
     - Creado el middleware [`PreventIndexingMiddleware.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Middleware/PreventIndexingMiddleware.php) inyectando la cabecera HTTP global `X-Robots-Tag: noindex, nofollow, noarchive, nosnippet` a todas las respuestas del backend para impedir la indexación y forzar la desindexación de `https://api.estoyok24.com`.
