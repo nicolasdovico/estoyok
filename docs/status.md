@@ -48,6 +48,8 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo):
+      - App Nativa: Eliminado el fallback `else` en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt) que permitía pruebas directas sin pasar por Google Play. Reemplazado por validación y Toast informativo si Google Play Billing no está disponible. Verificado en dispositivo físico (`installDebug`).
     - [x] Sincronización Híbrida de Google Play Billing y Notificación de Baja al Administrador (Android Nativo & Backend):
       - Backend: Endpoint `POST /api/subscriptions/sync-google-play`, mailable `SubscriptionCanceledMail.php` con vista `subscription-canceled.blade.php`, comando programado `subscriptions:expire-trials` (`ExpireTrials.php`) y suite de tests `SubscriptionSyncAndCancelTest.php` (163 tests pasando).
       - App Nativa: `PlayBillingManager.kt` (`queryActivePurchases`), `SubscriptionModels.kt`, `SubscriptionApiService.kt`, `SubscriptionRepositoryImpl.kt`, sincronización reactiva en `FamiliaViewModel.kt` (`syncSubscriptionWithGooglePlay`) y en `MainActivity.kt` (`syncSubscriptionOnResume`). Compilación Android exitosa (`BUILD SUCCESSFUL`).

@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-09-27] Exclusividad Estricta de Google Play Billing en Pantalla Premium (Android Nativo)
+- **App Móvil Android Nativa (Google Play Policy Compliance & Billing Exclusivity):**
+    - Modificado el botón de acción principal (CTA) en [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt): eliminado el bloque `else` de respaldo que invocaba `viewModel.startFreeTrial("direct")` evadiendo la pasarela de Google Play.
+    - Ahora, toda activación de prueba o suscripción exige obligatoriamente Google Play Billing. Si Google Play Billing no está disponible o inicializado, se notifica de forma clara al usuario mediante un Toast informativo: *"Google Play Billing no está disponible en este momento. Por favor verifica tu cuenta de Google Play o tu conexión a internet."*.
+    - Instalado y verificado en dispositivo físico real `moto g(7) power` vía `./gradlew installDebug`.
+- **Verificación de No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 53s` (0 errores).
+    - Despliegue en dispositivo: `Installed on 1 device` (`BUILD SUCCESSFUL in 20s`).
+    - Backend Tests: **163 passed (555 assertions)** (100% pasando).
+
 ## [2026-09-27] Sincronización Híbrida de Google Play Billing y Notificación de Baja de Suscripción al Administrador (Android Nativo & Backend)
 - **Backend (Laravel 12 API & Notificaciones):**
     - Creado el mailable [`SubscriptionCanceledMail.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Mail/SubscriptionCanceledMail.php) y la plantilla visual [`subscription-canceled.blade.php`](file:///home/usuario/aplicaciones/estoyok/backend/resources/views/emails/subscription-canceled.blade.php) para notificar al administrador (`ADMIN_NOTIFICATION_EMAIL`) ante cualquier cancelación o expiración de suscripción/prueba, con métrica de usuarios Premium restantes en tiempo real (mismo patrón que `NewUserRegisteredMail`).
