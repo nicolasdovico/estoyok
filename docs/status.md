@@ -48,6 +48,10 @@
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
   - [x] Optimización de conectividad real-device (IP local).
+    - [x] Compilación de Producción v14 (1.0.7 - Google Sign-In & Sincronización Google Play Billing):
+      - Actualizado `versionCode = 14` y `versionName = "1.0.7"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
+      - Compilado y firmado el bundle de producción final `app-release.aab` (`versionCode = 14`, 21 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+      - Suite de 165 tests de backend y build de Next.js pasando al 100%.
     - [x] Integración de Instagram Oficial @estoyok24 (Frontend Web):
       - Añadido enlace directo `https://instagram.com/estoyok24` con icono SVG en el navbar (desktop y mobile) y footer de [`page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx) y en el pie de página de [`politica-de-privacidad/page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/politica-de-privacidad/page.tsx).
       - Vinculado en el esquema Schema.org `Organization` (`sameAs`) para reforzar la entidad de marca ante Google.

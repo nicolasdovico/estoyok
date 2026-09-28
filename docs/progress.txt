@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-09-28] Compilación de Producción v14 (1.0.7) - Google Sign-In & Sincronización Google Play Billing
+- **App Móvil Android Nativa (Google Play Console Release Readiness):**
+    - Elevado `versionCode = 14` y `versionName = "1.0.7"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+    - Actualizada la tarjeta de información y versión en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) a `v1.0.7 (Compilación 14)`.
+    - Compilado y firmado con éxito el bundle oficial de producción `app-release.aab` (`versionCode = 14`, 21 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`, listo para subir a Google Play Console.
+- **Verificación de Compilación y No Regresión:**
+    - Compilación Kotlin / Gradle: `BUILD SUCCESSFUL in 5m 13s` (0 errores).
+    - Backend Tests: **165 passed (567 assertions)** (100% pasando).
+    - Frontend Web: `Next.js 16 build passed in 8.8s` (0 errores).
+
 ## [2026-09-28] Integración de Enlace e Icono Oficial de Instagram @estoyok24 (Frontend Web)
 - **Frontend Web (SEO & Redes Sociales):**
     - Agregado el enlace oficial de Instagram `https://instagram.com/estoyok24` (`@estoyok24`) con icono SVG nativo en la barra de navegación superior (desktop y mobile) y en el pie de página de [`page.tsx`](file:///home/usuario/aplicaciones/estoyok/frontend-web/src/app/page.tsx).
