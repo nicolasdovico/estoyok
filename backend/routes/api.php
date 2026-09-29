@@ -440,10 +440,12 @@ Route::get('/maintenance/diagnose-push', function (Request $request) {
         $targetUser = \App\Models\User::find($testUserId);
         if ($targetUser && !empty($targetUser->expo_push_token)) {
             $pushService = app(\App\Services\PushNotificationService::class);
+            $pushTitle = $request->query('test_title', '🔔 Prueba de Notificación Estoy OK');
+            $pushBody = $request->query('test_body', "Hola {$targetUser->name}, esta es una prueba de envío directo desde el servidor de Railway.");
             $sendSuccess = $pushService->sendPush(
                 $targetUser->expo_push_token,
-                '🔔 Prueba de Notificación Estoy OK',
-                "Hola {$targetUser->name}, esta es una prueba de envío directo desde el servidor de Railway.",
+                $pushTitle,
+                $pushBody,
                 ['type' => 'test_push', 'timestamp' => now()->toIso8601String()],
                 true
             );
