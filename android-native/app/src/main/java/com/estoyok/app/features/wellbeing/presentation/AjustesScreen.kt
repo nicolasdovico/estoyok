@@ -908,6 +908,22 @@ fun AjustesScreen(
                             Text("Privacidad 🔒", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
                         }
                     }
+
+                    OutlinedButton(
+                        onClick = {
+                            navController?.navigate(Screen.Onboarding.route)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            "Ver Tutorial de Bienvenida 🧭",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
             }
 

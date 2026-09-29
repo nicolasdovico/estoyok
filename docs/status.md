@@ -47,6 +47,14 @@
 - [x] **FASE Mobile: Estabilización y Expo Go**
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
+    - [x] Implementación de Walkthrough / Onboarding Dinámico (Android Nativo):
+      - Creada [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con carrusel interactivo (`HorizontalPager`), indicador de puntos y gráficos vectoriales nativos para las 3 características clave:
+        1. *Tu Familia Conectada* (Mapa en vivo, estado de batería, código de 6 dígitos).
+        2. *El Botón "Estoy OK"* (Check-in diario en un toque y notificación automática por WhatsApp ante inactividad).
+        3. *Zonas Seguras y Avisos Automáticos* (Geocercas de Casa, Colegio y Trabajo con notificaciones de llegada y salida).
+      - Integrada persistencia con Jetpack DataStore (`ONBOARDING_COMPLETED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt)) y expuesta reactivamente en [`AuthViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/AuthViewModel.kt).
+      - Conectado en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt) de manera no intrusiva: se muestra automáticamente la primera vez después de aceptar el disclaimer obligatorio, sin solaparse con permisos del sistema (`isDisclaimerPending`).
+      - Añadido acceso rejugable desde la tarjeta de información y soporte en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (*"Ver Tutorial de Bienvenida 🧭"*).
     - [x] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store:
       - Creado [`generate_play_store_screenshots.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_play_store_screenshots.py) para ensamblar capturas de marketing con mockups de smartphone modernos sin bordes en resolución oficial `1080 x 2400 px` (9:20).
       - Integrada la tipografía oficial `Outfit Bold/Medium`, fondos Slate Navy con ambient glow y callout badges temáticos con emojis en alta definición.

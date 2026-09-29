@@ -1,5 +1,22 @@
 # Progress Log
 
+## [2026-09-29] Implementación de Walkthrough / Onboarding Dinámico (Android Nativo)
+- **Experiencia de Usuario y Retención (Paso 4 del Plan Maestro):**
+    - Creado el componente [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con un carrusel dinámico (`HorizontalPager`), indicador animado de puntos (*page indicator*), botón para saltar (*"Omitir"*) y botón de acción principal (*"Continuar"* / *"Empezar ahora"*).
+    - Desarrolladas 3 tarjetas ilustrativas con estética nativa Slate Dark y gráficos vectoriales:
+        1. **Tu Familia Conectada:** Explicación del mapa en tiempo real, círculos familiares y código de 6 dígitos.
+        2. **El Botón "Estoy OK":** El check-in diario en un solo toque y el aviso automático a WhatsApp para contactos externos ante inactividad.
+        3. **Zonas Seguras y Avisos Automáticos:** Monitoreo inteligente de geocercas (Casa, Trabajo, Escuela) con notificaciones de llegada y salida.
+    - **Persistencia y Arquitectura de Navegación:**
+        - Añadida la clave `ONBOARDING_COMPLETED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) con Jetpack DataStore y `saveOnboardingCompleted()`.
+        - Expuesto el estado en [`AuthViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/AuthViewModel.kt) (`isOnboardingCompleted` y `completeOnboarding()`).
+        - Registrada la ruta en [`Screen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/Screen.kt) (`Screen.Onboarding`).
+        - Integrado en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt): visualización automática tras el disclaimer para nuevos usuarios sin solapamiento de diálogos de permisos del sistema (`isDisclaimerPending`).
+        - Agregado botón en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (*"Ver Tutorial de Bienvenida 🧭"*) para que los usuarios actuales o evaluadores puedan ver el tutorial en cualquier momento.
+- **Verificación:**
+    - Compilación Gradle: `./gradlew assembleDebug` exitoso (`BUILD SUCCESSFUL in 4m 9s`).
+    - Backend Tests: 165 tests pasando (567 assertions) al 100%.
+
 ## [2026-09-29] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store
 - **Material Gráfico & ASO (Paso 3 del Plan Maestro):**
     - Creado el script automatizado [`docs/generate_play_store_screenshots.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_play_store_screenshots.py) para ensamblar capturas de pantalla de marketing con mockups de smartphone modernos sin bordes en resolución oficial `1080 x 2400 px` (9:20).
