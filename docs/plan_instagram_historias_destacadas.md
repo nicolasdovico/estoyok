@@ -43,70 +43,25 @@ En Instagram Stories el lienzo total mide **1080 x 1920 px**, por lo que la mita
 
 ---
 
-## 2. Inventario de Capturas de Pantalla (Existentes vs Faltantes)
+## 2. Catálogo Oficial de Piezas Visuales Listas para Usar (`docs/instagram_stories_assets/`)
 
-Para que el script genere las imágenes de la mitad inferior, necesitamos el catálogo completo de capturas reales:
+Se desarrollaron las **13 plantillas definitivas en resolución oficial 1080 x 1920 px (9:16)**. Cada archivo tiene la mitad superior limpia (lista para el avatar de Google Flow sin títulos invasivos) y la mitad inferior con el celular flotante completo (sin recortes inferiores) y las flechas de foco:
 
-### ✅ Catálogo Completo de Capturas Reales (100% DISPONIBLES):
-1. `docs/imagen06.jpg` → Pantalla de Inicio / Login con botón de Google y Crear Cuenta.
-2. `docs/captura_crear_nucleo.jpg` → Pestaña Familia / Tarjeta con Código de 6 dígitos para invitar.
-3. `docs/imagen01.jpg` → Mapa interactivo en tiempo real con miembros del núcleo y batería.
-4. `docs/imagen02.jpg` → Pestaña "Estoy OK" con el botón verde gigante y temporizador.
-5. `docs/imagen04.jpg` → Historial de reportes y auto check-in ("Vía Wi-Fi Seguro").
-6. `docs/zoom.jpg` → Mapa con radio perimetral celeste de Zona Segura.
-7. `docs/captura_notif_zona.jpg` → Notificación push emergente real de llegada a Casa ("Alerta de Perímetro").
-8. `docs/rastreo.jpg` → Trazado de ruta de viaje en el mapa con línea turquesa.
-9. `docs/captura_modal_contactos.jpg` → Modal abierto de Contactos SOS con campo para WhatsApp.
-10. `docs/captura_rescate_web.jpg` → Pantalla web pública de rescate con botón "Voy en camino".
-11. `docs/imagen03.jpg` → Pantalla de Protección Vehicular con Score de manejo (70 pts).
-12. `docs/imagen05.jpg` → Desglose de viajes y eventos de velocidad en auto.
-13. `docs/crash_alert_screen.jpg` → Pantalla roja de impacto detectado (Fuerza G 4.80G) con cuenta regresiva.
-14. `docs/crash_alert_message_whatsapp.jpg` → Captura del mensaje real recibido en WhatsApp con enlace de rescate.
-
----
-
-### 🛠️ Script Automatizado de Generación de Mockups (Split-Screen 50/50)
-Se desarrolló el script [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) que procesa las capturas reales y ensambla automáticamente todas las piezas de diseño listas para el editor de video (CapCut, Premiere, InShot o Canva):
-
-* **Comando para regenerar todo el catálogo:**
-  ```bash
-  python3 docs/generate_instagram_story_mockups.py
-  ```
-* **Formatos exportados en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/):**
-  1. `*_full.png` (**1080 x 1920 px**): Plantilla completa de Story vertical 9:16. La mitad superior incluye el badge de carpeta y título con fondo oscuro limpio listo para superponer el video de Google Flow. La mitad inferior incluye el smartphone flotante con ambient glow, bisel de titanio y la píldora indicadora de navegación.
-  2. `*_bottom_960.png` (**1080 x 960 px**): Corte exacto de la mitad inferior para quien prefiera montar pistas separadas de video/imagen en la línea de tiempo.
-
----
-
-## 2.1 Prompt Maestro Reutilizable para Google Flow (Avatar AI)
-
-Para generar cada toma en **Google Flow**, adjuntá la imagen del personaje que querés usar, seleccioná la relación de aspecto **1:1 (Cuadrado)** y pegá la siguiente plantilla cambiando únicamente el texto entre comillas al final:
-
-### 📋 Plantilla Maestra (Copiar y Pegar):
-```text
-Animate the person in the attached reference image as a live-action presenter speaking directly to camera. 
-- Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and appearance as the attached image.
-- Framing & Camera: Medium close-up (from chest up), centered in frame, looking straight into the camera lens with a warm, friendly, empathetic and trustworthy expression. 
-- Environment & Background: A warm, modern and cozy tech-oriented space (contemporary smart office or modern apartment living room). Sleek background with soft interior lighting, dark slate and navy accents, and subtle blurred emerald green and electric teal ambient lighting highlights. Shallow depth of field with beautiful soft cinematic bokeh.
-- Animation & Motion: Natural micro-expressions, subtle head nods, natural blinking, relaxed shoulder posture and smooth lip synchronization matching the spoken audio.
-- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm, friendly and conversational tone, natural Argentinian voseo: 'vos / mirá / tocá').
-- Aspect ratio: 1:1 (Square 1080x1080).
-- Dialogue:
-"[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
-```
-
-> **Alternativa 100% en Español (si la interfaz de Flow prefiere prompts en castellano):**
-```text
-Animá al personaje de la imagen de referencia adjunta como un presentador real hablando directamente a cámara.
-- Consistencia del personaje: Mantener idénticos los rasgos faciales, edad, peinado, ropa y apariencia física de la imagen adjunta.
-- Encuadre y cámara: Plano medio corto (desde el pecho hacia arriba), centrado, mirando fijo a cámara con expresión cálida, amigable, empática y profesional.
-- Fondo y ambiente: Espacio moderno, ameno y tecnológico (oficina de diseño o living contemporáneo cálido). Iluminación suave, tonos slate/navy oscuros y sutiles destellos desenfocados de luz verde esmeralda y turquesa. Profundidad de campo con bokeh suave y agradable.
-- Animación: Microexpresiones naturales, movimientos sutiles de cabeza, parpadeo realista y sincronización labial perfecta con las palabras.
-- Voz e idioma: Voz en español con acento argentino rioplatense (de Buenos Aires, tono cálido, cercano y natural, usando el voseo argentino: 'vos / mirá / tocá').
-- Relación de aspecto: 1:1 (Cuadrado).
-- Diálogo a decir:
-"[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
-```
+| Archivo a Usar | Carpeta Destacada | Qué muestra en el celular |
+|---|---|---|
+| [`destacada1_h1_login.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada1_h1_login.png) | 🚀 Empezá Acá (H1) | Flechas señalando **"Continuar con Google"** y **"Regístrate aquí"**. |
+| [`destacada1_h2_nucleo.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada1_h2_nucleo.png) | 🚀 Empezá Acá (H2) | Foco y flecha al botón para copiar tu **Código Familiar de 6 dígitos**. |
+| [`destacada1_h3_mapa.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada1_h3_mapa.png) | 🚀 Empezá Acá (H3) | Mapa en tiempo real con miembros del núcleo y batería en vivo. |
+| [`destacada2_h1_estoy_ok.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada2_h1_estoy_ok.png) | 🟢 El Botón Estoy OK (H1) | Foco circular y flecha apuntando al **Botón verde de Bienestar**. |
+| [`destacada2_h2_alerta_whatsapp.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada2_h2_alerta_whatsapp.png) | 🟢 El Botón Estoy OK (H2) | Captura del **mensaje real de WhatsApp** recibido con mapa de rescate. |
+| [`destacada3_h1_zonas_crear.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada3_h1_zonas_crear.png) | 📍 Zonas Seguras (H1) | Selector de Zonas Seguras y radio perimetral celeste en el mapa. |
+| [`destacada3_h2_zonas_notif.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada3_h2_zonas_notif.png) | 📍 Zonas Seguras (H2) | **Notificación push real de Android:** *"Alerta de Perímetro: Llegada a Casa"*. |
+| [`destacada4_h1_contactos_sos.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada4_h1_contactos_sos.png) | 🚨 Contactos SOS (H1) | Modal abierto para cargar el WhatsApp de tus contactos de emergencia. |
+| [`destacada4_h2_rescate_web.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada4_h2_rescate_web.png) | 🚨 Contactos SOS (H2) | Pantalla pública de emergencia con el botón **"Voy en camino"**. |
+| [`destacada5_h1_conduccion.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada5_h1_conduccion.png) | 🚗 Seguridad Vial (H1) | Pestaña Vehículo con el **Score semanal de manejo (70 pts)**. |
+| [`destacada5_h2_choques.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada5_h2_choques.png) | 🚗 Seguridad Vial (H2) | Pantalla roja de impacto detectado (Fuerza G 4.80G) con cuenta regresiva. |
+| [`destacada6_h1_bateria.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada6_h1_bateria.png) | 🔋 Batería & Privacidad (H1) | Indicador de batería en vivo y algoritmo de bajo consumo en reposo. |
+| [`destacada6_h2_privacidad.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/destacada6_h2_privacidad.png) | 🔋 Batería & Privacidad (H2) | Divulgación de permisos y garantía de cifrado sin anuncios publicitarios. |
 
 ---
 
@@ -131,7 +86,7 @@ Cada toma está cronometrada para un ritmo natural de voz (**18 a 23 palabras = 
   > *"Arriba en el mapa, tocá 'Familia' y elegí 'Crear Núcleo'. La app te da este código de seis dígitos para compartirles."*
   * *Visual Inferior:* `captura_crear_nucleo.jpg` (Flecha señalando botón Familia arriba y código de 6 dígitos).
 * **Toma 4 (Google Flow - 10 seg / 23 palabras):**
-  > *"Ellos tocan 'Unirse al Núcleo', ingresan tu código y listo: ya se ven en el mapa en vivo con su batería."*
+  > *"Ellos tocan 'Unirse al Núcleo', ingresan tu código y listo: ya se ven en el mapa en vivo."*
   * *Visual Inferior:* `imagen01.jpg` (Mapa con pines familiares y niveles de batería).
 
 ---
@@ -259,3 +214,26 @@ python3 docs/generate_instagram_stories.py
 1. **Sacar las 4 capturas faltantes** en tu celular y guardarlas en `docs/`.
 2. **Generar los clips de video en Google Flow** copiando y pegando los textos de cada toma.
 3. Ejecutar el script generador para tener las imágenes de la mitad inferior listas para unir en CapCut.
+
+
+
+### 📋 Plantilla Maestra para Google Flow (Copiar y Pegar)
+
+    Animate the person in the attached reference image as a live-action presenter speaking directly to 
+  camera. 
+    - Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and
+  appearance as the attached image.
+    - Framing & Camera: Medium close-up (from chest up), centered in frame, looking straight into the
+  camera lens with a warm, friendly, empathetic and trustworthy expression. 
+    - Environment & Background: A warm, modern and cozy tech-oriented space (contemporary smart office or
+  modern apartment living room). Sleek background with soft interior lighting, dark slate and navy
+    accents, and subtle blurred emerald green and electric teal ambient lighting highlights. Shallow depth
+    of field with beautiful soft cinematic bokeh.
+    - Animation & Motion: Natural micro-expressions, subtle head nods, natural blinking, relaxed shoulder
+  posture and smooth lip synchronization matching the spoken audio.
+    - Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent
+  (Buenos Aires cadence, warm, friendly and conversational tone, natural Argentinian voseo: 'vos / mirá /
+    tocá').
+    - Aspect ratio: 1:1 (Square 1080x1080).
+    - Dialogue:
+    "[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
