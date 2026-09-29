@@ -32,7 +32,7 @@ El Onboarding constará de un carrusel dinámico y deslizante (**HorizontalPager
 * **Título:** *Tu Familia Conectada en Todo Momento*
 * **Descripción:**  
   *Creá tu Núcleo Familiar con un simple código de 6 dígitos. Podrás ver dónde están tus seres queridos en un mapa de alta precisión con deslizamiento continuo y en tiempo real.*
-* **Botón de acción:** *Siguiente $\rightarrow$*
+* **Botón de acción:** *Siguiente →*
 
 ---
 
@@ -42,7 +42,7 @@ El Onboarding constará de un carrusel dinámico y deslizante (**HorizontalPager
 * **Título:** *Confirmá tu Bienestar en un Solo Toque*
 * **Descripción:**  
   *Presioná el botón al iniciar tu día para confirmar que estás bien. Si no lo hacés en tu horario habitual, la app le enviará una alerta automática inmediata a tus contactos de emergencia por WhatsApp.*
-* **Botón de acción:** *Siguiente $\rightarrow$*
+* **Botón de acción:** *Siguiente →*
 
 ---
 
@@ -110,7 +110,7 @@ Garantizar que no haya colisiones de diálogos ni peticiones prematuras de permi
    * Diseñar los 3 gráficos vectoriales/composables temáticos con iconos oficiales de Compose.
 
 3. **Paso 3: Integración en la Navegación Global**
-   * Integrar en `NavGraph.kt` respetando la secuencia Disclaimer $\rightarrow$ Onboarding $\rightarrow$ Mapa.
+   * Integrar en `NavGraph.kt` respetando la secuencia Disclaimer → Onboarding → Mapa.
 
 4. **Paso 4: Botón de Re-visualización en Ajustes**
    * Agregar la fila de acceso en `AjustesScreen.kt` para poder volver a verlo cuando se desee.
