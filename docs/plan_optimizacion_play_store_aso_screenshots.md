@@ -14,8 +14,8 @@ El informe remitido tras el ciclo de evaluación de 14 días y 20 evaluadores ar
 
 | Prioridad | Área de Oportunidad | Impacto | Esfuerzo | Estado / Justificación |
 | :---: | :--- | :---: | :---: | :--- |
-| **#1** | **Screenshots Profesionales con Mockups** | **Crítico** | Medio | **Pendiente.** El 80% de los usuarios decide instalar basándose únicamente en las primeras 3 imágenes de la ficha. |
-| **#2** | **App Store Optimization (ASO) de la Ficha** | **Muy Alto** | Bajo | **Pendiente.** La app está en 177 países pero carece de keywords estratégicas para posicionar en el motor de búsqueda de Google Play. |
+| **#1** | **Screenshots Profesionales con Mockups** | **Crítico** | Medio | **COMPLETADO.** Set de 6 screenshots generado en `1080x2400`, cargado en Play Console y enviado a revisión. |
+| **#2** | **App Store Optimization (ASO) de la Ficha** | **Muy Alto** | Bajo | **COMPLETADO.** Título (29c), descripción corta (77c) y descripción completa cargadas y enviadas a revisión. |
 | **#3** | **Inicio de Sesión con Google (Google Sign-In)** | **Alto** | Alto | **COMPLETADO (v1.0.7).** Implementado con Credential Manager y sincronización automática de cuentas. |
 | **#4** | **Onboarding / Walkthrough Dinámico** | **Medio-Alto** | Medio | **Fase Siguiente.** Aumentará la retención del Día 1 explicando el valor del botón central y los núcleos. |
 | **#5** | **Soporte Multi-idioma (ES / EN)** | **Medio** | Medio | **Roadmap.** Internacionalización para aprovechar la distribución en los 177 países habilitados. |
@@ -221,13 +221,15 @@ Prompt para Iconografía y Badges de Soporte:
 ---
 
 ## 5. Próximos Pasos Operativos
-
-1. **Paso Inmediato (En curso):**
+ 
+1. **Paso Inmediato (COMPLETADO):**
    * Verificar la versión 14 (1.0.7) en Pruebas Internas desde el teléfono.
    * Promocionar a Producción en Google Play Console.
-2. **Paso 2 (Actualización de Ficha ASO):**
-   * Copiar los textos de Título, Descripción Corta y Descripción Larga definidos en la Sección 2.2 y pegarlos directamente en la sección **Presencia en la tienda $\rightarrow$ Ficha principal de Play Store** en Google Play Console.
-3. **Paso 3 (Producción y Carga de Screenshots):**
-   * Extraer las capturas base en alta resolución de las 6 pantallas del dispositivo.
-   * Ensamblar los mockups con los títulos y callouts definidos en la Sección 3.3.
-   * Cargar las 6 imágenes resultantes en Play Console para reemplazar las capturas genéricas actuales.
+2. **Paso 2 (Actualización de Ficha ASO - COMPLETADO):**
+   * Título, Descripción Corta y Descripción Larga copiados y cargados en la sección **Presencia en la tienda $\rightarrow$ Ficha principal de Play Store** en Google Play Console. Enviado a revisión.
+3. **Paso 3 (Producción y Carga de Screenshots - COMPLETADO):**
+   * Generado el set de 6 screenshots profesionales en formato `1080 x 2400 px` con mockups de smartphone, tipografía Outfit y ambient glow.
+   * Cargadas las 6 imágenes resultantes en Google Play Console y enviadas a revisión.
+4. **Paso 4 (Siguiente Fase - En Espera de Aprobación de Google):**
+   * Monitorear la aprobación de la versión 14 (1.0.7) y la actualización visual de la ficha en la Google Play Store.
+   * Evaluar implementación del Onboarding / Walkthrough Dinámico (Prioridad #4).

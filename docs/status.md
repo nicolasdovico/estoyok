@@ -47,7 +47,14 @@
 - [x] **FASE Mobile: Estabilización y Expo Go**
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
-  - [x] Optimización de conectividad real-device (IP local).
+    - [x] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store:
+      - Creado [`generate_play_store_screenshots.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_play_store_screenshots.py) para ensamblar capturas de marketing con mockups de smartphone modernos sin bordes en resolución oficial `1080 x 2400 px` (9:20).
+      - Integrada la tipografía oficial `Outfit Bold/Medium`, fondos Slate Navy con ambient glow y callout badges temáticos con emojis en alta definición.
+      - Generado el set de 6 imágenes de tienda en [`docs/play_store_screenshots/`](file:///home/usuario/aplicaciones/estoyok/docs/play_store_screenshots/) (Mapa en Vivo, Estoy OK, SOS con WhatsApp, Zonas Seguras, Conducción y Login con Google). Cargadas en la Ficha Principal de Google Play Console y enviadas a revisión formal.
+    - [x] Optimización ASO de Ficha en Google Play Store (Plan Maestro de Conversión):
+      - Actualizado el nombre oficial a `Estoy Ok: Localizador Familiar` (29 caracteres) incorporando keywords estratégicas de búsqueda.
+      - Actualizada la descripción corta a `Localizador GPS en tiempo real, check-in diario de bienestar y alertas SOS.` (77 caracteres).
+      - Actualizada la descripción completa con la estructura de alta conversión (propuesta de valor activa/pasiva, botón SOS con WhatsApp, protección vehicular y privacidad). Enviado a revisión formal en Google Play Console.
     - [x] Envío a Revisión Oficial de Producción v14 (1.0.7 - Google Sign-In & Sincronización Google Play Billing):
       - Promovida la versión 14 (`1.0.7`, `versionCode = 14`) a la pista de **Producción** e iniciado el lanzamiento completo en 177 países. Estado actual: *«Cambios en proceso de revisión»*.
       - Actualizado `versionCode = 14` y `versionName = "1.0.7"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).

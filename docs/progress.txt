@@ -1,5 +1,27 @@
 # Progress Log
 
+## [2026-09-29] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store
+- **Material Gráfico & ASO (Paso 3 del Plan Maestro):**
+    - Creado el script automatizado [`docs/generate_play_store_screenshots.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_play_store_screenshots.py) para ensamblar capturas de pantalla de marketing con mockups de smartphone modernos sin bordes en resolución oficial `1080 x 2400 px` (9:20).
+    - Integrada la tipografía oficial del proyecto (`Outfit Bold` y `Outfit Medium`), gradientes oscuros Slate Navy (`#0B132B` $\rightarrow$ `#121C34`), efectos de ambient glow, píldoras flotantes (callouts) con emojis en alta definición e iluminación de marca.
+    - Generado el set completo de 6 capturas en [`docs/play_store_screenshots/`](file:///home/usuario/aplicaciones/estoyok/docs/play_store_screenshots/):
+        1. `screenshot_01_mapa.png`: *Tranquilidad Familiar en Tiempo Real* (🟢 Familia Conectada en Vivo).
+        2. `screenshot_02_estoy_ok.png`: *Confirmá que estás bien en un solo toque* (📲 Aviso Automático a Contactos SOS).
+        3. `screenshot_03_sos.png`: *Alerta SOS con Audio y Coordinación de Rescate* (🚨 Alerta Inmediata a WhatsApp).
+        4. `screenshot_04_zonas_seguras.png`: *Llegadas y Salidas Automáticas* (📍 Llegada a Zona Segura Confirmada).
+        5. `screenshot_05_conduccion.png`: *Conducción Segura y Hábitos Viales* (⭐ Puntuación de Manejo: 98 pts).
+        6. `screenshot_06_login_google.png`: *Registro Rápido y Privacidad Total* (🔒 Cifrado de Datos y Batería Inteligente) con la nueva pantalla `imagen06.jpg` (Google Sign-In).
+    - **Google Play Console (Carga y Envío a Revisión):**
+        - Cargadas las 6 capturas de pantalla en la sección **Presencia en la tienda $\rightarrow$ Ficha principal de Play Store $\rightarrow$ Teléfono**, reemplazando las capturas genéricas anteriores.
+        - Enviados los cambios a revisión oficial en Google Play Console.
+
+## [2026-09-29] Optimización ASO de Ficha en Google Play Store (Plan Maestro de Conversión)
+- **Google Play Console (Ficha Principal de la Tienda - ASO):**
+    - Actualizado el nombre oficial de la app a `Estoy Ok: Localizador Familiar` (29/30 caracteres) para indexación de palabras clave principales de alto volumen.
+    - Actualizada la descripción breve a `Localizador GPS en tiempo real, check-in diario de bienestar y alertas SOS.` (77/80 caracteres).
+    - Actualizada la descripción completa a la versión optimizada para el algoritmo de Google Play (2.608 caracteres) estructurada con viñetas, propuesta de valor (protección activa y pasiva), botón SOS con WhatsApp, protección vehicular y privacidad de datos.
+    - Enviados los cambios a revisión oficial en Google Play Console.
+
 ## [2026-09-28] Envío a Revisión Oficial de Producción v14 (1.0.7) - Google Play Console
 - **Google Play Console (Producción Abierta - Revisión en Curso):**
     - Promovida la versión 14 (`1.0.7`, `versionCode = 14`) desde Pruebas Internas a la pista de **Producción** e iniciado el lanzamiento completo para los 177 países.
