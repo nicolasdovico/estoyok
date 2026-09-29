@@ -2,11 +2,15 @@
 
 ## [2026-09-29] Implementación de Walkthrough / Onboarding Dinámico (Android Nativo)
 - **Experiencia de Usuario y Retención (Paso 4 del Plan Maestro):**
-    - Creado el componente [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con un carrusel dinámico (`HorizontalPager`), indicador animado de puntos (*page indicator*), botón para saltar (*"Omitir"*) y botón de acción principal (*"Continuar"* / *"Empezar ahora"*).
-    - Desarrolladas 3 tarjetas ilustrativas con estética nativa Slate Dark y gráficos vectoriales:
-        1. **Tu Familia Conectada:** Explicación del mapa en tiempo real, círculos familiares y código de 6 dígitos.
-        2. **El Botón "Estoy OK":** El check-in diario en un solo toque y el aviso automático a WhatsApp para contactos externos ante inactividad.
-        3. **Zonas Seguras y Avisos Automáticos:** Monitoreo inteligente de geocercas (Casa, Trabajo, Escuela) con notificaciones de llegada y salida.
+    - Creado el componente [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con un carrusel dinámico (`HorizontalPager`), indicador animado de 7 puntos (*page indicator*), contador superior de diapositivas (`X de 7`), botón para saltar (*"Omitir"*) y botón de acción principal (*"Siguiente →"* / *"¡Comenzar a usar Estoy Ok! 🚀"*).
+    - Desarrollado el componente [`OnboardingPhoneMockup`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con mini-smartphones flotantes, bordes redondeados, cámara punch-hole y ambient glow que exhiben capturas reales de la aplicación optimizadas en WebP (`android-native/app/src/main/res/drawable-nodpi/`):
+        1. **Mapa en Tiempo Real:** Localización familiar interactiva con batería y estado ([`img_onboarding_01_mapa.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_01_mapa.webp)).
+        2. **El Botón "Estoy OK":** Check-in diario de bienestar y aviso por WhatsApp ([`img_onboarding_02_estoy_ok.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_02_estoy_ok.webp)).
+        3. **Zonas Seguras:** Perímetros de llegada y salida automáticos sin mensajes ([`img_onboarding_03_zonas_seguras.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_03_zonas_seguras.webp)).
+        4. **Historial de Movimientos:** Trazado de recorridos en mapa calle por calle ([`img_onboarding_04_rutas.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_04_rutas.webp)).
+        5. **Auto Check-in en el Hogar:** Confirmación automática por Wi-Fi de casa ([`img_onboarding_05_hogar.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_05_hogar.webp)).
+        6. **Protección Vehicular:** Scoring de manejo, velocidad y hábitos viales ([`img_onboarding_06_conduccion.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_06_conduccion.webp)).
+        7. **Respuesta ante Choques:** Pre-alerta de impacto por Fuerza G y temporizador SOS de 15s ([`img_onboarding_07_choque.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_07_choque.webp)).
     - **Persistencia y Arquitectura de Navegación:**
         - Añadida la clave `ONBOARDING_COMPLETED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) con Jetpack DataStore y `saveOnboardingCompleted()`.
         - Expuesto el estado en [`AuthViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/AuthViewModel.kt) (`isOnboardingCompleted` y `completeOnboarding()`).
@@ -14,7 +18,7 @@
         - Integrado en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt): visualización automática tras el disclaimer para nuevos usuarios sin solapamiento de diálogos de permisos del sistema (`isDisclaimerPending`).
         - Agregado botón en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (*"Ver Tutorial de Bienvenida 🧭"*) para que los usuarios actuales o evaluadores puedan ver el tutorial en cualquier momento.
 - **Verificación:**
-    - Compilación Gradle: `./gradlew assembleDebug` exitoso (`BUILD SUCCESSFUL in 4m 9s`).
+    - Compilación Gradle: `./gradlew assembleDebug` exitoso (`BUILD SUCCESSFUL in 53s`).
     - Backend Tests: 165 tests pasando (567 assertions) al 100%.
 
 ## [2026-09-29] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store
