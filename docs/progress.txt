@@ -1,5 +1,14 @@
 # Progress Log
 
+## [2026-09-29] Generación del Set de Piezas Visuales para Historias Destacadas de Instagram (Split-Screen 50/50)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Creado el script automatizado [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) para ensamblar los recursos de diseño para las 6 carpetas temáticas de Historias Destacadas.
+    - Exportadas 26 piezas en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/):
+        - 13 plantillas maestras en resolución vertical `1080 x 1920 px` (9:16) con cabecera de carpeta, título de historia, resplandor ambiental y smartphone flotante en la mitad inferior.
+        - 13 cortes de la mitad inferior en resolución `1080 x 960 px` para montaje rápido en pistas de video de CapCut o Premiere.
+    - Incorporadas las 4 capturas complementarias reales tomadas desde el dispositivo físico (`captura_crear_nucleo.jpg`, `captura_notif_zona.jpg`, `captura_modal_contactos.jpg` y `captura_rescate_web.jpg`).
+    - Actualizado el documento maestro [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md) con las instrucciones de uso del script y la lista completa de guiones palabra por palabra para Google Flow.
+
 ## [2026-09-29] Implementación de Walkthrough / Onboarding Dinámico (Android Nativo)
 - **Experiencia de Usuario y Retención (Paso 4 del Plan Maestro):**
     - Creado el componente [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con un carrusel dinámico (`HorizontalPager`), indicador animado de 7 puntos (*page indicator*), contador superior de diapositivas (`X de 7`), botón para saltar (*"Omitir"*) y botón de acción principal (*"Siguiente →"* / *"¡Comenzar a usar Estoy Ok! 🚀"*).

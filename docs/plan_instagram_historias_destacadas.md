@@ -47,29 +47,34 @@ En Instagram Stories el lienzo total mide **1080 x 1920 px**, por lo que la mita
 
 Para que el script genere las imágenes de la mitad inferior, necesitamos el catálogo completo de capturas reales:
 
-### ✅ Capturas YA Disponibles en el Proyecto:
-1. `docs/imagen06.jpg` → Pantalla de Inicio / Login con botón de Google.
-2. `docs/imagen01.jpg` → Mapa interactivo en tiempo real con miembros del núcleo y batería.
-3. `docs/imagen02.jpg` → Pestaña "Estoy OK" con el botón verde gigante y temporizador.
-4. `docs/imagen04.jpg` → Historial de reportes y auto check-in ("Vía Wi-Fi Seguro").
-5. `docs/zoom.jpg` → Mapa con radio perimetral celeste de Zona Segura.
-6. `docs/rastreo.jpg` → Trazado de ruta de viaje en el mapa con línea turquesa.
-7. `docs/imagen03.jpg` → Pantalla de Protección Vehicular con Score de manejo (70 pts).
-8. `docs/imagen05.jpg` → Desglose de viajes y eventos de velocidad en auto.
-9. `docs/crash_alert_screen.jpg` → Pantalla roja de impacto detectado (Fuerza G 4.80G) con cuenta regresiva.
-10. `docs/crash_alert_message_whatsapp.jpg` → Captura del mensaje real recibido en WhatsApp con enlace de rescate.
+### ✅ Catálogo Completo de Capturas Reales (100% DISPONIBLES):
+1. `docs/imagen06.jpg` → Pantalla de Inicio / Login con botón de Google y Crear Cuenta.
+2. `docs/captura_crear_nucleo.jpg` → Pestaña Familia / Tarjeta con Código de 6 dígitos para invitar.
+3. `docs/imagen01.jpg` → Mapa interactivo en tiempo real con miembros del núcleo y batería.
+4. `docs/imagen02.jpg` → Pestaña "Estoy OK" con el botón verde gigante y temporizador.
+5. `docs/imagen04.jpg` → Historial de reportes y auto check-in ("Vía Wi-Fi Seguro").
+6. `docs/zoom.jpg` → Mapa con radio perimetral celeste de Zona Segura.
+7. `docs/captura_notif_zona.jpg` → Notificación push emergente real de llegada a Casa ("Alerta de Perímetro").
+8. `docs/rastreo.jpg` → Trazado de ruta de viaje en el mapa con línea turquesa.
+9. `docs/captura_modal_contactos.jpg` → Modal abierto de Contactos SOS con campo para WhatsApp.
+10. `docs/captura_rescate_web.jpg` → Pantalla web pública de rescate con botón "Voy en camino".
+11. `docs/imagen03.jpg` → Pantalla de Protección Vehicular con Score de manejo (70 pts).
+12. `docs/imagen05.jpg` → Desglose de viajes y eventos de velocidad en auto.
+13. `docs/crash_alert_screen.jpg` → Pantalla roja de impacto detectado (Fuerza G 4.80G) con cuenta regresiva.
+14. `docs/crash_alert_message_whatsapp.jpg` → Captura del mensaje real recibido en WhatsApp con enlace de rescate.
 
 ---
 
-### 📸 Capturas FALTANTES (A tomar desde tu celular):
-Para que la explicación sea 100% precisa, tomá estas 4 capturas en tu app y guardalas en la carpeta `docs/`:
+### 🛠️ Script Automatizado de Generación de Mockups (Split-Screen 50/50)
+Se desarrolló el script [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) que procesa las capturas reales y ensambla automáticamente todas las piezas de diseño listas para el editor de video (CapCut, Premiere, InShot o Canva):
 
-| Archivo a Guardar | Pantalla a Capturar | Qué debe mostrar |
-|---|---|---|
-| `docs/captura_crear_nucleo.jpg` | Pestaña Familia / Núcleo | La tarjeta donde figura tu **Código de 6 dígitos** para invitar a familiares. |
-| `docs/captura_notif_zona.jpg` | Notificación del Sistema | La notificación emergente de Android que dice *"Nicolás llegó a Casa"* o *"Salió de Escuela"*. |
-| `docs/captura_modal_contactos.jpg` | Pestaña Estoy OK | El modal abierto de **Contactos SOS** donde se ve el campo para cargar el WhatsApp del contacto. |
-| `docs/captura_rescate_web.jpg` | Navegador Web | La pantalla pública de emergencia (`/emergencia/[uuid]`) con el botón **"Voy en camino"**. |
+* **Comando para regenerar todo el catálogo:**
+  ```bash
+  python3 docs/generate_instagram_story_mockups.py
+  ```
+* **Formatos exportados en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/):**
+  1. `*_full.png` (**1080 x 1920 px**): Plantilla completa de Story vertical 9:16. La mitad superior incluye el badge de carpeta y título con fondo oscuro limpio listo para superponer el video de Google Flow. La mitad inferior incluye el smartphone flotante con ambient glow, bisel de titanio y la píldora indicadora de navegación.
+  2. `*_bottom_960.png` (**1080 x 960 px**): Corte exacto de la mitad inferior para quien prefiera montar pistas separadas de video/imagen en la línea de tiempo.
 
 ---
 
