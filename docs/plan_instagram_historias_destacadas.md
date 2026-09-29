@@ -78,6 +78,38 @@ Se desarrolló el script [`docs/generate_instagram_story_mockups.py`](file:///ho
 
 ---
 
+## 2.1 Prompt Maestro Reutilizable para Google Flow (Avatar AI)
+
+Para generar cada toma en **Google Flow**, adjuntá la imagen del personaje que querés usar, seleccioná la relación de aspecto **1:1 (Cuadrado)** y pegá la siguiente plantilla cambiando únicamente el texto entre comillas al final:
+
+### 📋 Plantilla Maestra (Copiar y Pegar):
+```text
+Animate the person in the attached reference image as a live-action presenter speaking directly to camera. 
+- Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and appearance as the attached image.
+- Framing & Camera: Medium close-up (from chest up), centered in frame, looking straight into the camera lens with a warm, friendly, empathetic and trustworthy expression. 
+- Environment & Background: A warm, modern and cozy tech-oriented space (contemporary smart office or modern apartment living room). Sleek background with soft interior lighting, dark slate and navy accents, and subtle blurred emerald green and electric teal ambient lighting highlights. Shallow depth of field with beautiful soft cinematic bokeh.
+- Animation & Motion: Natural micro-expressions, subtle head nods, natural blinking, relaxed shoulder posture and smooth lip synchronization matching the spoken audio.
+- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm, friendly and conversational tone, natural Argentinian voseo: 'vos / mirá / tocá').
+- Aspect ratio: 1:1 (Square 1080x1080).
+- Dialogue:
+"[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
+```
+
+> **Alternativa 100% en Español (si la interfaz de Flow prefiere prompts en castellano):**
+```text
+Animá al personaje de la imagen de referencia adjunta como un presentador real hablando directamente a cámara.
+- Consistencia del personaje: Mantener idénticos los rasgos faciales, edad, peinado, ropa y apariencia física de la imagen adjunta.
+- Encuadre y cámara: Plano medio corto (desde el pecho hacia arriba), centrado, mirando fijo a cámara con expresión cálida, amigable, empática y profesional.
+- Fondo y ambiente: Espacio moderno, ameno y tecnológico (oficina de diseño o living contemporáneo cálido). Iluminación suave, tonos slate/navy oscuros y sutiles destellos desenfocados de luz verde esmeralda y turquesa. Profundidad de campo con bokeh suave y agradable.
+- Animación: Microexpresiones naturales, movimientos sutiles de cabeza, parpadeo realista y sincronización labial perfecta con las palabras.
+- Voz e idioma: Voz en español con acento argentino rioplatense (de Buenos Aires, tono cálido, cercano y natural, usando el voseo argentino: 'vos / mirá / tocá').
+- Relación de aspecto: 1:1 (Cuadrado).
+- Diálogo a decir:
+"[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
+```
+
+---
+
 ## 3. Guiones Palabra por Palabra con Referencias Exactas (≤ 10 Segundos por Toma)
 
 Cada toma está cronometrada para un ritmo natural de voz (**18 a 23 palabras = 8 a 9.5 segundos**) e incluye la **referencia exacta de navegación** (pestaña, botón o menú) para que el usuario nunca tenga que adivinar dónde está cada función.
