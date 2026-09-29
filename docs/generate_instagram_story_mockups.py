@@ -1,4 +1,5 @@
 import os
+import math
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 def create_gradient(width, height, top_color, bottom_color):
@@ -55,6 +56,71 @@ def render_emoji(emoji_char, target_size):
         print(f"Emoji render error for {emoji_char}: {e}")
     return None
 
+def draw_arrow(draw, start, end, color=(0, 229, 255, 255), width=5, arrow_size=16):
+    """Draws a directional arrow with a triangular head."""
+    x0, y0 = start
+    x1, y1 = end
+    draw.line([start, end], fill=color, width=width)
+    angle = math.atan2(y1 - y0, x1 - x0)
+    angle1 = angle + math.pi * 0.82
+    angle2 = angle - math.pi * 0.82
+    p1 = (x1 + arrow_size * math.cos(angle1), y1 + arrow_size * math.sin(angle1))
+    p2 = (x1 + arrow_size * math.cos(angle2), y1 + arrow_size * math.sin(angle2))
+    draw.polygon([end, p1, p2], fill=color)
+
+def apply_annotations(app_img, annotation_type):
+    """Draws sleek focus callout boxes and directional arrows on the screenshot."""
+    if not annotation_type:
+        return app_img
+    
+    img = app_img.convert('RGBA')
+    overlay = Image.new('RGBA', img.size, (0, 0, 0, 0))
+    d = ImageDraw.Draw(overlay)
+    font = ImageFont.truetype('android-native/app/src/main/res/font/outfit_bold.ttf', 28)
+
+    if annotation_type == "login_google_register":
+        cyan = (0, 229, 255, 255)
+        green = (16, 185, 129, 255)
+        # 1. Google Button Focus
+        d.rounded_rectangle([(45, 1055), (675, 1148)], radius=20, outline=cyan, width=5)
+        # Pill 1
+        d.rounded_rectangle([(60, 975), (410, 1030)], radius=16, fill=(15, 23, 42, 245), outline=cyan, width=3)
+        d.text((80, 986), "Opción 1: Con Google", font=font, fill=(255, 255, 255))
+        draw_arrow(d, (230, 1030), (230, 1055), color=cyan, width=5, arrow_size=15)
+
+        # 2. Register Link Focus
+        d.rounded_rectangle([(375, 1230), (615, 1282)], radius=12, outline=green, width=4)
+        # Pill 2
+        d.rounded_rectangle([(60, 1165), (410, 1220)], radius=16, fill=(15, 23, 42, 245), outline=green, width=3)
+        d.text((80, 1176), "Opción 2: Crear Cuenta", font=font, fill=(255, 255, 255))
+        draw_arrow(d, (350, 1215), (375, 1235), color=green, width=5, arrow_size=15)
+
+    elif annotation_type == "nucleo_code":
+        cyan = (0, 229, 255, 255)
+        # Focus on copy code button at top right [3FIRL5LDLO]
+        d.rounded_rectangle([(435, 250), (710, 335)], radius=18, outline=cyan, width=5)
+        d.rounded_rectangle([(60, 260), (410, 315)], radius=16, fill=(15, 23, 42, 245), outline=cyan, width=3)
+        d.text((80, 271), "Tu Código Familiar", font=font, fill=(255, 255, 255))
+        draw_arrow(d, (410, 287), (435, 287), color=cyan, width=5, arrow_size=15)
+
+    elif annotation_type == "estoy_ok_button":
+        green = (16, 185, 129, 255)
+        # Focus on central button
+        d.ellipse([(205, 680), (515, 990)], outline=green, width=6)
+        d.rounded_rectangle([(160, 600), (560, 655)], radius=16, fill=(15, 23, 42, 245), outline=green, width=3)
+        d.text((180, 611), "Tocá acá 1 vez al día", font=font, fill=(255, 255, 255))
+        draw_arrow(d, (360, 655), (360, 680), color=green, width=5, arrow_size=16)
+
+    elif annotation_type == "sos_button":
+        red = (239, 68, 68, 255)
+        # SOS button at top right
+        d.rounded_rectangle([(550, 100), (690, 180)], radius=16, outline=red, width=5)
+        d.rounded_rectangle([(160, 110), (530, 165)], radius=16, fill=(15, 23, 42, 245), outline=red, width=3)
+        d.text((180, 121), "Botón de Pánico SOS", font=font, fill=(255, 255, 255))
+        draw_arrow(d, (530, 137), (550, 137), color=red, width=5, arrow_size=15)
+
+    return Image.alpha_composite(img, overlay).convert('RGB')
+
 def build_instagram_story(
     output_prefix,
     folder_name,
@@ -64,13 +130,14 @@ def build_instagram_story(
     callout_landmark,
     app_image_path,
     accent_color=(16, 185, 129),
+    annotation_type=None,
     export_bottom_slice=True
 ):
     """
     Generates:
     1. Full 1080x1920 Instagram Story template:
        - Top 50% (0..960px): Reserved for Google Flow video overlay with header badge.
-       - Bottom 50% (960..1920px): Floating Phone Mockup + Landmark focus badge.
+       - Bottom 50% (960..1920px): Floating Phone Mockup + Landmark focus badge + focus arrows.
     2. Optional bottom slice (1080x960px) for direct timeline track import.
     """
     W, H = 1080, 1920
@@ -87,11 +154,11 @@ def build_instagram_story(
     font_folder = ImageFont.truetype('android-native/app/src/main/res/font/outfit_bold.ttf', 24)
     font_title = ImageFont.truetype('android-native/app/src/main/res/font/outfit_bold.ttf', 38)
     font_callout = ImageFont.truetype('android-native/app/src/main/res/font/outfit_bold.ttf', 28)
-    font_guide = ImageFont.truetype('android-native/app/src/main/res/font/outfit_medium.ttf', 20)
     
     # 2. Top Half Branding (y: 60..180)
     draw = ImageDraw.Draw(bg)
-    folder_pill_text = f"{folder_name}  •  HISTORIA {story_number}".upper()
+    clean_folder_name = "".join(c for c in folder_name if ord(c) < 128 or c in "ÁÉÍÓÚáéíóúÑñÜü").strip()
+    folder_pill_text = f"{clean_folder_name}  •  HISTORIA {story_number}".upper()
     f_bbox = draw.textbbox((0, 0), folder_pill_text, font=font_folder)
     f_w = f_bbox[2] - f_bbox[0]
     f_h = f_bbox[3] - f_bbox[1]
@@ -116,7 +183,7 @@ def build_instagram_story(
     t_w = t_bbox[2] - t_bbox[0]
     p_draw.text(((W - t_w) // 2, pill_py + f_h + 30), story_title, font=font_title, fill=(255, 255, 255))
     
-    # Video Area Guide indicator (Subtle dashed style or guide text)
+    # Video Area Guide indicator
     p_draw.line([(60, HALF_H), (W - 60, HALF_H)], fill=(255, 255, 255, 40), width=2)
     
     bg = Image.alpha_composite(bg.convert('RGBA'), pill_layer).convert('RGB')
@@ -141,7 +208,7 @@ def build_instagram_story(
     lm_pill_x = (W - lm_pill_w) // 2
     lm_pill_y = HALF_H + 35
     
-    # Pill with neon glowing border
+    # Pill with glowing border
     l_draw.rounded_rectangle(
         [(lm_pill_x, lm_pill_y), (lm_pill_x + lm_pill_w, lm_pill_y + lm_pill_h)],
         radius=lm_pill_h // 2,
@@ -163,15 +230,15 @@ def build_instagram_story(
     
     bg = Image.alpha_composite(bg.convert('RGBA'), landmark_layer).convert('RGB')
     
-    # 4. Device Mockup Frame (y: 1085..1920)
-    app_img = Image.open(app_image_path)
+    # 4. Device Mockup Frame (y: 1065..1920)
+    app_raw = Image.open(app_image_path)
+    app_img = apply_annotations(app_raw, annotation_type)
     
-    # Clean phone width of 480px fits beautifully with ample breathing room
-    phone_w = 480
+    phone_w = 460
     phone_h = int(phone_w * (app_img.size[1] / app_img.size[0]))
     
     phone_x = (W - phone_w) // 2
-    phone_y = lm_pill_y + lm_pill_h + 30
+    phone_y = lm_pill_y + lm_pill_h + 18
     
     border_thick = 12
     screen_radius = 38
@@ -197,7 +264,7 @@ def build_instagram_story(
     frame_layer = Image.new('RGBA', (W, H), (0, 0, 0, 0))
     f_draw = ImageDraw.Draw(frame_layer)
     
-    # Titanium / Graphite bezel
+    # Bezel
     f_draw.rounded_rectangle(
         [(frame_x, frame_y), (frame_x + frame_w, frame_y + frame_h)],
         radius=frame_radius,
@@ -206,12 +273,12 @@ def build_instagram_story(
         width=2
     )
     
-    # App screen content
+    # Screen
     app_resized = app_img.resize((phone_w, phone_h), Image.Resampling.LANCZOS).convert('RGBA')
     app_rounded = round_corners(app_resized, screen_radius)
     frame_layer.paste(app_rounded, (phone_x, phone_y), app_rounded)
     
-    # Front camera punch hole
+    # Camera punch hole
     punch_w, punch_h = 18, 18
     punch_x = (W - punch_w) // 2
     punch_y = phone_y + 14
@@ -246,145 +313,184 @@ def main():
     
     stories = [
         # CARPETA 1: 🚀 EMPEZÁ ACÁ
+        # Historia 1 - Toma 1 (Limpia)
+        {
+            "prefix": f"{dest_dir}/destacada1_h1_toma1_login",
+            "folder": "Empezá Acá",
+            "number": "1/3 (Toma 1)",
+            "title": "Creá tu Cuenta en Estoy Ok",
+            "emoji": "🔐",
+            "landmark": "Acceso Rápido con Google o Registro",
+            "image": "docs/imagen06.jpg",
+            "accent": (16, 185, 129),
+            "annotation": None
+        },
+        # Historia 1 - Toma 2 (Con Flechas Google y Registro)
+        {
+            "prefix": f"{dest_dir}/destacada1_h1_toma2_login",
+            "folder": "Empezá Acá",
+            "number": "1/3 (Toma 2)",
+            "title": "Elegí cómo Acceder a la App",
+            "emoji": "👉",
+            "landmark": "Tocá 'Google' o 'Registrate aquí'",
+            "image": "docs/imagen06.jpg",
+            "accent": (0, 229, 255),
+            "annotation": "login_google_register"
+        },
+        # Historia 1 (General con flechas)
         {
             "prefix": f"{dest_dir}/destacada1_h1_login",
-            "folder": "🚀 Empezá Acá",
+            "folder": "Empezá Acá",
             "number": "1/3",
             "title": "Creá tu Cuenta o Ingresá con Google",
             "emoji": "🔐",
             "landmark": "Acceso Rápido con Google o Registro",
             "image": "docs/imagen06.jpg",
-            "accent": (16, 185, 129) # Emerald
+            "accent": (0, 229, 255),
+            "annotation": "login_google_register"
         },
+        # Historia 2 (Núcleo) con flecha al código
         {
             "prefix": f"{dest_dir}/destacada1_h2_nucleo",
-            "folder": "🚀 Empezá Acá",
+            "folder": "Empezá Acá",
             "number": "2/3",
             "title": "Tu Código de Invitación Familiar",
             "emoji": "👨‍👩‍👧",
             "landmark": "Pestaña Familia → Compartí tu Código",
             "image": "docs/captura_crear_nucleo.jpg",
-            "accent": (0, 229, 255) # Electric Teal
+            "accent": (0, 229, 255),
+            "annotation": "nucleo_code"
         },
         {
             "prefix": f"{dest_dir}/destacada1_h3_mapa",
-            "folder": "🚀 Empezá Acá",
+            "folder": "Empezá Acá",
             "number": "3/3",
             "title": "Ubicación en Vivo de tu Familia",
             "emoji": "🟢",
             "landmark": "Pestaña Mapa → Conexión en Vivo y Batería",
             "image": "docs/imagen01.jpg",
-            "accent": (16, 185, 129)
+            "accent": (16, 185, 129),
+            "annotation": None
         },
         
         # CARPETA 2: 🟢 EL BOTÓN "ESTOY OK"
         {
             "prefix": f"{dest_dir}/destacada2_h1_estoy_ok",
-            "folder": "🟢 El Botón Estoy OK",
+            "folder": "El Botón Estoy OK",
             "number": "1/2",
             "title": "Check-in Diario en 1 Solo Toque",
             "emoji": "🟢",
             "landmark": "Pestaña Estoy OK → Botón de Bienestar",
             "image": "docs/imagen02.jpg",
-            "accent": (16, 185, 129)
+            "accent": (16, 185, 129),
+            "annotation": "estoy_ok_button"
         },
         {
             "prefix": f"{dest_dir}/destacada2_h2_alerta_whatsapp",
-            "folder": "🟢 El Botón Estoy OK",
+            "folder": "El Botón Estoy OK",
             "number": "2/2",
             "title": "Aviso Automático por WhatsApp",
             "emoji": "📲",
             "landmark": "Alerta Automática a Contactos SOS",
             "image": "docs/crash_alert_message_whatsapp.jpg",
-            "accent": (37, 211, 102) # WhatsApp Green
+            "accent": (37, 211, 102),
+            "annotation": None
         },
         
         # CARPETA 3: 📍 ZONAS SEGURAS
         {
             "prefix": f"{dest_dir}/destacada3_h1_zonas_crear",
-            "folder": "📍 Zonas Seguras",
+            "folder": "Zonas Seguras",
             "number": "1/2",
             "title": "Llegadas y Salidas Automáticas",
             "emoji": "📍",
             "landmark": "Pestaña Mapa → Selector de Zonas Seguras",
             "image": "docs/zoom.jpg",
-            "accent": (0, 229, 255)
+            "accent": (0, 229, 255),
+            "annotation": None
         },
         {
             "prefix": f"{dest_dir}/destacada3_h2_zonas_notif",
-            "folder": "📍 Zonas Seguras",
+            "folder": "Zonas Seguras",
             "number": "2/2",
             "title": "Avisos Inmediatos al Celular",
             "emoji": "🔔",
             "landmark": "Alerta de Perímetro: Llegada a Casa",
             "image": "docs/captura_notif_zona.jpg",
-            "accent": (16, 185, 129)
+            "accent": (16, 185, 129),
+            "annotation": None
         },
         
         # CARPETA 4: 🚨 CONTACTOS SOS & WHATSAPP
         {
             "prefix": f"{dest_dir}/destacada4_h1_contactos_sos",
-            "folder": "🚨 Contactos SOS",
+            "folder": "Contactos SOS",
             "number": "1/2",
             "title": "Cargá tus Contactos de Emergencia",
             "emoji": "👥",
             "landmark": "Pestaña Estoy OK → Agregar Contacto SOS",
             "image": "docs/captura_modal_contactos.jpg",
-            "accent": (239, 68, 68) # SOS Red
+            "accent": (239, 68, 68),
+            "annotation": None
         },
         {
             "prefix": f"{dest_dir}/destacada4_h2_rescate_web",
-            "folder": "🚨 Contactos SOS",
+            "folder": "Contactos SOS",
             "number": "2/2",
             "title": "Botón de Pánico y Coordinación de Rescate",
             "emoji": "🚨",
             "landmark": "Web de Rescate → Botón 'Voy en camino'",
             "image": "docs/captura_rescate_web.jpg",
-            "accent": (239, 68, 68)
+            "accent": (239, 68, 68),
+            "annotation": "sos_button"
         },
         
         # CARPETA 5: 🚗 EN EL AUTO (SEGURIDAD VIAL)
         {
             "prefix": f"{dest_dir}/destacada5_h1_conduccion",
-            "folder": "🚗 Seguridad Vial",
+            "folder": "Seguridad Vial",
             "number": "1/2",
             "title": "Score Semanal y Hábitos al Volante",
             "emoji": "⭐",
             "landmark": "Pestaña Vehículo → Score de Manejo (70 pts)",
             "image": "docs/imagen03.jpg",
-            "accent": (245, 158, 11) # Amber
+            "accent": (245, 158, 11),
+            "annotation": None
         },
         {
             "prefix": f"{dest_dir}/destacada5_h2_choques",
-            "folder": "🚗 Seguridad Vial",
+            "folder": "Seguridad Vial",
             "number": "2/2",
             "title": "Detección de Choques por Fuerza G",
             "emoji": "⚠️",
             "landmark": "Alerta de Impacto 4.80G y Aviso WhatsApp",
             "image": "docs/crash_alert_screen.jpg",
-            "accent": (239, 68, 68)
+            "accent": (239, 68, 68),
+            "annotation": None
         },
         
         # CARPETA 6: 🔋 BATERÍA & PRIVACIDAD
         {
             "prefix": f"{dest_dir}/destacada6_h1_bateria",
-            "folder": "🔋 Batería & Privacidad",
+            "folder": "Batería & Privacidad",
             "number": "1/2",
             "title": "GPS Inteligente de Ultra Bajo Consumo",
             "emoji": "🔋",
             "landmark": "Pestaña Mapa → Nivel de Batería en Vivo",
             "image": "docs/imagen01.jpg",
-            "accent": (16, 185, 129)
+            "accent": (16, 185, 129),
+            "annotation": None
         },
         {
             "prefix": f"{dest_dir}/destacada6_h2_privacidad",
-            "folder": "🔋 Batería & Privacidad",
+            "folder": "Batería & Privacidad",
             "number": "2/2",
             "title": "Cifrado Total y Cero Publicidad",
             "emoji": "🔒",
             "landmark": "Privacidad Garantizada: Sin Anuncios",
             "image": "docs/imagen06.jpg",
-            "accent": (168, 85, 247) # Indigo / Purple
+            "accent": (168, 85, 247),
+            "annotation": None
         }
     ]
     
@@ -399,6 +505,7 @@ def main():
             callout_landmark=s["landmark"],
             app_image_path=s["image"],
             accent_color=s["accent"],
+            annotation_type=s.get("annotation"),
             export_bottom_slice=True
         )
     print("\n¡Todas las piezas generadas exitosamente en docs/instagram_stories_assets/!")
