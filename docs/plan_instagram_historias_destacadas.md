@@ -8,21 +8,25 @@
 
 ---
 
-## 1. Metodología de Trabajo: Formato "Pantalla Dividida (50/50)"
+## 1. Metodología de Trabajo: Formato "FaceCam / Burbuja Flotante (PiP)"
 
-Para no abrumar al usuario con decenas de historias cortas ni complicar la edición con pantallas verdes o recortes de fondo, utilizaremos la arquitectura de **Pantalla Dividida (Split Screen 50/50)** en resolución vertical oficial **1080 x 1920 px (9:16)**.
+Tras validar en edición que el formato dividido 50/50 reducía el tamaño de la interfaz de la app haciéndola ilegible y sobrecargando la atención en el presentador, se evolucionó al formato estándar de la industria tech: **FaceCam / Burbuja Flotante**.
+
+La captura de la app se muestra centrada a **escala nativa 1:1 (720 x 1600 px)** en el lienzo vertical oficial **1080 x 1920 px (9:16)**, manteniendo total legibilidad en textos, botones y flechas de foco. El video del avatar de Google Flow se sitúa en una **burbuja circular flotante** en la esquina superior.
 
 ```
 ┌──────────────────────────────────────────────┐
+│  [  Burbuja  ]                               │  ← Video del Avatar 1:1 recortado en
+│  [  Avatar   ]                               │    círculo suave (30% de escala)
 │                                              │
-│             MITAD SUPERIOR (50%)             │  ← Video del Personaje de Google Flow
-│            [ Personaje Hablando ]            │    hablando a cámara (tomas de ≤ 10 seg).
-│                                              │    Fondo original, sin recortar.
-├──────────────────────────────────────────────┤
+│         ┌──────────────────────────┐         │
+│         │   MARCO SMARTPHONE       │         │  ← Captura Real de Estoy Ok a escala
+│         │   720 x 1600 px          │         │    nativa 1:1, nítida, con botones
+│         │   (Centrado y Completo)  │         │    gigantes y flechas indicadoras.
+│         │                          │         │
+│         │   [ Botón Estoy OK ]     │         │
+│         └──────────────────────────┘         │
 │                                              │
-│             MITAD INFERIOR (50%)             │  ← Captura Real de la App Estoy Ok
-│            [ Interfaz Real Estoy Ok ]        │    en marco de smartphone estilizado
-│                                              │    con flechas y elementos de foco.
 └──────────────────────────────────────────────┘
 ```
 
@@ -237,3 +241,59 @@ python3 docs/generate_instagram_stories.py
     - Aspect ratio: 1:1 (Square 1080x1080).
     - Dialogue:
     "[PEGAR AQUÍ EL TEXTO DE LA TOMA]"
+
+---
+
+## 6. Guía de Montaje en Kdenlive: Efecto Burbuja Flotante (FaceCam)
+
+### 6.1 Disposición de Pistas en la Línea de Tiempo
+* **Pista V1 (Abajo):** Imagen de fondo generada (ej. `destacada1_h1_login.png` en `docs/instagram_stories_assets/`).
+* **Pista V2 (Arriba):** Video cuadrado 1:1 del avatar de Google Flow.
+
+---
+
+### 6.2 Paso a Paso de Efectos en el Video (Pista V2)
+
+#### Paso 1: Volverlo Círculo (Efecto: Forma alfa)
+1. Seleccioná el video en la pista **V2**.
+2. En la pestaña de Efectos buscá **"Forma alfa"** (*Alpha shapes*) y arrastralo al video.
+3. Configurá estos valores:
+   * **Forma:** `Elipse`
+   * **Posición X:** `500` *(o 50%)*
+   * **Posición Y:** `500` *(o 50%)*
+   * **Tamaño X:** `500` *(o 50%)*
+   * **Tamaño Y:** `500` *(o 50%)*
+   * **Transición / Suavizado:** `2%` a `4%` *(para que el borde quede limpio y suave)*.
+
+> ⚠️ **Nota clave:** Acá **no** achicamos el video, solo redondeamos sus 4 esquinas. La persona debe seguir viéndose completa a pantalla completa.
+
+#### Paso 2: Achicar y Mover (Efecto: Transformar)
+1. En la pestaña de Efectos buscá **"Transformar"** (*Transform*) y arrastralo al video.
+2. **Muy importante:** En la lista de efectos del clip, **"Transformar" debe quedar DEBAJO de "Forma alfa"**.
+3. En el efecto **Transformar**, configurá:
+   * **Tamaño / Escala:** **`30%`** *(esto achica toda la burbuja proporcionalmente con la persona adentro)*.
+   * **Posición:** Arrastrá la burbuja con el mouse en el monitor de video hacia la **esquina superior derecha** (o poné `X: 720`, `Y: 80`).
+
+---
+
+### 6.3 Verificación del Orden en la Pila de Efectos
+Para ver la lista de efectos aplicados al clip:
+1. Hacé clic sobre el clip en la línea de tiempo.
+2. Abrí el panel **"Pila de efectos"** (*Effect Stack*). Si no está visible, activalo desde el menú superior: **Ver $\rightarrow$ Pila de efectos**.
+3. Verificá que el orden de lectura (de arriba hacia abajo) sea:
+   ```text
+   ┌──────────────────────────────────────┐
+   │ [👁]  Forma alfa                     │  <-- 1° ARRIBA (Corta el círculo)
+   ├──────────────────────────────────────┤
+   │ [👁]  Transformar                    │  <-- 2° ABAJO (Escala al 30% y ubica)
+   └──────────────────────────────────────┘
+   ```
+   *(Si quedaron invertidos, arrastrá la barra de Transformar hacia abajo o usá las flechas ▲ / ▼ en la cabecera).*
+
+---
+
+### 6.4 Replicar en todos los videos en 1 segundo
+Una vez que te gustó cómo quedó ese primer clip:
+1. Clic derecho sobre el clip configurado $\rightarrow$ **Copiar** (`Ctrl + C`).
+2. Clic derecho sobre el siguiente video $\rightarrow$ **Pegar efectos** (*Paste Effects*).
+3. ¡Listo! Se le aplicará la misma burbuja, tamaño y posición al instante.

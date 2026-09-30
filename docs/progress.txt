@@ -2053,4 +2053,8 @@
     - `emergencia/[id]/page.tsx`: añadido `robots: { index: false, follow: false }` para proteger la privacidad de incidentes en tiempo real.
     - `politica-de-privacidad/page.tsx`: enriquecida la metadata con URL canónica y OpenGraph.
     - Build verificado sin errores (`npm run build` con Turbopack exitoso) y desplegado en la rama `main`.
-
+## [2026-09-29] Material para Historias Destacadas de Instagram: Formato FaceCam y Guía Kdenlive
+- **Marketing y Producción Audiovisual:**
+    - Evolución de diseño de historias destacadas de Split-Screen (50/50) a Formato FaceCam / Burbuja Flotante (PiP): maximiza legibilidad de la app al centrar el marco del smartphone a tamaño nativo 1:1 (720x1600 px) en el lienzo de 1080x1920 px, eliminando recortes y preservando flechas e indicadores en alta definición.
+    - Script generador [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) actualizado para producir las 13 piezas definitivas en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/).
+    - Documentada la guía técnica de montaje en Kdenlive (`Forma alfa` + `Transformar` en Pila de Efectos) y preservación de tomas continuas en [`plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
