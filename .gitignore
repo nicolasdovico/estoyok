@@ -19,3 +19,6 @@ google-services.json
 # Scripts temporales de migracion y chequeo
 sync_db.sh
 check_dev_db.sh
+
+# Assets generados de marketing / Instagram
+docs/instagram_stories_assets/
