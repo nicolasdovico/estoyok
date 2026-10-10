@@ -1,5 +1,40 @@
 # Progress Log
 
+## [2026-10-10] Producción de B-Rolls (Reels 2 y 3), Organización de Creativos y Criterio de Versionado Git
+- **Marketing y Pauta Publicitaria (Meta Ads):**
+    - Desarrollado el generador [`docs/generate_reel2_brolls.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_reel2_brolls.py) y producidas las 6 piezas oficiales de B-Roll para el **Reel 2 (Vivir Solo / Bienestar)** en formato vertical Full HD 9:16 (1080x1920 px) en dos variantes (Framed con marco de smartphone estilizado y Full-bleed edge-to-edge):
+        1. Botón "Estoy OK" con contador diario (`broll_reel2_01_estoy_ok_9x16.png` y `broll_reel2_01_estoy_ok_fullbleed_9x16.jpg`).
+        2. Configuración de Wi-Fi de Casa / Auto-Checkin en Ajustes (`broll_reel2_02_wifi_ajustes_9x16.png` y `broll_reel2_02_wifi_ajustes_fullbleed_9x16.jpg`).
+        3. Mensaje de WhatsApp recibido con alerta de bienestar e inactividad (`broll_reel2_03_alerta_whatsapp_9x16.png` y `broll_reel2_03_alerta_whatsapp_fullbleed_9x16.jpg`).
+    - Desarrollado el generador [`docs/generate_reel3_brolls.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_reel3_brolls.py) y producidas las 8 piezas oficiales de B-Roll para el **Reel 3 (Urgencia / Choques y SOS)** en formato vertical 9:16 (1080x1920 px) en dos variantes (Framed y Full-bleed):
+        1. Modal de contactos SOS y activación (`broll_reel3_01_contactos_sos_9x16.png` y `broll_reel3_01_contactos_sos_fullbleed_9x16.jpg`).
+        2. Pantalla pública web de rescate con reproductor de audio ambiente de 15s y botón interactivo "Voy en camino" (`broll_reel3_02_web_rescate_audio_9x16.png` y `broll_reel3_02_web_rescate_audio_fullbleed_9x16.jpg`).
+        3. Pantalla de colisión por Fuerza G con cuenta regresiva de 15s (`broll_reel3_03_choque_fuerzag_9x16.png` y `broll_reel3_03_choque_fuerzag_fullbleed_9x16.jpg`).
+        4. Mensaje de WhatsApp recibido alertando de choque con link al mapa de rescate (`broll_reel3_04_whatsapp_choque_9x16.png` y `broll_reel3_04_whatsapp_choque_fullbleed_9x16.jpg`).
+    - **Estructuración y Organización de Assets:**
+        - Creado el directorio centralizado [`docs/reels_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/) y organizados todos los creativos gráficos y de video en subcarpetas modulares por anuncio: `docs/reels_assets/reel1_padres_auto/`, `docs/reels_assets/reel2_vivir_solo/` y `docs/reels_assets/reel3_sos_choques/`.
+        - Actualizados todos los scripts generadores (`generate_whatsapp_broll.py`, `generate_map_telemetry_broll.py`, `generate_map_push_overlay.py`, `generate_reel2_brolls.py`, `generate_reel3_brolls.py`) para consumir y emitir automáticamente en sus respectivas subcarpetas.
+        - Documentado el catálogo completo en la Sección 3.5 de [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md).
+    - **Políticas de Versionado Git y Blindaje de Repositorio:**
+        - Evaluado y definido el criterio técnico para GitHub: las imágenes gráficas optimizadas (~7.2 MB en total) quedan versionadas para garantizar persistencia y disponibilidad inmediata sin dependencias; los videos binarios pesados (`.mp4`, ~6.5 MB) y cachés de Python (`__pycache__`) quedan excluidos de Git vía `.gitignore` para prevenir el crecimiento desmedido del árbol de objetos.
+
+## [2026-10-07] Alineación de Producción en Estrategia de Reels Meta Ads (Formato A-Roll / B-Roll)
+- **Marketing y Pauta Publicitaria (Meta Ads):**
+    - Subsanada la inconsistencia técnica en [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md): sustituida la referencia a "Green Screen" (Pantalla Verde) en la Sección 3.1 por el estándar de la industria **Talking Head con B-Roll Intercalado** (Opción 1).
+    - Alineadas las tablas de guiones de los 3 Reels (Reel 1: Padres/Auto, Reel 2: Vivir Solo/Living, Reel 3: Urgencia/Noche) clasificando explícitamente las tomas en **A-Roll** (presentador en plano a cámara en entorno real) y **B-Roll** (insertos a pantalla completa de la app Estoy Ok y WhatsApp).
+    - Documentada la guía operativa de montaje en 2 pistas para editores (Pista V1 con los 5 clips correlativos de Google Flow y Pista V2 con las capturas de pantalla de la app en los tramos de explicación técnica), estructurando y sincronizando los 15 prompts oficiales (5 clips ≤ 8 segundos por Reel) en correspondencia 1:1 con las 5 fases de cada guión.
+    - Incorporada la Sección 3.4 con el protocolo asistido de composición de B-Rolls mediante FFmpeg/Python, permitiendo grabar el mapa de Estoy Ok en crudo y animar la notificación push de forma automatizada sin coordinación manual en el celular.
+    - Documentadas las opciones oficiales del selector desplegable de botones CTA en Meta Ads Manager priorizando "Descargar" e "Instalar" para adquisición directa y conversión sin escalas hacia la ficha de Google Play Store, sincronizando palabra por palabra los guiones y prompts oficiales.
+- **Investigación y Backlog de Innovación:**
+    - Creado el documento [`docs/nuevas_funcionalidades.md`](file:///home/usuario/aplicaciones/estoyok/docs/nuevas_funcionalidades.md) para registrar y evaluar nuevas features y mejoras técnicas del proyecto.
+    - Diseñada y documentada la arquitectura del **SOS de Bolsillo (Botón de Encendido)**: mecanismo de activación discreta mediante detección dinámica de transiciones `ACTION_SCREEN_ON` y `ACTION_SCREEN_OFF` dentro de `TrackingService.kt` (100% legal y compatible con Google Play sin permisos de Accesibilidad), algoritmo de ventana deslizante de 2.5s antifalsos positivos, respuesta háptica silenciosa y ejecución en segundo plano de la rutina de auxilio completa (GPS a 5s, audio de 15s y WhatsApp).
+- **Producción de B-Rolls y Creativos Publicitarios (Reel 1 - Meta Ads):**
+    - Desarrollado el generador automatizado [`docs/generate_whatsapp_broll.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_whatsapp_broll.py) para renderizar la pantalla completa de chat de WhatsApp requerida en el B-Roll de los segundos 3 a 8s del Reel 1.
+    - Generada la foto de perfil del hijo adolescente [`docs/avatar_hijo.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/avatar_hijo.jpg) y ensambladas las piezas oficiales: [`docs/captura_chat_whatsapp_visto.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_chat_whatsapp_visto.jpg) (720x1600 px resolución nativa de smartphone) y [`docs/broll_chat_whatsapp_visto_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/broll_chat_whatsapp_visto_9x16.png) (1080x1920 px Full HD 9:16 vertical para línea de tiempo de Kdenlive/CapCut).
+    - Representada con realismo la progresión dramática de 8 mensajes salientes entre las 14:35 y 18:38 ("¿Saliste del cole?", "¿Llegaste?", "¿Por qué no contestás?", llamada perdida, "Llamame ya, me tenés con el corazón en la boca"), todos clavados en doble tilde azul (visto) y última conexión a las 15:10, reflejando el dolor exacto de la locución del Reel.
+    - Desarrollado el generador automatizado [`docs/generate_map_telemetry_broll.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_map_telemetry_broll.py) para renderizar la pantalla del B-Roll de los segundos 16 a 23s del Reel 1 (mapa en tiempo real con avatar, telemetría vehicular y batería).
+    - Producidas las piezas definitivas: [`docs/captura_mapa_bateria_velocidad.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_mapa_bateria_velocidad.jpg) (720x1600 px nativo) y [`docs/broll_mapa_telemetria_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_telemetria_9x16.png) (1080x1920 px Full HD vertical 9:16), integrando el pin oficial de Estoy Ok con el avatar de Lucas en Colectora Norte, badge `🚗` en la esquina del marcador, callout flotante `[ 🚗 58 km/h • ⚡ 42% ]`, halo de radar de precisión GPS con vector de desplazamiento y la tarjeta inferior de miembro con telemetría en tiempo real.
+
 ## [2026-10-04] Reemplazo de Mockup y Precisión Visual de Privacidad y Permisos en Historia 12 (Instagram @estoyok24)
 - **Estrategia de Redes y Marketing Orgánico:**
     - Identificada y subsanada la discrepancia en la Historia 12 (Tomas 23 y 24) de [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md): `imagen13.png` utilizaba erróneamente la pantalla de Google Login (`imagen06.jpg`), sin relación con el permiso de ubicación en segundo plano ni con la garantía de cifrado y privacidad de datos familiares.
@@ -2106,3 +2141,14 @@
     - Evolución de diseño de historias destacadas de Split-Screen (50/50) a Formato FaceCam / Burbuja Flotante (PiP): maximiza legibilidad de la app al centrar el marco del smartphone a tamaño nativo 1:1 (720x1600 px) en el lienzo de 1080x1920 px, eliminando recortes y preservando flechas e indicadores en alta definición.
     - Script generador [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) actualizado para producir las 13 piezas definitivas en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/).
     - Documentada la guía técnica de montaje en Kdenlive (`Forma alfa` + `Transformar` en Pila de Efectos) y preservación de tomas continuas en [`plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
+
+## [2026-10-07] Producción Audiovisual B-Roll Reel 1 (Clip 3 - Mapa con Notificación Push Asistida)
+- **Marketing y Producción Audiovisual (Meta Ads / Instagram Reels):**
+    - Implementado el protocolo operativo automatizado de la Sección 3.4 de [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md) para el Clip 3 de demostración del Reel 1.
+    - Creado script automatizado [`docs/generate_map_push_overlay.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_map_push_overlay.py) que genera el banner flotante nativo de Android en formato Material You con el isotipo oficial de Estoy Ok en verde oscuro (`#0D7048`), textos nítidos ("Estoy Ok • ahora", "Alerta de Perímetro", "Lucas ha ingresado a: Colegio") y sombra suave de elevación.
+    - Compuesta la animación fluida `Slide Down` (curva cubic ease-out de 0.4s iniciada a los 2.0s del video) sobre la grabación cruda de pantalla [`docs/broll_mapa_crudo.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_crudo.mp4).
+    - Producidos y verificados los archivos finales de video:
+        - [`docs/broll_mapa_con_notificacion.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion.mp4): Resolución nativa (576x1280 a 50 fps).
+        - [`docs/broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion_9x16.mp4): Resolución estándar vertical Full HD (1080x1920 a 50 fps) listo para soltar en la pista V2 de CapCut/Premiere.
+
+
