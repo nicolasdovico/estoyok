@@ -127,6 +127,41 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
     }
 });
 
+Route::post('/maintenance/trigger-inactivity-alert', function (Request $request) {
+    $email = $request->input('email');
+    $user = $email ? \App\Models\User::where('email', $email)->first() : \App\Models\User::whereNotNull('phone')->latest()->first();
+
+    if (! $user) {
+        return response()->json(['success' => false, 'error' => 'Usuario no encontrado.'], 404);
+    }
+
+    try {
+        // Resolve any previous active emergency alert so a fresh inactivity alert is created
+        \App\Models\EmergencyAlert::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'resolved']);
+
+        \App\Jobs\SendInactivityAlerts::dispatchSync($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Alerta de inactividad ejecutada para {$user->name} ({$user->email}).",
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'notify_self_whatsapp_on_inactivity' => (bool) $user->fresh()->notify_self_whatsapp_on_inactivity,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');
     if (! $to) {
