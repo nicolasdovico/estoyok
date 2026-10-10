@@ -1,5 +1,23 @@
 # Progress Log
 
+## [2026-10-10] Implementación de Alerta de Bienestar Vencido por WhatsApp a Sí Mismo (Backend & Android Nativo)
+- **Backend Laravel (API-First):**
+    - Creada y ejecutada la migración `2026_10_10_130000_add_notify_self_whatsapp_on_inactivity_to_users_table.php`, agregando la columna booleana `notify_self_whatsapp_on_inactivity` (default `false`) a la tabla `users`.
+    - Actualizado el modelo [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php) con el nuevo atributo en `$fillable` y en `casts()`.
+    - Implementado el endpoint `PUT /api/settings/notify-self-whatsapp` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php), validando con HTTP 422 si el usuario intenta activar la opción sin tener un número de teléfono registrado (`users.phone`), y auto-configurando el webhook de Evolution API si se activa.
+    - Registrada la ruta protegida en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
+    - Actualizado el Job [`SendInactivityAlerts.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendInactivityAlerts.php): en el paso inicial (`contactIndex === 0`), si el usuario tiene `notify_self_whatsapp_on_inactivity` activo y su teléfono registrado, despacha un mensaje de WhatsApp directo al usuario informando el vencimiento de su bienestar y permitiéndole confirmar respondiendo "OK" al bot. En pasos de escalamiento posteriores (`contactIndex > 0`), no repite el aviso al propio usuario.
+    - Creada la suite de pruebas automatizadas [`SelfWhatsAppInactivityAlertTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SelfWhatsAppInactivityAlertTest.php) (5 tests unitarios/funcionales pasando al 100%).
+    - Regenerada la documentación OpenAPI/Swagger (`php artisan l5-swagger:generate`).
+    - Suite completa de backend ejecutada y pasando al 100% (170 tests, 583 aserciones, 0 regresiones).
+- **Frontend Android Nativo (Jetpack Compose):**
+    - Actualizado [`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt) con `notify_self_whatsapp_on_inactivity: Boolean? = false` en `UserDto`.
+    - Creado el DTO `NotifySelfWhatsappRequest` en [`SettingsModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/model/SettingsModels.kt).
+    - Declarado el método `updateNotifySelfWhatsapp` en [`SettingsApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/remote/SettingsApiService.kt).
+    - Implementado en [`SettingsRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/domain/repository/SettingsRepository.kt) y [`SettingsRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/repository/SettingsRepositoryImpl.kt).
+    - Conectado el estado reactivo `notifySelfWhatsappOnInactivity` en [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) con método `toggleNotifySelfWhatsapp(enabled)` y validación en UI ante número telefónico ausente.
+    - Integrado el control Switch interactivo *"Avisarme si vence mi bienestar"* dentro de la tarjeta "Reporte por WhatsApp" en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt), con microcopy explicativo y deshabilitación inteligente si no hay teléfono guardado.
+
 ## [2026-10-10] Producción de B-Rolls (Reels 2 y 3), Organización de Creativos y Criterio de Versionado Git
 - **Marketing y Pauta Publicitaria (Meta Ads):**
     - Desarrollado el generador [`docs/generate_reel2_brolls.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_reel2_brolls.py) y producidas las 6 piezas oficiales de B-Roll para el **Reel 2 (Vivir Solo / Bienestar)** en formato vertical Full HD 9:16 (1080x1920 px) en dos variantes (Framed con marco de smartphone estilizado y Full-bleed edge-to-edge):
