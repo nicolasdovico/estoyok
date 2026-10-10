@@ -261,13 +261,6 @@ class EmergencyAlertController extends Controller
         $contacts = $user->emergencyContacts()->where('is_active', true)->get();
         $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
 
-        // Fetch user location for direct Google Maps link
-        $locationRecord = CurrentLocation::whereUser($user->id);
-        $mapsInfo = '';
-        if ($locationRecord && $locationRecord->latitude && $locationRecord->longitude) {
-            $mapsInfo = " 📍 Mapa directo: https://maps.google.com/?q={$locationRecord->latitude},{$locationRecord->longitude}";
-        }
-
         $appUrl = config('app.url', env('APP_URL', ''));
         $isDev = config('app.env') !== 'production' || str_contains($appUrl, 'dev') || str_contains($appUrl, 'railway.app');
         $apiParam = $isDev ? "&api=" . urlencode(rtrim($appUrl ?: 'https://backend-api-dev-2a56.up.railway.app', '/') . '/api') : '';
@@ -276,7 +269,7 @@ class EmergencyAlertController extends Controller
             if ($contact->phone) {
                 $contactNameParam = urlencode($contact->name);
                 $contactUrl = "{$emergencyUrl}?contact={$contactNameParam}{$apiParam}";
-                $sosBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$contactUrl}{$mapsInfo}";
+                $sosBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$contactUrl}";
                 $whatsAppService->sendWhatsApp($contact->phone, $sosBody);
             }
         }
