@@ -12,6 +12,7 @@ data class UserDto(
     @SerializedName("has_premium_access") val hasPremiumAccess: Boolean? = false,
     @SerializedName("checkin_interval_hours") val checkinIntervalHours: Int,
     @SerializedName("allow_sms_whatsapp_checkin") val allowSmsWhatsappCheckin: Boolean,
+    @SerializedName("notify_self_whatsapp_on_inactivity") val notifySelfWhatsappOnInactivity: Boolean? = false,
     @SerializedName("quiet_hours_enabled") val quietHoursEnabled: Boolean? = false,
     @SerializedName("quiet_hours_start") val quietHoursStart: String? = "22:00",
     @SerializedName("quiet_hours_end") val quietHoursEnd: String? = "08:00",

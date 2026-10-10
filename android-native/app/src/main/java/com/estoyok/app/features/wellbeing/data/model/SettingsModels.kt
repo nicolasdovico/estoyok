@@ -45,3 +45,8 @@ data class PushTokenRequest(
 data class UpdatePhoneRequest(
     @SerializedName("phone") val phone: String?
 )
+
+data class NotifySelfWhatsappRequest(
+    @SerializedName("notify_self_whatsapp_on_inactivity") val notifySelfWhatsappOnInactivity: Boolean
+)
+

@@ -536,6 +536,41 @@ fun AjustesScreen(
                                 color = if (isPhoneValidToSave) androidx.compose.ui.graphics.Color.White else TextMuted
                             )
                         }
+
+                        HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Avisarme si vence mi bienestar",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (viewModel.userPhone.isNotBlank()) TextPrimary else TextMuted
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = if (viewModel.userPhone.isNotBlank()) {
+                                        "Te enviaremos un mensaje a tu propio WhatsApp cuando expire tu tiempo de reporte para que puedas confirmar tu estado respondiendo 'OK'."
+                                    } else {
+                                        "Requiere tener tu número de teléfono registrado y guardado arriba para recibir este aviso."
+                                    },
+                                    fontSize = 11.sp,
+                                    color = TextSecondary,
+                                    lineHeight = 15.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Switch(
+                                checked = viewModel.notifySelfWhatsappOnInactivity,
+                                onCheckedChange = { viewModel.toggleNotifySelfWhatsapp(it) },
+                                enabled = viewModel.userPhone.isNotBlank(),
+                                modifier = Modifier.scale(0.75f)
+                            )
+                        }
                     }
                 }
             }

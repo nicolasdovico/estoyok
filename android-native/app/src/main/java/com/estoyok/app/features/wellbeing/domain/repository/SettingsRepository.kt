@@ -17,5 +17,6 @@ interface SettingsRepository {
     fun updateAvatar(avatar: okhttp3.MultipartBody.Part): Flow<Resource<MessageResponse>>
     fun updatePushToken(pushToken: String, deviceUuid: String? = null): Flow<Resource<MessageResponse>>
     fun updatePhone(phone: String?): Flow<Resource<MessageResponse>>
+    fun updateNotifySelfWhatsapp(enabled: Boolean): Flow<Resource<MessageResponse>>
     fun acceptDisclaimer(): Flow<Resource<UserDto>>
 }
