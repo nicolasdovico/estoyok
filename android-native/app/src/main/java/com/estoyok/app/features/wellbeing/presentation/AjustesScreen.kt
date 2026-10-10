@@ -637,7 +637,56 @@ fun AjustesScreen(
                 }
             }
 
-            // 6. Passive Auto-Check-in
+            // 6.b SOS de Bolsillo (Botón de Encendido)
+            SettingsCard(title = "SOS de Bolsillo (Botón de Encendido) 🚨") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Disparador Silencioso (4 toques)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Presioná el botón de encendido 4 veces seguidas rápidamente para activar un SOS silencioso con el teléfono bloqueado o guardado en el bolsillo.",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 15.sp
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = if (viewModel.isPowerButtonSosEnabled) PrimaryEmerald else TextSecondary,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = if (viewModel.isPowerButtonSosEnabled) "Confirmación táctil por vibración activa" else "Desactivado",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (viewModel.isPowerButtonSosEnabled) PrimaryEmerald else TextSecondary
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = viewModel.isPowerButtonSosEnabled,
+                        onCheckedChange = { viewModel.togglePowerButtonSos(it) },
+                        modifier = Modifier.scale(0.75f)
+                    )
+                }
+            }
+
+            // 6.c Passive Auto-Check-in
             SettingsCard(title = "Auto-Check-in Pasivo") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(

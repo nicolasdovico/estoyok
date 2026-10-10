@@ -71,6 +71,9 @@ class AjustesViewModel @Inject constructor(
     var shareContactResponses by mutableStateOf(true)
         private set
 
+    var isPowerButtonSosEnabled by mutableStateOf(true)
+        private set
+
     // Emergency Contacts list state
     var contacts by mutableStateOf<List<EmergencyContactDto>>(emptyList())
         private set
@@ -95,6 +98,27 @@ class AjustesViewModel @Inject constructor(
         isTrackingServiceRunning = TrackingService.isRunning
         loadSettings()
         loadContacts()
+        observePowerButtonSosPreference()
+    }
+
+    private fun observePowerButtonSosPreference() {
+        viewModelScope.launch {
+            sessionManager.isPowerButtonSosEnabledFlow.collectLatest { enabled ->
+                isPowerButtonSosEnabled = enabled
+            }
+        }
+    }
+
+    fun togglePowerButtonSos(enabled: Boolean) {
+        isPowerButtonSosEnabled = enabled
+        viewModelScope.launch {
+            sessionManager.savePowerButtonSosEnabled(enabled)
+            messageSuccess = if (enabled) {
+                "SOS de Bolsillo (Botón de Encendido) activado."
+            } else {
+                "SOS de Bolsillo desactivado."
+            }
+        }
     }
 
     fun loadSettings() {

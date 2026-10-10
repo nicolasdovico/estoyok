@@ -53,7 +53,25 @@ class TrackingService : Service(), SensorEventListener {
     @Inject
     lateinit var sessionManager: com.estoyok.app.core.data.local.SessionManager
 
+    @Inject
+    lateinit var sosRepository: com.estoyok.app.features.tracking.domain.repository.SosRepository
+
     private var cachedSafeWifiSsid: String? = null
+
+    // Power button pocket SOS detector
+    private var isPowerButtonSosEnabled = true
+    private val screenToggleTimestamps = java.util.ArrayDeque<Long>()
+    private var lastSosTriggerTime: Long = 0L
+    private var isSosInProgress = false
+
+    private val screenStateReceiver = object : android.content.BroadcastReceiver() {
+        override fun onReceive(context: Context?, intent: Intent?) {
+            val action = intent?.action ?: return
+            if (action == Intent.ACTION_SCREEN_ON || action == Intent.ACTION_SCREEN_OFF) {
+                handleScreenToggleEvent()
+            }
+        }
+    }
 
     private val serviceJob = SupervisorJob()
     private val serviceScope = CoroutineScope(Dispatchers.IO + serviceJob)
@@ -127,6 +145,21 @@ class TrackingService : Service(), SensorEventListener {
         significantMotionSensor = sensorManager.getDefaultSensor(Sensor.TYPE_SIGNIFICANT_MOTION)
         geofencingClient = LocationServices.getGeofencingClient(this)
         createNotificationChannel()
+
+        // Register power button / screen receiver
+        val screenFilter = IntentFilter().apply {
+            addAction(Intent.ACTION_SCREEN_ON)
+            addAction(Intent.ACTION_SCREEN_OFF)
+        }
+        registerReceiver(screenStateReceiver, screenFilter)
+
+        // Observe power button SOS preference changes
+        serviceScope.launch {
+            sessionManager.isPowerButtonSosEnabledFlow.collectLatest { enabled ->
+                isPowerButtonSosEnabled = enabled
+                android.util.Log.d("TrackingService", "Power button SOS enabled state updated: $isPowerButtonSosEnabled")
+            }
+        }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -811,6 +844,136 @@ class TrackingService : Service(), SensorEventListener {
         unregisterAccelerometer()
         unregisterSignificantMotion()
         unregisterStayGeofence()
+        try {
+            unregisterReceiver(screenStateReceiver)
+        } catch (e: Exception) {
+            android.util.Log.w("TrackingService", "Screen receiver unregister error: ${e.message}")
+        }
         serviceJob.cancel()
+    }
+
+    // ==========================================
+    // POCKET SOS (BOTÓN DE ENCENDIDO - 4 TOQUES)
+    // ==========================================
+
+    private fun handleScreenToggleEvent() {
+        if (!isPowerButtonSosEnabled || isSosInProgress) return
+
+        val now = System.currentTimeMillis()
+
+        // 1. Cooldown de seguridad (60 segundos entre disparos de emergencia)
+        if (now - lastSosTriggerTime < 60000L) {
+            android.util.Log.d("TrackingService", "Pocket SOS en cooldown, ignorando pulsación.")
+            return
+        }
+
+        // 2. Agregar marca de tiempo y descartar marcas con más de 3500ms
+        screenToggleTimestamps.addLast(now)
+        while (screenToggleTimestamps.isNotEmpty() && (now - screenToggleTimestamps.first()) > 3500L) {
+            screenToggleTimestamps.removeFirst()
+        }
+
+        android.util.Log.d("TrackingService", "Toque de pantalla registrado. Contador reciente (<=3.5s): ${screenToggleTimestamps.size}")
+
+        // 3. Umbral estricto: 4 cambios de estado de pantalla en <= 3.5 segundos
+        if (screenToggleTimestamps.size >= 4) {
+            screenToggleTimestamps.clear()
+            lastSosTriggerTime = now
+            android.util.Log.i("TrackingService", "🚨 ¡SOS DE BOLSILLO ACTIVADO MEDIANTE 4 TOQUES DEL BOTÓN DE ENCENDIDO!")
+            triggerPocketSos()
+        }
+    }
+
+    private fun triggerHapticFeedback() {
+        try {
+            val vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? android.os.VibratorManager
+                vibratorManager?.defaultVibrator
+            } else {
+                @Suppress("DEPRECATION")
+                getSystemService(Context.VIBRATOR_SERVICE) as? android.os.Vibrator
+            }
+
+            if (vibrator != null && vibrator.hasVibrator()) {
+                val pattern = longArrayOf(0, 200, 100, 200) // 2 pulsos discretos
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    val effect = android.os.VibrationEffect.createWaveform(pattern, -1)
+                    vibrator.vibrate(effect)
+                } else {
+                    @Suppress("DEPRECATION")
+                    vibrator.vibrate(pattern, -1)
+                }
+                android.util.Log.d("TrackingService", "Respuesta háptica discreta ejecutada con éxito.")
+            }
+        } catch (e: Exception) {
+            android.util.Log.w("TrackingService", "No se pudo emitir respuesta háptica: ${e.message}")
+        }
+    }
+
+    private fun triggerPocketSos() {
+        triggerHapticFeedback()
+        isSosInProgress = true
+
+        // 1. Acelerar inmediatamente el GPS a frecuencia de emergencia (5 segundos)
+        isEmergencyMode = true
+        updateInterval(5000L)
+
+        // 2. Disparar alerta en el backend vía SosRepository
+        serviceScope.launch {
+            try {
+                sosRepository.triggerSos().collectLatest { resource ->
+                    when (resource) {
+                        is com.estoyok.app.core.util.Resource.Success -> {
+                            val alert = resource.data
+                            android.util.Log.i("TrackingService", "SOS de bolsillo creado en servidor exitosamente. Alert ID: ${alert?.id}")
+                            if (alert != null) {
+                                startSosAudioRecording(alert.id)
+                            } else {
+                                isSosInProgress = false
+                            }
+                        }
+                        is com.estoyok.app.core.util.Resource.Error -> {
+                            android.util.Log.e("TrackingService", "Error al crear alerta SOS de bolsillo: ${resource.message}")
+                            isSosInProgress = false
+                        }
+                        is com.estoyok.app.core.util.Resource.Loading -> {
+                            // En proceso
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("TrackingService", "Excepción al disparar SOS de bolsillo: ${e.message}", e)
+                isSosInProgress = false
+            }
+        }
+    }
+
+    private fun startSosAudioRecording(alertId: String) {
+        serviceScope.launch {
+            try {
+                val audioRecorder = com.estoyok.app.core.util.AudioRecorder(this@TrackingService)
+                val audioFile = audioRecorder.startRecording()
+                if (audioFile != null) {
+                    android.util.Log.i("TrackingService", "SOS de bolsillo: Grabando 15s de audio ambiental en ${audioFile.absolutePath}")
+                    kotlinx.coroutines.delay(15000L)
+                    audioRecorder.stopRecording()
+                    android.util.Log.i("TrackingService", "SOS de bolsillo: Subiendo audio de emergencia...")
+                    sosRepository.uploadAudio(alertId, audioFile).collectLatest { uploadRes ->
+                        if (uploadRes is com.estoyok.app.core.util.Resource.Success) {
+                            android.util.Log.i("TrackingService", "Audio de SOS de bolsillo subido correctamente.")
+                        } else if (uploadRes is com.estoyok.app.core.util.Resource.Error) {
+                            android.util.Log.w("TrackingService", "Fallo al subir audio de SOS de bolsillo: ${uploadRes.message}")
+                        }
+                        isSosInProgress = false
+                    }
+                } else {
+                    android.util.Log.w("TrackingService", "No se pudo iniciar grabación de audio (permiso o hardware ausente).")
+                    isSosInProgress = false
+                }
+            } catch (e: Exception) {
+                android.util.Log.e("TrackingService", "Error durante grabación/subida de audio SOS: ${e.message}", e)
+                isSosInProgress = false
+            }
+        }
     }
 }
