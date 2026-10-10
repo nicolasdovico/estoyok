@@ -2190,7 +2190,7 @@
     - Esto permite una cadencia de pulsación natural y pausada (1 toque por segundo), evitando que el hardware active el atajo nativo de doble clic de Android (Gemini / Asistente) y permitiendo que la pantalla complete cada ciclo de encendido y apagado físico sin descartar toques.
     - Se compilaron e instalaron los cambios directamente en el dispositivo físico mediante `assembleDebug` y `adb install`.
 - **Backend (Laravel):**
-    - En `EmergencyAlertController.php`, se incorporó al cuerpo del mensaje de WhatsApp de SOS el enlace directo de Google Maps (`📍 Mapa directo: https://maps.google.com/?q={lat},{lng}`) obtenido de `CurrentLocation`, permitiendo navegación satelital inmediata en 1 toque.
+    - En `EmergencyAlertController.php`, se preservó el mensaje exclusivo con el enlace a la pantalla de crisis oficial de Estoy Ok, garantizando que el contacto acceda a la vista completa con audio ambiental, botones de rescate y tracking continuo.
     - Se añadió compatibilidad con entornos de desarrollo/staging inyectando el parámetro `&api={app_url}/api` en la URL de emergencia cuando el backend se ejecuta en modo no productivo.
 - **Frontend Web (Next.js):**
     - En `EmergencyClientPage.tsx`, se habilitó la lectura del parámetro `?api=` en la URL para consumo dinámico de la API de backend correspondiente.
