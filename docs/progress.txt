@@ -2184,4 +2184,18 @@
         - [`docs/broll_mapa_con_notificacion.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion.mp4): Resolución nativa (576x1280 a 50 fps).
         - [`docs/broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion_9x16.mp4): Resolución estándar vertical Full HD (1080x1920 a 50 fps) listo para soltar en la pista V2 de CapCut/Premiere.
 
+## [2026-10-10] Corrección de Detección de SOS Físico y Enlace de Mapa de Emergencia
+- **App Móvil Nativa (Android/Kotlin):**
+    - En `TrackingService.kt`, se amplió la ventana de tiempo del detector de toques de encendido de `3500ms` a `5000ms` (5.0 segundos).
+    - Esto permite una cadencia de pulsación natural y pausada (1 toque por segundo), evitando que el hardware active el atajo nativo de doble clic de Android (Gemini / Asistente) y permitiendo que la pantalla complete cada ciclo de encendido y apagado físico sin descartar toques.
+    - Se compilaron e instalaron los cambios directamente en el dispositivo físico mediante `assembleDebug` y `adb install`.
+- **Backend (Laravel):**
+    - En `EmergencyAlertController.php`, se incorporó al cuerpo del mensaje de WhatsApp de SOS el enlace directo de Google Maps (`📍 Mapa directo: https://maps.google.com/?q={lat},{lng}`) obtenido de `CurrentLocation`, permitiendo navegación satelital inmediata en 1 toque.
+    - Se añadió compatibilidad con entornos de desarrollo/staging inyectando el parámetro `&api={app_url}/api` en la URL de emergencia cuando el backend se ejecuta en modo no productivo.
+- **Frontend Web (Next.js):**
+    - En `EmergencyClientPage.tsx`, se habilitó la lectura del parámetro `?api=` en la URL para consumo dinámico de la API de backend correspondiente.
+    - Se implementó un mecanismo de fallback automático: si la consulta a producción retorna 404 (alerta emitida desde entorno de pruebas/staging), el cliente consulta automáticamente el backend de desarrollo (`https://backend-api-dev-2a56.up.railway.app/api`) antes de emitir error, asegurando la visualización del mapa en vivo y respuestas de rescate.
+    - Compilación de producción con Turbopack validada exitosamente (`npm run build`).
+    - Suite de 174 pruebas de Laravel superadas al 100% (0 regresiones).
+
 

@@ -523,6 +523,9 @@
   - [x] Configuración de entorno dual en Railway: entorno `production` (`main` $\rightarrow$ `api.estoyok24.com`) y entorno `dev` (`dev` $\rightarrow$ `backend-api-dev-2a56.up.railway.app`).
   - [x] Inyección dinámica de `BASE_URL` en Android nativo mediante `buildTypes` (`debug` vs `release`) y consumo reactivo en `NetworkModule.kt` vía `BuildConfig.BASE_URL`.
   - [x] Creación de la guía maestra operativa de desarrollo y despliegue en [`docs/flujo_desarrollo_y_despliegue.md`](file:///home/usuario/aplicaciones/estoyok/docs/flujo_desarrollo_y_despliegue.md).
+  - [x] Calibración de SOS de bolsillo en `TrackingService.kt` con ventana de 5.0 segundos y feedback háptico.
+  - [x] Resiliencia de enlaces de emergencia en `EmergencyClientPage.tsx` con soporte de parámetro `?api=` y fallback automático dev-to-prod.
+  - [x] Inclusión de enlace directo a Google Maps (`https://maps.google.com/?q={lat},{lng}`) en el mensaje de WhatsApp de SOS crítico.
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
