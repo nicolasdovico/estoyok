@@ -867,15 +867,15 @@ class TrackingService : Service(), SensorEventListener {
             return
         }
 
-        // 2. Agregar marca de tiempo y descartar marcas con más de 3500ms
+        // 2. Agregar marca de tiempo y descartar marcas con más de 5000ms (5.0s)
         screenToggleTimestamps.addLast(now)
-        while (screenToggleTimestamps.isNotEmpty() && (now - screenToggleTimestamps.first()) > 3500L) {
+        while (screenToggleTimestamps.isNotEmpty() && (now - screenToggleTimestamps.first()) > 5000L) {
             screenToggleTimestamps.removeFirst()
         }
 
-        android.util.Log.d("TrackingService", "Toque de pantalla registrado. Contador reciente (<=3.5s): ${screenToggleTimestamps.size}")
+        android.util.Log.d("TrackingService", "Toque de pantalla registrado. Contador reciente (<=5.0s): ${screenToggleTimestamps.size}")
 
-        // 3. Umbral estricto: 4 cambios de estado de pantalla en <= 3.5 segundos
+        // 3. Umbral estricto: 4 cambios de estado de pantalla en <= 5.0 segundos
         if (screenToggleTimestamps.size >= 4) {
             screenToggleTimestamps.clear()
             lastSosTriggerTime = now
