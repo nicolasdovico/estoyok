@@ -26,7 +26,6 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         static::saving(function (User $user) {
             if ($user->subscription_status === 'inactive') {
                 $user->is_premium = false;
-                $user->trial_ends_at = null;
                 $user->billing_cycle_ends_at = null;
                 $user->trial_reminder_sent_at = null;
                 $user->grace_period_ends_at = null;
@@ -87,6 +86,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
         'proximity_alerts_enabled',
         'avatar_path',
         'trial_ends_at',
+        'has_used_trial',
         'subscription_provider',
         'subscription_id',
         'subscription_status',
@@ -144,6 +144,7 @@ class User extends Authenticatable implements MustVerifyEmail, FilamentUser
             'last_battery_alert_sent_at' => 'datetime',
             'proximity_alerts_enabled' => 'boolean',
             'trial_ends_at' => 'datetime',
+            'has_used_trial' => 'boolean',
             'billing_cycle_ends_at' => 'datetime',
             'trial_reminder_sent_at' => 'datetime',
             'grace_period_ends_at' => 'datetime',

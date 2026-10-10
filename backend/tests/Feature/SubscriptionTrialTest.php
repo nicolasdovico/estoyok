@@ -133,4 +133,51 @@ class SubscriptionTrialTest extends TestCase
         $response->assertStatus(422)
             ->assertJsonValidationErrors(['purchase_token', 'product_id']);
     }
+
+    public function test_user_cannot_start_trial_if_already_used_trial()
+    {
+        $user = User::factory()->create([
+            'is_premium' => false,
+            'subscription_status' => 'canceled',
+            'has_used_trial' => true,
+            'trial_ends_at' => now()->subDays(1),
+        ]);
+
+        $this->actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/start-trial', [
+            'provider' => 'stripe'
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJson([
+                'message' => 'Ya has utilizado tu periodo de prueba gratuita de 7 días. Por favor suscríbete para continuar con Estoy Ok PRO.'
+            ]);
+    }
+
+    public function test_user_cannot_start_trial_after_canceling_active_trial()
+    {
+        $user = User::factory()->create([
+            'is_premium' => false,
+            'trial_ends_at' => null,
+            'has_used_trial' => false,
+            'subscription_status' => 'inactive',
+        ]);
+
+        $this->actingAs($user);
+
+        // 1. First trial activation succeeds
+        $response1 = $this->postJson('/api/subscriptions/start-trial', ['provider' => 'stripe']);
+        $response1->assertStatus(200);
+
+        // 2. User cancels trial
+        $this->postJson('/api/subscriptions/cancel')->assertStatus(200);
+
+        // 3. User tries to activate trial again -> Rejected!
+        $response2 = $this->postJson('/api/subscriptions/start-trial', ['provider' => 'stripe']);
+        $response2->assertStatus(422)
+            ->assertJson([
+                'message' => 'Ya has utilizado tu periodo de prueba gratuita de 7 días. Por favor suscríbete para continuar con Estoy Ok PRO.'
+            ]);
+    }
 }

@@ -136,12 +136,19 @@ class SubscriptionController extends Controller
             ], 422);
         }
 
+        if ($user->has_used_trial || $user->trial_ends_at !== null) {
+            return response()->json([
+                'message' => 'Ya has utilizado tu periodo de prueba gratuita de 7 días. Por favor suscríbete para continuar con Estoy Ok PRO.'
+            ], 422);
+        }
+
         // Direct in-app 7-day trial activation (Google Play compliance & safe review mode)
         $user->update([
             'is_premium' => true,
             'subscription_status' => 'trialing',
             'subscription_provider' => 'trial',
             'trial_ends_at' => now()->addDays(7),
+            'has_used_trial' => true,
         ]);
 
         return response()->json([
@@ -212,6 +219,7 @@ class SubscriptionController extends Controller
             'subscription_provider' => 'google_play',
             'subscription_id' => $purchaseToken,
             'trial_ends_at' => $user->trial_ends_at ?: now()->addDays(7),
+            'has_used_trial' => true,
             'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
         ]);
 
@@ -358,6 +366,7 @@ class SubscriptionController extends Controller
         if ($status === 'success' && $user) {
             $user->update([
                 'trial_ends_at' => now()->addDays(7),
+                'has_used_trial' => true,
                 'subscription_status' => 'trialing',
                 'subscription_provider' => $provider,
                 'is_premium' => true,

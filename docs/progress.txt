@@ -1,5 +1,16 @@
 # Progress Log
 
+## [2026-10-10] Blindaje de Prueba Gratuita Única (7 Días) y Prevención de Re-activación Indefinida (Backend)
+- **Backend Laravel (Control de Suscripciones y Lifecycle):**
+    - Identificada y subsanada la causa raíz que permitía activar la prueba gratuita de 7 días ilimitadas veces: `SubscriptionController::startTrial` únicamente comprobaba `subscription_status === 'active'`, y el hook `static::saving` en `User.php` reiniciaba `trial_ends_at = null` cuando el estado pasaba a `inactive`, borrando el registro histórico.
+    - Creada y ejecutada la migración `2026_10_10_222743_add_has_used_trial_to_users_table.php`, incorporando la columna booleana `has_used_trial` (default `false`) en la tabla `users` con backfill automático que marca como `true` a cualquier usuario con `trial_ends_at` previo, proveedor asignado o estatus en `['trialing', 'active', 'canceled']`.
+    - Actualizado el modelo [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php) agregando `has_used_trial` a `$fillable` y a los casts de atributos (`'boolean'`), y removido el reseteo destructivo de `trial_ends_at` al pasar a `inactive` para preservar la trazabilidad del período de prueba.
+    - Actualizado [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php):
+        - En `startTrial()`: se valida de forma estricta si `$user->has_used_trial || $user->trial_ends_at !== null`. De cumplirse, se rechaza la solicitud con HTTP 422 y mensaje explicativo: *"Ya has utilizado tu periodo de prueba gratuita de 7 días. Por favor suscríbete para continuar con Estoy Ok PRO."*.
+        - Se marca `$user->has_used_trial = true` en `startTrial()`, `verifyGooglePlay()` y en el callback de pago exitoso.
+    - Desarrollados tests automatizados en [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php) (`test_user_cannot_start_trial_if_already_used_trial` y `test_user_cannot_start_trial_after_canceling_active_trial`).
+    - Suite completa de backend ejecutada y pasando al 100% (176 tests, 604 aserciones, 0 regresiones).
+
 ## [2026-10-10] Implementación de Alerta de Bienestar Vencido por WhatsApp a Sí Mismo (Backend & Android Nativo)
 - **Backend Laravel (API-First):**
     - Creada y ejecutada la migración `2026_10_10_130000_add_notify_self_whatsapp_on_inactivity_to_users_table.php`, agregando la columna booleana `notify_self_whatsapp_on_inactivity` (default `false`) a la tabla `users`.
