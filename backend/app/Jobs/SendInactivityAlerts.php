@@ -58,9 +58,10 @@ class SendInactivityAlerts implements ShouldQueue
             }
             $emergencyUrl = "{$baseUrl}/emergencia/{$alert->id}";
 
-            // If index is 0, send push notification to the user themselves and to nucleus members
+            // If index is 0, send push notification to the user themselves, self WhatsApp alert if enabled, and to nucleus members
             if ($this->contactIndex === 0) {
                 $this->sendPushNotification();
+                $this->sendSelfWhatsAppAlert($whatsAppService);
                 $this->sendPushNotificationToNucleusMembers($alert);
             }
 
@@ -122,6 +123,22 @@ class SendInactivityAlerts implements ShouldQueue
             'No has realizado tu check-in diario. Tus contactos de emergencia han sido notificados.',
             ['type' => 'inactivity_alert']
         );
+    }
+
+    protected function sendSelfWhatsAppAlert(WhatsAppServiceInterface $whatsAppService): void
+    {
+        if ($this->user->notify_self_whatsapp_on_inactivity && !empty($this->user->phone)) {
+            $hours = $this->user->checkin_interval_hours ?? 24;
+            $message = "⚠️ Aviso Estoy Ok: Tu reporte diario de bienestar ha vencido (sin confirmación durante las últimas {$hours} horas). Tus contactos de emergencia han sido alertados. Puedes confirmar tu estado ingresando a la app o respondiendo 'OK' a este mensaje.";
+
+            $success = $whatsAppService->sendWhatsApp($this->user->phone, $message);
+
+            if (! $success) {
+                Log::warning("Self WhatsApp inactivity alert failed for user {$this->user->id} ({$this->user->phone}).");
+            } else {
+                Log::info("Self WhatsApp inactivity alert sent successfully to user {$this->user->id} ({$this->user->phone}).");
+            }
+        }
     }
 
     protected function sendEmailAlert(string $emergencyUrl)

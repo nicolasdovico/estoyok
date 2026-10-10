@@ -1409,6 +1409,64 @@
                 ]
             }
         },
+        "/settings/notify-self-whatsapp": {
+            "put": {
+                "tags": [
+                    "Configuración"
+                ],
+                "summary": "Activar o desactivar aviso de bienestar vencido por WhatsApp al propio usuario",
+                "operationId": "59670a033565c50bd05a90970f577293",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "required": [
+                                    "notify_self_whatsapp_on_inactivity"
+                                ],
+                                "properties": {
+                                    "notify_self_whatsapp_on_inactivity": {
+                                        "type": "boolean",
+                                        "example": true
+                                    }
+                                },
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Configuración actualizada exitosamente",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "properties": {
+                                        "message": {
+                                            "type": "string",
+                                            "example": "Aviso de bienestar por WhatsApp actualizado correctamente"
+                                        },
+                                        "notify_self_whatsapp_on_inactivity": {
+                                            "type": "boolean",
+                                            "example": true
+                                        }
+                                    },
+                                    "type": "object"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Error de validación o número de teléfono no configurado"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/settings/escalation": {
             "put": {
                 "tags": [

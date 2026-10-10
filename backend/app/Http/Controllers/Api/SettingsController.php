@@ -164,6 +164,72 @@ class SettingsController extends Controller
     }
 
     #[OA\Put(
+        path: '/settings/notify-self-whatsapp',
+        summary: 'Activar o desactivar aviso de bienestar vencido por WhatsApp al propio usuario',
+        tags: ['Configuración'],
+        security: [['sanctum' => []]],
+        requestBody: new OA\RequestBody(
+            required: true,
+            content: new OA\JsonContent(
+                required: ['notify_self_whatsapp_on_inactivity'],
+                properties: [
+                    new OA\Property(property: 'notify_self_whatsapp_on_inactivity', type: 'boolean', example: true),
+                ]
+            )
+        ),
+        responses: [
+            new OA\Response(
+                response: 200,
+                description: 'Configuración actualizada exitosamente',
+                content: new OA\JsonContent(
+                    properties: [
+                        new OA\Property(property: 'message', type: 'string', example: 'Aviso de bienestar por WhatsApp actualizado correctamente'),
+                        new OA\Property(property: 'notify_self_whatsapp_on_inactivity', type: 'boolean', example: true),
+                    ]
+                )
+            ),
+            new OA\Response(
+                response: 422,
+                description: 'Error de validación o número de teléfono no configurado'
+            )
+        ]
+    )]
+    public function updateNotifySelfWhatsapp(Request $request)
+    {
+        $validated = $request->validate([
+            'notify_self_whatsapp_on_inactivity' => 'required|boolean',
+        ]);
+
+        $user = Auth::user();
+
+        if ($validated['notify_self_whatsapp_on_inactivity'] && empty($user->phone)) {
+            return response()->json([
+                'message' => 'Debes registrar y vincular tu número de teléfono antes de activar los avisos por WhatsApp.',
+                'errors' => [
+                    'phone' => ['No tienes un número de teléfono registrado.']
+                ]
+            ], 422);
+        }
+
+        $user->update([
+            'notify_self_whatsapp_on_inactivity' => $validated['notify_self_whatsapp_on_inactivity'],
+        ]);
+
+        if ($user->notify_self_whatsapp_on_inactivity) {
+            try {
+                app(\App\Services\EvolutionApiService::class)->ensureWebhookConfigured();
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning("Could not auto-configure Evolution webhook on notify-self-whatsapp toggle: " . $e->getMessage());
+            }
+        }
+
+        return response()->json([
+            'message' => 'Aviso de bienestar por WhatsApp actualizado correctamente',
+            'notify_self_whatsapp_on_inactivity' => $user->notify_self_whatsapp_on_inactivity,
+        ]);
+    }
+
+    #[OA\Put(
         path: '/settings/escalation',
         summary: 'Actualizar configuración de escalamiento secuencial',
         tags: ['Configuración'],
