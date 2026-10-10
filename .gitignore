@@ -22,3 +22,10 @@ check_dev_db.sh
 
 # Assets generados de marketing / Instagram
 docs/instagram_stories_assets/
+
+# Archivos de cache de Python
+__pycache__/
+*.py[cod]
+
+# Videos binarios de B-Roll (archivos pesados para Git)
+docs/reels_assets/**/*.mp4
