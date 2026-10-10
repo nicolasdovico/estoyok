@@ -618,6 +618,18 @@ class SettingsController extends Controller
             $cleanPhone = '+' . $cleanPhone;
         }
 
+        if ($cleanPhone) {
+            $existing = \App\Models\User::where('phone', $cleanPhone)->where('id', '!=', $user->id)->first();
+            if ($existing) {
+                return response()->json([
+                    'message' => "El número de teléfono {$cleanPhone} ya está vinculado a otra cuenta ({$existing->email}).",
+                    'errors' => [
+                        'phone' => ["El número de teléfono {$cleanPhone} ya está vinculado a otra cuenta ({$existing->email})."]
+                    ]
+                ], 422);
+            }
+        }
+
         $user->update(['phone' => $cleanPhone]);
 
         if ($user->allow_sms_whatsapp_checkin) {

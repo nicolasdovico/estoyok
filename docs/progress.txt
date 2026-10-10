@@ -8,6 +8,7 @@
     - Registrada la ruta protegida en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
     - Actualizado el Job [`SendInactivityAlerts.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendInactivityAlerts.php): en el paso inicial (`contactIndex === 0`), si el usuario tiene `notify_self_whatsapp_on_inactivity` activo y su teléfono registrado, despacha un mensaje de WhatsApp directo al usuario informando el vencimiento de su bienestar y permitiéndole confirmar respondiendo "OK" al bot. En pasos de escalamiento posteriores (`contactIndex > 0`), no repite el aviso al propio usuario.
     - Creada la suite de pruebas automatizadas [`SelfWhatsAppInactivityAlertTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SelfWhatsAppInactivityAlertTest.php) (5 tests unitarios/funcionales pasando al 100%).
+    - Corregida la validación de unicidad en `SettingsController::updatePhone`: previene caídas 500 SQL por `users_phone_unique` devolviendo HTTP 422 descriptivo si el número ya pertenece a otra cuenta. Añadido endpoint de mantenimiento `/maintenance/release-phone` y tests en `InactivitySettingsTest.php`.
     - Regenerada la documentación OpenAPI/Swagger (`php artisan l5-swagger:generate`).
     - Suite completa de backend ejecutada y pasando al 100% (170 tests, 583 aserciones, 0 regresiones).
 - **Frontend Android Nativo (Jetpack Compose):**

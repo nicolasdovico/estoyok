@@ -87,6 +87,22 @@ Route::post('/maintenance/delete-user', function (Request $request) {
     return response()->json(['message' => "User {$email} deleted successfully in cascade from Railway DB."]);
 });
 
+Route::post('/maintenance/release-phone', function (Request $request) {
+    $phone = $request->input('phone');
+    if (!$phone) {
+        return response()->json(['error' => 'Phone required'], 400);
+    }
+    $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!str_starts_with($cleanPhone, '+')) {
+        $cleanPhone = '+' . $cleanPhone;
+    }
+    $updated = \App\Models\User::where('phone', $cleanPhone)->update(['phone' => null]);
+    return response()->json([
+        'message' => "Phone {$cleanPhone} released from {$updated} user(s).",
+        'updated_count' => $updated
+    ]);
+});
+
 Route::post('/maintenance/send-test-email', function (Request $request) {
     $to = $request->input('email', 'nicolasdovico@gmail.com');
     $user = \App\Models\User::first() ?? new \App\Models\User(['name' => 'Usuario Pruebas']);
