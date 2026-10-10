@@ -57,20 +57,46 @@ export default function EmergencyClientPage({ id }: { id: string }) {
   }, []);
 
   const getApiUrl = () => {
+    if (typeof window !== 'undefined') {
+      const searchParams = new URLSearchParams(window.location.search);
+      const apiParam = searchParams.get('api');
+      if (apiParam && apiParam.startsWith('http')) {
+        return apiParam.replace(/\/$/, '');
+      }
+    }
     const envUrl = process.env.NEXT_PUBLIC_API_URL;
     if (envUrl && envUrl.startsWith('http')) {
-      return envUrl;
+      return envUrl.replace(/\/$/, '');
     }
     return 'https://api.estoyok24.com/api';
   };
 
+  const [activeApiUrl, setActiveApiUrl] = useState<string>(() => getApiUrl());
+
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}`);
+        let currentApiUrl = getApiUrl();
+        let res = await fetch(`${currentApiUrl}/emergency-alerts/${id}`);
+
+        // Automatic fallback: if production returns 404, check dev API
+        if (res.status === 404 && currentApiUrl.includes('api.estoyok24.com')) {
+          const devApi = 'https://backend-api-dev-2a56.up.railway.app/api';
+          try {
+            const devRes = await fetch(`${devApi}/emergency-alerts/${id}`);
+            if (devRes.ok) {
+              res = devRes;
+              currentApiUrl = devApi;
+            }
+          } catch (e) {
+            console.error('Fallback dev check failed:', e);
+          }
+        }
+
         if (!res.ok) throw new Error();
         const json = await res.json();
         setData(json);
+        setActiveApiUrl(currentApiUrl);
       } catch {
         setError(true);
       } finally {
@@ -90,7 +116,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
 
     const interval = setInterval(async () => {
       try {
-        const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}`);
+        const res = await fetch(`${activeApiUrl}/emergency-alerts/${id}`);
         if (res.ok) {
           const json = await res.json();
           setData(json);
@@ -101,7 +127,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     }, pollInterval);
 
     return () => clearInterval(interval);
-  }, [id, alertStatus, alertType]);
+  }, [id, alertStatus, alertType, activeApiUrl]);
 
   const handleRespond = async (status: 'read' | 'acknowledged' | 'on_my_way') => {
     const trimmedName = contactName.trim();
@@ -123,7 +149,7 @@ export default function EmergencyClientPage({ id }: { id: string }) {
     setSubmitSuccess(false);
 
     try {
-      const res = await fetch(`${getApiUrl()}/emergency-alerts/${id}/respond`, {
+      const res = await fetch(`${activeApiUrl}/emergency-alerts/${id}/respond`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
