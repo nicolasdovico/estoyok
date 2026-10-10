@@ -169,4 +169,74 @@ class EvolutionWebhookTest extends TestCase
         $response->assertStatus(200);
         $this->assertEquals('resolved', $alert->fresh()->status);
     }
+
+    public function test_user_with_notify_self_whatsapp_can_checkin_even_if_allow_sms_checkin_is_false()
+    {
+        $user = User::factory()->create([
+            'phone' => '+5491122334455',
+            'email_verified_at' => now(),
+            'allow_sms_whatsapp_checkin' => false,
+            'notify_self_whatsapp_on_inactivity' => true,
+        ]);
+
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
+            'data' => [
+                'key' => [
+                    'remoteJid' => '5491122334455@s.whatsapp.net',
+                    'fromMe' => false,
+                ],
+                'message' => [
+                    'conversation' => 'OK',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['status' => 'success']);
+        $this->assertTrue($user->fresh()->allow_sms_whatsapp_checkin);
+        $this->assertNotNull($user->fresh()->last_check_in_at);
+    }
+
+    public function test_user_identified_via_lid_and_push_name_exact_match()
+    {
+        // Partial match user
+        $partialUser = User::factory()->create([
+            'name' => 'Nicolas',
+            'phone' => '+5491111111111',
+            'email_verified_at' => now(),
+            'allow_sms_whatsapp_checkin' => true,
+        ]);
+
+        // Exact match user
+        $exactUser = User::factory()->create([
+            'name' => 'Nicolás Dovico',
+            'phone' => '+5491149790220',
+            'email_verified_at' => now(),
+            'allow_sms_whatsapp_checkin' => false,
+            'notify_self_whatsapp_on_inactivity' => true,
+        ]);
+
+        $response = $this->postJson('/api/webhooks/evolution/message', [
+            'event' => 'messages.upsert',
+            'data' => [
+                'key' => [
+                    'remoteJid' => '251556368760970@lid',
+                    'fromMe' => false,
+                ],
+                'pushName' => 'Nicolás Dovico',
+                'message' => [
+                    'conversation' => 'OK',
+                ],
+            ],
+        ]);
+
+        $response->assertStatus(200);
+        $response->assertJson(['status' => 'success']);
+
+        // Assert exact user was updated, NOT partial user
+        $this->assertNotNull($exactUser->fresh()->last_check_in_at);
+        $this->assertNull($partialUser->fresh()->last_check_in_at);
+    }
 }
+

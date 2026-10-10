@@ -213,6 +213,7 @@ class SettingsController extends Controller
 
         $user->update([
             'notify_self_whatsapp_on_inactivity' => $validated['notify_self_whatsapp_on_inactivity'],
+            'allow_sms_whatsapp_checkin' => $validated['notify_self_whatsapp_on_inactivity'] ? true : $user->allow_sms_whatsapp_checkin,
         ]);
 
         if ($user->notify_self_whatsapp_on_inactivity) {

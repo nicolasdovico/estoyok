@@ -63,213 +63,271 @@ class WebhookController extends Controller
 
     public function evolutionMessage(Request $request)
     {
-        Log::info('Evolution API Message Webhook Received', [
-            'payload' => $request->all(),
-            'headers' => $request->headers->all(),
-        ]);
+        try {
+            Log::info('Evolution API Message Webhook Received', [
+                'payload' => $request->all(),
+                'headers' => $request->headers->all(),
+            ]);
 
-        $payload = $request->all();
-        $data = $request->input('data', $payload);
-
-        // Unwrap if data is a list of messages (e.g. data: [ { key: ... } ])
-        if (is_array($data) && isset($data[0]) && is_array($data[0])) {
-            $item = $data[0];
-        } elseif (is_array($data) && isset($data['messages'][0]) && is_array($data['messages'][0])) {
-            $item = $data['messages'][0];
-        } elseif (is_array($data)) {
-            $item = $data;
-        } else {
-            $item = $payload;
-        }
-
-        // Ignore messages sent by ourselves
-        $fromMe = data_get($item, 'key.fromMe') 
-            ?? data_get($item, 'fromMe') 
-            ?? data_get($payload, 'data.key.fromMe') 
-            ?? data_get($payload, 'key.fromMe') 
-            ?? false;
-
-        if ($fromMe === true) {
-            $this->recordWebhookCall($payload, 'ignored_from_me');
-            return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
-        }
-
-        // 1. Extract sender JID from message item (NOT top-level instance sender)
-        $rawSenderJid = data_get($item, 'key.remoteJid') 
-            ?? data_get($item, 'remoteJid') 
-            ?? data_get($item, 'key.participant') 
-            ?? data_get($item, 'participant') 
-            ?? data_get($item, 'sender');
-
-        if (! $rawSenderJid) {
-            Log::info("Evolution Webhook: Missing sender/from in payload");
-            $this->recordWebhookCall($payload, 'ignored_missing_from');
-            return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
-        }
-
-        // Ignore group or broadcast messages
-        if (str_contains($rawSenderJid, '@g.us') || str_contains($rawSenderJid, '@broadcast')) {
-            $this->recordWebhookCall($payload, 'ignored_group_or_broadcast');
-            return response()->json(['status' => 'ignored', 'reason' => 'group_or_broadcast_message']);
-        }
-
-        // Clean @s.whatsapp.net, @lid, @c.us or whatsapp: prefix
-        $from = $rawSenderJid;
-        if (str_contains($from, '@')) {
-            $from = explode('@', $from)[0];
-        }
-        if (str_starts_with($from, 'whatsapp:')) {
-            $from = substr($from, 9);
-        }
-
-        // Clean phone format (keep numbers only)
-        $fromCleaned = preg_replace('/[^0-9]/', '', $from);
-
-        // Find user by phone (flexible matching against verified active users)
-        $user = User::whereNotNull('email_verified_at')
-            ->get()
-            ->first(function ($u) use ($fromCleaned) {
-                if (empty($u->phone)) return false;
-                $userPhoneClean = preg_replace('/[^0-9]/', '', $u->phone);
-                if (empty($userPhoneClean)) return false;
-
-                if ($userPhoneClean === $fromCleaned) return true;
-                if (str_ends_with($fromCleaned, $userPhoneClean) || str_ends_with($userPhoneClean, $fromCleaned)) return true;
-
-                // Compare last 10 digits (national number)
-                $from10 = substr($fromCleaned, -10);
-                $user10 = substr($userPhoneClean, -10);
-                if (strlen($from10) >= 8 && strlen($user10) >= 8 && $from10 === $user10) {
-                    return true;
+            // Mirror webhook payload between Prod and Dev environments if single WhatsApp instance is shared
+            if (! $request->header('X-EstoyOk-Mirrored')) {
+                $currentHost = $request->getHost();
+                $peerUrl = null;
+                if (str_contains($currentHost, 'backend-api-dev') || str_contains($currentHost, 'dev')) {
+                    $peerUrl = 'https://api.estoyok24.com/api/webhooks/evolution/message';
+                } elseif (str_contains($currentHost, 'api.estoyok24.com')) {
+                    $peerUrl = 'https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message';
                 }
 
-                // Compare last 8 digits (subscriber number)
-                $from8 = substr($fromCleaned, -8);
-                $user8 = substr($userPhoneClean, -8);
-                if (strlen($from8) >= 8 && strlen($user8) >= 8 && $from8 === $user8) {
-                    return true;
+                if ($peerUrl) {
+                    try {
+                        \Illuminate\Support\Facades\Http::withHeaders([
+                            'X-EstoyOk-Mirrored' => '1',
+                            'Content-Type' => 'application/json',
+                        ])->timeout(3)->post($peerUrl, $request->all());
+                        Log::info("Evolution Webhook: Mirrored payload to peer {$peerUrl}");
+                    } catch (\Throwable $e) {
+                        Log::warning("Evolution Webhook: Mirror to peer {$peerUrl} failed: " . $e->getMessage());
+                    }
                 }
+            }
 
-                return false;
-            });
+            $payload = $request->all();
+            $data = $request->input('data', $payload);
 
-        // 2. Intelligent fallback: if sender was a WhatsApp @lid privacy identifier, match by pushName
-        if (! $user) {
-            $pushName = data_get($item, 'pushName') ?? data_get($payload, 'data.pushName');
-            if (! empty($pushName)) {
-                $cleanPush = strtr(mb_strtolower(trim($pushName), 'UTF-8'), [
-                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
-                ]);
+            // Unwrap if data is a list of messages (e.g. data: [ { key: ... } ])
+            if (is_array($data) && isset($data[0]) && is_array($data[0])) {
+                $item = $data[0];
+            } elseif (is_array($data) && isset($data['messages'][0]) && is_array($data['messages'][0])) {
+                $item = $data['messages'][0];
+            } elseif (is_array($data)) {
+                $item = $data;
+            } else {
+                $item = $payload;
+            }
 
-                $user = User::whereNotNull('email_verified_at')
-                    ->where(function ($q) {
-                        $q->where('allow_sms_whatsapp_checkin', true)
-                          ->orWhereNull('allow_sms_whatsapp_checkin');
-                    })
-                    ->get()
-                    ->first(function ($u) use ($cleanPush) {
+            // Ignore messages sent by ourselves
+            $fromMe = data_get($item, 'key.fromMe') 
+                ?? data_get($item, 'fromMe') 
+                ?? data_get($payload, 'data.key.fromMe') 
+                ?? data_get($payload, 'key.fromMe') 
+                ?? false;
+
+            if ($fromMe === true) {
+                $this->recordWebhookCall($payload, 'ignored_from_me');
+                return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
+            }
+
+            // 1. Extract sender JID from message item (NOT top-level instance sender)
+            $rawSenderJid = data_get($item, 'key.remoteJid') 
+                ?? data_get($item, 'remoteJid') 
+                ?? data_get($item, 'key.participant') 
+                ?? data_get($item, 'participant') 
+                ?? data_get($item, 'sender');
+
+            if (! $rawSenderJid) {
+                Log::info("Evolution Webhook: Missing sender/from in payload");
+                $this->recordWebhookCall($payload, 'ignored_missing_from');
+                return response()->json(['status' => 'ignored', 'reason' => 'missing_from']);
+            }
+
+            // Ignore group or broadcast messages
+            if (str_contains($rawSenderJid, '@g.us') || str_contains($rawSenderJid, '@broadcast')) {
+                $this->recordWebhookCall($payload, 'ignored_group_or_broadcast');
+                return response()->json(['status' => 'ignored', 'reason' => 'group_or_broadcast_message']);
+            }
+
+            // Clean @s.whatsapp.net, @lid, @c.us or whatsapp: prefix
+            $from = $rawSenderJid;
+            if (str_contains($from, '@')) {
+                $from = explode('@', $from)[0];
+            }
+            if (str_starts_with($from, 'whatsapp:')) {
+                $from = substr($from, 9);
+            }
+
+            // Clean phone format (keep numbers only)
+            $fromCleaned = preg_replace('/[^0-9]/', '', $from);
+
+            // Find user by phone (flexible matching against verified active users)
+            $user = User::whereNotNull('email_verified_at')
+                ->get()
+                ->first(function ($u) use ($fromCleaned) {
+                    if (empty($u->phone)) return false;
+                    $userPhoneClean = preg_replace('/[^0-9]/', '', $u->phone);
+                    if (empty($userPhoneClean)) return false;
+
+                    if ($userPhoneClean === $fromCleaned) return true;
+                    if (str_ends_with($fromCleaned, $userPhoneClean) || str_ends_with($userPhoneClean, $fromCleaned)) return true;
+
+                    // Compare last 10 digits (national number)
+                    $from10 = substr($fromCleaned, -10);
+                    $user10 = substr($userPhoneClean, -10);
+                    if (strlen($from10) >= 8 && strlen($user10) >= 8 && $from10 === $user10) {
+                        return true;
+                    }
+
+                    // Compare last 8 digits (subscriber number)
+                    $from8 = substr($fromCleaned, -8);
+                    $user8 = substr($userPhoneClean, -8);
+                    if (strlen($from8) >= 8 && strlen($user8) >= 8 && $from8 === $user8) {
+                        return true;
+                    }
+
+                    return false;
+                });
+
+            // 2. Intelligent fallback: if sender was a WhatsApp @lid privacy identifier, match by pushName
+            if (! $user) {
+                $pushName = data_get($item, 'pushName') ?? data_get($payload, 'data.pushName');
+                if (! empty($pushName)) {
+                    $cleanPush = strtr(mb_strtolower(trim($pushName), 'UTF-8'), [
+                        'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
+                    ]);
+
+                    $candidates = User::whereNotNull('email_verified_at')
+                        ->where(function ($q) {
+                            $q->where('allow_sms_whatsapp_checkin', true)
+                              ->orWhereNull('allow_sms_whatsapp_checkin')
+                              ->orWhere('notify_self_whatsapp_on_inactivity', true);
+                        })
+                        ->get();
+
+                    // 2a. Priority: Exact match
+                    $user = $candidates->first(function ($u) use ($cleanPush) {
                         $uName = strtr(mb_strtolower(trim($u->name), 'UTF-8'), [
                             'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
                         ]);
-                        if (empty($uName) || strlen($uName) < 3) return false;
-                        return str_contains($cleanPush, $uName) || str_contains($uName, $cleanPush);
+                        return !empty($uName) && $uName === $cleanPush;
                     });
 
-                if ($user) {
-                    Log::info("Evolution Webhook: Matched user {$user->id} ({$user->name}) via pushName '{$pushName}' for @lid {$fromCleaned}");
+                    // 2b. Fallback: Substring match (prefer longer user names first)
+                    if (! $user) {
+                        $user = $candidates
+                            ->sortByDesc(fn($u) => strlen($u->name))
+                            ->first(function ($u) use ($cleanPush) {
+                                $uName = strtr(mb_strtolower(trim($u->name), 'UTF-8'), [
+                                    'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u'
+                                ]);
+                                if (empty($uName) || strlen($uName) < 3) return false;
+                                return str_contains($cleanPush, $uName) || str_contains($uName, $cleanPush);
+                            });
+                    }
+
+                    if ($user) {
+                        Log::info("Evolution Webhook: Matched user {$user->id} ({$user->name}) via pushName '{$pushName}' for @lid {$fromCleaned}");
+                    }
                 }
             }
-        }
 
-        if (! $user) {
-            Log::info("Evolution Webhook: User not found for phone/lid {$fromCleaned}");
-            $this->recordWebhookCall($payload, "user_not_found_for_phone_{$fromCleaned}");
-            return response()->json(['status' => 'user_not_found']);
-        }
-
-        // Check if configuration is enabled (defaults to true if null)
-        if ($user->allow_sms_whatsapp_checkin === false) {
-            Log::info("Evolution Webhook: Check-in disabled for user {$user->id}");
-            $this->recordWebhookCall($payload, 'checkin_disabled_for_user', $user);
-            return response()->json(['status' => 'checkin_disabled']);
-        }
-
-        $rawBody = data_get($item, 'message.conversation')
-            ?? data_get($item, 'message.extendedTextMessage.text')
-            ?? data_get($item, 'message.buttonsResponseMessage.selectedDisplayText')
-            ?? data_get($item, 'message.templateButtonReplyMessage.selectedDisplayText')
-            ?? data_get($item, 'message.listResponseMessage.title')
-            ?? data_get($item, 'messageText')
-            ?? data_get($item, 'body')
-            ?? data_get($item, 'text')
-            ?? data_get($payload, 'data.message.conversation')
-            ?? data_get($payload, 'data.message.extendedTextMessage.text')
-            ?? data_get($payload, 'body')
-            ?? '';
-
-        $body = mb_strtolower(trim((string) $rawBody), 'UTF-8');
-        // Replace accents
-        $body = strtr($body, [
-            'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
-        ]);
-        // Remove non-alphanumeric characters except spaces
-        $bodyClean = trim(preg_replace('/[^a-z0-9\s]/', '', $body));
-        $bodyClean = preg_replace('/\s+/', ' ', $bodyClean);
-
-        $accepted = [
-            'ok', 'estoy ok', 'estoyok', '1', 'bien', 'estoy bien', 'estoybien', 'reporte', 'si', 'estoy a salvo', 'a salvo'
-        ];
-
-        $isValidPattern = in_array($bodyClean, $accepted, true) 
-            || str_starts_with($bodyClean, 'ok') 
-            || str_contains($bodyClean, 'estoy ok')
-            || str_contains($bodyClean, 'estoy bien');
-
-        if (! $isValidPattern) {
-            Log::info("Evolution Webhook: Unrecognized body '{$rawBody}' (normalized: '{$bodyClean}') from user {$user->id}");
-            $this->recordWebhookCall($payload, "unrecognized_body_{$bodyClean}", $user);
-            return response()->json(['status' => 'unrecognized_body']);
-        }
-
-        // Process check-in
-        $user->update([
-            'last_check_in_at' => \Illuminate\Support\Carbon::now(),
-        ]);
-        $user->checkIns()->create(['source' => 'whatsapp']);
-        $user->emergencyAlerts()->where('status', 'active')->update([
-            'status' => 'resolved',
-        ]);
-
-        Log::info("Evolution Webhook: Check-in successfully registered via WhatsApp for user {$user->id} ({$user->name})");
-        $this->recordWebhookCall($payload, 'SUCCESS_CHECKIN_PROCESSED', $user);
-
-        // Send Silent Push / Refresh event to the user's mobile app if token exists
-        if (! empty($user->expo_push_token)) {
-            try {
-                app(\App\Services\PushNotificationService::class)->sendPush(
-                    $user->expo_push_token,
-                    'Bienestar Actualizado',
-                    'Tu bienestar se ha confirmado vía WhatsApp.',
-                    [
-                        'type' => 'check_in_update',
-                        'source' => 'whatsapp',
-                    ],
-                    true
-                );
-            } catch (\Exception $e) {
-                Log::warning("Evolution Webhook: Failed to send push refresh: " . $e->getMessage());
+            if (! $user) {
+                Log::info("Evolution Webhook: User not found for phone/lid {$fromCleaned}");
+                $this->recordWebhookCall($payload, "user_not_found_for_phone_{$fromCleaned}");
+                return response()->json(['status' => 'user_not_found']);
             }
-        }
 
-        // Confirmation reply via WhatsApp
-        try {
-            $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
-            $whatsAppService->sendWhatsApp($user->phone, '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
-        } catch (\Exception $e) {
-            Log::warning("Evolution Webhook: Failed to send WhatsApp confirmation to {$user->phone}: " . $e->getMessage());
-        }
+            // Check if configuration is enabled (either SMS/WhatsApp checkin or notify self is true)
+            $canCheckin = ($user->allow_sms_whatsapp_checkin !== false) || (bool) $user->notify_self_whatsapp_on_inactivity;
+            if (! $canCheckin) {
+                Log::info("Evolution Webhook: Check-in disabled for user {$user->id}");
+                $this->recordWebhookCall($payload, 'checkin_disabled_for_user', $user);
+                return response()->json(['status' => 'checkin_disabled']);
+            }
 
-        return response()->json(['status' => 'success', 'message' => 'Check-in processed successfully']);
+            $rawBody = data_get($item, 'message.conversation')
+                ?? data_get($item, 'message.extendedTextMessage.text')
+                ?? data_get($item, 'message.buttonsResponseMessage.selectedDisplayText')
+                ?? data_get($item, 'message.templateButtonReplyMessage.selectedDisplayText')
+                ?? data_get($item, 'message.listResponseMessage.title')
+                ?? data_get($item, 'messageText')
+                ?? data_get($item, 'body')
+                ?? data_get($item, 'text')
+                ?? data_get($payload, 'data.message.conversation')
+                ?? data_get($payload, 'data.message.extendedTextMessage.text')
+                ?? data_get($payload, 'body')
+                ?? '';
+
+            $body = mb_strtolower(trim((string) $rawBody), 'UTF-8');
+            // Replace accents
+            $body = strtr($body, [
+                'á' => 'a', 'é' => 'e', 'í' => 'i', 'ó' => 'o', 'ú' => 'u', 'ü' => 'u',
+            ]);
+            // Remove non-alphanumeric characters except spaces
+            $bodyClean = trim(preg_replace('/[^a-z0-9\s]/', '', $body));
+            $bodyClean = preg_replace('/\s+/', ' ', $bodyClean);
+
+            $accepted = [
+                'ok', 'estoy ok', 'estoyok', '1', 'bien', 'estoy bien', 'estoybien', 'reporte', 'si', 'estoy a salvo', 'a salvo'
+            ];
+
+            $isValidPattern = in_array($bodyClean, $accepted, true) 
+                || str_starts_with($bodyClean, 'ok') 
+                || str_contains($bodyClean, 'estoy ok')
+                || str_contains($bodyClean, 'estoy bien');
+
+            if (! $isValidPattern) {
+                Log::info("Evolution Webhook: Unrecognized body '{$rawBody}' (normalized: '{$bodyClean}') from user {$user->id}");
+                $this->recordWebhookCall($payload, "unrecognized_body_{$bodyClean}", $user);
+                return response()->json(['status' => 'unrecognized_body']);
+            }
+
+            // Process check-in
+            $user->update([
+                'last_check_in_at' => \Illuminate\Support\Carbon::now(),
+                'allow_sms_whatsapp_checkin' => true,
+            ]);
+            $user->checkIns()->create(['source' => 'whatsapp']);
+            $user->emergencyAlerts()->where('status', 'active')->update([
+                'status' => 'resolved',
+            ]);
+
+            Log::info("Evolution Webhook: Check-in successfully registered via WhatsApp for user {$user->id} ({$user->name})");
+            $this->recordWebhookCall($payload, 'SUCCESS_CHECKIN_PROCESSED', $user);
+
+            // Send Silent Push / Refresh event to the user's mobile app if token exists
+            if (! empty($user->expo_push_token)) {
+                try {
+                    app(\App\Services\PushNotificationService::class)->sendPush(
+                        $user->expo_push_token,
+                        'Bienestar Actualizado',
+                        'Tu bienestar se ha confirmado vía WhatsApp.',
+                        [
+                            'type' => 'check_in_update',
+                            'source' => 'whatsapp',
+                        ],
+                        true
+                    );
+                } catch (\Throwable $e) {
+                    Log::warning("Evolution Webhook: Failed to send push refresh: " . $e->getMessage());
+                }
+            }
+
+            // Confirmation reply via WhatsApp
+            try {
+                $targetPhone = $user->phone;
+                if (! empty($targetPhone)) {
+                    $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
+                    $whatsAppService->sendWhatsApp($targetPhone, '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
+                    Log::info("Evolution Webhook: Confirmation sent to {$targetPhone} for user {$user->id}");
+                } else {
+                    Log::warning("Evolution Webhook: User {$user->id} has no phone configured, skipping WhatsApp confirmation reply");
+                }
+            } catch (\Throwable $e) {
+                Log::warning("Evolution Webhook: Failed to send WhatsApp confirmation to " . ($user->phone ?? 'null') . ": " . $e->getMessage());
+            }
+
+            return response()->json(['status' => 'success', 'message' => 'Check-in processed successfully']);
+        } catch (\Throwable $e) {
+            Log::error("Evolution Webhook Exception: " . $e->getMessage(), [
+                'file' => $e->getFile(),
+                'line' => $e->getLine(),
+            ]);
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage(),
+                'line' => $e->getLine(),
+            ], 500);
+        }
     }
 
     protected function recordWebhookCall(array $payload, string $decision, ?User $user = null): void

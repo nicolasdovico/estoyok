@@ -32,7 +32,7 @@ class EvolutionApiService implements WhatsAppServiceInterface
         try {
             $this->ensureWebhookConfigured();
 
-            $cleanTo = preg_replace('/[^0-9]/', '', $to);
+            $cleanTo = str_contains($to, '@') ? $to : preg_replace('/[^0-9]/', '', $to);
 
             $url = "{$this->baseUrl}/message/sendText/{$this->instance}";
 
@@ -74,7 +74,11 @@ class EvolutionApiService implements WhatsAppServiceInterface
         }
 
         try {
-            $webhookUrl = 'https://api.estoyok24.com/api/webhooks/evolution/message';
+            $backendUrl = config('app.url', env('APP_URL', 'https://api.estoyok24.com'));
+            if (empty($backendUrl) || str_contains($backendUrl, 'localhost') || str_contains($backendUrl, '127.0.0.1')) {
+                $backendUrl = 'https://api.estoyok24.com';
+            }
+            $webhookUrl = rtrim($backendUrl, '/') . '/api/webhooks/evolution/message';
             $url = "{$this->baseUrl}/webhook/set/{$this->instance}";
 
             $response = Http::withHeaders([
