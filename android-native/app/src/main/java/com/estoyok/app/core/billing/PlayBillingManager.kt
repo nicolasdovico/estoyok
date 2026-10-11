@@ -141,6 +141,7 @@ class PlayBillingManager @Inject constructor(
     fun launchSubscription(
         activity: Activity,
         billingCycle: String, // "monthly" vs "annual"
+        hasUsedTrial: Boolean = false,
         onSuccess: (purchaseToken: String, basePlanId: String) -> Unit,
         onError: (errorMessage: String) -> Unit
     ) {
@@ -158,9 +159,21 @@ class PlayBillingManager @Inject constructor(
         val targetBasePlanId = if (billingCycle == "annual") BASE_PLAN_ANNUAL else BASE_PLAN_MONTHLY
         this.pendingBasePlanId = targetBasePlanId
 
-        val offerDetails = details.subscriptionOfferDetails?.firstOrNull {
+        val offersForBasePlan = details.subscriptionOfferDetails?.filter {
             it.basePlanId == targetBasePlanId
-        } ?: details.subscriptionOfferDetails?.firstOrNull()
+        } ?: emptyList()
+
+        val offerDetails = if (hasUsedTrial) {
+            // Pick plan without free trial phase (price > 0)
+            offersForBasePlan.firstOrNull { offer ->
+                offer.offerId.isNullOrEmpty() || offer.pricingPhases.pricingPhaseList.none { it.priceAmountMicros == 0L }
+            } ?: offersForBasePlan.firstOrNull()
+        } else {
+            // Prioritize free trial offer
+            offersForBasePlan.firstOrNull { offer ->
+                offer.pricingPhases.pricingPhaseList.any { it.priceAmountMicros == 0L }
+            } ?: offersForBasePlan.firstOrNull()
+        }
 
         if (offerDetails == null) {
             onError("No se encontró el plan de facturación seleccionado en Google Play.")

@@ -10,6 +10,7 @@ data class UserDto(
     @SerializedName("email_verified_at") val emailVerifiedAt: String?,
     @SerializedName("is_premium") val isPremium: Boolean,
     @SerializedName("has_premium_access") val hasPremiumAccess: Boolean? = false,
+    @SerializedName("has_used_trial") val hasUsedTrial: Boolean? = false,
     @SerializedName("checkin_interval_hours") val checkinIntervalHours: Int,
     @SerializedName("allow_sms_whatsapp_checkin") val allowSmsWhatsappCheckin: Boolean,
     @SerializedName("notify_self_whatsapp_on_inactivity") val notifySelfWhatsappOnInactivity: Boolean? = false,

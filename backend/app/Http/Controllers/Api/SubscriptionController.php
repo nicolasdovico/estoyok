@@ -210,15 +210,20 @@ class SubscriptionController extends Controller
         $basePlan = $request->input('base_plan_id', 'monthly-plan');
         $isAnnual = str_contains((string) $basePlan, 'annual');
 
-        $isTrialExpired = $user->trial_ends_at && $user->trial_ends_at <= now();
+        $isTrialExpired = $user->has_used_trial || ($user->trial_ends_at && $user->trial_ends_at <= now());
         $status = $isTrialExpired ? 'active' : 'trialing';
+
+        $trialEndsAt = $user->trial_ends_at;
+        if (!$isTrialExpired && $trialEndsAt === null) {
+            $trialEndsAt = now()->addDays(7);
+        }
 
         $user->update([
             'is_premium' => true,
             'subscription_status' => $status,
             'subscription_provider' => 'google_play',
             'subscription_id' => $purchaseToken,
-            'trial_ends_at' => $user->trial_ends_at ?: now()->addDays(7),
+            'trial_ends_at' => $trialEndsAt,
             'has_used_trial' => true,
             'billing_cycle_ends_at' => $isAnnual ? now()->addYear() : now()->addMonth(),
         ]);
@@ -306,8 +311,8 @@ class SubscriptionController extends Controller
             $basePlan = $request->input('base_plan_id', 'monthly-plan');
             $isAnnual = str_contains((string) $basePlan, 'annual');
 
-            // Si el período de prueba ya finalizó (o venció), pasa inmediatamente a 'active'
-            $isTrialActive = $user->trial_ends_at && $user->trial_ends_at > now();
+            // Si el período de prueba ya finalizó (o ya usó la prueba previa), pasa inmediatamente a 'active'
+            $isTrialActive = !$user->has_used_trial && $user->trial_ends_at && $user->trial_ends_at > now();
             $newStatus = $isTrialActive ? 'trialing' : 'active';
 
             $user->update([

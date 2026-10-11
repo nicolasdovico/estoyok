@@ -527,6 +527,7 @@
   - [x] Resiliencia de enlaces de emergencia en `EmergencyClientPage.tsx` con soporte de parámetro `?api=` y fallback automático dev-to-prod.
   - [x] Canalización exclusiva de alertas de WhatsApp hacia la pantalla de crisis oficial de Estoy Ok con tracking en vivo y audio.
   - [x] Blindaje de Prueba Gratuita Única (7 Días): Campo booleano `has_used_trial` en tabla `users` con backfill automático, preservación de `trial_ends_at` en ciclo de vida del modelo y validación HTTP 422 en `SubscriptionController::startTrial` impidiendo activaciones reiteradas.
+  - [x] Adaptación Dinámica de Paywall y Exclusión de Ofertas Gratuitas en Google Play Billing (Mobile & Backend): Renderizado condicional en `PremiumScreen.kt` (título, subtítulo, botón CTA y ocultamiento del timeline de 7 días cuando `has_used_trial == true`), selección forzada de plan base sin fase de $0.00 en `PlayBillingManager.kt` y asignación de estado `active` en `verifyGooglePlay` / `syncGooglePlay`.
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:

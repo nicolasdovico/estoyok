@@ -1,5 +1,23 @@
 # Progress Log
 
+## [2026-10-10] Adaptación Dinámica de Paywall y Exclusión de Oferta de Prueba en Google Play Billing (Mobile & Backend)
+- **Frontend Android Nativo (Jetpack Compose & Google Play Billing):**
+    - Agregado el campo `has_used_trial` en `UserDto` ([`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt)).
+    - Actualizado [`PlayBillingManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/billing/PlayBillingManager.kt): `launchSubscription` ahora acepta `hasUsedTrial: Boolean`. Si el usuario ya utilizó la prueba, filtra y descarta las ofertas que contienen fases de precio 0 (`priceAmountMicros == 0L`), seleccionando exclusivamente el plan base de cobro directo para que Google Play no presente la oferta gratuita.
+    - Actualizado [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt): `launchGooglePlaySubscription` propaga `hasUsedTrial` al billing manager.
+    - Actualizada [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt):
+        - Si `hasUsedTrial == true`:
+            - Tag: `"👑 PLAN ILIMITADO PARA TU FAMILIA"`
+            - Título: `"Suscríbete a Estoy Ok PRO 👑"`
+            - Subtítulo: `"Protección familiar sin límites. Desbloquea alertas ilimitadas, SOS ambiental, telemetría y geocercas."`
+            - Oculta el bloque de 3 pasos de "¿Cómo funciona tu prueba gratis?".
+            - Botón CTA: `"Suscribirme a Estoy Ok PRO 👑"` con subtítulo *"Google Play • Facturación inmediata • Cancela cuando quieras"*.
+        - Si `hasUsedTrial == false`:
+            - Conserva el flow de bienvenida para nuevos usuarios con los 7 días gratis.
+- **Backend Laravel (Garantía de Estado Active en Compras Google Play):**
+    - Actualizado `verifyGooglePlay` y `syncGooglePlay` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php): si `has_used_trial` es `true`, asigna directamente `subscription_status = 'active'` y no regenera `trial_ends_at`, asegurando que el estado sea un plan de pago definitivo.
+    - Suite completa de backend ejecutada y pasando al 100% (176 tests, 604 aserciones, 0 regresiones).
+
 ## [2026-10-10] Blindaje de Prueba Gratuita Única (7 Días) y Prevención de Re-activación Indefinida (Backend)
 - **Backend Laravel (Control de Suscripciones y Lifecycle):**
     - Identificada y subsanada la causa raíz que permitía activar la prueba gratuita de 7 días ilimitadas veces: `SubscriptionController::startTrial` únicamente comprobaba `subscription_status === 'active'`, y el hook `static::saving` en `User.php` reiniciaba `trial_ends_at = null` cuando el estado pasaba a `inactive`, borrando el registro histórico.
