@@ -15,6 +15,12 @@
     - Al coexistir dos contenedores activos o en caso de reintentos concurrentes de red, se implementó en [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
       1. Deduplicación por `key.id` del mensaje entrante en caché (60s).
       2. Debounce de 20s por usuario en la emisión del Job de confirmación (`SendCheckinConfirmationWhatsAppJob`), asegurando que el usuario reciba exactamente 1 mensaje de confirmación por reporte.
+- **Procedimiento Documentado para Pase a Producción:**
+    - Documentado en [`docs/status.md`](file:///home/usuario/aplicaciones/estoyok/docs/status.md) y [`docs/progress.txt`](file:///home/usuario/aplicaciones/estoyok/docs/progress.txt) el Runbook de Producción:
+      1. Actualizar `evolution-api-production-3449` en Railway a `evoapicloud/evolution-api:latest`.
+      2. Configurar variable de entorno `CACHE_REDIS_ENABLED=false`.
+      3. Si solicita QR, escanearlo desde el bot (+54 9 2323 61-0697) vía `https://api.estoyok24.com/api/maintenance/connect-qr`.
+      4. Presionar el botón `🎯 Apuntar Webhook a este entorno (api.estoyok24.com)` para redirigir el tráfico entrante a Producción con 1 clic.
 - **Garantía de No Regresión:**
     - Suite completa de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
 

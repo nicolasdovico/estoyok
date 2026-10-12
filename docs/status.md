@@ -545,6 +545,29 @@
 
 ---
 
+## 🚀 Runbook: Pase a Producción de WhatsApp Gateway (Evolution API v2.3.7 & Webhook)
+Al momento de desplegar los cambios en el entorno de **Producción** (`https://api.estoyok24.com`):
+
+### 1. Actualizar el Servicio Evolution API de Producción en Railway
+- Ir al servicio de Evolution API de producción (ej: `evolution-api-production-3449`).
+- En **Settings -> Source Image**: cambiar la imagen a `evoapicloud/evolution-api:latest` (o `evoapicloud/evolution-api:v2.3.7`).
+- En **Variables**: verificar/agregar `CACHE_REDIS_ENABLED=false` (y opcionalmente `CACHE_LOCAL_ENABLED=true`) para evitar el bucle de reconexión infinita a Redis en localhost.
+- Realizar el Deploy / Redeploy.
+
+### 2. Re-vincular Sesión de WhatsApp (si fuera necesario)
+- Si tras el inicio de la v2.3.7 la instancia solicita nuevo escaneo de QR debido a la actualización de Baileys:
+  - Abrir en el navegador: `https://api.estoyok24.com/api/maintenance/connect-qr`.
+  - Escanear el código QR con el celular del bot (`+54 9 2323 61-0697`).
+  - La pantalla pasará a estado `🟢 Conectado (Sesión Abierta)`.
+
+### 3. Apuntar el Webhook a Producción (1 Clic)
+- En la misma pantalla `https://api.estoyok24.com/api/maintenance/connect-qr`, el sistema detecta automáticamente si el webhook apunta al entorno actual.
+- Si muestra el recuadro amarillo indicando que apunta a Dev, presionar el botón azul:
+  `🎯 Apuntar Webhook a este entorno (api.estoyok24.com)`.
+- El backend ejecutará la reconfiguración en Evolution API hacia `https://api.estoyok24.com/api/webhooks/evolution/message` con los eventos `MESSAGES_UPSERT`, `MESSAGES_UPDATE` y `SEND_MESSAGE`.
+
+---
+
 ## 📘 Convenciones Adoptadas (UX y Nomenclatura)
 Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguientes criterios de marca e interfaz de usuario:
 
