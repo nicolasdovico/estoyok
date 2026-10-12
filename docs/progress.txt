@@ -1,5 +1,15 @@
 # Progress Log
 
+## [2026-10-11] Corrección y Estabilización de Alertas de Inactividad y Auto-Ejecución de Scheduler/Worker en Railway Dev
+- **Infraestructura de Despliegue en Railway (`backend/start.sh` & `railway.json`):**
+    - Identificada la causa de por qué el reloj de bienestar llegaba a 0 y no disparaba el envío: en Railway Dev únicamente corría el proceso HTTP `php artisan serve`, sin scheduler (`schedule:work`) ni worker de colas (`queue:work`) activos en segundo plano.
+    - Creado el script de arranque [`backend/start.sh`](file:///home/usuario/aplicaciones/estoyok/backend/start.sh) y actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json) (`startCommand: "bash start.sh"`): ahora el contenedor lanza concurrentemente en background `php artisan queue:work` y `php artisan schedule:work` antes de ejecutar el servidor HTTP, garantizando la ejecución autónoma de tareas programadas cada 5 minutos y el procesamiento instantáneo de colas Redis sin requerir servicios adicionales pagos.
+- **Backend Laravel (Comando `VerifyInactivity.php`):**
+    - Corregida la condición de exclusión en [`VerifyInactivity.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php): anteriormente `whereDoesntHave('emergencyAlerts', fn($q) => $q->where('status', 'active'))` filtraba cualquier alerta activa (incluyendo alertas de `silent_sos` previas no resueltas). Se acotó la exclusión exclusivamente a alertas de inactividad (`->where('type', 'inactivity')`), impidiendo que un SOS previo bloquee indefinidamente las alertas del reloj de bienestar.
+- **Testing y Diagnóstico en Railway Dev:**
+    - Creados endpoints de mantenimiento `/maintenance/diagnose-inactivity` y `/maintenance/prepare-inactivity-test` en [`api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
+    - Verificado en vivo en Railway Dev para el usuario `tamarakshop@gmail.com`: activado estado Premium, resueltas alertas históricas y ejecutado `checkins:verify-inactivity` con despacho exitoso de los mensajes de WhatsApp hacia el propio usuario (`+5491149790220`) y hacia su contacto SOS (`+541149790220`).
+
 ## [2026-10-10] Adaptación Dinámica de Paywall y Exclusión de Oferta de Prueba en Google Play Billing (Mobile & Backend)
 - **Frontend Android Nativo (Jetpack Compose & Google Play Billing):**
     - Agregado el campo `has_used_trial` en `UserDto` ([`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt)).
