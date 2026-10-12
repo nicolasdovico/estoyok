@@ -224,6 +224,8 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
 
         $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->orderBy('id', 'desc')->take(5)->get();
 
+        $runningProcesses = shell_exec('ps aux 2>&1');
+
         $runVerify = $request->query('run_verify');
         $verifyOutput = null;
         if ($runVerify) {
@@ -239,6 +241,7 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             'queue_default' => $queueDefault,
             'redis_queue_len' => $redisJobsCount,
             'failed_jobs' => $failedJobs,
+            'running_processes' => $runningProcesses,
             'user' => [
                 'id' => $user->id,
                 'email' => $user->email,
