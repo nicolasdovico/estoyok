@@ -53,6 +53,7 @@ return [
         'url' => env('EVOLUTION_API_URL', 'http://evolution-api:8080'),
         'api_key' => env('EVOLUTION_API_KEY'),
         'instance' => env('EVOLUTION_INSTANCE_NAME', 'estoyok_main'),
+        'webhook_peer_url' => env('EVOLUTION_WEBHOOK_PEER_URL'),
     ],
 
     'google' => [

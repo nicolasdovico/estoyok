@@ -37,6 +37,20 @@ class AuthViewModel @Inject constructor(
             initialValue = null
         )
 
+    val isOnboardingCompleted: StateFlow<Boolean?> = sessionManager.isOnboardingCompletedFlow
+        .map { it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
+    fun completeOnboarding() {
+        viewModelScope.launch {
+            sessionManager.saveOnboardingCompleted(true)
+        }
+    }
+
     init {
         viewModelScope.launch {
             authRepository.getAuthToken().collectLatest { token ->

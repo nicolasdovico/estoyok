@@ -34,6 +34,28 @@ class SessionManager @Inject constructor(
         private val SAFE_WIFI_SSID = stringPreferencesKey("safe_wifi_ssid")
         private val SELECTED_CIRCLE_ID = intPreferencesKey("selected_circle_id")
         private val DISCLAIMER_ACCEPTED = booleanPreferencesKey("disclaimer_accepted")
+        private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        private val POWER_BUTTON_SOS_ENABLED = booleanPreferencesKey("power_button_sos_enabled")
+    }
+
+    val isPowerButtonSosEnabledFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[POWER_BUTTON_SOS_ENABLED] ?: true
+    }
+
+    suspend fun savePowerButtonSosEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[POWER_BUTTON_SOS_ENABLED] = enabled
+        }
+    }
+
+    val isOnboardingCompletedFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[ONBOARDING_COMPLETED] ?: false
+    }
+
+    suspend fun saveOnboardingCompleted(completed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[ONBOARDING_COMPLETED] = completed
+        }
     }
 
     val selectedCircleIdFlow: Flow<Int?> = context.dataStore.data.map { preferences ->

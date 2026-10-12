@@ -49,6 +49,9 @@ class AjustesViewModel @Inject constructor(
     var allowSmsWhatsappCheckin by mutableStateOf(false)
         private set
 
+    var notifySelfWhatsappOnInactivity by mutableStateOf(false)
+        private set
+
     var userPhone by mutableStateOf("")
 
     var isSavingPhone by mutableStateOf(false)
@@ -66,6 +69,9 @@ class AjustesViewModel @Inject constructor(
         private set
 
     var shareContactResponses by mutableStateOf(true)
+        private set
+
+    var isPowerButtonSosEnabled by mutableStateOf(true)
         private set
 
     // Emergency Contacts list state
@@ -92,6 +98,27 @@ class AjustesViewModel @Inject constructor(
         isTrackingServiceRunning = TrackingService.isRunning
         loadSettings()
         loadContacts()
+        observePowerButtonSosPreference()
+    }
+
+    private fun observePowerButtonSosPreference() {
+        viewModelScope.launch {
+            sessionManager.isPowerButtonSosEnabledFlow.collectLatest { enabled ->
+                isPowerButtonSosEnabled = enabled
+            }
+        }
+    }
+
+    fun togglePowerButtonSos(enabled: Boolean) {
+        isPowerButtonSosEnabled = enabled
+        viewModelScope.launch {
+            sessionManager.savePowerButtonSosEnabled(enabled)
+            messageSuccess = if (enabled) {
+                "SOS de Bolsillo (Botón de Encendido) activado."
+            } else {
+                "SOS de Bolsillo desactivado."
+            }
+        }
     }
 
     fun loadSettings() {
@@ -104,6 +131,7 @@ class AjustesViewModel @Inject constructor(
                             userProfile = data
                             checkinIntervalHours = data.checkinIntervalHours
                             allowSmsWhatsappCheckin = data.allowSmsWhatsappCheckin
+                            notifySelfWhatsappOnInactivity = data.notifySelfWhatsappOnInactivity ?: false
                             userPhone = data.phone ?: ""
                             quietHoursEnabled = data.quietHoursEnabled ?: false
                             quietHoursStart = data.quietHoursStart ?: "22:00"
@@ -184,6 +212,30 @@ class AjustesViewModel @Inject constructor(
                 if (resource is Resource.Success) {
                     allowSmsWhatsappCheckin = enabled
                     messageSuccess = "Ajustes de WhatsApp actualizados."
+                }
+            }
+        }
+    }
+
+    fun toggleNotifySelfWhatsapp(enabled: Boolean) {
+        if (enabled && userPhone.isBlank()) {
+            errorMessage = "Debes registrar y guardar tu número de WhatsApp antes de activar este aviso."
+            return
+        }
+        viewModelScope.launch {
+            settingsRepository.updateNotifySelfWhatsapp(enabled).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        notifySelfWhatsappOnInactivity = enabled
+                        messageSuccess = if (enabled)
+                            "Aviso de bienestar por WhatsApp activado."
+                        else
+                            "Aviso de bienestar por WhatsApp desactivado."
+                    }
+                    is Resource.Error -> {
+                        errorMessage = resource.message ?: "No se pudo actualizar la configuración."
+                    }
+                    is Resource.Loading -> {}
                 }
             }
         }

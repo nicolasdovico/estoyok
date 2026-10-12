@@ -24,4 +24,5 @@ sealed class Screen(val route: String, val title: String, val icon: ImageVector)
     object VerifyEmail : Screen("verify_email/{email}", "Verificar Email", Icons.Default.Home) {
         fun createRoute(email: String) = "verify_email/$email"
     }
+    object Onboarding : Screen("onboarding", "Bienvenida", Icons.Default.Shield)
 }

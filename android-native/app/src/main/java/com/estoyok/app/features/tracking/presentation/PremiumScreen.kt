@@ -46,6 +46,7 @@ fun PremiumScreen(
     val scrollState = rememberScrollState()
     var selectedBillingCycle by remember { mutableStateOf("monthly") } // "monthly" vs "annual"
     val isPremium = viewModel.user?.isUserPremium == true
+    val hasUsedTrial = viewModel.user?.hasUsedTrial == true
 
     LaunchedEffect(isPremium) {
         if (isPremium) {
@@ -136,7 +137,7 @@ fun PremiumScreen(
                                 .padding(horizontal = 12.dp, vertical = 6.dp)
                         ) {
                             Text(
-                                text = "✨ OFERTA EXCLUSIVA DE LANZAMIENTO",
+                                text = if (hasUsedTrial) "👑 PLAN ILIMITADO PARA TU FAMILIA" else "✨ OFERTA EXCLUSIVA DE LANZAMIENTO",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = PrimaryEmerald
@@ -146,7 +147,7 @@ fun PremiumScreen(
                         Spacer(modifier = Modifier.height(10.dp))
 
                         Text(
-                            text = "Prueba Estoy Ok PRO gratis por 7 días 👑",
+                            text = if (hasUsedTrial) "Suscríbete a Estoy Ok PRO 👑" else "Prueba Estoy Ok PRO gratis por 7 días 👑",
                             fontSize = 19.sp,
                             fontWeight = FontWeight.ExtraBold,
                             color = TextPrimary,
@@ -154,47 +155,52 @@ fun PremiumScreen(
                         )
                         Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = "Protección familiar sin límites. Desbloquea SOS ambiental, telemetría vehicular y rastro completo.",
+                            text = if (hasUsedTrial)
+                                "Protección familiar sin límites. Desbloquea alertas ilimitadas, SOS ambiental, telemetría y geocercas."
+                            else
+                                "Protección familiar sin límites. Desbloquea SOS ambiental, telemetría vehicular y rastro completo.",
                             fontSize = 12.sp,
                             color = TextSecondary,
                             textAlign = TextAlign.Center,
                             lineHeight = 17.sp
                         )
 
-                        Spacer(modifier = Modifier.height(20.dp))
+                        if (!hasUsedTrial) {
+                            Spacer(modifier = Modifier.height(20.dp))
 
-                        // 7-Day Trial Timeline Breakdown Card
-                        Text(
-                            text = "📅 ¿Cómo funciona tu prueba gratis?",
-                            fontSize = 13.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = PrimaryEmerald,
-                            modifier = Modifier.align(Alignment.Start)
-                        )
-                        Spacer(modifier = Modifier.height(10.dp))
+                            // 7-Day Trial Timeline Breakdown Card
+                            Text(
+                                text = "📅 ¿Cómo funciona tu prueba gratis?",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = PrimaryEmerald,
+                                modifier = Modifier.align(Alignment.Start)
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
 
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            TimelineStepItem(
-                                number = "1",
-                                title = "Hoy (Día 1)",
-                                subtitle = "Acceso inmediato e ilimitado a todas las funciones PRO por $0.00.",
-                                isFirst = true
-                            )
-                            TimelineStepItem(
-                                number = "5",
-                                title = "Día 5 (Recordatorio)",
-                                subtitle = "Te enviamos una notificación push. Puedes cancelar en 1 toque sin cobro.",
-                                isFirst = false
-                            )
-                            TimelineStepItem(
-                                number = "7",
-                                title = "Día 7 (Final del Trial)",
-                                subtitle = "Finaliza el período de prueba de 7 días sin costo alguno.",
-                                isFirst = false
-                            )
+                            Column(
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                TimelineStepItem(
+                                    number = "1",
+                                    title = "Hoy (Día 1)",
+                                    subtitle = "Acceso inmediato e ilimitado a todas las funciones PRO por $0.00.",
+                                    isFirst = true
+                                )
+                                TimelineStepItem(
+                                    number = "5",
+                                    title = "Día 5 (Recordatorio)",
+                                    subtitle = "Te enviamos una notificación push. Puedes cancelar en 1 toque sin cobro.",
+                                    isFirst = false
+                                )
+                                TimelineStepItem(
+                                    number = "7",
+                                    title = "Día 7 (Final del Trial)",
+                                    subtitle = "Finaliza el período de prueba de 7 días sin costo alguno.",
+                                    isFirst = false
+                                )
+                            }
                         }
 
                         Spacer(modifier = Modifier.height(22.dp))
@@ -242,7 +248,7 @@ fun PremiumScreen(
                             onClick = {
                                 val activity = context as? android.app.Activity
                                 if (activity != null && viewModel.isGooglePlayBillingReady) {
-                                    viewModel.launchGooglePlaySubscription(activity, selectedBillingCycle) { msg ->
+                                    viewModel.launchGooglePlaySubscription(activity, selectedBillingCycle, hasUsedTrial) { msg ->
                                         Toast.makeText(context, msg, Toast.LENGTH_LONG).show()
                                     }
                                 } else {
@@ -268,13 +274,13 @@ fun PremiumScreen(
                             } else {
                                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                                     Text(
-                                        text = "Activar Prueba Gratis (7 Días) 👑",
+                                        text = if (hasUsedTrial) "Suscribirme a Estoy Ok PRO 👑" else "Activar Prueba Gratis (7 Días) 👑",
                                         fontWeight = FontWeight.ExtraBold,
                                         fontSize = 15.sp,
                                         color = TextOnPrimary
                                     )
                                     Text(
-                                        text = "Google Play • 7 días sin cargo • Cancela cuando quieras",
+                                        text = if (hasUsedTrial) "Google Play • Facturación inmediata • Cancela cuando quieras" else "Google Play • 7 días sin cargo • Cancela cuando quieras",
                                         fontSize = 10.sp,
                                         color = TextOnPrimary.copy(alpha = 0.85f)
                                     )

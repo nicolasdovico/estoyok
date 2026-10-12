@@ -536,6 +536,41 @@ fun AjustesScreen(
                                 color = if (isPhoneValidToSave) androidx.compose.ui.graphics.Color.White else TextMuted
                             )
                         }
+
+                        HorizontalDivider(color = BorderColor.copy(alpha = 0.5f))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Avisarme si vence mi bienestar",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = if (viewModel.userPhone.isNotBlank()) TextPrimary else TextMuted
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = if (viewModel.userPhone.isNotBlank()) {
+                                        "Te enviaremos un mensaje a tu propio WhatsApp cuando expire tu tiempo de reporte para que puedas confirmar tu estado respondiendo 'OK'."
+                                    } else {
+                                        "Requiere tener tu número de teléfono registrado y guardado arriba para recibir este aviso."
+                                    },
+                                    fontSize = 11.sp,
+                                    color = TextSecondary,
+                                    lineHeight = 15.sp
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(16.dp))
+                            Switch(
+                                checked = viewModel.notifySelfWhatsappOnInactivity,
+                                onCheckedChange = { viewModel.toggleNotifySelfWhatsapp(it) },
+                                enabled = viewModel.userPhone.isNotBlank(),
+                                modifier = Modifier.scale(0.75f)
+                            )
+                        }
                     }
                 }
             }
@@ -602,7 +637,56 @@ fun AjustesScreen(
                 }
             }
 
-            // 6. Passive Auto-Check-in
+            // 6.b SOS de Bolsillo (Botón de Encendido)
+            SettingsCard(title = "SOS de Bolsillo (Botón de Encendido) 🚨") {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            text = "Disparador Silencioso (4 toques)",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = "Presioná el botón de encendido 4 veces seguidas rápidamente para activar un SOS silencioso con el teléfono bloqueado o guardado en el bolsillo.",
+                            fontSize = 11.sp,
+                            color = TextSecondary,
+                            lineHeight = 15.sp
+                        )
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.CheckCircle,
+                                contentDescription = null,
+                                tint = if (viewModel.isPowerButtonSosEnabled) PrimaryEmerald else TextSecondary,
+                                modifier = Modifier.size(12.dp)
+                            )
+                            Text(
+                                text = if (viewModel.isPowerButtonSosEnabled) "Confirmación táctil por vibración activa" else "Desactivado",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (viewModel.isPowerButtonSosEnabled) PrimaryEmerald else TextSecondary
+                            )
+                        }
+                    }
+                    Spacer(modifier = Modifier.width(16.dp))
+                    Switch(
+                        checked = viewModel.isPowerButtonSosEnabled,
+                        onCheckedChange = { viewModel.togglePowerButtonSos(it) },
+                        modifier = Modifier.scale(0.75f)
+                    )
+                }
+            }
+
+            // 6.c Passive Auto-Check-in
             SettingsCard(title = "Auto-Check-in Pasivo") {
                 Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text(
@@ -907,6 +991,22 @@ fun AjustesScreen(
                         ) {
                             Text("Privacidad 🔒", fontSize = 12.sp, fontWeight = FontWeight.Bold, color = TextSecondary)
                         }
+                    }
+
+                    OutlinedButton(
+                        onClick = {
+                            navController?.navigate(Screen.Onboarding.route)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.5f))
+                    ) {
+                        Text(
+                            "Ver Tutorial de Bienvenida 🧭",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }

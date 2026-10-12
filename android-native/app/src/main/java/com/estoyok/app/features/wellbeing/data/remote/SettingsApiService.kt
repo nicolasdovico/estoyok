@@ -68,6 +68,11 @@ interface SettingsApiService {
         @Body request: UpdatePhoneRequest
     ): Response<MessageResponse>
 
+    @PUT("settings/notify-self-whatsapp")
+    suspend fun updateNotifySelfWhatsapp(
+        @Body request: NotifySelfWhatsappRequest
+    ): Response<MessageResponse>
+
     @POST("settings/accept-disclaimer")
     suspend fun acceptDisclaimer(): Response<UserDto>
 }

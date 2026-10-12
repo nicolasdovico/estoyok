@@ -32,6 +32,7 @@ import com.estoyok.app.features.tracking.presentation.PremiumScreen
 import com.estoyok.app.features.wellbeing.presentation.AjustesScreen
 import com.estoyok.app.features.wellbeing.presentation.PanelScreen
 import com.estoyok.app.features.wellbeing.presentation.DisclaimerMandatoryDialog
+import com.estoyok.app.features.auth.presentation.onboarding.OnboardingScreen
 
 @Composable
 fun MainScreen(
@@ -42,8 +43,10 @@ fun MainScreen(
 ) {
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     val isDisclaimerAccepted by authViewModel.isDisclaimerAccepted.collectAsState()
+    val isOnboardingCompleted by authViewModel.isOnboardingCompleted.collectAsState()
     val showMandatoryDisclaimer = isAuthenticated && (isDisclaimerAccepted == false)
-    val isDisclaimerPending = (isDisclaimerAccepted != true)
+    val showOnboarding = isAuthenticated && (isDisclaimerAccepted == true) && (isOnboardingCompleted == false)
+    val isDisclaimerPending = (isDisclaimerAccepted != true || isOnboardingCompleted != true)
     
     val items = listOf(
         Screen.Mapa,
@@ -55,8 +58,9 @@ fun MainScreen(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Check if bottom bar should be visible (only for authenticated, main tab screens)
-    val showBottomBar = isAuthenticated && (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route)
+    // Check if bottom bar should be visible (only for authenticated, main tab screens and when not in onboarding)
+    val showBottomBar = isAuthenticated && !showOnboarding && currentRoute != Screen.Onboarding.route &&
+            (items.any { it.route == currentRoute } || currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route)
 
     // Deep link navigation logic
     LaunchedEffect(deepLinkUrl, isAuthenticated) {
@@ -186,6 +190,14 @@ fun MainScreen(
                 composable(Screen.Familia.route) { FamiliaScreen() }
                 composable(Screen.Premium.route) { PremiumScreen() }
                 composable(Screen.Ajustes.route) { AjustesScreen(navController = navController) }
+                composable(Screen.Onboarding.route) {
+                    OnboardingScreen(
+                        onFinish = {
+                            authViewModel.completeOnboarding()
+                            navController.popBackStack()
+                        }
+                    )
+                }
             }
 
             val isSubScreen = currentRoute == Screen.Ajustes.route || currentRoute == Screen.Familia.route
@@ -231,6 +243,11 @@ fun MainScreen(
             if (showMandatoryDisclaimer) {
                 DisclaimerMandatoryDialog(
                     onAccept = { authViewModel.acceptDisclaimer() }
+                )
+            } else if (showOnboarding) {
+                // First-time Onboarding Walkthrough for freshly registered users
+                OnboardingScreen(
+                    onFinish = { authViewModel.completeOnboarding() }
                 )
             }
         }

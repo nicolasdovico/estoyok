@@ -32,17 +32,29 @@ class EvolutionApiService implements WhatsAppServiceInterface
         try {
             $this->ensureWebhookConfigured();
 
-            $cleanTo = preg_replace('/[^0-9]/', '', $to);
+            $cleanTo = str_contains($to, '@') ? $to : preg_replace('/[^0-9]/', '', $to);
+
+            // Normalización para móviles de Argentina: asegurar formato canónico 549...
+            if (str_starts_with($cleanTo, '54') && !str_starts_with($cleanTo, '549') && strlen($cleanTo) === 12) {
+                $cleanTo = '549' . substr($cleanTo, 2);
+            }
 
             $url = "{$this->baseUrl}/message/sendText/{$this->instance}";
+
+            $payload = [
+                'number' => $cleanTo,
+                'text' => $message,
+                'linkPreview' => (bool) ($parameters['linkPreview'] ?? false),
+            ];
+
+            if (isset($parameters['delay']) && is_numeric($parameters['delay'])) {
+                $payload['delay'] = (int) $parameters['delay'];
+            }
 
             $response = Http::withHeaders([
                 'apikey' => $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post($url, [
-                'number' => $cleanTo,
-                'text' => $message,
-            ]);
+            ])->post($url, $payload);
 
             if ($response->successful()) {
                 return true;
@@ -61,7 +73,7 @@ class EvolutionApiService implements WhatsAppServiceInterface
     /**
      * Auto-registra el webhook de recepción en Evolution API si no se ha registrado aún
      */
-    public function ensureWebhookConfigured(): void
+    public function ensureWebhookConfigured(?string $explicitBackendUrl = null, bool $force = false): void
     {
         if (! $this->baseUrl || ! $this->apiKey) {
             return;
@@ -69,12 +81,22 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
         // Cache check once per day to avoid redundant HTTP requests
         $cacheKey = "evolution_webhook_configured_{$this->instance}";
-        if (\Illuminate\Support\Facades\Cache::has($cacheKey)) {
+        if (! $force && ! $explicitBackendUrl && \Illuminate\Support\Facades\Cache::has($cacheKey)) {
             return;
         }
 
         try {
-            $webhookUrl = 'https://api.estoyok24.com/api/webhooks/evolution/message';
+            $backendUrl = $explicitBackendUrl;
+            if (empty($backendUrl)) {
+                $backendUrl = config('app.url') ?: env('APP_URL');
+            }
+            if ((empty($backendUrl) || str_contains($backendUrl, 'localhost') || str_contains($backendUrl, '127.0.0.1')) && request() && request()->root() && ! str_contains(request()->root(), 'localhost')) {
+                $backendUrl = request()->root();
+            }
+            if (empty($backendUrl) || str_contains($backendUrl, 'localhost') || str_contains($backendUrl, '127.0.0.1')) {
+                $backendUrl = 'https://api.estoyok24.com';
+            }
+            $webhookUrl = rtrim($backendUrl, '/') . '/api/webhooks/evolution/message';
             $url = "{$this->baseUrl}/webhook/set/{$this->instance}";
 
             $response = Http::withHeaders([

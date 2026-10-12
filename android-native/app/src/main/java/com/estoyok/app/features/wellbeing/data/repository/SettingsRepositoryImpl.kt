@@ -94,6 +94,10 @@ class SettingsRepositoryImpl @Inject constructor(
         apiService.updatePhone(UpdatePhoneRequest(phone))
     }
 
+    override fun updateNotifySelfWhatsapp(enabled: Boolean): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.updateNotifySelfWhatsapp(NotifySelfWhatsappRequest(enabled))
+    }
+
     override fun acceptDisclaimer(): Flow<Resource<UserDto>> = flow {
         emit(Resource.Loading())
         try {

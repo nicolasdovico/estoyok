@@ -92,4 +92,44 @@ class InactivitySettingsTest extends TestCase
             'phone' => '+5491199998888', // sanitized!
         ]);
     }
+
+    public function test_user_cannot_update_phone_if_already_taken_by_another_user()
+    {
+        $user1 = User::factory()->create([
+            'email' => 'existing@example.com',
+            'phone' => '+5491149790220',
+        ]);
+
+        $user2 = User::factory()->create([
+            'email' => 'newuser@example.com',
+            'phone' => null,
+        ]);
+
+        $response = $this->actingAs($user2)->putJson('/api/settings/phone', [
+            'phone' => '+54 9 11 4979-0220',
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['phone']);
+
+        $this->assertNull($user2->fresh()->phone);
+    }
+
+    public function test_user_can_update_phone_endpoint_successfully()
+    {
+        $user = User::factory()->create([
+            'phone' => null,
+        ]);
+
+        $response = $this->actingAs($user)->putJson('/api/settings/phone', [
+            'phone' => '+54 9 11 4979-0220',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJsonFragment([
+                'phone' => '+5491149790220',
+            ]);
+
+        $this->assertEquals('+5491149790220', $user->fresh()->phone);
+    }
 }

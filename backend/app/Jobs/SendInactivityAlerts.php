@@ -58,10 +58,18 @@ class SendInactivityAlerts implements ShouldQueue
             }
             $emergencyUrl = "{$baseUrl}/emergencia/{$alert->id}";
 
-            // If index is 0, send push notification to the user themselves and to nucleus members
+            // If index is 0, send push notification to the user themselves, self WhatsApp alert if enabled, and to nucleus members
             if ($this->contactIndex === 0) {
                 $this->sendPushNotification();
+                $selfWhatsAppSent = $this->sendSelfWhatsAppAlert($whatsAppService);
                 $this->sendPushNotificationToNucleusMembers($alert);
+
+                if ($selfWhatsAppSent) {
+                    // Espaciado saludable de 10 segundos para permitir que el protocolo Signal/Ratchet de WhatsApp asimile la entrega del primer mensaje antes del siguiente
+                    if (! app()->runningUnitTests()) {
+                        sleep(10);
+                    }
+                }
             }
 
             // Check if escalation is enabled
@@ -124,6 +132,26 @@ class SendInactivityAlerts implements ShouldQueue
         );
     }
 
+    protected function sendSelfWhatsAppAlert(WhatsAppServiceInterface $whatsAppService): bool
+    {
+        if ($this->user->notify_self_whatsapp_on_inactivity && !empty($this->user->phone)) {
+            $hours = $this->user->checkin_interval_hours ?? 24;
+            $message = "⚠️ Aviso Estoy Ok: Tu reporte diario de bienestar ha vencido (sin confirmación durante las últimas {$hours} horas). Tus contactos de emergencia han sido alertados. Puedes confirmar tu estado ingresando a la app o respondiendo 'OK' a este mensaje.";
+
+            $success = $whatsAppService->sendWhatsApp($this->user->phone, $message);
+
+            if (! $success) {
+                Log::warning("Self WhatsApp inactivity alert failed for user {$this->user->id} ({$this->user->phone}).");
+            } else {
+                Log::info("Self WhatsApp inactivity alert sent successfully to user {$this->user->id} ({$this->user->phone}).");
+            }
+
+            return $success;
+        }
+
+        return false;
+    }
+
     protected function sendEmailAlert(string $emergencyUrl)
     {
         $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
@@ -164,7 +192,13 @@ class SendInactivityAlerts implements ShouldQueue
     {
         $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
-        foreach ($contacts as $contact) {
+        foreach ($contacts as $index => $contact) {
+            if ($index > 0) {
+                // Espaciado de 10 segundos entre cada contacto para evitar ráfagas
+                if (! app()->runningUnitTests()) {
+                    sleep(10);
+                }
+            }
             $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
         }
     }

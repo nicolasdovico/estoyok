@@ -87,6 +87,22 @@ Route::post('/maintenance/delete-user', function (Request $request) {
     return response()->json(['message' => "User {$email} deleted successfully in cascade from Railway DB."]);
 });
 
+Route::post('/maintenance/release-phone', function (Request $request) {
+    $phone = $request->input('phone');
+    if (!$phone) {
+        return response()->json(['error' => 'Phone required'], 400);
+    }
+    $cleanPhone = preg_replace('/[^0-9+]/', '', $phone);
+    if (!str_starts_with($cleanPhone, '+')) {
+        $cleanPhone = '+' . $cleanPhone;
+    }
+    $updated = \App\Models\User::where('phone', $cleanPhone)->update(['phone' => null]);
+    return response()->json([
+        'message' => "Phone {$cleanPhone} released from {$updated} user(s).",
+        'updated_count' => $updated
+    ]);
+});
+
 Route::post('/maintenance/send-test-email', function (Request $request) {
     $to = $request->input('email', 'nicolasdovico@gmail.com');
     $user = \App\Models\User::first() ?? new \App\Models\User(['name' => 'Usuario Pruebas']);
@@ -110,6 +126,225 @@ Route::post('/maintenance/send-test-email', function (Request $request) {
         ], 500);
     }
 });
+
+Route::post('/maintenance/trigger-inactivity-alert', function (Request $request) {
+    $email = $request->input('email');
+    $user = $email ? \App\Models\User::where('email', $email)->first() : \App\Models\User::whereNotNull('phone')->latest()->first();
+
+    if (! $user) {
+        return response()->json(['success' => false, 'error' => 'Usuario no encontrado.'], 404);
+    }
+
+    try {
+        // Resolve any previous active emergency alert so a fresh inactivity alert is created
+        \App\Models\EmergencyAlert::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->update(['status' => 'resolved']);
+
+        \App\Jobs\SendInactivityAlerts::dispatchSync($user);
+
+        return response()->json([
+            'success' => true,
+            'message' => "Alerta de inactividad ejecutada para {$user->name} ({$user->email}).",
+            'user' => [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'phone' => $user->phone,
+                'notify_self_whatsapp_on_inactivity' => (bool) $user->fresh()->notify_self_whatsapp_on_inactivity,
+            ]
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
+Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
+    try {
+        $email = $request->input('email', 'tamarakshop@gmail.com');
+        $user = \App\Models\User::where('email', $email)->first();
+
+        if (!$user) {
+            return response()->json(['error' => "User {$email} not found."], 404);
+        }
+
+        $nowUtc = now('UTC');
+        $timezone = $user->timezone ?? config('app.timezone', 'America/Argentina/Buenos_Aires');
+        $nowLocal = now($timezone);
+
+        $isLocal = app()->environment('local');
+        $unit = $isLocal ? 'minutes' : 'hours';
+
+        // VerifyInactivity query simulation
+        $matchingInactiveUsers = \App\Models\User::where('id', $user->id)
+            ->where(function ($query) use ($unit) {
+                $query->whereRaw("last_check_in_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval")
+                    ->orWhere(function ($q) use ($unit) {
+                        $q->whereNull('last_check_in_at')
+                            ->whereRaw("created_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval");
+                    });
+            })
+            ->whereDoesntHave('emergencyAlerts', function ($query) {
+                $query->where('status', 'active');
+            })
+            ->exists();
+
+        $passedThreshold = \App\Models\User::where('id', $user->id)
+            ->where(function ($query) use ($unit) {
+                $query->whereRaw("last_check_in_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval")
+                    ->orWhere(function ($q) use ($unit) {
+                        $q->whereNull('last_check_in_at')
+                            ->whereRaw("created_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval");
+                    });
+            })->exists();
+
+        $activeAlerts = \App\Models\EmergencyAlert::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->get();
+
+        $allAlerts = \App\Models\EmergencyAlert::where('user_id', $user->id)
+            ->latest()
+            ->take(5)
+            ->get();
+
+        $contacts = $user->emergencyContacts()->get();
+
+        $queueDefault = config('queue.default');
+        $redisJobsCount = null;
+        if ($queueDefault === 'redis') {
+            try {
+                $redisJobsCount = \Illuminate\Support\Facades\Redis::connection()->llen('queues:default');
+            } catch (\Throwable $e) {
+                $redisJobsCount = 'error: ' . $e->getMessage();
+            }
+        }
+
+        $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->orderBy('id', 'desc')->take(5)->get();
+
+        $runningProcesses = shell_exec('ps aux 2>&1');
+
+        $runVerify = $request->query('run_verify');
+        $verifyOutput = null;
+        if ($runVerify) {
+            \Illuminate\Support\Facades\Artisan::call('checkins:verify-inactivity');
+            $verifyOutput = \Illuminate\Support\Facades\Artisan::output();
+        }
+
+        return response()->json([
+            'server_time_utc' => $nowUtc->toDateTimeString(),
+            'server_time_local' => $nowLocal->toDateTimeString(),
+            'timezone' => $timezone,
+            'app_env' => app()->environment(),
+            'queue_default' => $queueDefault,
+            'redis_queue_len' => $redisJobsCount,
+            'failed_jobs' => $failedJobs,
+            'running_processes' => $runningProcesses,
+            'user' => [
+                'id' => $user->id,
+                'email' => $user->email,
+                'name' => $user->name,
+                'phone' => $user->phone,
+                'last_check_in_at' => $user->last_check_in_at?->toDateTimeString(),
+                'created_at' => $user->created_at->toDateTimeString(),
+                'checkin_interval_hours' => $user->checkin_interval_hours,
+                'hours_since_last_checkin' => $user->last_check_in_at ? round($nowUtc->diffInMinutes($user->last_check_in_at) / 60, 2) : null,
+                'minutes_since_last_checkin' => $user->last_check_in_at ? $nowUtc->diffInMinutes($user->last_check_in_at) : null,
+                'is_premium' => (bool) $user->is_premium,
+                'subscription_status' => $user->subscription_status,
+                'trial_ends_at' => $user->trial_ends_at?->toDateTimeString(),
+                'has_used_trial' => (bool) $user->has_used_trial,
+                'has_premium_access' => $user->hasPremiumAccess(),
+                'notify_self_whatsapp_on_inactivity' => (bool) $user->notify_self_whatsapp_on_inactivity,
+                'allow_sms_whatsapp_checkin' => (bool) $user->allow_sms_whatsapp_checkin,
+                'escalation_enabled' => (bool) $user->escalation_enabled,
+                'quiet_hours_enabled' => (bool) $user->quiet_hours_enabled,
+                'quiet_hours_start' => $user->quiet_hours_start,
+                'quiet_hours_end' => $user->quiet_hours_end,
+                'is_in_quiet_hours' => $user->isInQuietHours(),
+            ],
+            'verify_inactivity_check' => [
+                'unit_used' => $unit,
+                'passed_threshold_query' => $passedThreshold,
+                'has_active_emergency_alert' => $activeAlerts->isNotEmpty(),
+                'matches_verify_inactivity_query' => $matchingInactiveUsers,
+                'would_skip_due_to_quiet_hours' => $user->isInQuietHours(),
+            ],
+            'active_emergency_alerts' => $activeAlerts,
+            'recent_emergency_alerts' => $allAlerts,
+            'emergency_contacts' => $contacts,
+            'verify_command_run_output' => $verifyOutput,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'exception' => $e->getMessage(),
+            'file' => $e->getFile(),
+            'line' => $e->getLine(),
+        ], 500);
+    }
+});
+
+$prepareInactivityTestHandler = function (Request $request) {
+    $email = $request->input('email', 'tamarakshop@gmail.com');
+    $minutesLeft = $request->has('minutes_left') ? (int) $request->input('minutes_left') : 2;
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return response()->json(['error' => "User {$email} not found."], 404);
+    }
+
+    // 1. Resolve any active emergency alert
+    $resolvedCount = \App\Models\EmergencyAlert::where('user_id', $user->id)
+        ->where('status', 'active')
+        ->update(['status' => 'resolved']);
+
+    // 2. Set user as Premium with active subscription and calculate last_check_in_at based on minutes_left
+    $interval = $user->checkin_interval_hours ?? 12;
+    $lastCheckIn = $minutesLeft > 0
+        ? now('UTC')->subHours($interval)->addMinutes($minutesLeft)
+        : now('UTC')->subHours($interval + 1);
+
+    $user->update([
+        'is_premium' => true,
+        'subscription_status' => 'active',
+        'trial_ends_at' => now()->addMonth(),
+        'quiet_hours_enabled' => false,
+        'notify_self_whatsapp_on_inactivity' => true,
+        'allow_sms_whatsapp_checkin' => true,
+        'last_check_in_at' => $lastCheckIn,
+    ]);
+
+    $timezone = $user->timezone ?? config('app.timezone', 'America/Argentina/Buenos_Aires');
+    $expiresAtUtc = $lastCheckIn->copy()->addHours($interval);
+    $expiresAtLocal = $expiresAtUtc->copy()->setTimezone($timezone);
+
+    return response()->json([
+        'success' => true,
+        'message' => $minutesLeft > 0
+            ? "Reloj de bienestar preparado para {$email}. Expirará en {$minutesLeft} minutos de forma natural."
+            : "Reloj de bienestar vencido inmediatamente para {$email}.",
+        'resolved_alerts_count' => $resolvedCount,
+        'minutes_left' => $minutesLeft,
+        'current_time_utc' => now('UTC')->toDateTimeString(),
+        'current_time_local' => now($timezone)->toDateTimeString(),
+        'expires_at_utc' => $expiresAtUtc->toDateTimeString(),
+        'expires_at_local' => $expiresAtLocal->toDateTimeString(),
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'is_premium' => (bool) $user->is_premium,
+            'has_premium_access' => $user->hasPremiumAccess(),
+            'notify_self_whatsapp_on_inactivity' => (bool) $user->notify_self_whatsapp_on_inactivity,
+            'quiet_hours_enabled' => (bool) $user->quiet_hours_enabled,
+            'last_check_in_at' => $user->last_check_in_at->toDateTimeString(),
+            'checkin_interval_hours' => $user->checkin_interval_hours,
+        ]
+    ]);
+};
+
+Route::match(['get', 'post'], '/maintenance/prepare-inactivity-test', $prepareInactivityTestHandler);
+Route::match(['get', 'post'], '/maintenance/set-clock-remaining', $prepareInactivityTestHandler);
 
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');
@@ -142,17 +377,28 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     try {
         $url = rtrim(config('services.evolution.url'), '/') . '/message/sendText/' . config('services.evolution.instance', 'estoyok_main');
         $apiKey = config('services.evolution.api_key');
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $to);
+        if (str_starts_with($cleanPhone, '54') && !str_starts_with($cleanPhone, '549') && strlen($cleanPhone) === 12) {
+            $cleanPhone = '549' . substr($cleanPhone, 2);
+        }
+
+        $linkPreview = $request->has('link_preview') ? filter_var($request->input('link_preview'), FILTER_VALIDATE_BOOLEAN) : false;
+
         $response = Http::withHeaders([
             'apikey' => $apiKey,
             'Content-Type' => 'application/json',
         ])->post($url, [
-            'number' => preg_replace('/[^0-9]/', '', $to),
+            'number' => $cleanPhone,
             'text' => $message,
+            'linkPreview' => $linkPreview,
         ]);
 
         return response()->json([
             'success' => $response->successful(),
             'target_phone' => $to,
+            'normalized_phone' => $cleanPhone,
+            'link_preview' => $linkPreview,
             'url_called' => $url,
             'http_status' => $response->status(),
             'evolution_response' => $response->json() ?? $response->body(),
@@ -163,6 +409,229 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
             'error' => $e->getMessage(),
         ], 500);
     }
+});
+
+Route::post('/maintenance/restart-evolution-instance', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['success' => false, 'message' => 'EVOLUTION_API_URL not configured.'], 400);
+    }
+
+    try {
+        $url = rtrim($baseUrl, '/') . '/instance/restart/' . $instance;
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+        ])->post($url);
+
+        return response()->json([
+            'success' => $response->successful(),
+            'instance' => $instance,
+            'http_status' => $response->status(),
+            'evolution_response' => $response->json() ?? $response->body(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/maintenance/connect-qr-data', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['error' => 'EVOLUTION_API_URL not configured'], 400);
+    }
+
+    $state = 'unknown';
+    try {
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateData = $stateRes->json();
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+    } catch (\Throwable $e) {}
+
+    $qrBase64 = null;
+    $count = 0;
+    if ($state !== 'open') {
+        try {
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connectData = $connRes->json();
+            $rawBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+            if ($rawBase64) {
+                $qrBase64 = str_starts_with($rawBase64, 'data:') ? $rawBase64 : 'data:image/png;base64,' . $rawBase64;
+            }
+            $count = $connectData['count'] ?? 0;
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'state' => $state,
+        'qr_base64' => $qrBase64,
+        'count' => $count,
+    ]);
+});
+
+Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $request) {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response('<h3>EVOLUTION_API_URL no configurada</h3>', 400);
+    }
+
+    $action = $request->input('action') ?? $request->query('action');
+
+    // 1. If user requested reset_instance, completely delete and recreate
+    if ($action === 'reset_instance') {
+        try {
+            Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance);
+            usleep(300000);
+            Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/delete/' . $instance);
+            usleep(600000);
+            Http::withHeaders(['apikey' => $apiKey])->post(rtrim($baseUrl, '/') . '/instance/create', [
+                'instanceName' => $instance,
+                'integration' => 'WHATSAPP-BAILEYS',
+                'qrcode' => true,
+            ]);
+            usleep(600000);
+            $service = app(\App\Services\EvolutionApiService::class);
+            $service->sendWhatsApp('dummy', 'dummy');
+        } catch (\Throwable $e) {}
+        return redirect('/api/maintenance/connect-qr');
+    }
+
+    // 2. If user clicked set_webhook, bind Evolution API webhook to this backend
+    if ($action === 'set_webhook') {
+        try {
+            $service = app(\App\Services\EvolutionApiService::class);
+            $service->ensureWebhookConfigured($request->root(), true);
+        } catch (\Throwable $e) {}
+        return redirect('/api/maintenance/connect-qr');
+    }
+
+    // 3. If user clicked logout, disconnect the instance first
+    $logoutOutput = null;
+    if ($action === 'logout') {
+        try {
+            $logoutRes = Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance);
+            $logoutOutput = $logoutRes->json() ?? $logoutRes->body();
+        } catch (\Throwable $e) {
+            $logoutOutput = ['error' => $e->getMessage()];
+        }
+        return redirect('/api/maintenance/connect-qr');
+    }
+
+    // 4. Check current state & webhook
+    $state = 'unknown';
+    try {
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateData = $stateRes->json();
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+    } catch (\Throwable $e) {}
+
+    $currentWebhook = 'Desconocido';
+    try {
+        $whRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/webhook/find/' . $instance);
+        $whData = $whRes->json();
+        $currentWebhook = $whData['url'] ?? ($whData['webhook']['url'] ?? 'No configurado');
+    } catch (\Throwable $e) {}
+
+    // 5. If not open, fetch connect QR
+    $qrBase64 = null;
+    $connectData = null;
+    if ($state !== 'open' || $action === 'force_qr') {
+        try {
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connectData = $connRes->json();
+            $qrBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+        } catch (\Throwable $e) {
+            $connectData = ['error' => $e->getMessage()];
+        }
+    }
+
+    // HTML Output
+    $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Estoy Ok - Vinculación WhatsApp QR</title>';
+    $html .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    $html .= '<style>body{font-family:system-ui,-apple-system,sans-serif;background:#0b132b;color:#f8fafc;padding:30px;text-align:center;}';
+    $html .= '.card{max-width:480px;margin:0 auto;background:#1c2541;padding:30px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}';
+    $html .= '.badge{display:inline-block;padding:6px 14px;border-radius:20px;font-weight:bold;font-size:14px;margin-bottom:20px;}';
+    $html .= '.open{background:#10b981;color:#fff;} .disconnected{background:#ef4444;color:#fff;}';
+    $html .= '.btn{background:#00e5d9;color:#0b132b;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;margin:10px 5px;}';
+    $html .= '.btn-danger{background:#ef4444;color:#fff;}';
+    $html .= 'img.qr{background:#fff;padding:15px;border-radius:12px;margin:20px 0;max-width:280px;height:auto;}';
+    $html .= '.timer-badge{font-size:12px;color:#00e5d9;margin-bottom:10px;}';
+    $html .= '</style></head><body>';
+    $html .= '<div class="card">';
+    $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
+    $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
+
+    $currentHost = $request->getHost();
+    $isPointedHere = str_contains($currentWebhook, $currentHost);
+    $html .= '<div style="background:#0b132b;padding:12px;border-radius:10px;margin:15px 0;text-align:left;font-size:13px;border:1px solid ' . ($isPointedHere ? '#10b981' : '#f59e0b') . ';">';
+    $html .= '<div><strong>🔗 Webhook activo en Evolution:</strong></div>';
+    $html .= '<code style="word-break:break-all;color:' . ($isPointedHere ? '#10b981' : '#f59e0b') . ';">' . htmlspecialchars($currentWebhook) . '</code>';
+    if (! $isPointedHere) {
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-top:10px;">';
+        $html .= '<input type="hidden" name="action" value="set_webhook">';
+        $html .= '<button type="submit" class="btn" style="background:#3b82f6;color:#fff;padding:8px 16px;font-size:12px;margin:0;">🎯 Apuntar Webhook a este entorno (' . htmlspecialchars($currentHost) . ')</button>';
+        $html .= '</form>';
+    } else {
+        $html .= '<div style="color:#10b981;font-size:11px;margin-top:5px;">✅ Este backend está recibiendo los mensajes de WhatsApp.</div>';
+    }
+    $html .= '</div>';
+
+    if ($state === 'open') {
+        $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
+        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa y vinculada correctamente. Si en el futuro necesitas renovarla, puedes usar los botones a continuación:</p>';
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
+        $html .= '<input type="hidden" name="action" value="reset_instance">';
+        $html .= '<button type="submit" class="btn" style="background:#f59e0b;color:#0b132b;" onclick="return confirm(\'¿Recrear la instancia desde cero? Se borrarán las tablas y claves residuales de la BD en Railway y se generará un QR 100% limpio.\')">🧹 Recrear Instancia Limpia (Solución a SessionError)</button>';
+        $html .= '</form>';
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr">';
+        $html .= '<input type="hidden" name="action" value="logout">';
+        $html .= '<button type="submit" class="btn btn-danger" onclick="return confirm(\'¿Estás seguro de desconectar WhatsApp? Deberás escanear un nuevo código QR desde el celular del bot.\')">🔴 Desconectar (Logout simple)</button>';
+        $html .= '</form>';
+    } else {
+        $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR</div>';
+        if ($qrBase64) {
+            $imgSrc = str_starts_with($qrBase64, 'data:') ? $qrBase64 : 'data:image/png;base64,' . $qrBase64;
+            $html .= '<div class="timer-badge" id="qr-timer">⚡ QR activo y actualizándose en vivo</div>';
+            $html .= '<div><img id="qr-img" class="qr" src="' . $imgSrc . '" alt="Código QR WhatsApp" /></div>';
+            $html .= '<p><strong>1.</strong> Abre WhatsApp en el celular del bot (<strong>5492323610697</strong>).</p>';
+            $html .= '<p><strong>2.</strong> Ve a <em>Dispositivos vinculados</em> ➔ <em>Vincular un dispositivo</em>.</p>';
+            $html .= '<p><strong>3.</strong> Apunta la cámara al código QR (se refresca solo para mantenerse siempre vigente).</p>';
+            $html .= '<script>
+                setInterval(async () => {
+                    try {
+                        const res = await fetch("/api/maintenance/connect-qr-data");
+                        const data = await res.json();
+                        if (data.state === "open") {
+                            location.reload();
+                            return;
+                        }
+                        if (data.qr_base64) {
+                            const img = document.getElementById("qr-img");
+                            if (img) img.src = data.qr_base64;
+                            const timer = document.getElementById("qr-timer");
+                            if (timer) timer.innerText = "⚡ QR sincronizado en vivo (vigente)";
+                        }
+                    } catch (e) {}
+                }, 4000);
+            </script>';
+        } else {
+            $html .= '<p>No se pudo obtener la imagen del QR de Evolution API.</p>';
+            $html .= '<pre style="text-align:left;background:#0b132b;padding:10px;font-size:11px;overflow:auto;">' . htmlspecialchars(json_encode($connectData, JSON_PRETTY_PRINT)) . '</pre>';
+        }
+        $html .= '<br><a href="/api/maintenance/connect-qr" class="btn">🔄 Refrescar Estado</a>';
+    }
+
+    $html .= '</div></body></html>';
+
+    return response($html)->header('Content-Type', 'text/html');
 });
 
 Route::post('/maintenance/setup-evolution-webhook', function (Request $request) {
@@ -646,6 +1115,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/settings/quiet-hours', [SettingsController::class, 'updateQuietHours']);
     Route::put('/settings/sms-whatsapp-checkin', [SettingsController::class, 'updateSmsWhatsappCheckin']);
     Route::put('/settings/phone', [SettingsController::class, 'updatePhone']);
+    Route::put('/settings/notify-self-whatsapp', [SettingsController::class, 'updateNotifySelfWhatsapp']);
     Route::put('/settings/escalation', [SettingsController::class, 'updateEscalation']);
     Route::put('/settings/privacy', [SettingsController::class, 'updatePrivacy']);
     Route::put('/settings/automation', [SettingsController::class, 'updateAutomation']);

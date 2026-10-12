@@ -316,6 +316,7 @@ class FamiliaViewModel @Inject constructor(
     fun launchGooglePlaySubscription(
         activity: android.app.Activity,
         billingCycle: String,
+        hasUsedTrial: Boolean = false,
         onSuccess: (String) -> Unit
     ) {
         checkoutLoading = true
@@ -324,6 +325,7 @@ class FamiliaViewModel @Inject constructor(
         playBillingManager.launchSubscription(
             activity = activity,
             billingCycle = billingCycle,
+            hasUsedTrial = hasUsedTrial,
             onSuccess = { purchaseToken, basePlanId ->
                 viewModelScope.launch {
                     subscriptionRepository.verifyGooglePlay(

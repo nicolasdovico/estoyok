@@ -1,5 +1,277 @@
 # Progress Log
 
+## [2026-10-12] Migración Exitosa a Evolution API v2.3.7, Resolución Total de "Esperando Mensaje" y Deduplicación de Webhooks
+- **Migración de Imagen Oficial e Infraestructura:**
+    - Se identificó y resolvió el bug intrínseco de Baileys en Evolution API v2.2.0 relativo al manejo de identificadores `@lid` de WhatsApp y sincronización del Double Ratchet de Signal en conversaciones 1 a 1.
+    - Se desplegó en Railway Dev la imagen oficial moderna `evoapicloud/evolution-api:latest` (v2.3.7 con Baileys `2.3000.1050056442`), configurando `CACHE_REDIS_ENABLED=false` para evitar el bucle de reconexión a Redis y operando con PostgreSQL como base de datos persistente.
+    - Se vinculó el socket del bot (`+5492323610697`) escaneando el nuevo QR en la versión 2.3.7.
+- **Validación Exitosa de Ciclo Completo en Dispositivo Móvil Físico:**
+    - Se ejecutó la prueba de inactividad de 1 minuto:
+      1. Llegaron las 2 alertas salientes de inactividad (`⚠️ Aviso Estoy Ok...` y contacto SOS con enlace al mapa), 100% legibles.
+      2. El usuario respondió **"OK"** desde su teléfono móvil.
+      3. El backend procesó el check-in, reseteó el reloj a 12 horas, resolvió las alertas de emergencia en la base de datos y despachó la confirmación en background vía cola.
+      4. El mensaje *«✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!»* **llegó de forma 100% legible y sin "Esperando mensaje"**.
+- **Deduplicación y Debounce en Webhook:**
+    - Al coexistir dos contenedores activos o en caso de reintentos concurrentes de red, se implementó en [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
+      1. Deduplicación por `key.id` del mensaje entrante en caché (60s).
+      2. Debounce de 20s por usuario en la emisión del Job de confirmación (`SendCheckinConfirmationWhatsAppJob`), asegurando que el usuario reciba exactamente 1 mensaje de confirmación por reporte.
+- **Procedimiento Documentado para Pase a Producción:**
+    - Documentado en [`docs/status.md`](file:///home/usuario/aplicaciones/estoyok/docs/status.md) y [`docs/progress.txt`](file:///home/usuario/aplicaciones/estoyok/docs/progress.txt) el Runbook de Producción:
+      1. Actualizar `evolution-api-production-3449` en Railway a `evoapicloud/evolution-api:latest`.
+      2. Configurar variable de entorno `CACHE_REDIS_ENABLED=false`.
+      3. Si solicita QR, escanearlo desde el bot (+54 9 2323 61-0697) vía `https://api.estoyok24.com/api/maintenance/connect-qr`.
+      4. Presionar el botón `🎯 Apuntar Webhook a este entorno (api.estoyok24.com)` para redirigir el tráfico entrante a Producción con 1 clic.
+- **Garantía de No Regresión:**
+    - Suite completa de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
+
+## [2026-10-12] Desacople Asíncrono de Confirmación de Check-in en Background Queue (6s Delay)
+- **Diagnóstico de Concurrencia en Webhook de WhatsApp:**
+    - Se constató que mientras las alertas de inactividad salientes (1 y 2) llegan de forma 100% legible debido al espaciado de 10s ejecutado por el worker de colas (`SendInactivityAlerts`), el mensaje de confirmación de bienestar (*«✅ Bienestar verificado con éxito...»*) se enviaba de forma síncrona dentro del ciclo de vida HTTP del webhook entrante (`WebhookController`).
+    - Al retener la conexión HTTP con `sleep(3)` y solicitar un `POST /message/sendText` antes de responder a Evolution API, Baileys intentaba cifrar el mensaje saliente mientras el socket aún procesaba y asentaba el sobre del "OK" entrante, derivando en un conflicto de claves criptográficas (Double Ratchet) y congelando el mensaje en *"Esperando mensaje"*.
+- **Implementación y Solución:**
+    - Creado el job encolado [`SendCheckinConfirmationWhatsAppJob.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendCheckinConfirmationWhatsAppJob.php) implementando `ShouldQueue`.
+    - Actualizado [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php): al recibir el "OK", se procesa el check-in, se resuelve la alerta, se emite el push y se encola `SendCheckinConfirmationWhatsAppJob` con 6 segundos de retraso (`delay(now()->addSeconds(6))`), retornando inmediatamente HTTP 200 a Evolution API en milisegundos.
+    - El worker de colas (`php artisan queue:work`) toma la tarea una vez que el socket y el canal de WhatsApp están completamente en reposo, garantizando el envío con el canal criptográfico limpio y asentado.
+- **Verificación de No Regresión:**
+    - Suite de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
+
+## [2026-10-12] Resolución de Enrutamiento de Webhook Evolution API y Prevención de Desincronización en Respuesta a Check-In
+- **Diagnóstico y Causa Raíz de Desincronización al Responder 'OK':**
+    - Se aisló la causa por la cual responder 'OK' actualizaba una cuenta de Producción y trababa la confirmación en *"Esperando mensaje"*:
+      1. La instancia de Evolution API `estoyok_main` tenía configurado su Webhook apuntando a `https://api.estoyok24.com/api/webhooks/evolution/message` (Producción).
+      2. Al responder 'OK', el webhook era recibido por el backend de Producción, donde el número de teléfono `+5491149790220` pertenecía a la cuenta de Nicolás (User #20) en lugar de la cuenta en pruebas en Dev (User #45).
+      3. A su vez, Producción despachaba la respuesta de confirmación de forma inmediata (en menos de 1 segundo) sin delay de ratchet ni `linkPreview: false`, colisionando con el sobre Signal del mensaje recién enviado por el usuario.
+      4. El backend de desarrollo (`backend-api-dev`) nunca recibía la notificación de check-in.
+- **Implementación y Solución:**
+    - En [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
+      - Añadido un retardo de asimilación de 3 segundos (`sleep(3)`) antes de emitir la respuesta de confirmación de WhatsApp (*«✅ Bienestar verificado con éxito...»*), permitiendo que el dispositivo del usuario asimile el ack de su propio mensaje antes de recibir el mensaje entrante.
+      - Eliminado el reenvío automático y cruzado de payloads entre entornos Dev y Prod, encapsulando cualquier replicación bajo la variable de entorno opcional `EVOLUTION_WEBHOOK_PEER_URL` en [`services.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/services.php).
+    - En [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php):
+      - Mejorada la auto-configuración del webhook para respetar dinámicamente el host del backend actual (`request()->root()`) o la URL explícita provista.
+    - En `/api/maintenance/connect-qr` ([`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php)):
+      - Añadido bloque visual interactivo que exhibe la URL de Webhook activa en Evolution API.
+      - Añadido botón de acción `set_webhook` para vincular el webhook al entorno actual con un solo clic.
+    - Se apuntó el Webhook de Evolution API a Dev (`https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message`).
+- **Verificación de No Regresión:**
+    - Suite de 179 pruebas de Laravel pasando al 100% (610 aserciones, 0 errores).
+
+## [2026-10-12] Resolución Definitiva de Incidencia "Esperando Mensaje" y Saneamiento de Base de Claves en Evolution API
+- **Diagnóstico Integral y Causa Raíz:**
+    - Se aisló la causa exacta por la cual los mensajes salientes con URL o texto plano quedaban en *"Esperando mensaje. Esto puede tomar tiempo"* en el cliente móvil físico de WhatsApp:
+      1. La instancia `estoyok_main` en Evolution API (desplegada originalmente en agosto de 2026) acumulaba tablas de sesiones y claves desfasadas en el esquema PostgreSQL de Railway.
+      2. Al ejecutar desconexiones simples (`logout`), Baileys no purgaba la tabla `Session` ni las claves pre-generadas, provocando un desfasaje criptográfico en `libsignal` (`SessionError: No sessions`).
+      3. A su vez, WhatsApp transmitía el tráfico saliente con claves que el cliente móvil primario no lograba descifrar de inmediato en su sesión local.
+- **Solución y Saneamiento de Infraestructura (Backend Laravel & Evolution API):**
+    - En [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php), se configuró explícitamente `'linkPreview' => false` en las peticiones a `/message/sendText` para evitar que la generación pesada de previsualizaciones de enlaces interfiera en el cifrado de alertas SOS/Inactividad.
+    - Se amplió la consola de mantenimiento [`api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) (`/maintenance/connect-qr`) incorporando la acción de borrado en cascada y recreación limpia (`DELETE /instance/delete` + `POST /instance/create`), forzando el vaciado de tablas residuales en PostgreSQL.
+    - Se recreó la instancia `estoyok_main` de forma 100% limpia en Railway con integración `WHATSAPP-BAILEYS`, re-vinculando el socket y auto-configurando el webhook hacia `https://api.estoyok24.com/api/webhooks/evolution/message`.
+- **Validación en Vivo en Teléfono Físico:**
+    - Realizado nuevo escaneo de QR por parte del usuario desde el teléfono del bot (`5492323610697`).
+    - Despachadas pruebas salientes de texto plano y alerta con enlace de emergencia hacia el teléfono móvil físico (`+5491149790220`).
+    - **Resultado:** Confirmado por el usuario que ambos mensajes llegaron al instante y son 100% legibles en el dispositivo móvil receptor, eliminando definitivamente el aviso de *"Esperando mensaje"*.
+    - Ejecutado ciclo de inactividad de prueba (Fast-Forward 1 minuto) vía Scheduler de Railway: alertas de bienestar y de contacto de emergencia despachadas y entregadas con éxito en tiempo y forma.
+
+## [2026-10-11] Modo de Prueba Natural de Inactividad (Fast-Forward) y Verificación Minuto a Minuto en Scheduler
+- **Backend Laravel & Scheduler (`routes/console.php`):**
+    - Configurado `checkins:verify-inactivity` para ejecutarse cada 1 minuto (`everyMinute()`) en todos los entornos, reduciendo el tiempo de espera tras el vencimiento del reloj a un máximo de 60 segundos.
+- **Testing Natural de Reloj de Bienestar (`routes/api.php`):**
+    - Actualizado el endpoint `/api/maintenance/prepare-inactivity-test` y agregado el alias `/api/maintenance/set-clock-remaining` para aceptar el parámetro `minutes_left` (por defecto 2 minutos).
+    - El endpoint resuelve cualquier alerta activa preexistente, asegura el acceso Premium (`is_premium = true`, `subscription_status = 'active'`) y atrasa `last_check_in_at` al pasado (`now - interval + minutes_left`).
+    - Permite a los evaluadores con cuentas de prueba de Google Play (donde la suscripción de sandbox dura apenas unos minutos) observar la cuenta regresiva correr en tiempo real en la app móvil, ver el vencimiento natural y confirmar el despacho automático de WhatsApp sin requerir forzar los mensajes ni esperar 12 horas reales.
+- **Incidencia Abierta en Dispositivo Móvil (Pendiente para Mañana):**
+    - Se constató que mientras los mensajes despachados por Evolution API se leen de forma completa e instantánea en WhatsApp Web (escritorio), en el cliente móvil de WhatsApp del teléfono físico receptor persisten con el mensaje *"Esperando mensaje. Esto puede tomar tiempo"*.
+    - El espaciado de 1.5s entre mensajes no eliminó el bloqueo en el dispositivo móvil receptor.
+    - Tareas prioritarias para mañana:
+      1. Probar desactivación de generación de preview de enlaces (`linkPreview: false`) en el endpoint `/message/sendText` de Evolution API para determinar si el parseo de URLs en Baileys bloquea el cifrado.
+      2. Evaluar limpieza de caché de claves y re-vinculación de sesión mediante nuevo código QR en la instancia `estoyok_main` de Evolution API.
+      3. Probar envío de texto plano sin enlaces frente al mensaje completo de alerta para aislar la causa raíz exacta.
+
+
+## [2026-10-11] Corrección y Estabilización de Alertas de Inactividad y Auto-Ejecución de Scheduler/Worker en Railway Dev
+- **Infraestructura de Despliegue en Railway (`backend/start.sh` & `railway.json`):**
+    - Identificada la causa de por qué el reloj de bienestar llegaba a 0 y no disparaba el envío: en Railway Dev únicamente corría el proceso HTTP `php artisan serve`, sin scheduler (`schedule:work`) ni worker de colas (`queue:work`) activos en segundo plano.
+    - Creado el script de arranque [`backend/start.sh`](file:///home/usuario/aplicaciones/estoyok/backend/start.sh) y actualizado [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json) (`startCommand: "bash start.sh"`): ahora el contenedor lanza concurrentemente en background `php artisan queue:work` y `php artisan schedule:work` antes de ejecutar el servidor HTTP, garantizando la ejecución autónoma de tareas programadas cada 5 minutos y el procesamiento instantáneo de colas Redis sin requerir servicios adicionales pagos.
+- **Backend Laravel (Comando `VerifyInactivity.php`):**
+    - Corregida la condición de exclusión en [`VerifyInactivity.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Console/Commands/VerifyInactivity.php): anteriormente `whereDoesntHave('emergencyAlerts', fn($q) => $q->where('status', 'active'))` filtraba cualquier alerta activa (incluyendo alertas de `silent_sos` previas no resueltas). Se acotó la exclusión exclusivamente a alertas de inactividad (`->where('type', 'inactivity')`), impidiendo que un SOS previo bloquee indefinidamente las alertas del reloj de bienestar.
+- **Testing y Diagnóstico en Railway Dev:**
+    - Creados endpoints de mantenimiento `/maintenance/diagnose-inactivity` y `/maintenance/prepare-inactivity-test` en [`api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
+    - Verificado en vivo en Railway Dev para el usuario `tamarakshop@gmail.com`: activado estado Premium, resueltas alertas históricas y ejecutado `checkins:verify-inactivity` con despacho exitoso de los mensajes de WhatsApp hacia el propio usuario (`+5491149790220`) y hacia su contacto SOS (`+541149790220`).
+
+## [2026-10-10] Adaptación Dinámica de Paywall y Exclusión de Oferta de Prueba en Google Play Billing (Mobile & Backend)
+- **Frontend Android Nativo (Jetpack Compose & Google Play Billing):**
+    - Agregado el campo `has_used_trial` en `UserDto` ([`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt)).
+    - Actualizado [`PlayBillingManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/billing/PlayBillingManager.kt): `launchSubscription` ahora acepta `hasUsedTrial: Boolean`. Si el usuario ya utilizó la prueba, filtra y descarta las ofertas que contienen fases de precio 0 (`priceAmountMicros == 0L`), seleccionando exclusivamente el plan base de cobro directo para que Google Play no presente la oferta gratuita.
+    - Actualizado [`FamiliaViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/FamiliaViewModel.kt): `launchGooglePlaySubscription` propaga `hasUsedTrial` al billing manager.
+    - Actualizada [`PremiumScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/tracking/presentation/PremiumScreen.kt):
+        - Si `hasUsedTrial == true`:
+            - Tag: `"👑 PLAN ILIMITADO PARA TU FAMILIA"`
+            - Título: `"Suscríbete a Estoy Ok PRO 👑"`
+            - Subtítulo: `"Protección familiar sin límites. Desbloquea alertas ilimitadas, SOS ambiental, telemetría y geocercas."`
+            - Oculta el bloque de 3 pasos de "¿Cómo funciona tu prueba gratis?".
+            - Botón CTA: `"Suscribirme a Estoy Ok PRO 👑"` con subtítulo *"Google Play • Facturación inmediata • Cancela cuando quieras"*.
+        - Si `hasUsedTrial == false`:
+            - Conserva el flow de bienvenida para nuevos usuarios con los 7 días gratis.
+- **Backend Laravel (Garantía de Estado Active en Compras Google Play):**
+    - Actualizado `verifyGooglePlay` y `syncGooglePlay` en [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php): si `has_used_trial` es `true`, asigna directamente `subscription_status = 'active'` y no regenera `trial_ends_at`, asegurando que el estado sea un plan de pago definitivo.
+    - Suite completa de backend ejecutada y pasando al 100% (176 tests, 604 aserciones, 0 regresiones).
+
+## [2026-10-10] Blindaje de Prueba Gratuita Única (7 Días) y Prevención de Re-activación Indefinida (Backend)
+- **Backend Laravel (Control de Suscripciones y Lifecycle):**
+    - Identificada y subsanada la causa raíz que permitía activar la prueba gratuita de 7 días ilimitadas veces: `SubscriptionController::startTrial` únicamente comprobaba `subscription_status === 'active'`, y el hook `static::saving` en `User.php` reiniciaba `trial_ends_at = null` cuando el estado pasaba a `inactive`, borrando el registro histórico.
+    - Creada y ejecutada la migración `2026_10_10_222743_add_has_used_trial_to_users_table.php`, incorporando la columna booleana `has_used_trial` (default `false`) en la tabla `users` con backfill automático que marca como `true` a cualquier usuario con `trial_ends_at` previo, proveedor asignado o estatus en `['trialing', 'active', 'canceled']`.
+    - Actualizado el modelo [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php) agregando `has_used_trial` a `$fillable` y a los casts de atributos (`'boolean'`), y removido el reseteo destructivo de `trial_ends_at` al pasar a `inactive` para preservar la trazabilidad del período de prueba.
+    - Actualizado [`SubscriptionController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SubscriptionController.php):
+        - En `startTrial()`: se valida de forma estricta si `$user->has_used_trial || $user->trial_ends_at !== null`. De cumplirse, se rechaza la solicitud con HTTP 422 y mensaje explicativo: *"Ya has utilizado tu periodo de prueba gratuita de 7 días. Por favor suscríbete para continuar con Estoy Ok PRO."*.
+        - Se marca `$user->has_used_trial = true` en `startTrial()`, `verifyGooglePlay()` y en el callback de pago exitoso.
+    - Desarrollados tests automatizados en [`SubscriptionTrialTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SubscriptionTrialTest.php) (`test_user_cannot_start_trial_if_already_used_trial` y `test_user_cannot_start_trial_after_canceling_active_trial`).
+    - Suite completa de backend ejecutada y pasando al 100% (176 tests, 604 aserciones, 0 regresiones).
+
+## [2026-10-10] Implementación de Alerta de Bienestar Vencido por WhatsApp a Sí Mismo (Backend & Android Nativo)
+- **Backend Laravel (API-First):**
+    - Creada y ejecutada la migración `2026_10_10_130000_add_notify_self_whatsapp_on_inactivity_to_users_table.php`, agregando la columna booleana `notify_self_whatsapp_on_inactivity` (default `false`) a la tabla `users`.
+    - Actualizado el modelo [`User.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Models/User.php) con el nuevo atributo en `$fillable` y en `casts()`.
+    - Implementado el endpoint `PUT /api/settings/notify-self-whatsapp` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php), validando con HTTP 422 si el usuario intenta activar la opción sin tener un número de teléfono registrado (`users.phone`), y auto-configurando el webhook de Evolution API si se activa.
+    - Registrada la ruta protegida en [`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php).
+    - Actualizado el Job [`SendInactivityAlerts.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendInactivityAlerts.php): en el paso inicial (`contactIndex === 0`), si el usuario tiene `notify_self_whatsapp_on_inactivity` activo y su teléfono registrado, despacha un mensaje de WhatsApp directo al usuario informando el vencimiento de su bienestar y permitiéndole confirmar respondiendo "OK" al bot. En pasos de escalamiento posteriores (`contactIndex > 0`), no repite el aviso al propio usuario.
+    - Creada la suite de pruebas automatizadas [`SelfWhatsAppInactivityAlertTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/SelfWhatsAppInactivityAlertTest.php) (5 tests unitarios/funcionales pasando al 100%).
+    - Corregida la validación de unicidad en `SettingsController::updatePhone`: previene caídas 500 SQL por `users_phone_unique` devolviendo HTTP 422 descriptivo si el número ya pertenece a otra cuenta. Añadido endpoint de mantenimiento `/maintenance/release-phone` y tests en `InactivitySettingsTest.php`.
+    - Resuelta la recepción y confirmación de respuestas de WhatsApp (`"OK"`, `"estoy ok"`) vía Evolution API en [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
+        1. **Soporte para Identificadores Privacy LID (`@lid`):** Al recibir mensajes desde clientes web o multidispositivo sin número explícito en el JID, el sistema prioriza coincidencia exacta de `pushName` contra los usuarios registrados y verificados, evitando falsos positivos por nombres parciales.
+        2. **Permisos de Check-in Unificados:** Se permite procesar el check-in si `allow_sms_whatsapp_checkin !== false` O si `notify_self_whatsapp_on_inactivity === true`. Al procesarse exitosamente, se asegura `allow_sms_whatsapp_checkin = true`.
+        3. **Espejado de Webhooks Multi-Entorno:** Debido a que Evolution API cuenta con una sola instancia (`estoyok_main`), el webhook replica/espeja el payload recibido al entorno par (Dev <-> Producción) mediante el encabezado `X-EstoyOk-Mirrored: 1` para garantizar que ambos entornos sincronicen sin bucles ni dependencias de a qué URL apunta Evolution en un momento dado.
+        4. **Respuesta de Confirmación Segura:** Envío protegido de confirmación oficial ("✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!") hacia el teléfono registrado del usuario con captura de `\Throwable` para no interrumpir el flujo ante incidencias de red.
+    - Actualizado [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php) para configurar dinámicamente la URL del webhook según el entorno actual (`config('app.url')`).
+    - Suite de pruebas de webhooks ampliada en [`EvolutionWebhookTest.php`](file:///home/usuario/aplicaciones/estoyok/backend/tests/Feature/EvolutionWebhookTest.php) (8 tests pasando al 100%).
+    - Regenerada la documentación OpenAPI/Swagger (`php artisan l5-swagger:generate`).
+    - Suite completa de backend ejecutada y pasando al 100% (174 tests, 598 aserciones, 0 regresiones).
+- **Frontend Android Nativo (Jetpack Compose):**
+    - Actualizado [`AuthModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/data/model/AuthModels.kt) con `notify_self_whatsapp_on_inactivity: Boolean? = false` en `UserDto`.
+    - Creado el DTO `NotifySelfWhatsappRequest` en [`SettingsModels.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/model/SettingsModels.kt).
+    - Declarado el método `updateNotifySelfWhatsapp` en [`SettingsApiService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/remote/SettingsApiService.kt).
+    - Implementado en [`SettingsRepository.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/domain/repository/SettingsRepository.kt) y [`SettingsRepositoryImpl.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/data/repository/SettingsRepositoryImpl.kt).
+    - Conectado el estado reactivo `notifySelfWhatsappOnInactivity` en [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) con método `toggleNotifySelfWhatsapp(enabled)` y validación en UI ante número telefónico ausente.
+    - Integrado el control Switch interactivo *"Avisarme si vence mi bienestar"* dentro de la tarjeta "Reporte por WhatsApp" en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt), con microcopy explicativo y deshabilitación inteligente si no hay teléfono guardado.
+    - **SOS de Bolsillo mediante 4 Toques del Botón de Encendido (Android Nativo):**
+        1. **Detección Dinámica en Foreground Service:** Registrado `BroadcastReceiver` dinámico en [`TrackingService.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/services/TrackingService.kt) para escuchar `ACTION_SCREEN_ON` y `ACTION_SCREEN_OFF` en tiempo de ejecución, cumpliendo al 100% las políticas de Google Play Store sin permisos invasivos de Accesibilidad.
+        2. **Algoritmo de Cola Deslizante y Cooldown:** Implementada cola `ArrayDeque<Long>` con ventana temporal de 3500 ms (calibrada para compensar latencias de drivers de pantalla y animaciones de hardware) requiriendo 4 eventos consecutivos, junto con un cooldown de 60 segundos antifalsos positivos.
+        3. **Respuesta Háptica Silenciosa:** Ejecución de 2 pulsos cortos discretos (`Vibrator` / `VibrationEffect`) que confirman físicamente al usuario en el bolsillo que la alerta fue emitida, manteniendo la pantalla y altavoces en absoluto silencio.
+        4. **Pipeline Automático de Emergencia:** Disparo de `sosRepository.triggerSos()` creando alerta de tipo `silent_sos`, aceleración inmediata de GPS a 5 segundos de intervalo (`isEmergencyMode = true`), y grabación en segundo plano de 15 segundos con [`AudioRecorder.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/util/AudioRecorder.kt) con posterior subida a la nube.
+        5. **Persistencia y Control de Usuario:** Agregada clave `POWER_BUTTON_SOS_ENABLED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) (activada por defecto), reactividad en [`AjustesViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesViewModel.kt) (`isPowerButtonSosEnabled`, `togglePowerButtonSos`) y tarjeta dedicada *"SOS de Bolsillo (Botón de Encendido) 🚨"* en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
+        6. **Permisos y Verificación en Dispositivo Real:** Incorporado `android.permission.VIBRATE` en [`AndroidManifest.xml`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml). Compilado e instalado en dispositivo físico Motorola con verificación en vivo de disparo de emergencia y resolución.
+
+## [2026-10-10] Producción de B-Rolls (Reels 2 y 3), Organización de Creativos y Criterio de Versionado Git
+- **Marketing y Pauta Publicitaria (Meta Ads):**
+    - Desarrollado el generador [`docs/generate_reel2_brolls.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_reel2_brolls.py) y producidas las 6 piezas oficiales de B-Roll para el **Reel 2 (Vivir Solo / Bienestar)** en formato vertical Full HD 9:16 (1080x1920 px) en dos variantes (Framed con marco de smartphone estilizado y Full-bleed edge-to-edge):
+        1. Botón "Estoy OK" con contador diario (`broll_reel2_01_estoy_ok_9x16.png` y `broll_reel2_01_estoy_ok_fullbleed_9x16.jpg`).
+        2. Configuración de Wi-Fi de Casa / Auto-Checkin en Ajustes (`broll_reel2_02_wifi_ajustes_9x16.png` y `broll_reel2_02_wifi_ajustes_fullbleed_9x16.jpg`).
+        3. Mensaje de WhatsApp recibido con alerta de bienestar e inactividad (`broll_reel2_03_alerta_whatsapp_9x16.png` y `broll_reel2_03_alerta_whatsapp_fullbleed_9x16.jpg`).
+    - Desarrollado el generador [`docs/generate_reel3_brolls.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_reel3_brolls.py) y producidas las 8 piezas oficiales de B-Roll para el **Reel 3 (Urgencia / Choques y SOS)** en formato vertical 9:16 (1080x1920 px) en dos variantes (Framed y Full-bleed):
+        1. Modal de contactos SOS y activación (`broll_reel3_01_contactos_sos_9x16.png` y `broll_reel3_01_contactos_sos_fullbleed_9x16.jpg`).
+        2. Pantalla pública web de rescate con reproductor de audio ambiente de 15s y botón interactivo "Voy en camino" (`broll_reel3_02_web_rescate_audio_9x16.png` y `broll_reel3_02_web_rescate_audio_fullbleed_9x16.jpg`).
+        3. Pantalla de colisión por Fuerza G con cuenta regresiva de 15s (`broll_reel3_03_choque_fuerzag_9x16.png` y `broll_reel3_03_choque_fuerzag_fullbleed_9x16.jpg`).
+        4. Mensaje de WhatsApp recibido alertando de choque con link al mapa de rescate (`broll_reel3_04_whatsapp_choque_9x16.png` y `broll_reel3_04_whatsapp_choque_fullbleed_9x16.jpg`).
+    - **Estructuración y Organización de Assets:**
+        - Creado el directorio centralizado [`docs/reels_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/) y organizados todos los creativos gráficos y de video en subcarpetas modulares por anuncio: `docs/reels_assets/reel1_padres_auto/`, `docs/reels_assets/reel2_vivir_solo/` y `docs/reels_assets/reel3_sos_choques/`.
+        - Actualizados todos los scripts generadores (`generate_whatsapp_broll.py`, `generate_map_telemetry_broll.py`, `generate_map_push_overlay.py`, `generate_reel2_brolls.py`, `generate_reel3_brolls.py`) para consumir y emitir automáticamente en sus respectivas subcarpetas.
+        - Documentado el catálogo completo en la Sección 3.5 de [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md).
+    - **Políticas de Versionado Git y Blindaje de Repositorio:**
+        - Evaluado y definido el criterio técnico para GitHub: las imágenes gráficas optimizadas (~7.2 MB en total) quedan versionadas para garantizar persistencia y disponibilidad inmediata sin dependencias; los videos binarios pesados (`.mp4`, ~6.5 MB) y cachés de Python (`__pycache__`) quedan excluidos de Git vía `.gitignore` para prevenir el crecimiento desmedido del árbol de objetos.
+
+## [2026-10-07] Alineación de Producción en Estrategia de Reels Meta Ads (Formato A-Roll / B-Roll)
+- **Marketing y Pauta Publicitaria (Meta Ads):**
+    - Subsanada la inconsistencia técnica en [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md): sustituida la referencia a "Green Screen" (Pantalla Verde) en la Sección 3.1 por el estándar de la industria **Talking Head con B-Roll Intercalado** (Opción 1).
+    - Alineadas las tablas de guiones de los 3 Reels (Reel 1: Padres/Auto, Reel 2: Vivir Solo/Living, Reel 3: Urgencia/Noche) clasificando explícitamente las tomas en **A-Roll** (presentador en plano a cámara en entorno real) y **B-Roll** (insertos a pantalla completa de la app Estoy Ok y WhatsApp).
+    - Documentada la guía operativa de montaje en 2 pistas para editores (Pista V1 con los 5 clips correlativos de Google Flow y Pista V2 con las capturas de pantalla de la app en los tramos de explicación técnica), estructurando y sincronizando los 15 prompts oficiales (5 clips ≤ 8 segundos por Reel) en correspondencia 1:1 con las 5 fases de cada guión.
+    - Incorporada la Sección 3.4 con el protocolo asistido de composición de B-Rolls mediante FFmpeg/Python, permitiendo grabar el mapa de Estoy Ok en crudo y animar la notificación push de forma automatizada sin coordinación manual en el celular.
+    - Documentadas las opciones oficiales del selector desplegable de botones CTA en Meta Ads Manager priorizando "Descargar" e "Instalar" para adquisición directa y conversión sin escalas hacia la ficha de Google Play Store, sincronizando palabra por palabra los guiones y prompts oficiales.
+- **Investigación y Backlog de Innovación:**
+    - Creado el documento [`docs/nuevas_funcionalidades.md`](file:///home/usuario/aplicaciones/estoyok/docs/nuevas_funcionalidades.md) para registrar y evaluar nuevas features y mejoras técnicas del proyecto.
+    - Diseñada y documentada la arquitectura del **SOS de Bolsillo (Botón de Encendido)**: mecanismo de activación discreta mediante detección dinámica de transiciones `ACTION_SCREEN_ON` y `ACTION_SCREEN_OFF` dentro de `TrackingService.kt` (100% legal y compatible con Google Play sin permisos de Accesibilidad), algoritmo de ventana deslizante de 2.5s antifalsos positivos, respuesta háptica silenciosa y ejecución en segundo plano de la rutina de auxilio completa (GPS a 5s, audio de 15s y WhatsApp).
+- **Producción de B-Rolls y Creativos Publicitarios (Reel 1 - Meta Ads):**
+    - Desarrollado el generador automatizado [`docs/generate_whatsapp_broll.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_whatsapp_broll.py) para renderizar la pantalla completa de chat de WhatsApp requerida en el B-Roll de los segundos 3 a 8s del Reel 1.
+    - Generada la foto de perfil del hijo adolescente [`docs/avatar_hijo.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/avatar_hijo.jpg) y ensambladas las piezas oficiales: [`docs/captura_chat_whatsapp_visto.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_chat_whatsapp_visto.jpg) (720x1600 px resolución nativa de smartphone) y [`docs/broll_chat_whatsapp_visto_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/broll_chat_whatsapp_visto_9x16.png) (1080x1920 px Full HD 9:16 vertical para línea de tiempo de Kdenlive/CapCut).
+    - Representada con realismo la progresión dramática de 8 mensajes salientes entre las 14:35 y 18:38 ("¿Saliste del cole?", "¿Llegaste?", "¿Por qué no contestás?", llamada perdida, "Llamame ya, me tenés con el corazón en la boca"), todos clavados en doble tilde azul (visto) y última conexión a las 15:10, reflejando el dolor exacto de la locución del Reel.
+    - Desarrollado el generador automatizado [`docs/generate_map_telemetry_broll.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_map_telemetry_broll.py) para renderizar la pantalla del B-Roll de los segundos 16 a 23s del Reel 1 (mapa en tiempo real con avatar, telemetría vehicular y batería).
+    - Producidas las piezas definitivas: [`docs/captura_mapa_bateria_velocidad.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_mapa_bateria_velocidad.jpg) (720x1600 px nativo) y [`docs/broll_mapa_telemetria_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_telemetria_9x16.png) (1080x1920 px Full HD vertical 9:16), integrando el pin oficial de Estoy Ok con el avatar de Lucas en Colectora Norte, badge `🚗` en la esquina del marcador, callout flotante `[ 🚗 58 km/h • ⚡ 42% ]`, halo de radar de precisión GPS con vector de desplazamiento y la tarjeta inferior de miembro con telemetría en tiempo real.
+
+## [2026-10-04] Reemplazo de Mockup y Precisión Visual de Privacidad y Permisos en Historia 12 (Instagram @estoyok24)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Identificada y subsanada la discrepancia en la Historia 12 (Tomas 23 y 24) de [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md): `imagen13.png` utilizaba erróneamente la pantalla de Google Login (`imagen06.jpg`), sin relación con el permiso de ubicación en segundo plano ni con la garantía de cifrado y privacidad de datos familiares.
+    - Integrada la captura real de la app [`docs/condiciones_servicio.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/condiciones_servicio.jpg) exhibiendo el modal oficial de *Condiciones de Servicio y Privacidad*.
+    - Actualizado el generador [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) con la anotación `"privacy_terms"`:
+        1. Recuadro de foco cyan y badge superior `[ 🛡️ Alertas con Celular Bloqueado ]` con flecha apuntando al Punto 2 (*Permiso de ubicación 'Permitir todo el tiempo'*).
+        2. Recuadro de foco verde esmeralda y badge inferior `[ 🔒 100% Cifrado • Sin Publicidad ]` con flecha apuntando al Punto 6 (*Privacidad y No Monitoreo Administrativo / Garantía de no venta a terceros*).
+    - Regeneradas con éxito las piezas oficiales [`imagen13.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen13.png) e [`imagen13_destacada6_h2_privacidad.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen13_destacada6_h2_privacidad.png) en formato vertical 9:16 (1080x1920 px) para Kdenlive / CapCut.
+    - Actualizada la tabla de recursos correlativos y la descripción visual de las Tomas 23 y 24 en [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
+
+## [2026-10-04] Reemplazo de Mockup y Precisión Visual de Batería en Historia 11 (Instagram @estoyok24)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Identificada y subsanada la discrepancia en la Historia 11 (Tomas 21 y 22) de [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md): `imagen12.png` utilizaba erróneamente el mapa general duplicado (`imagen01.jpg`) sin ninguna referencia al monitoreo de batería ni al bajo consumo del GPS.
+    - Integrada la captura real de la app [`docs/captura_bateria_app.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_bateria_app.jpg) mostrando el panel de miembros del núcleo desplegado con los niveles de batería en vivo (`⚡ 77%`, `⚡ 54%`, `⚡ 57%`) y la permanencia en reposo sobre el mapa (`En Casa desde hace 3 h 49 min`).
+    - Actualizado el generador [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) con soporte para renderizado de emojis de alta definición (`NotoColorEmoji.ttf`) y agregada la anotación `"battery_monitoring"` con:
+        1. Callout superior cyan `[ 💤 Inmóvil = GPS en Reposo (0% Gasto) ]` con flecha apuntando a la permanencia en el mapa.
+        2. Foco amarillo en `⚡ 77%` con callout verde esmeralda `[ 🔋 Batería en Vivo ]` y flecha direccional.
+    - Regeneradas con éxito las piezas oficiales [`imagen12.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen12.png) e [`imagen12_destacada6_h1_bateria.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen12_destacada6_h1_bateria.png) en formato vertical 9:16 (1080x1920 px) para Kdenlive / CapCut.
+    - Actualizada la tabla de correlación y la descripción visual de las Tomas 21 y 22 en [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
+
+## [2026-10-03] Ajuste y Precisión de Guión para Zonas Seguras en Historias Destacadas (Instagram @estoyok24)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Corregido el guión de la Historia 05 (Tomas 9 y 10) en [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md): reemplazada la mención de un selector inexistente de Zonas Seguras por la acción real de la app (mantener presionado cualquier punto del mapa para fijar lugares clave).
+    - Incorporado en la Toma 10 el beneficio directo del monitoreo continuo en segundo plano de las entradas y salidas de los integrantes del núcleo, manteniendo la métrica exacta de timing para Google Flow (19s en total = Toma 9 de 9s con 20 palabras + Toma 10 de 10s con 22 palabras).
+    - Eliminados el recuadro rojo, flecha y la leyenda "Botón de Pánico SOS" en [`imagen09_destacada4_h2_rescate_web.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen09_destacada4_h2_rescate_web.png) (`imagen09.png`): configurada anotación limpia (`None`) en [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) y regeneradas las piezas para exhibir la pantalla pública de rescate web de forma limpia.
+    - Diseñada y documentada la estrategia de publicidad de pago (Meta Ads) en [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md): 3 guiones de alta conversión palabra por palabra con estructura P.A.S. (Problema, Agitación, Solución), locaciones cotidianas (auto, living, calle nocturna), técnicas modernas de UGC y configuración recomendada de campaña en Meta Ads Manager.
+    - Incorporados en la Sección 5 los 12 prompts oficiales palabra por palabra para Google Flow en formato vertical 9:16 (1080x1920), con clips estrictamente ≤ 10 segundos (4 clips por Reel), preservación de consistencia del personaje por imagen adjunta y modulación de acento rioplatense.
+    - Agregada en la Sección 6 la guía operativa completa paso a paso para Meta Ads Manager: tutorial clic por clic para crear la campaña, activación de presupuesto Advantage+ (CBO), filtro crítico de exclusividad para "Solo dispositivos Android" (evitando clics no convertibles de iPhone), ubicaciones exclusivas en Reels y protocolo de optimización a las 48 horas.
+    - Actualizada la referencia en la tabla resumen correlativa de piezas (`imagen06.png`).
+- **Arquitectura y Estrategia Multiplataforma (iOS):**
+    - Elaborado el documento maestro [`docs/estrategia_app_ios.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_app_ios.md) que establece la hoja de ruta integral para portar la aplicación Estoy Ok a iOS (iPhone) sin disponer de una computadora Mac física.
+    - Analizadas las soluciones de infraestructura en la nube: MacInCloud ($1 USD/h o ~$25 USD/mes) para acceso visual a Xcode/simuladores de iPhone y Codemagic/Bitrise para pipelines de CI/CD automatizados que firman y distribuyen a TestFlight.
+    - Definida la comparativa técnica entre SwiftUI nativo asistido por IA vs. Kotlin Multiplatform (KMP), concluyendo que SwiftUI nativo escrito por Antigravity es la vía óptima por el uso intensivo de APIs de bajo nivel (`CoreLocation`, `CoreMotion`, `AVFoundation`, `StoreKit 2`) y la estricta política de revisión de Apple.
+    - Documentados los requisitos formales ineludibles (cuenta Apple Developer de $99 USD/año, distribución vía TestFlight y políticas de privacidad en la web pública).
+    - Planteada la perspectiva de la industria (las grandes compañías compilan en granjas de CI/CD en la nube) y la estrategia comercial recomendada (validación y tracción inicial en Android en LATAM, donde abarca el 85-90% del mercado, para luego financiar el despliegue en iOS).
+
+## [2026-09-30] Reestructuración Secuencial y Nomenclatura Correlativa de Historias Destacadas (Instagram @estoyok24)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Reorganizado y secuenciado el plan maestro en [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md) numerando de forma continua las 12 historias (Historia 01 a Historia 12) y las 24 tomas (Toma 1 a Toma 24), eliminando ambigüedades en la edición de video.
+    - Asignada nomenclatura correlativa directa a los 13 recursos visuales en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/): `imagen01.png` a `imagen13.png` junto con nombres descriptivos (`imagen01_destacada1_h1_login.png`, etc.).
+    - Actualizado el guión y flujo de la Toma 3 en Historia 02 para reflejar el estado real de un usuario recién registrado (tocar *"Seleccionar Núcleo"*, elegir *"Crear / Unirse"* y compartir código de 10 dígitos).
+    - Agregadas notas explícitas de edición por pista (Pista V1 / Pista V2) indicando qué imagen va en cada segundo de la línea de tiempo (por ejemplo, división de 0-9s en `imagen02.png` y 9-19s en `imagen03.png` en Historia 02).
+    - Actualizado el script generador [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) para emitir automáticamente los archivos con el nuevo esquema de nombres correlativo y descriptivo.
+    - Perfeccionada la técnica de recorte circular (FaceCam) en Kdenlive (`docs/plan_instagram_historias_destacadas.md`): documentada la compensación matemática de relación de aspecto 9:16 (`Tamaño Y = Tamaño X * 0.56`) para evitar deformaciones ovaladas y enfocar el rostro con holgura óptima (`Posición Y: 350`, `Tamaño X: 400`, `Tamaño Y: 224`).
+    - Corregida la plantilla visual de [`imagen04.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen04.png) (`imagen04_destacada2_h1_estoy_ok.png`): eliminado el contorno circular desfasado sobre el botón central y sustituido por un badge flotante `[ Tocá 1 vez al día ]` con flecha verde esmeralda apuntando con precisión al botón "Estoy OK". Actualizado el script generador [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) y regeneradas las piezas.
+    - Generada la captura y plantilla oficial de WhatsApp para alerta de inactividad / bienestar en [`docs/captura_alerta_inactividad_whatsapp.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_alerta_inactividad_whatsapp.jpg): reemplazado el mensaje anterior de choque/accidente vehicular por el aviso de reporte no recibido (`⚠️ ¡AVISO DE BIENESTAR!`, "Nicolas no confirmó su reporte en Estoy Ok durante las últimas 12 horas", enlace de mapa de rescate en vivo y radar ambar). Actualizada la plantilla vertical [`imagen05.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen05.png) (`imagen05_destacada2_h2_alerta_whatsapp.png`) para la Toma 7 (0 a 9s) de la Historia 04.
+    - Integrada la captura real de Ajustes [`docs/captura_ajustes_wifi.jpg`](file:///home/usuario/aplicaciones/estoyok/docs/captura_ajustes_wifi.jpg) y generada la plantilla [`docs/instagram_stories_assets/imagen05b.png`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/imagen05b.png) (`imagen05b_destacada2_h2_wifi_ajustes.png`) para la Toma 8 (9 a 19s) de la Historia 04, exhibiendo la sección "Auto-Check-in Pasivo" con el switch de Wi-Fi Seguro activado y la red de confianza `Wifi_casa_5GHz` configurada. Actualizados [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) y [`plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
+
+## [2026-09-29] Generación del Set de Piezas Visuales para Historias Destacadas de Instagram (Split-Screen 50/50)
+- **Estrategia de Redes y Marketing Orgánico:**
+    - Creado el script automatizado [`docs/generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) para ensamblar los recursos de diseño para las 6 carpetas temáticas de Historias Destacadas.
+    - Exportadas 26 piezas en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/):
+        - 13 plantillas maestras en resolución vertical `1080 x 1920 px` (9:16) con cabecera de carpeta, título de historia, resplandor ambiental y smartphone flotante en la mitad inferior.
+        - 13 cortes de la mitad inferior en resolución `1080 x 960 px` para montaje rápido en pistas de video de CapCut o Premiere.
+    - Incorporadas las 4 capturas complementarias reales tomadas desde el dispositivo físico (`captura_crear_nucleo.jpg`, `captura_notif_zona.jpg`, `captura_modal_contactos.jpg` y `captura_rescate_web.jpg`).
+    - Actualizado el documento maestro [`docs/plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md) con las instrucciones de uso del script y la lista completa de guiones palabra por palabra para Google Flow.
+
+## [2026-09-29] Implementación de Walkthrough / Onboarding Dinámico (Android Nativo)
+- **Experiencia de Usuario y Retención (Paso 4 del Plan Maestro):**
+    - Creado el componente [`OnboardingScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con un carrusel dinámico (`HorizontalPager`), indicador animado de 7 puntos (*page indicator*), contador superior de diapositivas (`X de 7`), botón para saltar (*"Omitir"*) y botón de acción principal (*"Siguiente →"* / *"¡Comenzar a usar Estoy Ok! 🚀"*).
+    - Desarrollado el componente [`OnboardingPhoneMockup`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/onboarding/OnboardingScreen.kt) con mini-smartphones flotantes, bordes redondeados, cámara punch-hole y ambient glow que exhiben capturas reales de la aplicación optimizadas en WebP (`android-native/app/src/main/res/drawable-nodpi/`):
+        1. **Mapa en Tiempo Real:** Localización familiar interactiva con batería y estado ([`img_onboarding_01_mapa.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_01_mapa.webp)).
+        2. **El Botón "Estoy OK":** Check-in diario de bienestar y aviso por WhatsApp ([`img_onboarding_02_estoy_ok.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_02_estoy_ok.webp)).
+        3. **Zonas Seguras:** Perímetros de llegada y salida automáticos sin mensajes ([`img_onboarding_03_zonas_seguras.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_03_zonas_seguras.webp)).
+        4. **Historial de Movimientos:** Trazado de recorridos en mapa calle por calle ([`img_onboarding_04_rutas.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_04_rutas.webp)).
+        5. **Auto Check-in en el Hogar:** Confirmación automática por Wi-Fi de casa ([`img_onboarding_05_hogar.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_05_hogar.webp)).
+        6. **Protección Vehicular:** Scoring de manejo, velocidad y hábitos viales ([`img_onboarding_06_conduccion.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_06_conduccion.webp)).
+        7. **Respuesta ante Choques:** Pre-alerta de impacto por Fuerza G y temporizador SOS de 15s ([`img_onboarding_07_choque.webp`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/res/drawable-nodpi/img_onboarding_07_choque.webp)).
+    - **Persistencia y Arquitectura de Navegación:**
+        - Añadida la clave `ONBOARDING_COMPLETED` en [`SessionManager.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/data/local/SessionManager.kt) con Jetpack DataStore y `saveOnboardingCompleted()`.
+        - Expuesto el estado en [`AuthViewModel.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/auth/presentation/AuthViewModel.kt) (`isOnboardingCompleted` y `completeOnboarding()`).
+        - Registrada la ruta en [`Screen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/Screen.kt) (`Screen.Onboarding`).
+        - Integrado en [`NavGraph.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/core/navigation/NavGraph.kt): visualización automática tras el disclaimer para nuevos usuarios sin solapamiento de diálogos de permisos del sistema (`isDisclaimerPending`).
+        - Agregado botón en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (*"Ver Tutorial de Bienvenida 🧭"*) para que los usuarios actuales o evaluadores puedan ver el tutorial en cualquier momento.
+- **Verificación:**
+    - Compilación Gradle: `./gradlew assembleDebug` exitoso (`BUILD SUCCESSFUL in 53s`).
+    - Backend Tests: 165 tests pasando (567 assertions) al 100%.
+
 ## [2026-09-29] Generación del Set Maestro de Screenshots de Alta Conversión para Google Play Store
 - **Material Gráfico & ASO (Paso 3 del Plan Maestro):**
     - Creado el script automatizado [`docs/generate_play_store_screenshots.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_play_store_screenshots.py) para ensamblar capturas de pantalla de marketing con mockups de smartphone modernos sin bordes en resolución oficial `1080 x 2400 px` (9:20).
@@ -2023,4 +2295,33 @@
     - `emergencia/[id]/page.tsx`: añadido `robots: { index: false, follow: false }` para proteger la privacidad de incidentes en tiempo real.
     - `politica-de-privacidad/page.tsx`: enriquecida la metadata con URL canónica y OpenGraph.
     - Build verificado sin errores (`npm run build` con Turbopack exitoso) y desplegado en la rama `main`.
+## [2026-09-29] Material para Historias Destacadas de Instagram: Formato FaceCam y Guía Kdenlive
+- **Marketing y Producción Audiovisual:**
+    - Evolución de diseño de historias destacadas de Split-Screen (50/50) a Formato FaceCam / Burbuja Flotante (PiP): maximiza legibilidad de la app al centrar el marco del smartphone a tamaño nativo 1:1 (720x1600 px) en el lienzo de 1080x1920 px, eliminando recortes y preservando flechas e indicadores en alta definición.
+    - Script generador [`generate_instagram_story_mockups.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_instagram_story_mockups.py) actualizado para producir las 13 piezas definitivas en [`docs/instagram_stories_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/instagram_stories_assets/).
+    - Documentada la guía técnica de montaje en Kdenlive (`Forma alfa` + `Transformar` en Pila de Efectos) y preservación de tomas continuas en [`plan_instagram_historias_destacadas.md`](file:///home/usuario/aplicaciones/estoyok/docs/plan_instagram_historias_destacadas.md).
+
+## [2026-10-07] Producción Audiovisual B-Roll Reel 1 (Clip 3 - Mapa con Notificación Push Asistida)
+- **Marketing y Producción Audiovisual (Meta Ads / Instagram Reels):**
+    - Implementado el protocolo operativo automatizado de la Sección 3.4 de [`docs/estrategia_reels_publicidad_paga.md`](file:///home/usuario/aplicaciones/estoyok/docs/estrategia_reels_publicidad_paga.md) para el Clip 3 de demostración del Reel 1.
+    - Creado script automatizado [`docs/generate_map_push_overlay.py`](file:///home/usuario/aplicaciones/estoyok/docs/generate_map_push_overlay.py) que genera el banner flotante nativo de Android en formato Material You con el isotipo oficial de Estoy Ok en verde oscuro (`#0D7048`), textos nítidos ("Estoy Ok • ahora", "Alerta de Perímetro", "Lucas ha ingresado a: Colegio") y sombra suave de elevación.
+    - Compuesta la animación fluida `Slide Down` (curva cubic ease-out de 0.4s iniciada a los 2.0s del video) sobre la grabación cruda de pantalla [`docs/broll_mapa_crudo.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_crudo.mp4).
+    - Producidos y verificados los archivos finales de video:
+        - [`docs/broll_mapa_con_notificacion.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion.mp4): Resolución nativa (576x1280 a 50 fps).
+        - [`docs/broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/broll_mapa_con_notificacion_9x16.mp4): Resolución estándar vertical Full HD (1080x1920 a 50 fps) listo para soltar en la pista V2 de CapCut/Premiere.
+
+## [2026-10-10] Corrección de Detección de SOS Físico y Enlace de Mapa de Emergencia
+- **App Móvil Nativa (Android/Kotlin):**
+    - En `TrackingService.kt`, se amplió la ventana de tiempo del detector de toques de encendido de `3500ms` a `5000ms` (5.0 segundos).
+    - Esto permite una cadencia de pulsación natural y pausada (1 toque por segundo), evitando que el hardware active el atajo nativo de doble clic de Android (Gemini / Asistente) y permitiendo que la pantalla complete cada ciclo de encendido y apagado físico sin descartar toques.
+    - Se compilaron e instalaron los cambios directamente en el dispositivo físico mediante `assembleDebug` y `adb install`.
+- **Backend (Laravel):**
+    - En `EmergencyAlertController.php`, se preservó el mensaje exclusivo con el enlace a la pantalla de crisis oficial de Estoy Ok, garantizando que el contacto acceda a la vista completa con audio ambiental, botones de rescate y tracking continuo.
+    - Se añadió compatibilidad con entornos de desarrollo/staging inyectando el parámetro `&api={app_url}/api` en la URL de emergencia cuando el backend se ejecuta en modo no productivo.
+- **Frontend Web (Next.js):**
+    - En `EmergencyClientPage.tsx`, se habilitó la lectura del parámetro `?api=` en la URL para consumo dinámico de la API de backend correspondiente.
+    - Se implementó un mecanismo de fallback automático: si la consulta a producción retorna 404 (alerta emitida desde entorno de pruebas/staging), el cliente consulta automáticamente el backend de desarrollo (`https://backend-api-dev-2a56.up.railway.app/api`) antes de emitir error, asegurando la visualización del mapa en vivo y respuestas de rescate.
+    - Compilación de producción con Turbopack validada exitosamente (`npm run build`).
+    - Suite de 174 pruebas de Laravel superadas al 100% (0 regresiones).
+
 
