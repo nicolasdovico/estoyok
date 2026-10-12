@@ -11,6 +11,7 @@ Este documento detalla el procedimiento operativo estándar para desarrollar, pr
 | **Rama de GitHub** | `dev` | `main` |
 | **Backend en Railway** | `https://backend-api-dev-2a56.up.railway.app/api/` | `https://api.estoyok24.com/api/` |
 | **Base de Datos** | PostgreSQL Dev (Datos de prueba / Laboratorio) | PostgreSQL Prod (**Sagrada - Usuarios reales**) |
+| **Vinculación WhatsApp (QR)** | `https://backend-api-dev-2a56.up.railway.app/api/maintenance/connect-qr` | `https://api.estoyok24.com/api/maintenance/connect-qr` |
 | **Trigger de Deploy** | `git push origin dev` | `git push origin main` |
 | **Tipo de Build Android** | `debug` | `release` |
 | **Destino de la App** | Tu teléfono físico (instalación local USB / APK) | **Google Play Store** (Bundle `.aab`) |

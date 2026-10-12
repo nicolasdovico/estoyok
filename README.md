@@ -43,6 +43,12 @@ pass: tomas1234
 ## Chequeo de notificaciones push
 `https://api.estoyok24.com/api/maintenance/diagnose-push`
 
+## 📲 Vinculación de WhatsApp (Gateway Evolution API / QR)
+* **Producción:** `https://api.estoyok24.com/api/maintenance/connect-qr`
+* **Desarrollo (Dev):** `https://backend-api-dev-2a56.up.railway.app/api/maintenance/connect-qr`
+* **Diagnóstico de Inactividad (Prod):** `https://api.estoyok24.com/api/maintenance/diagnose-inactivity?email=nicolas@gmail.com`
+* **Prueba de Inactividad Fast-Forward (1 min):** `https://api.estoyok24.com/api/maintenance/prepare-inactivity-test?email=nicolas@gmail.com&minutes_left=1`
+
 ---
 
 ## 🧪 Entorno de Desarrollo en Railway (Dev)
