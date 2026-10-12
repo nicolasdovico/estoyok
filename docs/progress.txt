@@ -1,5 +1,25 @@
 # Progress Log
 
+## [2026-10-12] Resolución de Enrutamiento de Webhook Evolution API y Prevención de Desincronización en Respuesta a Check-In
+- **Diagnóstico y Causa Raíz de Desincronización al Responder 'OK':**
+    - Se aisló la causa por la cual responder 'OK' actualizaba una cuenta de Producción y trababa la confirmación en *"Esperando mensaje"*:
+      1. La instancia de Evolution API `estoyok_main` tenía configurado su Webhook apuntando a `https://api.estoyok24.com/api/webhooks/evolution/message` (Producción).
+      2. Al responder 'OK', el webhook era recibido por el backend de Producción, donde el número de teléfono `+5491149790220` pertenecía a la cuenta de Nicolás (User #20) en lugar de la cuenta en pruebas en Dev (User #45).
+      3. A su vez, Producción despachaba la respuesta de confirmación de forma inmediata (en menos de 1 segundo) sin delay de ratchet ni `linkPreview: false`, colisionando con el sobre Signal del mensaje recién enviado por el usuario.
+      4. El backend de desarrollo (`backend-api-dev`) nunca recibía la notificación de check-in.
+- **Implementación y Solución:**
+    - En [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
+      - Añadido un retardo de asimilación de 3 segundos (`sleep(3)`) antes de emitir la respuesta de confirmación de WhatsApp (*«✅ Bienestar verificado con éxito...»*), permitiendo que el dispositivo del usuario asimile el ack de su propio mensaje antes de recibir el mensaje entrante.
+      - Eliminado el reenvío automático y cruzado de payloads entre entornos Dev y Prod, encapsulando cualquier replicación bajo la variable de entorno opcional `EVOLUTION_WEBHOOK_PEER_URL` en [`services.php`](file:///home/usuario/aplicaciones/estoyok/backend/config/services.php).
+    - En [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php):
+      - Mejorada la auto-configuración del webhook para respetar dinámicamente el host del backend actual (`request()->root()`) o la URL explícita provista.
+    - En `/api/maintenance/connect-qr` ([`routes/api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php)):
+      - Añadido bloque visual interactivo que exhibe la URL de Webhook activa en Evolution API.
+      - Añadido botón de acción `set_webhook` para vincular el webhook al entorno actual con un solo clic.
+    - Se apuntó el Webhook de Evolution API a Dev (`https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message`).
+- **Verificación de No Regresión:**
+    - Suite de 179 pruebas de Laravel pasando al 100% (610 aserciones, 0 errores).
+
 ## [2026-10-12] Resolución Definitiva de Incidencia "Esperando Mensaje" y Saneamiento de Base de Claves en Evolution API
 - **Diagnóstico Integral y Causa Raíz:**
     - Se aisló la causa exacta por la cual los mensajes salientes con URL o texto plano quedaban en *"Esperando mensaje. Esto puede tomar tiempo"* en el cliente móvil físico de WhatsApp:
