@@ -61,8 +61,13 @@ class SendInactivityAlerts implements ShouldQueue
             // If index is 0, send push notification to the user themselves, self WhatsApp alert if enabled, and to nucleus members
             if ($this->contactIndex === 0) {
                 $this->sendPushNotification();
-                $this->sendSelfWhatsAppAlert($whatsAppService);
+                $selfWhatsAppSent = $this->sendSelfWhatsAppAlert($whatsAppService);
                 $this->sendPushNotificationToNucleusMembers($alert);
+
+                if ($selfWhatsAppSent) {
+                    // Espaciado de 1.5s para evitar colisiones de cifrado/ratchet de WhatsApp si el contacto comparte número o red
+                    usleep(1500000);
+                }
             }
 
             // Check if escalation is enabled
@@ -125,7 +130,7 @@ class SendInactivityAlerts implements ShouldQueue
         );
     }
 
-    protected function sendSelfWhatsAppAlert(WhatsAppServiceInterface $whatsAppService): void
+    protected function sendSelfWhatsAppAlert(WhatsAppServiceInterface $whatsAppService): bool
     {
         if ($this->user->notify_self_whatsapp_on_inactivity && !empty($this->user->phone)) {
             $hours = $this->user->checkin_interval_hours ?? 24;
@@ -138,7 +143,11 @@ class SendInactivityAlerts implements ShouldQueue
             } else {
                 Log::info("Self WhatsApp inactivity alert sent successfully to user {$this->user->id} ({$this->user->phone}).");
             }
+
+            return $success;
         }
+
+        return false;
     }
 
     protected function sendEmailAlert(string $emergencyUrl)
@@ -181,7 +190,11 @@ class SendInactivityAlerts implements ShouldQueue
     {
         $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
-        foreach ($contacts as $contact) {
+        foreach ($contacts as $index => $contact) {
+            if ($index > 0) {
+                // Espaciado de 1.5 segundos entre cada contacto para evitar ráfagas
+                usleep(1500000);
+            }
             $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
         }
     }

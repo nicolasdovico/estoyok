@@ -34,6 +34,11 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
             $cleanTo = str_contains($to, '@') ? $to : preg_replace('/[^0-9]/', '', $to);
 
+            // Normalización para móviles de Argentina: asegurar formato canónico 549...
+            if (str_starts_with($cleanTo, '54') && !str_starts_with($cleanTo, '549') && strlen($cleanTo) === 12) {
+                $cleanTo = '549' . substr($cleanTo, 2);
+            }
+
             $url = "{$this->baseUrl}/message/sendText/{$this->instance}";
 
             $response = Http::withHeaders([

@@ -7,6 +7,9 @@
     - Actualizado el endpoint `/api/maintenance/prepare-inactivity-test` y agregado el alias `/api/maintenance/set-clock-remaining` para aceptar el parámetro `minutes_left` (por defecto 2 minutos).
     - El endpoint resuelve cualquier alerta activa preexistente, asegura el acceso Premium (`is_premium = true`, `subscription_status = 'active'`) y atrasa `last_check_in_at` al pasado (`now - interval + minutes_left`).
     - Permite a los evaluadores con cuentas de prueba de Google Play (donde la suscripción de sandbox dura apenas unos minutos) observar la cuenta regresiva correr en tiempo real en la app móvil, ver el vencimiento natural y confirmar el despacho automático de WhatsApp sin requerir forzar los mensajes ni esperar 12 horas reales.
+- **Optimización de Despacho y Entrega de WhatsApp (`SendInactivityAlerts.php` & `EvolutionApiService.php`):**
+    - Implementado espaciado de seguridad de 1.5 segundos (`usleep(1500000)`) entre el mensaje de bienestar hacia el propio usuario y el mensaje de alerta hacia los contactos SOS, así como entre contactos sucesivos. Esto previene colisiones en la rotación de claves criptográficas (*Double Ratchet*) en WhatsApp y evita que los mensajes queden atascados en *"Esperando mensaje"* cuando varios destinatarios comparten número o canal de red.
+    - Incorporada normalización automática en `EvolutionApiService` para teléfonos de Argentina con formato de 12 dígitos (`54` + 10 dígitos) asegurando la inserción del prefijo canónico `549...`, unificando los JIDs de WhatsApp y evitando discrepancias entre sesiones.
 
 ## [2026-10-11] Corrección y Estabilización de Alertas de Inactividad y Auto-Ejecución de Scheduler/Worker en Railway Dev
 - **Infraestructura de Despliegue en Railway (`backend/start.sh` & `railway.json`):**
