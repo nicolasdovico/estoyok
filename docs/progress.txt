@@ -1,5 +1,16 @@
 # Progress Log
 
+## [2026-10-12] Desacople Asíncrono de Confirmación de Check-in en Background Queue (6s Delay)
+- **Diagnóstico de Concurrencia en Webhook de WhatsApp:**
+    - Se constató que mientras las alertas de inactividad salientes (1 y 2) llegan de forma 100% legible debido al espaciado de 10s ejecutado por el worker de colas (`SendInactivityAlerts`), el mensaje de confirmación de bienestar (*«✅ Bienestar verificado con éxito...»*) se enviaba de forma síncrona dentro del ciclo de vida HTTP del webhook entrante (`WebhookController`).
+    - Al retener la conexión HTTP con `sleep(3)` y solicitar un `POST /message/sendText` antes de responder a Evolution API, Baileys intentaba cifrar el mensaje saliente mientras el socket aún procesaba y asentaba el sobre del "OK" entrante, derivando en un conflicto de claves criptográficas (Double Ratchet) y congelando el mensaje en *"Esperando mensaje"*.
+- **Implementación y Solución:**
+    - Creado el job encolado [`SendCheckinConfirmationWhatsAppJob.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Jobs/SendCheckinConfirmationWhatsAppJob.php) implementando `ShouldQueue`.
+    - Actualizado [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php): al recibir el "OK", se procesa el check-in, se resuelve la alerta, se emite el push y se encola `SendCheckinConfirmationWhatsAppJob` con 6 segundos de retraso (`delay(now()->addSeconds(6))`), retornando inmediatamente HTTP 200 a Evolution API en milisegundos.
+    - El worker de colas (`php artisan queue:work`) toma la tarea una vez que el socket y el canal de WhatsApp están completamente en reposo, garantizando el envío con el canal criptográfico limpio y asentado.
+- **Verificación de No Regresión:**
+    - Suite de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
+
 ## [2026-10-12] Resolución de Enrutamiento de Webhook Evolution API y Prevención de Desincronización en Respuesta a Check-In
 - **Diagnóstico y Causa Raíz de Desincronización al Responder 'OK':**
     - Se aisló la causa por la cual responder 'OK' actualizaba una cuenta de Producción y trababa la confirmación en *"Esperando mensaje"*:
