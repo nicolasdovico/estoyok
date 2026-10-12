@@ -1,5 +1,13 @@
 # Progress Log
 
+## [2026-10-11] Modo de Prueba Natural de Inactividad (Fast-Forward) y Verificación Minuto a Minuto en Scheduler
+- **Backend Laravel & Scheduler (`routes/console.php`):**
+    - Configurado `checkins:verify-inactivity` para ejecutarse cada 1 minuto (`everyMinute()`) en todos los entornos, reduciendo el tiempo de espera tras el vencimiento del reloj a un máximo de 60 segundos.
+- **Testing Natural de Reloj de Bienestar (`routes/api.php`):**
+    - Actualizado el endpoint `/api/maintenance/prepare-inactivity-test` y agregado el alias `/api/maintenance/set-clock-remaining` para aceptar el parámetro `minutes_left` (por defecto 2 minutos).
+    - El endpoint resuelve cualquier alerta activa preexistente, asegura el acceso Premium (`is_premium = true`, `subscription_status = 'active'`) y atrasa `last_check_in_at` al pasado (`now - interval + minutes_left`).
+    - Permite a los evaluadores con cuentas de prueba de Google Play (donde la suscripción de sandbox dura apenas unos minutos) observar la cuenta regresiva correr en tiempo real en la app móvil, ver el vencimiento natural y confirmar el despacho automático de WhatsApp sin requerir forzar los mensajes ni esperar 12 horas reales.
+
 ## [2026-10-11] Corrección y Estabilización de Alertas de Inactividad y Auto-Ejecución de Scheduler/Worker en Railway Dev
 - **Infraestructura de Despliegue en Railway (`backend/start.sh` & `railway.json`):**
     - Identificada la causa de por qué el reloj de bienestar llegaba a 0 y no disparaba el envío: en Railway Dev únicamente corría el proceso HTTP `php artisan serve`, sin scheduler (`schedule:work`) ni worker de colas (`queue:work`) activos en segundo plano.

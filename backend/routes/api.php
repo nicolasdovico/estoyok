@@ -286,8 +286,9 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
     }
 });
 
-Route::post('/maintenance/prepare-inactivity-test', function (Request $request) {
+$prepareInactivityTestHandler = function (Request $request) {
     $email = $request->input('email', 'tamarakshop@gmail.com');
+    $minutesLeft = $request->has('minutes_left') ? (int) $request->input('minutes_left') : 2;
     $user = \App\Models\User::where('email', $email)->first();
     if (!$user) {
         return response()->json(['error' => "User {$email} not found."], 404);
@@ -298,32 +299,52 @@ Route::post('/maintenance/prepare-inactivity-test', function (Request $request) 
         ->where('status', 'active')
         ->update(['status' => 'resolved']);
 
-    // 2. Set user as Premium with active subscription and expired wellbeing countdown
+    // 2. Set user as Premium with active subscription and calculate last_check_in_at based on minutes_left
     $interval = $user->checkin_interval_hours ?? 12;
+    $lastCheckIn = $minutesLeft > 0
+        ? now('UTC')->subHours($interval)->addMinutes($minutesLeft)
+        : now('UTC')->subHours($interval + 1);
+
     $user->update([
         'is_premium' => true,
         'subscription_status' => 'active',
         'trial_ends_at' => now()->addMonth(),
+        'quiet_hours_enabled' => false,
         'notify_self_whatsapp_on_inactivity' => true,
         'allow_sms_whatsapp_checkin' => true,
-        'last_check_in_at' => now()->subHours($interval + 1),
+        'last_check_in_at' => $lastCheckIn,
     ]);
+
+    $timezone = $user->timezone ?? config('app.timezone', 'America/Argentina/Buenos_Aires');
+    $expiresAtUtc = $lastCheckIn->copy()->addHours($interval);
+    $expiresAtLocal = $expiresAtUtc->copy()->setTimezone($timezone);
 
     return response()->json([
         'success' => true,
-        'message' => "User {$email} is now Premium with clock expired and active alerts resolved.",
+        'message' => $minutesLeft > 0
+            ? "Reloj de bienestar preparado para {$email}. Expirará en {$minutesLeft} minutos de forma natural."
+            : "Reloj de bienestar vencido inmediatamente para {$email}.",
         'resolved_alerts_count' => $resolvedCount,
+        'minutes_left' => $minutesLeft,
+        'current_time_utc' => now('UTC')->toDateTimeString(),
+        'current_time_local' => now($timezone)->toDateTimeString(),
+        'expires_at_utc' => $expiresAtUtc->toDateTimeString(),
+        'expires_at_local' => $expiresAtLocal->toDateTimeString(),
         'user' => [
             'id' => $user->id,
             'email' => $user->email,
             'is_premium' => (bool) $user->is_premium,
             'has_premium_access' => $user->hasPremiumAccess(),
             'notify_self_whatsapp_on_inactivity' => (bool) $user->notify_self_whatsapp_on_inactivity,
+            'quiet_hours_enabled' => (bool) $user->quiet_hours_enabled,
             'last_check_in_at' => $user->last_check_in_at->toDateTimeString(),
             'checkin_interval_hours' => $user->checkin_interval_hours,
         ]
     ]);
-});
+};
+
+Route::match(['get', 'post'], '/maintenance/prepare-inactivity-test', $prepareInactivityTestHandler);
+Route::match(['get', 'post'], '/maintenance/set-clock-remaining', $prepareInactivityTestHandler);
 
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');

@@ -47,6 +47,10 @@
 - [x] **FASE Mobile: Estabilización y Expo Go**
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
+    - [x] Ejecución en Background de Scheduler y Worker en Railway Dev & Testing Natural de Reloj:
+      - **Background daemons en Railway:** Creado `backend/start.sh` que ejecuta concurrentemente `queue:work` y `schedule:work` junto con `serve` en Railway Dev.
+      - **Frecuencia del Scheduler:** Actualizado `routes/console.php` para ejecutar `checkins:verify-inactivity` cada minuto (`everyMinute()`) garantizando despacho sin demoras.
+      - **Testing Natural (Fast-Forward):** Creados `/api/maintenance/prepare-inactivity-test` y `/api/maintenance/set-clock-remaining` (`minutes_left`) para adelantar el reloj a 2 minutos sin forzar envíos artificiales ni hacer esperar 12 horas a testers de Google Play Sandbox.
     - [x] Alerta de Bienestar Vencido por WhatsApp a Sí Mismo (Backend Laravel & Android Nativo):
       - **Backend:** Creada y ejecutada la migración `2026_10_10_130000_add_notify_self_whatsapp_on_inactivity_to_users_table.php`, agregando `notify_self_whatsapp_on_inactivity` (booleano, default `false`) a la tabla `users`.
       - **API Contract & Validation:** Endpoint `PUT /api/settings/notify-self-whatsapp` en [`SettingsController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/SettingsController.php) con validación HTTP 422 si se intenta activar sin un teléfono registrado (`users.phone`), auto-activación de `allow_sms_whatsapp_checkin = true` para permitir respuestas directas, y auto-configuración de Evolution API webhook. Documentado en OpenAPI/Swagger.

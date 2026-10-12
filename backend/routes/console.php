@@ -16,7 +16,7 @@ if (app()->environment('local')) {
     Schedule::command('subscriptions:check-expired-grace-periods')->everyMinute();
     Schedule::command('subscriptions:expire-trials')->everyMinute();
 } else {
-    Schedule::command('checkins:verify-inactivity')->everyFiveMinutes();
+    Schedule::command('checkins:verify-inactivity')->everyMinute();
     Schedule::command('checkins:send-reminders')->everyFifteenMinutes();
     Schedule::command('drive:cleanup-active')->everyTenMinutes();
     Schedule::command('subscriptions:send-trial-reminders')->daily();
