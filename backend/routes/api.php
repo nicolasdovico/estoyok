@@ -488,6 +488,8 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     // 1. If user requested reset_instance, completely delete and recreate
     if ($action === 'reset_instance') {
         try {
+            Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance);
+            usleep(300000);
             Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/delete/' . $instance);
             usleep(600000);
             Http::withHeaders(['apikey' => $apiKey])->post(rtrim($baseUrl, '/') . '/instance/create', [
@@ -499,6 +501,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
             $service = app(\App\Services\EvolutionApiService::class);
             $service->sendWhatsApp('dummy', 'dummy');
         } catch (\Throwable $e) {}
+        return redirect('/api/maintenance/connect-qr');
     }
 
     // 2. If user clicked logout, disconnect the instance first
@@ -510,6 +513,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         } catch (\Throwable $e) {
             $logoutOutput = ['error' => $e->getMessage()];
         }
+        return redirect('/api/maintenance/connect-qr');
     }
 
     // 3. Check current state
@@ -520,10 +524,10 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
     } catch (\Throwable $e) {}
 
-    // 4. If not open (or if action=connect or after logout or reset), fetch connect QR
+    // 4. If not open, fetch connect QR
     $qrBase64 = null;
     $connectData = null;
-    if ($state !== 'open' || $action === 'force_qr' || $action === 'logout' || $action === 'reset_instance') {
+    if ($state !== 'open' || $action === 'force_qr') {
         try {
             $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
@@ -549,9 +553,9 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
     $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
 
-    if ($state === 'open' && $action !== 'logout' && $action !== 'reset_instance') {
+    if ($state === 'open') {
         $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
-        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa. Si experimentas errores de envío (SessionError) o mensajes trabados, pulsa el botón a continuación para recrear la instancia limpiamente desde cero:</p>';
+        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa y vinculada correctamente. Si en el futuro necesitas renovarla, puedes usar los botones a continuación:</p>';
         $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
         $html .= '<input type="hidden" name="action" value="reset_instance">';
         $html .= '<button type="submit" class="btn" style="background:#f59e0b;color:#0b132b;" onclick="return confirm(\'¿Recrear la instancia desde cero? Se borrarán las tablas y claves residuales de la BD en Railway y se generará un QR 100% limpio.\')">🧹 Recrear Instancia Limpia (Solución a SessionError)</button>';
