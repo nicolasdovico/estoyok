@@ -1,5 +1,23 @@
 # Progress Log
 
+## [2026-10-12] Migración Exitosa a Evolution API v2.3.7, Resolución Total de "Esperando Mensaje" y Deduplicación de Webhooks
+- **Migración de Imagen Oficial e Infraestructura:**
+    - Se identificó y resolvió el bug intrínseco de Baileys en Evolution API v2.2.0 relativo al manejo de identificadores `@lid` de WhatsApp y sincronización del Double Ratchet de Signal en conversaciones 1 a 1.
+    - Se desplegó en Railway Dev la imagen oficial moderna `evoapicloud/evolution-api:latest` (v2.3.7 con Baileys `2.3000.1050056442`), configurando `CACHE_REDIS_ENABLED=false` para evitar el bucle de reconexión a Redis y operando con PostgreSQL como base de datos persistente.
+    - Se vinculó el socket del bot (`+5492323610697`) escaneando el nuevo QR en la versión 2.3.7.
+- **Validación Exitosa de Ciclo Completo en Dispositivo Móvil Físico:**
+    - Se ejecutó la prueba de inactividad de 1 minuto:
+      1. Llegaron las 2 alertas salientes de inactividad (`⚠️ Aviso Estoy Ok...` y contacto SOS con enlace al mapa), 100% legibles.
+      2. El usuario respondió **"OK"** desde su teléfono móvil.
+      3. El backend procesó el check-in, reseteó el reloj a 12 horas, resolvió las alertas de emergencia en la base de datos y despachó la confirmación en background vía cola.
+      4. El mensaje *«✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!»* **llegó de forma 100% legible y sin "Esperando mensaje"**.
+- **Deduplicación y Debounce en Webhook:**
+    - Al coexistir dos contenedores activos o en caso de reintentos concurrentes de red, se implementó en [`WebhookController.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Http/Controllers/Api/WebhookController.php):
+      1. Deduplicación por `key.id` del mensaje entrante en caché (60s).
+      2. Debounce de 20s por usuario en la emisión del Job de confirmación (`SendCheckinConfirmationWhatsAppJob`), asegurando que el usuario reciba exactamente 1 mensaje de confirmación por reporte.
+- **Garantía de No Regresión:**
+    - Suite completa de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
+
 ## [2026-10-12] Desacople Asíncrono de Confirmación de Check-in en Background Queue (6s Delay)
 - **Diagnóstico de Concurrencia en Webhook de WhatsApp:**
     - Se constató que mientras las alertas de inactividad salientes (1 y 2) llegan de forma 100% legible debido al espaciado de 10s ejecutado por el worker de colas (`SendInactivityAlerts`), el mensaje de confirmación de bienestar (*«✅ Bienestar verificado con éxito...»*) se enviaba de forma síncrona dentro del ciclo de vida HTTP del webhook entrante (`WebhookController`).
