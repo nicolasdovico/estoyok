@@ -49,7 +49,8 @@ class VerifyInactivity extends Command
                 });
         })
             ->whereDoesntHave('emergencyAlerts', function ($query) {
-                $query->where('status', 'active');
+                $query->where('status', 'active')
+                    ->where('type', 'inactivity');
             })
             ->get();
 

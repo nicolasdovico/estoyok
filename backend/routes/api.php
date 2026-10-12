@@ -286,6 +286,45 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
     }
 });
 
+Route::post('/maintenance/prepare-inactivity-test', function (Request $request) {
+    $email = $request->input('email', 'tamarakshop@gmail.com');
+    $user = \App\Models\User::where('email', $email)->first();
+    if (!$user) {
+        return response()->json(['error' => "User {$email} not found."], 404);
+    }
+
+    // 1. Resolve any active emergency alert
+    $resolvedCount = \App\Models\EmergencyAlert::where('user_id', $user->id)
+        ->where('status', 'active')
+        ->update(['status' => 'resolved']);
+
+    // 2. Set user as Premium with active subscription and expired wellbeing countdown
+    $interval = $user->checkin_interval_hours ?? 12;
+    $user->update([
+        'is_premium' => true,
+        'subscription_status' => 'active',
+        'trial_ends_at' => now()->addMonth(),
+        'notify_self_whatsapp_on_inactivity' => true,
+        'allow_sms_whatsapp_checkin' => true,
+        'last_check_in_at' => now()->subHours($interval + 1),
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => "User {$email} is now Premium with clock expired and active alerts resolved.",
+        'resolved_alerts_count' => $resolvedCount,
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'is_premium' => (bool) $user->is_premium,
+            'has_premium_access' => $user->hasPremiumAccess(),
+            'notify_self_whatsapp_on_inactivity' => (bool) $user->notify_self_whatsapp_on_inactivity,
+            'last_check_in_at' => $user->last_check_in_at->toDateTimeString(),
+            'checkin_interval_hours' => $user->checkin_interval_hours,
+        ]
+    ]);
+});
+
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');
     if (! $to) {
