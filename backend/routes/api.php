@@ -448,16 +448,31 @@ Route::get('/maintenance/connect-qr-data', function () {
 
     $state = 'unknown';
     try {
-        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
         $stateData = $stateRes->json();
-        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? null);
     } catch (\Throwable $e) {}
+
+    if (! $state || ! in_array(strtolower($state), ['open', 'connecting', 'close', 'closed'])) {
+        try {
+            $listRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/fetchInstances');
+            $instances = $listRes->json();
+            if (is_array($instances)) {
+                foreach ($instances as $inst) {
+                    if (($inst['name'] ?? null) === $instance) {
+                        $state = strtolower($inst['connectionStatus'] ?? 'unknown');
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
 
     $qrBase64 = null;
     $count = 0;
     if ($state !== 'open') {
         try {
-            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
             $rawBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
             if ($rawBase64) {
@@ -471,7 +486,10 @@ Route::get('/maintenance/connect-qr-data', function () {
         'state' => $state,
         'qr_base64' => $qrBase64,
         'count' => $count,
-    ]);
+        'server_time' => now()->setTimezone('America/Argentina/Buenos_Aires')->format('H:i:s'),
+    ])->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+      ->header('Pragma', 'no-cache')
+      ->header('Expires', '0');
 });
 
 Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $request) {
@@ -501,7 +519,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
             $service = app(\App\Services\EvolutionApiService::class);
             $service->sendWhatsApp('dummy', 'dummy');
         } catch (\Throwable $e) {}
-        return redirect('/api/maintenance/connect-qr');
+        return redirect('/api/maintenance/connect-qr?t=' . time());
     }
 
     // 2. If user clicked set_webhook, bind Evolution API webhook to this backend
@@ -510,7 +528,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
             $service = app(\App\Services\EvolutionApiService::class);
             $service->ensureWebhookConfigured($request->root(), true);
         } catch (\Throwable $e) {}
-        return redirect('/api/maintenance/connect-qr');
+        return redirect('/api/maintenance/connect-qr?t=' . time());
     }
 
     // 3. If user clicked logout, disconnect the instance first
@@ -522,20 +540,35 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         } catch (\Throwable $e) {
             $logoutOutput = ['error' => $e->getMessage()];
         }
-        return redirect('/api/maintenance/connect-qr');
+        return redirect('/api/maintenance/connect-qr?t=' . time());
     }
 
     // 4. Check current state & webhook
     $state = 'unknown';
     try {
-        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
         $stateData = $stateRes->json();
-        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? null);
     } catch (\Throwable $e) {}
+
+    if (! $state || ! in_array(strtolower($state), ['open', 'connecting', 'close', 'closed'])) {
+        try {
+            $listRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/fetchInstances');
+            $instances = $listRes->json();
+            if (is_array($instances)) {
+                foreach ($instances as $inst) {
+                    if (($inst['name'] ?? null) === $instance) {
+                        $state = strtolower($inst['connectionStatus'] ?? 'unknown');
+                        break;
+                    }
+                }
+            }
+        } catch (\Throwable $e) {}
+    }
 
     $currentWebhook = 'Desconocido';
     try {
-        $whRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/webhook/find/' . $instance);
+        $whRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/webhook/find/' . $instance);
         $whData = $whRes->json();
         $currentWebhook = $whData['url'] ?? ($whData['webhook']['url'] ?? 'No configurado');
     } catch (\Throwable $e) {}
@@ -545,17 +578,25 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $connectData = null;
     if ($state !== 'open' || $action === 'force_qr') {
         try {
-            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
-            $qrBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+            $rawBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+            if ($rawBase64) {
+                $qrBase64 = str_starts_with($rawBase64, 'data:') ? $rawBase64 : 'data:image/png;base64,' . $rawBase64;
+            }
         } catch (\Throwable $e) {
             $connectData = ['error' => $e->getMessage()];
         }
     }
 
+    $serverTime = now()->setTimezone('America/Argentina/Buenos_Aires')->format('H:i:s');
+
     // HTML Output
     $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Estoy Ok - Vinculación WhatsApp QR</title>';
     $html .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    $html .= '<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />';
+    $html .= '<meta http-equiv="Pragma" content="no-cache" />';
+    $html .= '<meta http-equiv="Expires" content="0" />';
     $html .= '<style>body{font-family:system-ui,-apple-system,sans-serif;background:#0b132b;color:#f8fafc;padding:30px;text-align:center;}';
     $html .= '.card{max-width:480px;margin:0 auto;background:#1c2541;padding:30px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}';
     $html .= '.badge{display:inline-block;padding:6px 14px;border-radius:20px;font-weight:bold;font-size:14px;margin-bottom:20px;}';
@@ -567,7 +608,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $html .= '</style></head><body>';
     $html .= '<div class="card">';
     $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
-    $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
+    $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code> | Servidor: <span id="server-clock">' . $serverTime . '</span></p>';
 
     $currentHost = $request->getHost();
     $isPointedHere = str_contains($currentWebhook, $currentHost);
@@ -596,7 +637,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $html .= '<button type="submit" class="btn btn-danger" onclick="return confirm(\'¿Estás seguro de desconectar WhatsApp? Deberás escanear un nuevo código QR desde el celular del bot.\')">🔴 Desconectar (Logout simple)</button>';
         $html .= '</form>';
     } else {
-        $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR</div>';
+        $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR (' . htmlspecialchars($state) . ')</div>';
         if ($qrBase64) {
             $imgSrc = str_starts_with($qrBase64, 'data:') ? $qrBase64 : 'data:image/png;base64,' . $qrBase64;
             $html .= '<div class="timer-badge" id="qr-timer">⚡ QR activo y actualizándose en vivo</div>';
@@ -604,34 +645,42 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
             $html .= '<p><strong>1.</strong> Abre WhatsApp en el celular del bot (<strong>5492323610697</strong>).</p>';
             $html .= '<p><strong>2.</strong> Ve a <em>Dispositivos vinculados</em> ➔ <em>Vincular un dispositivo</em>.</p>';
             $html .= '<p><strong>3.</strong> Apunta la cámara al código QR (se refresca solo para mantenerse siempre vigente).</p>';
-            $html .= '<script>
-                setInterval(async () => {
-                    try {
-                        const res = await fetch("/api/maintenance/connect-qr-data");
-                        const data = await res.json();
-                        if (data.state === "open") {
-                            location.reload();
-                            return;
-                        }
-                        if (data.qr_base64) {
-                            const img = document.getElementById("qr-img");
-                            if (img) img.src = data.qr_base64;
-                            const timer = document.getElementById("qr-timer");
-                            if (timer) timer.innerText = "⚡ QR sincronizado en vivo (vigente)";
-                        }
-                    } catch (e) {}
-                }, 4000);
-            </script>';
         } else {
-            $html .= '<p>No se pudo obtener la imagen del QR de Evolution API.</p>';
+            $html .= '<p>Generando código QR de Evolution API...</p>';
             $html .= '<pre style="text-align:left;background:#0b132b;padding:10px;font-size:11px;overflow:auto;">' . htmlspecialchars(json_encode($connectData, JSON_PRETTY_PRINT)) . '</pre>';
         }
-        $html .= '<br><a href="/api/maintenance/connect-qr" class="btn">🔄 Refrescar Estado</a>';
+        $html .= '<script>
+            setInterval(async () => {
+                try {
+                    const res = await fetch("/api/maintenance/connect-qr-data?t=" + Date.now());
+                    const data = await res.json();
+                    if (data.server_time) {
+                        const clock = document.getElementById("server-clock");
+                        if (clock) clock.innerText = data.server_time;
+                    }
+                    if (data.state === "open") {
+                        location.reload();
+                        return;
+                    }
+                    if (data.qr_base64) {
+                        const img = document.getElementById("qr-img");
+                        if (img) img.src = data.qr_base64;
+                        const timer = document.getElementById("qr-timer");
+                        if (timer) timer.innerText = "⚡ QR sincronizado en vivo (vigente)";
+                    }
+                } catch (e) {}
+            }, 4000);
+        </script>';
+        $html .= '<br><a href="/api/maintenance/connect-qr?t=' . time() . '" class="btn">🔄 Refrescar Estado</a>';
     }
 
     $html .= '</div></body></html>';
 
-    return response($html)->header('Content-Type', 'text/html');
+    return response($html)
+        ->header('Content-Type', 'text/html')
+        ->header('Cache-Control', 'no-store, no-cache, must-revalidate, max-age=0')
+        ->header('Pragma', 'no-cache')
+        ->header('Expires', '0');
 });
 
 Route::post('/maintenance/setup-evolution-webhook', function (Request $request) {
