@@ -1,5 +1,21 @@
 # Progress Log
 
+## [2026-10-12] Resolución Definitiva de Incidencia "Esperando Mensaje" y Saneamiento de Base de Claves en Evolution API
+- **Diagnóstico Integral y Causa Raíz:**
+    - Se aisló la causa exacta por la cual los mensajes salientes con URL o texto plano quedaban en *"Esperando mensaje. Esto puede tomar tiempo"* en el cliente móvil físico de WhatsApp:
+      1. La instancia `estoyok_main` en Evolution API (desplegada originalmente en agosto de 2026) acumulaba tablas de sesiones y claves desfasadas en el esquema PostgreSQL de Railway.
+      2. Al ejecutar desconexiones simples (`logout`), Baileys no purgaba la tabla `Session` ni las claves pre-generadas, provocando un desfasaje criptográfico en `libsignal` (`SessionError: No sessions`).
+      3. A su vez, WhatsApp transmitía el tráfico saliente con claves que el cliente móvil primario no lograba descifrar de inmediato en su sesión local.
+- **Solución y Saneamiento de Infraestructura (Backend Laravel & Evolution API):**
+    - En [`EvolutionApiService.php`](file:///home/usuario/aplicaciones/estoyok/backend/app/Services/EvolutionApiService.php), se configuró explícitamente `'linkPreview' => false` en las peticiones a `/message/sendText` para evitar que la generación pesada de previsualizaciones de enlaces interfiera en el cifrado de alertas SOS/Inactividad.
+    - Se amplió la consola de mantenimiento [`api.php`](file:///home/usuario/aplicaciones/estoyok/backend/routes/api.php) (`/maintenance/connect-qr`) incorporando la acción de borrado en cascada y recreación limpia (`DELETE /instance/delete` + `POST /instance/create`), forzando el vaciado de tablas residuales en PostgreSQL.
+    - Se recreó la instancia `estoyok_main` de forma 100% limpia en Railway con integración `WHATSAPP-BAILEYS`, re-vinculando el socket y auto-configurando el webhook hacia `https://api.estoyok24.com/api/webhooks/evolution/message`.
+- **Validación en Vivo en Teléfono Físico:**
+    - Realizado nuevo escaneo de QR por parte del usuario desde el teléfono del bot (`5492323610697`).
+    - Despachadas pruebas salientes de texto plano y alerta con enlace de emergencia hacia el teléfono móvil físico (`+5491149790220`).
+    - **Resultado:** Confirmado por el usuario que ambos mensajes llegaron al instante y son 100% legibles en el dispositivo móvil receptor, eliminando definitivamente el aviso de *"Esperando mensaje"*.
+    - Ejecutado ciclo de inactividad de prueba (Fast-Forward 1 minuto) vía Scheduler de Railway: alertas de bienestar y de contacto de emergencia despachadas y entregadas con éxito en tiempo y forma.
+
 ## [2026-10-11] Modo de Prueba Natural de Inactividad (Fast-Forward) y Verificación Minuto a Minuto en Scheduler
 - **Backend Laravel & Scheduler (`routes/console.php`):**
     - Configurado `checkins:verify-inactivity` para ejecutarse cada 1 minuto (`everyMinute()`) en todos los entornos, reduciendo el tiempo de espera tras el vencimiento del reloj a un máximo de 60 segundos.
