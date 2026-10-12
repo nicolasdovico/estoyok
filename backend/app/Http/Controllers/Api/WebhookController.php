@@ -69,26 +69,17 @@ class WebhookController extends Controller
                 'headers' => $request->headers->all(),
             ]);
 
-            // Mirror webhook payload between Prod and Dev environments if single WhatsApp instance is shared
-            if (! $request->header('X-EstoyOk-Mirrored')) {
-                $currentHost = $request->getHost();
-                $peerUrl = null;
-                if (str_contains($currentHost, 'backend-api-dev') || str_contains($currentHost, 'dev')) {
-                    $peerUrl = 'https://api.estoyok24.com/api/webhooks/evolution/message';
-                } elseif (str_contains($currentHost, 'api.estoyok24.com')) {
-                    $peerUrl = 'https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message';
-                }
-
-                if ($peerUrl) {
-                    try {
-                        \Illuminate\Support\Facades\Http::withHeaders([
-                            'X-EstoyOk-Mirrored' => '1',
-                            'Content-Type' => 'application/json',
-                        ])->timeout(3)->post($peerUrl, $request->all());
-                        Log::info("Evolution Webhook: Mirrored payload to peer {$peerUrl}");
-                    } catch (\Throwable $e) {
-                        Log::warning("Evolution Webhook: Mirror to peer {$peerUrl} failed: " . $e->getMessage());
-                    }
+            // Optional webhook payload mirror if configured explicitly in env
+            $peerUrl = config('services.evolution.webhook_peer_url');
+            if ($peerUrl && ! $request->header('X-EstoyOk-Mirrored')) {
+                try {
+                    \Illuminate\Support\Facades\Http::withHeaders([
+                        'X-EstoyOk-Mirrored' => '1',
+                        'Content-Type' => 'application/json',
+                    ])->timeout(3)->post($peerUrl, $request->all());
+                    Log::info("Evolution Webhook: Mirrored payload to peer {$peerUrl}");
+                } catch (\Throwable $e) {
+                    Log::warning("Evolution Webhook: Mirror to peer {$peerUrl} failed: " . $e->getMessage());
                 }
             }
 
@@ -302,18 +293,23 @@ class WebhookController extends Controller
                 }
             }
 
-            // Confirmation reply via WhatsApp
-            try {
-                $targetPhone = $user->phone;
-                if (! empty($targetPhone)) {
-                    $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
-                    $whatsAppService->sendWhatsApp($targetPhone, '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
-                    Log::info("Evolution Webhook: Confirmation sent to {$targetPhone} for user {$user->id}");
-                } else {
-                    Log::warning("Evolution Webhook: User {$user->id} has no phone configured, skipping WhatsApp confirmation reply");
+            // Confirmation reply via WhatsApp (only if not a mirrored call to avoid duplicate responses)
+            if (! $request->header('X-EstoyOk-Mirrored')) {
+                try {
+                    $targetPhone = $user->phone;
+                    if (! empty($targetPhone)) {
+                        if (! app()->runningUnitTests()) {
+                            sleep(3);
+                        }
+                        $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
+                        $whatsAppService->sendWhatsApp($targetPhone, '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
+                        Log::info("Evolution Webhook: Confirmation sent to {$targetPhone} for user {$user->id}");
+                    } else {
+                        Log::warning("Evolution Webhook: User {$user->id} has no phone configured, skipping WhatsApp confirmation reply");
+                    }
+                } catch (\Throwable $e) {
+                    Log::warning("Evolution Webhook: Failed to send WhatsApp confirmation to " . ($user->phone ?? 'null') . ": " . $e->getMessage());
                 }
-            } catch (\Throwable $e) {
-                Log::warning("Evolution Webhook: Failed to send WhatsApp confirmation to " . ($user->phone ?? 'null') . ": " . $e->getMessage());
             }
 
             return response()->json(['status' => 'success', 'message' => 'Check-in processed successfully']);
