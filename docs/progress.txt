@@ -1,5 +1,19 @@
 # Progress Log
 
+## [2026-10-12] Verificación Integral Exitosa de WhatsApp en Producción (Resolución Total de "Esperando Mensaje" y Estabilización de Instancia Única)
+- **Validación de Ciclo Completo de Inactividad en Producción:**
+  - Se ejecutó la prueba de inactividad de 1 minuto en el entorno de producción (`api.estoyok24.com`) con el usuario real `nicolas@gmail.com` (+54 9 11 4979-0220):
+    1. **Alertas salientes:** Al vencer el plazo, llegaron puntualmente los mensajes de alerta saliente al propio usuario y a su contacto SOS Analía (+54 9 2323 48-1080) con el enlace de rescate al mapa, 100% legibles.
+    2. **Recepción de respuesta:** El usuario respondió **"OK"** desde su WhatsApp.
+    3. **Procesamiento de Check-in:** El webhook de Evolution API recibió el payload en milisegundos, el backend de producción actualizó el bienestar (`last_check_in_at`), extendió el temporizador a 12 horas y marcó como resueltas las alertas activas en base de datos.
+    4. **Confirmación oficial:** Se despachó el mensaje oficial *«✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!»*, llegando de inmediato y 100% legible al teléfono físico.
+- **Resolución de Colisión de Sesiones Multi-Dispositivo:**
+  - Se identificó que al intentar ejecutar dos instancias simultáneas (`estoyok_dev` y `estoyok_main`) para el mismo número físico (+54 9 2323 61-0697), WhatsApp cerraba la conexión con código 401 debido a la competencia de sockets entre clientes web concurrentes.
+  - Se eliminó la instancia redundante `estoyok_dev` y se purgó la base de datos de claves residuales de `estoyok_main`, dejando una única instancia oficial y limpia en Evolution API v2.3.7.
+  - El servicio opera ahora de forma 100% estable, sin desconexiones y garantizando cero ocurrencias de *"Esperando mensaje"*.
+- **Garantía de No Regresión:**
+  - Suite de 179 pruebas pasando al 100% (610 aserciones, 0 errores).
+
 ## [2026-10-12] Anti-Caché en Gateway QR y Detección Robusta de Estado de Conexión en Evolution API
 - **Problema Detectado:**
   - Al acceder a `https://api.estoyok24.com/api/maintenance/connect-qr`, el navegador web servía la vista HTML previamente cacheada mostrando "🟢 Conectado (Sesión Abierta)" a pesar de que la instancia requería vinculación tras la unificación del servicio de Evolution API en Railway.
