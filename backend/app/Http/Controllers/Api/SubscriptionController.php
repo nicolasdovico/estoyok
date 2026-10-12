@@ -126,7 +126,7 @@ class SubscriptionController extends Controller
      *     @OA\Response(response=200, description="Redirects to payment gateway checkout")
      * )
      */
-    public function startTrial(Request $request, MercadoPagoService $mpService, PayPalService $paypalService)
+    public function startTrial(Request $request)
     {
         $user = Auth::user();
 

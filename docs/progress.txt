@@ -1,5 +1,25 @@
 # Progress Log
 
+## [2026-10-12] Verificación Exitosa de Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring)
+- **Escenario Validado en Vivo:**
+  - Configurada la variable `EVOLUTION_WEBHOOK_PEER_URL=https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message` en el servicio de Producción de Railway.
+  - La instancia única oficial de WhatsApp (`estoyok_main` en Evolution API v2.3.7) despacha webhooks a Producción (`api.estoyok24.com`).
+  - Al disparar la alerta de inactividad, el usuario respondió un único **"OK"** desde su teléfono móvil (+54 9 11 4979-0220).
+- **Resultados Constatados:**
+  1. **Producción (`api.estoyok24.com`):**
+     - Recibió el mensaje "OK" entrante de Evolution API a las `22:56:42` UTC (19:56:42 hora local).
+     - Procesó el check-in del usuario `nicolas@gmail.com` (Check-in #140), actualizó `last_check_in_at` y resolvió las alertas de emergencia.
+     - Despachó el mensaje de confirmación oficial (*«✅ Bienestar verificado con éxito...»*) vía cola con delay de 6s.
+     - Espejó el payload HTTP a Desarrollo con el header de control `X-EstoyOk-Mirrored: 1`.
+  2. **Desarrollo (`backend-api-dev-2a56.up.railway.app`):**
+     - Recibió el payload replicado a las `22:56:41` UTC (mismo segundo).
+     - Identificó al usuario titular del teléfono (+54 9 11 4979-0220) en Dev (`tamarakshop@gmail.com` - Check-in #131).
+     - Procesó el check-in y actualizó `last_check_in_at` en la base de datos de desarrollo.
+     - Al detectar `X-EstoyOk-Mirrored: 1`, suprimió el reenvío de webhook (prevención de bucles) y suprimió la emisión de un mensaje duplicado de confirmación.
+  3. **Dispositivo Físico:**
+     - El usuario recibió exactamente **1 solo mensaje de confirmación**, legible y sin interferencias ni estados de error.
+     - Ambos entornos conviven armónicamente con 1 único chip SIM sin interrumpir a los usuarios en producción.
+
 ## [2026-10-12] Verificación Integral Exitosa de WhatsApp en Producción (Resolución Total de "Esperando Mensaje" y Estabilización de Instancia Única)
 - **Validación de Ciclo Completo de Inactividad en Producción:**
   - Se ejecutó la prueba de inactividad de 1 minuto en el entorno de producción (`api.estoyok24.com`) con el usuario real `nicolas@gmail.com` (+54 9 11 4979-0220):
