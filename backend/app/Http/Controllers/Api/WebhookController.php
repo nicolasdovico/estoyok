@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Jobs\SendCheckinConfirmationWhatsAppJob;
 use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Log;
 
 class WebhookController extends Controller
@@ -108,6 +109,17 @@ class WebhookController extends Controller
             if ($fromMe === true) {
                 $this->recordWebhookCall($payload, 'ignored_from_me');
                 return response()->json(['status' => 'ignored', 'reason' => 'from_me']);
+            }
+
+            // Deduplicate incoming webhook messages by key.id across concurrent instances or retries
+            $messageId = data_get($item, 'key.id') ?? data_get($payload, 'data.key.id');
+            if (! empty($messageId) && ! app()->runningUnitTests()) {
+                $seenKey = "wa_webhook_msg_seen_{$messageId}";
+                if (! Cache::add($seenKey, true, 60)) {
+                    Log::info("Evolution Webhook: Duplicate message ID {$messageId} ignored");
+                    $this->recordWebhookCall($payload, 'ignored_duplicate_message_id');
+                    return response()->json(['status' => 'ignored', 'reason' => 'duplicate_message']);
+                }
             }
 
             // 1. Extract sender JID from message item (NOT top-level instance sender)
@@ -299,10 +311,15 @@ class WebhookController extends Controller
                 try {
                     $targetPhone = $user->phone;
                     if (! empty($targetPhone)) {
-                        $delaySeconds = app()->runningUnitTests() ? 0 : 6;
-                        SendCheckinConfirmationWhatsAppJob::dispatch($targetPhone, $user->id)
-                            ->delay(now()->addSeconds($delaySeconds));
-                        Log::info("Evolution Webhook: Dispatched confirmation job for {$targetPhone} (delay: {$delaySeconds}s)");
+                        $confirmLockKey = "wa_confirm_dispatched_user_{$user->id}";
+                        if (app()->runningUnitTests() || Cache::add($confirmLockKey, true, 20)) {
+                            $delaySeconds = app()->runningUnitTests() ? 0 : 6;
+                            SendCheckinConfirmationWhatsAppJob::dispatch($targetPhone, $user->id)
+                                ->delay(now()->addSeconds($delaySeconds));
+                            Log::info("Evolution Webhook: Dispatched confirmation job for {$targetPhone} (delay: {$delaySeconds}s)");
+                        } else {
+                            Log::info("Evolution Webhook: Confirmation already dispatched recently for user {$user->id}, skipping duplicate reply");
+                        }
                     } else {
                         Log::warning("Evolution Webhook: User {$user->id} has no phone configured, skipping WhatsApp confirmation reply");
                     }
