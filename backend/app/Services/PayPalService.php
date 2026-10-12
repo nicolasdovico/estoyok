@@ -12,8 +12,14 @@ class PayPalService
     {
         $this->provider = new PayPalClient;
         $this->provider->setApiCredentials(config('paypal'));
-        $token = $this->provider->getAccessToken();
-        $this->provider->setAccessToken($token);
+        try {
+            $token = $this->provider->getAccessToken();
+            if (is_array($token) && isset($token['access_token'])) {
+                $this->provider->setAccessToken($token);
+            }
+        } catch (\Throwable $e) {
+            \Log::warning('PayPal initialization warning: ' . $e->getMessage());
+        }
     }
 
     public function createSubscriptionLink($user, $planId = 'premium')
