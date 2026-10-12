@@ -65,8 +65,10 @@ class SendInactivityAlerts implements ShouldQueue
                 $this->sendPushNotificationToNucleusMembers($alert);
 
                 if ($selfWhatsAppSent) {
-                    // Espaciado de 1.5s para evitar colisiones de cifrado/ratchet de WhatsApp si el contacto comparte número o red
-                    usleep(1500000);
+                    // Espaciado saludable de 10 segundos para permitir que el protocolo Signal/Ratchet de WhatsApp asimile la entrega del primer mensaje antes del siguiente
+                    if (! app()->runningUnitTests()) {
+                        sleep(10);
+                    }
                 }
             }
 
@@ -192,8 +194,10 @@ class SendInactivityAlerts implements ShouldQueue
 
         foreach ($contacts as $index => $contact) {
             if ($index > 0) {
-                // Espaciado de 1.5 segundos entre cada contacto para evitar ráfagas
-                usleep(1500000);
+                // Espaciado de 10 segundos entre cada contacto para evitar ráfagas
+                if (! app()->runningUnitTests()) {
+                    sleep(10);
+                }
             }
             $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
         }
