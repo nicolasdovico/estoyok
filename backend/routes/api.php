@@ -437,6 +437,43 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
+Route::get('/maintenance/connect-qr-data', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['error' => 'EVOLUTION_API_URL not configured'], 400);
+    }
+
+    $state = 'unknown';
+    try {
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateData = $stateRes->json();
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+    } catch (\Throwable $e) {}
+
+    $qrBase64 = null;
+    $count = 0;
+    if ($state !== 'open') {
+        try {
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connectData = $connRes->json();
+            $rawBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+            if ($rawBase64) {
+                $qrBase64 = str_starts_with($rawBase64, 'data:') ? $rawBase64 : 'data:image/png;base64,' . $rawBase64;
+            }
+            $count = $connectData['count'] ?? 0;
+        } catch (\Throwable $e) {}
+    }
+
+    return response()->json([
+        'state' => $state,
+        'qr_base64' => $qrBase64,
+        'count' => $count,
+    ]);
+});
+
 Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $request) {
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
@@ -490,6 +527,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $html .= '.btn{background:#00e5d9;color:#0b132b;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;margin:10px 5px;}';
     $html .= '.btn-danger{background:#ef4444;color:#fff;}';
     $html .= 'img.qr{background:#fff;padding:15px;border-radius:12px;margin:20px 0;max-width:280px;height:auto;}';
+    $html .= '.timer-badge{font-size:12px;color:#00e5d9;margin-bottom:10px;}';
     $html .= '</style></head><body>';
     $html .= '<div class="card">';
     $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
@@ -506,10 +544,29 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR</div>';
         if ($qrBase64) {
             $imgSrc = str_starts_with($qrBase64, 'data:') ? $qrBase64 : 'data:image/png;base64,' . $qrBase64;
-            $html .= '<div><img class="qr" src="' . $imgSrc . '" alt="Código QR WhatsApp" /></div>';
+            $html .= '<div class="timer-badge" id="qr-timer">⚡ QR activo y actualizándose en vivo</div>';
+            $html .= '<div><img id="qr-img" class="qr" src="' . $imgSrc . '" alt="Código QR WhatsApp" /></div>';
             $html .= '<p><strong>1.</strong> Abre WhatsApp en el celular del bot (<strong>5492323610697</strong>).</p>';
             $html .= '<p><strong>2.</strong> Ve a <em>Dispositivos vinculados</em> ➔ <em>Vincular un dispositivo</em>.</p>';
-            $html .= '<p><strong>3.</strong> Apunta la cámara a este código QR.</p>';
+            $html .= '<p><strong>3.</strong> Apunta la cámara al código QR (se refresca solo para mantenerse siempre vigente).</p>';
+            $html .= '<script>
+                setInterval(async () => {
+                    try {
+                        const res = await fetch("/api/maintenance/connect-qr-data");
+                        const data = await res.json();
+                        if (data.state === "open") {
+                            location.reload();
+                            return;
+                        }
+                        if (data.qr_base64) {
+                            const img = document.getElementById("qr-img");
+                            if (img) img.src = data.qr_base64;
+                            const timer = document.getElementById("qr-timer");
+                            if (timer) timer.innerText = "⚡ QR sincronizado en vivo (vigente)";
+                        }
+                    } catch (e) {}
+                }, 4000);
+            </script>';
         } else {
             $html .= '<p>No se pudo obtener la imagen del QR de Evolution API.</p>';
             $html .= '<pre style="text-align:left;background:#0b132b;padding:10px;font-size:11px;overflow:auto;">' . htmlspecialchars(json_encode($connectData, JSON_PRETTY_PRINT)) . '</pre>';
