@@ -504,7 +504,16 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         return redirect('/api/maintenance/connect-qr');
     }
 
-    // 2. If user clicked logout, disconnect the instance first
+    // 2. If user clicked set_webhook, bind Evolution API webhook to this backend
+    if ($action === 'set_webhook') {
+        try {
+            $service = app(\App\Services\EvolutionApiService::class);
+            $service->ensureWebhookConfigured($request->root(), true);
+        } catch (\Throwable $e) {}
+        return redirect('/api/maintenance/connect-qr');
+    }
+
+    // 3. If user clicked logout, disconnect the instance first
     $logoutOutput = null;
     if ($action === 'logout') {
         try {
@@ -516,7 +525,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         return redirect('/api/maintenance/connect-qr');
     }
 
-    // 3. Check current state
+    // 4. Check current state & webhook
     $state = 'unknown';
     try {
         $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
@@ -524,7 +533,14 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
     } catch (\Throwable $e) {}
 
-    // 4. If not open, fetch connect QR
+    $currentWebhook = 'Desconocido';
+    try {
+        $whRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/webhook/find/' . $instance);
+        $whData = $whRes->json();
+        $currentWebhook = $whData['url'] ?? ($whData['webhook']['url'] ?? 'No configurado');
+    } catch (\Throwable $e) {}
+
+    // 5. If not open, fetch connect QR
     $qrBase64 = null;
     $connectData = null;
     if ($state !== 'open' || $action === 'force_qr') {
@@ -552,6 +568,21 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $html .= '<div class="card">';
     $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
     $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
+
+    $currentHost = $request->getHost();
+    $isPointedHere = str_contains($currentWebhook, $currentHost);
+    $html .= '<div style="background:#0b132b;padding:12px;border-radius:10px;margin:15px 0;text-align:left;font-size:13px;border:1px solid ' . ($isPointedHere ? '#10b981' : '#f59e0b') . ';">';
+    $html .= '<div><strong>🔗 Webhook activo en Evolution:</strong></div>';
+    $html .= '<code style="word-break:break-all;color:' . ($isPointedHere ? '#10b981' : '#f59e0b') . ';">' . htmlspecialchars($currentWebhook) . '</code>';
+    if (! $isPointedHere) {
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-top:10px;">';
+        $html .= '<input type="hidden" name="action" value="set_webhook">';
+        $html .= '<button type="submit" class="btn" style="background:#3b82f6;color:#fff;padding:8px 16px;font-size:12px;margin:0;">🎯 Apuntar Webhook a este entorno (' . htmlspecialchars($currentHost) . ')</button>';
+        $html .= '</form>';
+    } else {
+        $html .= '<div style="color:#10b981;font-size:11px;margin-top:5px;">✅ Este backend está recibiendo los mensajes de WhatsApp.</div>';
+    }
+    $html .= '</div>';
 
     if ($state === 'open') {
         $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
