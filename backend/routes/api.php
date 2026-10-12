@@ -485,7 +485,23 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
 
     $action = $request->input('action') ?? $request->query('action');
 
-    // 1. If user clicked logout, disconnect the instance first
+    // 1. If user requested reset_instance, completely delete and recreate
+    if ($action === 'reset_instance') {
+        try {
+            Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/delete/' . $instance);
+            usleep(600000);
+            Http::withHeaders(['apikey' => $apiKey])->post(rtrim($baseUrl, '/') . '/instance/create', [
+                'instanceName' => $instance,
+                'integration' => 'WHATSAPP-BAILEYS',
+                'qrcode' => true,
+            ]);
+            usleep(600000);
+            $service = app(\App\Services\EvolutionApiService::class);
+            $service->sendWhatsApp('dummy', 'dummy');
+        } catch (\Throwable $e) {}
+    }
+
+    // 2. If user clicked logout, disconnect the instance first
     $logoutOutput = null;
     if ($action === 'logout') {
         try {
@@ -496,7 +512,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         }
     }
 
-    // 2. Check current state
+    // 3. Check current state
     $state = 'unknown';
     try {
         $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
@@ -504,10 +520,10 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
     } catch (\Throwable $e) {}
 
-    // 3. If not open (or if action=connect or after logout), fetch connect QR
+    // 4. If not open (or if action=connect or after logout or reset), fetch connect QR
     $qrBase64 = null;
     $connectData = null;
-    if ($state !== 'open' || $action === 'force_qr' || $action === 'logout') {
+    if ($state !== 'open' || $action === 'force_qr' || $action === 'logout' || $action === 'reset_instance') {
         try {
             $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
@@ -533,12 +549,16 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
     $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
 
-    if ($state === 'open' && $action !== 'logout') {
+    if ($state === 'open' && $action !== 'logout' && $action !== 'reset_instance') {
         $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
-        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa. Para limpiar la caché de claves y generar un nuevo código QR limpio, pulsa el botón a continuación:</p>';
+        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa. Si experimentas errores de envío (SessionError) o mensajes trabados, pulsa el botón a continuación para recrear la instancia limpiamente desde cero:</p>';
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
+        $html .= '<input type="hidden" name="action" value="reset_instance">';
+        $html .= '<button type="submit" class="btn" style="background:#f59e0b;color:#0b132b;" onclick="return confirm(\'¿Recrear la instancia desde cero? Se borrarán las tablas y claves residuales de la BD en Railway y se generará un QR 100% limpio.\')">🧹 Recrear Instancia Limpia (Solución a SessionError)</button>';
+        $html .= '</form>';
         $html .= '<form method="POST" action="/api/maintenance/connect-qr">';
         $html .= '<input type="hidden" name="action" value="logout">';
-        $html .= '<button type="submit" class="btn btn-danger" onclick="return confirm(\'¿Estás seguro de desconectar WhatsApp? Deberás escanear un nuevo código QR desde el celular del bot.\')">🔴 Desconectar y Generar Nuevo QR</button>';
+        $html .= '<button type="submit" class="btn btn-danger" onclick="return confirm(\'¿Estás seguro de desconectar WhatsApp? Deberás escanear un nuevo código QR desde el celular del bot.\')">🔴 Desconectar (Logout simple)</button>';
         $html .= '</form>';
     } else {
         $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR</div>';
