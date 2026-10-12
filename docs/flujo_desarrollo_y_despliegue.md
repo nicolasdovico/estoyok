@@ -181,6 +181,39 @@ Todos estos comandos se ejecutan situándote en la carpeta `android-native/`:
 
 ---
 
+## 📲 Convivencia de WhatsApp entre Dev y Producción (Instancia Única)
+
+Tanto **Producción** (`api.estoyok24.com`) como **Desarrollo** (`backend-api-dev-2a56.up.railway.app`) comparten la **misma instancia oficial de WhatsApp (`estoyok_main`)** en Evolution API, vinculada al teléfono del bot (`+54 9 2323 61-0697`).
+
+### 1. Mensajes Salientes (Alertas, SOS, Notificaciones):
+* **Convivencia 100% libre de interferencias:** Ambos entornos despachan llamadas HTTP al mismo gateway. Los mensajes de Dev y de Producción salen inmediatamente por WhatsApp sin bloquearse ni pisarse entre sí.
+* **Impacto en usuarios reales:** CERO. Los usuarios reales de producción reciben sus alertas con total normalidad mientras tú pruebas en Dev.
+
+### 2. Mensajes Entrantes (Respuestas "OK" de Check-In):
+Cuando un usuario responde *"OK"* al bot de WhatsApp, Evolution API entrega el webhook a un backend. Dependiendo del método elegido:
+
+#### 🔹 Opción A: Espejo Automático de Webhook (`EVOLUTION_WEBHOOK_PEER_URL`) - [RECOMENDADA]
+* **Cómo funciona:**
+  - El webhook de Evolution API apunta permanentemente a **Producción**.
+  - En las variables de Producción en Railway se define:
+    `EVOLUTION_WEBHOOK_PEER_URL=https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message`
+  - Cuando llega un *"OK"*, Producción procesa al usuario real y le reenvía una copia en segundo plano a Dev (`X-EstoyOk-Mirrored: 1`).
+  - Si el número pertenece a tu usuario en Dev, Dev actualiza tu bienestar. Si pertenece a un usuario de Producción, Dev lo ignora silenciosamente. Dev nunca emite confirmaciones duplicadas gracias al flag `X-EstoyOk-Mirrored`.
+* **Convivencia:** Conviven ambos entornos al 100% de forma simultánea. Nunca dejas sin servicio a usuarios reales de producción y nunca tienes que acordarte de cambiar nada.
+
+#### 🔹 Opción B: Conmutación Manual con 1 Clic (Maintenance Gateway)
+* **Cómo funciona:**
+  - Cuando vas a probar en Dev, abres:
+    `https://backend-api-dev-2a56.up.railway.app/api/maintenance/connect-qr`
+    y presionas el botón azul:
+    `🎯 Apuntar Webhook a este entorno (backend-api-dev-2a56.up.railway.app)`
+  - Al terminar tus pruebas en Dev, abres:
+    `https://api.estoyok24.com/api/maintenance/connect-qr`
+    y presionas el botón azul para devolver el webhook a Producción.
+* **⚠️ Advertencia de Interferencia:** Mientras el webhook esté apuntado a Dev, si un usuario real de producción responde *"OK"*, el backend de Dev dirá `user_not_found` y el usuario de producción **no registrará su check-in en producción hasta que regreses el webhook a Producción**. Por ello, si ya hay usuarios reales en producción, se recomienda la **Opción A**.
+
+---
+
 ## 🛡️ Reglas de Oro de Seguridad
 
 1. **Retrocompatibilidad de API:** Los usuarios de Google Play tardan días o semanas en actualizar la app. Cuando agregues nuevos endpoints o columnas en la base de datos de producción, asegúrate de que sean aditivos y no rompan la versión que los usuarios ya tienen instalada.

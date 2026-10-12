@@ -48,6 +48,7 @@ pass: tomas1234
 * **Desarrollo (Dev):** `https://backend-api-dev-2a56.up.railway.app/api/maintenance/connect-qr`
 * **Diagnóstico de Inactividad (Prod):** `https://api.estoyok24.com/api/maintenance/diagnose-inactivity?email=nicolas@gmail.com`
 * **Prueba de Inactividad Fast-Forward (1 min):** `https://api.estoyok24.com/api/maintenance/prepare-inactivity-test?email=nicolas@gmail.com&minutes_left=1`
+* **Guía de Convivencia Dev vs Prod:** Ver [`docs/flujo_desarrollo_y_despliegue.md`](docs/flujo_desarrollo_y_despliegue.md)
 
 ---
 
