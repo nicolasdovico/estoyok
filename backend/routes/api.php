@@ -437,6 +437,91 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
+Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $request) {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response('<h3>EVOLUTION_API_URL no configurada</h3>', 400);
+    }
+
+    $action = $request->input('action') ?? $request->query('action');
+
+    // 1. If user clicked logout, disconnect the instance first
+    $logoutOutput = null;
+    if ($action === 'logout') {
+        try {
+            $logoutRes = Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance);
+            $logoutOutput = $logoutRes->json() ?? $logoutRes->body();
+        } catch (\Throwable $e) {
+            $logoutOutput = ['error' => $e->getMessage()];
+        }
+    }
+
+    // 2. Check current state
+    $state = 'unknown';
+    try {
+        $stateRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance);
+        $stateData = $stateRes->json();
+        $state = $stateData['instance']['state'] ?? ($stateData['state'] ?? 'unknown');
+    } catch (\Throwable $e) {}
+
+    // 3. If not open (or if action=connect or after logout), fetch connect QR
+    $qrBase64 = null;
+    $connectData = null;
+    if ($state !== 'open' || $action === 'force_qr' || $action === 'logout') {
+        try {
+            $connRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
+            $connectData = $connRes->json();
+            $qrBase64 = $connectData['base64'] ?? ($connectData['qrcode']['base64'] ?? null);
+        } catch (\Throwable $e) {
+            $connectData = ['error' => $e->getMessage()];
+        }
+    }
+
+    // HTML Output
+    $html = '<!DOCTYPE html><html><head><meta charset="utf-8"><title>Estoy Ok - Vinculación WhatsApp QR</title>';
+    $html .= '<meta name="viewport" content="width=device-width, initial-scale=1">';
+    $html .= '<style>body{font-family:system-ui,-apple-system,sans-serif;background:#0b132b;color:#f8fafc;padding:30px;text-align:center;}';
+    $html .= '.card{max-width:480px;margin:0 auto;background:#1c2541;padding:30px;border-radius:16px;box-shadow:0 10px 25px rgba(0,0,0,0.5);}';
+    $html .= '.badge{display:inline-block;padding:6px 14px;border-radius:20px;font-weight:bold;font-size:14px;margin-bottom:20px;}';
+    $html .= '.open{background:#10b981;color:#fff;} .disconnected{background:#ef4444;color:#fff;}';
+    $html .= '.btn{background:#00e5d9;color:#0b132b;padding:12px 24px;border:none;border-radius:10px;font-weight:bold;cursor:pointer;text-decoration:none;display:inline-block;margin:10px 5px;}';
+    $html .= '.btn-danger{background:#ef4444;color:#fff;}';
+    $html .= 'img.qr{background:#fff;padding:15px;border-radius:12px;margin:20px 0;max-width:280px;height:auto;}';
+    $html .= '</style></head><body>';
+    $html .= '<div class="card">';
+    $html .= '<h2>Estoy Ok 📲 Gateway WhatsApp</h2>';
+    $html .= '<p>Instancia: <code>' . htmlspecialchars($instance) . '</code></p>';
+
+    if ($state === 'open' && $action !== 'logout') {
+        $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
+        $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa. Para limpiar la caché de claves y generar un nuevo código QR limpio, pulsa el botón a continuación:</p>';
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr">';
+        $html .= '<input type="hidden" name="action" value="logout">';
+        $html .= '<button type="submit" class="btn btn-danger" onclick="return confirm(\'¿Estás seguro de desconectar WhatsApp? Deberás escanear un nuevo código QR desde el celular del bot.\')">🔴 Desconectar y Generar Nuevo QR</button>';
+        $html .= '</form>';
+    } else {
+        $html .= '<div class="badge disconnected">🟡 Esperando Escaneo de QR</div>';
+        if ($qrBase64) {
+            $imgSrc = str_starts_with($qrBase64, 'data:') ? $qrBase64 : 'data:image/png;base64,' . $qrBase64;
+            $html .= '<div><img class="qr" src="' . $imgSrc . '" alt="Código QR WhatsApp" /></div>';
+            $html .= '<p><strong>1.</strong> Abre WhatsApp en el celular del bot (<strong>5492323610697</strong>).</p>';
+            $html .= '<p><strong>2.</strong> Ve a <em>Dispositivos vinculados</em> ➔ <em>Vincular un dispositivo</em>.</p>';
+            $html .= '<p><strong>3.</strong> Apunta la cámara a este código QR.</p>';
+        } else {
+            $html .= '<p>No se pudo obtener la imagen del QR de Evolution API.</p>';
+            $html .= '<pre style="text-align:left;background:#0b132b;padding:10px;font-size:11px;overflow:auto;">' . htmlspecialchars(json_encode($connectData, JSON_PRETTY_PRINT)) . '</pre>';
+        }
+        $html .= '<br><a href="/api/maintenance/connect-qr" class="btn">🔄 Refrescar Estado</a>';
+    }
+
+    $html .= '</div></body></html>';
+
+    return response($html)->header('Content-Type', 'text/html');
+});
+
 Route::post('/maintenance/setup-evolution-webhook', function (Request $request) {
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
