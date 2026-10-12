@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Jobs\SendCheckinConfirmationWhatsAppJob;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -293,22 +294,20 @@ class WebhookController extends Controller
                 }
             }
 
-            // Confirmation reply via WhatsApp (only if not a mirrored call to avoid duplicate responses)
+            // Confirmation reply via WhatsApp (queued in background to decouple from webhook cycle)
             if (! $request->header('X-EstoyOk-Mirrored')) {
                 try {
                     $targetPhone = $user->phone;
                     if (! empty($targetPhone)) {
-                        if (! app()->runningUnitTests()) {
-                            sleep(3);
-                        }
-                        $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
-                        $whatsAppService->sendWhatsApp($targetPhone, '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!');
-                        Log::info("Evolution Webhook: Confirmation sent to {$targetPhone} for user {$user->id}");
+                        $delaySeconds = app()->runningUnitTests() ? 0 : 6;
+                        SendCheckinConfirmationWhatsAppJob::dispatch($targetPhone, $user->id)
+                            ->delay(now()->addSeconds($delaySeconds));
+                        Log::info("Evolution Webhook: Dispatched confirmation job for {$targetPhone} (delay: {$delaySeconds}s)");
                     } else {
                         Log::warning("Evolution Webhook: User {$user->id} has no phone configured, skipping WhatsApp confirmation reply");
                     }
                 } catch (\Throwable $e) {
-                    Log::warning("Evolution Webhook: Failed to send WhatsApp confirmation to " . ($user->phone ?? 'null') . ": " . $e->getMessage());
+                    Log::warning("Evolution Webhook: Failed to dispatch confirmation job to " . ($user->phone ?? 'null') . ": " . $e->getMessage());
                 }
             }
 
