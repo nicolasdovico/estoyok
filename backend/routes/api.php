@@ -222,7 +222,7 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             }
         }
 
-        $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->latest()->take(5)->get();
+        $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->orderBy('id', 'desc')->take(5)->get();
 
         $runVerify = $request->query('run_verify');
         $verifyOutput = null;
