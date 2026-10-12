@@ -162,6 +162,119 @@ Route::post('/maintenance/trigger-inactivity-alert', function (Request $request)
     }
 });
 
+Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
+    $email = $request->input('email', 'tamarakshop@gmail.com');
+    $user = \App\Models\User::where('email', $email)->first();
+
+    if (!$user) {
+        return response()->json(['error' => "User {$email} not found."], 404);
+    }
+
+    $nowUtc = now('UTC');
+    $timezone = $user->timezone ?? config('app.timezone', 'America/Argentina/Buenos_Aires');
+    $nowLocal = now($timezone);
+
+    $isLocal = app()->environment('local');
+    $unit = $isLocal ? 'minutes' : 'hours';
+
+    // VerifyInactivity query simulation
+    $matchingInactiveUsers = \App\Models\User::where('id', $user->id)
+        ->where(function ($query) use ($unit) {
+            $query->whereRaw("last_check_in_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval")
+                ->orWhere(function ($q) use ($unit) {
+                    $q->whereNull('last_check_in_at')
+                        ->whereRaw("created_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval");
+                });
+        })
+        ->whereDoesntHave('emergencyAlerts', function ($query) {
+            $query->where('status', 'active');
+        })
+        ->exists();
+
+    $passedThreshold = \App\Models\User::where('id', $user->id)
+        ->where(function ($query) use ($unit) {
+            $query->whereRaw("last_check_in_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval")
+                ->orWhere(function ($q) use ($unit) {
+                    $q->whereNull('last_check_in_at')
+                        ->whereRaw("created_at < (NOW() AT TIME ZONE 'UTC') - (checkin_interval_hours || ' {$unit}')::interval");
+                });
+        })->exists();
+
+    $activeAlerts = \App\Models\EmergencyAlert::where('user_id', $user->id)
+        ->where('status', 'active')
+        ->get();
+
+    $allAlerts = \App\Models\EmergencyAlert::where('user_id', $user->id)
+        ->latest()
+        ->take(5)
+        ->get();
+
+    $contacts = $user->emergencyContacts()->get();
+
+    $queueDefault = config('queue.default');
+    $redisJobsCount = null;
+    if ($queueDefault === 'redis') {
+        try {
+            $redisJobsCount = \Illuminate\Support\Facades\Redis::connection()->llen('queues:default');
+        } catch (\Throwable $e) {
+            $redisJobsCount = 'error: ' . $e->getMessage();
+        }
+    }
+
+    $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')->latest()->take(5)->get();
+
+    $runVerify = $request->query('run_verify');
+    $verifyOutput = null;
+    if ($runVerify) {
+        \Illuminate\Support\Facades\Artisan::call('checkins:verify-inactivity');
+        $verifyOutput = \Illuminate\Support\Facades\Artisan::output();
+    }
+
+    return response()->json([
+        'server_time_utc' => $nowUtc->toDateTimeString(),
+        'server_time_local' => $nowLocal->toDateTimeString(),
+        'timezone' => $timezone,
+        'app_env' => app()->environment(),
+        'queue_default' => $queueDefault,
+        'redis_queue_len' => $redisJobsCount,
+        'failed_jobs' => $failedJobs,
+        'user' => [
+            'id' => $user->id,
+            'email' => $user->email,
+            'name' => $user->name,
+            'phone' => $user->phone,
+            'last_check_in_at' => $user->last_check_in_at?->toDateTimeString(),
+            'created_at' => $user->created_at->toDateTimeString(),
+            'checkin_interval_hours' => $user->checkin_interval_hours,
+            'hours_since_last_checkin' => $user->last_check_in_at ? round($nowUtc->diffInMinutes($user->last_check_in_at) / 60, 2) : null,
+            'minutes_since_last_checkin' => $user->last_check_in_at ? $nowUtc->diffInMinutes($user->last_check_in_at) : null,
+            'is_premium' => (bool) $user->is_premium,
+            'subscription_status' => $user->subscription_status,
+            'trial_ends_at' => $user->trial_ends_at?->toDateTimeString(),
+            'has_used_trial' => (bool) $user->has_used_trial,
+            'has_premium_access' => $user->hasPremiumAccess(),
+            'notify_self_whatsapp_on_inactivity' => (bool) $user->notify_self_whatsapp_on_inactivity,
+            'allow_sms_whatsapp_checkin' => (bool) $user->allow_sms_whatsapp_checkin,
+            'escalation_enabled' => (bool) $user->escalation_enabled,
+            'quiet_hours_enabled' => (bool) $user->quiet_hours_enabled,
+            'quiet_hours_start' => $user->quiet_hours_start,
+            'quiet_hours_end' => $user->quiet_hours_end,
+            'is_in_quiet_hours' => $user->isInQuietHours(),
+        ],
+        'verify_inactivity_check' => [
+            'unit_used' => $unit,
+            'passed_threshold_query' => $passedThreshold,
+            'has_active_emergency_alert' => $activeAlerts->isNotEmpty(),
+            'matches_verify_inactivity_query' => $matchingInactiveUsers,
+            'would_skip_due_to_quiet_hours' => $user->isInQuietHours(),
+        ],
+        'active_emergency_alerts' => $activeAlerts,
+        'recent_emergency_alerts' => $allAlerts,
+        'emergency_contacts' => $contacts,
+        'verify_command_run_output' => $verifyOutput,
+    ]);
+});
+
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');
     if (! $to) {
