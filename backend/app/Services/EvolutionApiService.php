@@ -41,13 +41,20 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
             $url = "{$this->baseUrl}/message/sendText/{$this->instance}";
 
+            $payload = [
+                'number' => $cleanTo,
+                'text' => $message,
+                'linkPreview' => (bool) ($parameters['linkPreview'] ?? false),
+            ];
+
+            if (isset($parameters['delay']) && is_numeric($parameters['delay'])) {
+                $payload['delay'] = (int) $parameters['delay'];
+            }
+
             $response = Http::withHeaders([
                 'apikey' => $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->post($url, [
-                'number' => $cleanTo,
-                'text' => $message,
-            ]);
+            ])->post($url, $payload);
 
             if ($response->successful()) {
                 return true;

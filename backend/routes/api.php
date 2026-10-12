@@ -377,17 +377,28 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     try {
         $url = rtrim(config('services.evolution.url'), '/') . '/message/sendText/' . config('services.evolution.instance', 'estoyok_main');
         $apiKey = config('services.evolution.api_key');
+
+        $cleanPhone = preg_replace('/[^0-9]/', '', $to);
+        if (str_starts_with($cleanPhone, '54') && !str_starts_with($cleanPhone, '549') && strlen($cleanPhone) === 12) {
+            $cleanPhone = '549' . substr($cleanPhone, 2);
+        }
+
+        $linkPreview = $request->has('link_preview') ? filter_var($request->input('link_preview'), FILTER_VALIDATE_BOOLEAN) : false;
+
         $response = Http::withHeaders([
             'apikey' => $apiKey,
             'Content-Type' => 'application/json',
         ])->post($url, [
-            'number' => preg_replace('/[^0-9]/', '', $to),
+            'number' => $cleanPhone,
             'text' => $message,
+            'linkPreview' => $linkPreview,
         ]);
 
         return response()->json([
             'success' => $response->successful(),
             'target_phone' => $to,
+            'normalized_phone' => $cleanPhone,
+            'link_preview' => $linkPreview,
             'url_called' => $url,
             'http_status' => $response->status(),
             'evolution_response' => $response->json() ?? $response->body(),
@@ -397,6 +408,32 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
             'success' => false,
             'error' => $e->getMessage(),
         ], 500);
+    }
+});
+
+Route::post('/maintenance/restart-evolution-instance', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['success' => false, 'message' => 'EVOLUTION_API_URL not configured.'], 400);
+    }
+
+    try {
+        $url = rtrim($baseUrl, '/') . '/instance/restart/' . $instance;
+        $response = Http::withHeaders([
+            'apikey' => $apiKey,
+        ])->post($url);
+
+        return response()->json([
+            'success' => $response->successful(),
+            'instance' => $instance,
+            'http_status' => $response->status(),
+            'evolution_response' => $response->json() ?? $response->body(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
     }
 });
 
