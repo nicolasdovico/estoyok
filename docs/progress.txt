@@ -1,5 +1,27 @@
 # Progress Log
 
+## [2026-10-13] Blindaje Permanente de 4 Capas en WhatsApp y Desacoplamiento de Alertas SOS
+- **Diagnóstico de Falla de SOS:**
+  - El usuario activó el botón SOS en la app Android física a las 10:13:57 (Prod) y 10:14:44 (Dev).
+  - La alerta y el audio se guardaron en la BD y S3, pero los mensajes de WhatsApp hacia los contactos SOS no se entregaron porque el socket WebSocket de Baileys en Evolution API se había cerrado durante la noche (`HTTP 400/500: Error: Connection Closed`).
+  - Además, `EmergencyAlertController.php` ejecutaba el envío de WhatsApp sincrónicamente dentro de la petición HTTP con 0s de retraso entre contactos, sin encolar ni reintentar.
+- **Implementación del Blindaje Permanente de 4 Capas:**
+  1. **Capa 1: Watchdog Guardian en Laravel Scheduler:**
+     - Creado el comando `whatsapp:keep-alive-guardian` (`WhatsAppKeepAliveGuardian.php`) registrado cada 2 minutos en `routes/console.php`.
+     - Monitorea periódicamente `/instance/connectionState` y ejecuta latidos continuos para evitar que los túneles TCP y el socket WebSocket de Baileys se duerman. Si detecta desconexión, dispara auto-reconexión preventiva.
+  2. **Capa 2: Auto-Recuperación en Caliente con Reintento Inmediato:**
+     - En `EvolutionApiService::sendWhatsApp()`, si la API responde con `Connection Closed`, se invoca inmediatamente `reconnectInstance()` (combinando `/instance/restart` y `/instance/connect`), se aguardan 2 segundos para estabilizar el socket y se reintenta automáticamente la entrega del mensaje.
+  3. **Capa 3: Desacoplamiento Asíncrono de Alertas SOS (`SendSosAlertJob`):**
+     - Creado el job encolado `SendSosAlertJob` (`ShouldQueue`), desacoplando el despacho de WhatsApp del ciclo de vida HTTP. El controlador de SOS retorna 201 Created de inmediato al móvil.
+     - Espaciado ágil e inteligente: 1.5s entre contactos con números de teléfono distintos (Double Ratchet independiente) y 5s sólo si coinciden teléfonos consecutivos (entornos de pruebas).
+     - Bloque `try-catch` y log detallado por contacto, evitando que el fallo en un destinatario aborte el envío al resto.
+     - Actualizados análogamente con 1.5s `SendCrashAlertJob` y `BroadcastEmergencyResponseJob`.
+  4. **Capa 4: Auto-Heal Manual en Panel de Mantenimiento:**
+     - Agregado botón «🔄 Forzar Reconexión de Socket (Auto-Heal)» en `/api/maintenance/connect-qr` y actualización del endpoint `/api/maintenance/restart-evolution-instance`.
+- **Garantía de No Regresión:**
+  - Desarrollada suite `SosAlertJobAndGuardianTest.php` y ampliada `EvolutionApiServiceTest.php`.
+  - Suite completa de 189 pruebas pasando al 100% (634 aserciones, 0 errores).
+
 ## [2026-10-12] Verificación Exitosa de Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring)
 - **Escenario Validado en Vivo:**
   - Configurada la variable `EVOLUTION_WEBHOOK_PEER_URL=https://backend-api-dev-2a56.up.railway.app/api/webhooks/evolution/message` en el servicio de Producción de Railway.
