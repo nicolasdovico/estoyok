@@ -265,4 +265,33 @@ class SubscriptionSyncAndCancelTest extends TestCase
         $owner->refresh();
         $this->assertTrue($owner->is_premium);
     }
+
+    public function test_sync_google_play_does_not_cancel_other_providers(): void
+    {
+        $user = User::factory()->create([
+            'name' => 'MercadoPago User',
+            'email' => 'mp@test.com',
+            'subscription_status' => 'active',
+            'subscription_provider' => 'mercadopago',
+            'is_premium' => true,
+        ]);
+
+        Sanctum::actingAs($user);
+
+        $response = $this->postJson('/api/subscriptions/sync-google-play', [
+            'has_active_subscription' => false,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'active',
+                'is_premium' => true,
+            ]);
+
+        $user->refresh();
+        $this->assertEquals('active', $user->subscription_status);
+        $this->assertEquals('mercadopago', $user->subscription_provider);
+        $this->assertTrue($user->is_premium);
+        Mail::assertNothingSent();
+    }
 }

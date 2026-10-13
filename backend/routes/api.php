@@ -308,6 +308,7 @@ $prepareInactivityTestHandler = function (Request $request) {
     $user->update([
         'is_premium' => true,
         'subscription_status' => 'active',
+        'subscription_provider' => 'admin_test',
         'trial_ends_at' => now()->addMonth(),
         'quiet_hours_enabled' => false,
         'notify_self_whatsapp_on_inactivity' => true,

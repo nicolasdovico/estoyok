@@ -16,15 +16,17 @@
      - Espaciado ágil e inteligente: 1.5s entre contactos con números de teléfono distintos (Double Ratchet independiente) y 5s sólo si coinciden teléfonos consecutivos (entornos de pruebas).
      - Bloque `try-catch` y log detallado por contacto, evitando que el fallo en un destinatario aborte el envío al resto.
      - Actualizados análogamente con 1.5s `SendCrashAlertJob` y `BroadcastEmergencyResponseJob`.
-  4. **Capa 4: Auto-Heal Manual en Panel de Mantenimiento y Diagnóstico:**
-     - Agregado botón «🔄 Forzar Reconexión de Socket (Auto-Heal)» en `/api/maintenance/connect-qr`, endpoints `/api/maintenance/restart-evolution-instance` y `/api/maintenance/test-queue-worker`.
+  4. **Capa 4: Auto-Heal Manual en Panel de Mantenimiento y Supervisión en Railway:**
+     - Agregado botón «🔄 Forzar Reconexión de Socket (Auto-Heal)» en `/api/maintenance/connect-qr`, endpoints `/api/maintenance/restart-evolution-instance`, `/api/maintenance/test-queue-worker`, `/api/maintenance/process-queue-work` y `/api/maintenance/test-inactivity-direct`.
+     - Equipado `start.sh` con bucles supervisores en bash (`while true; do ...; sleep 3; done`) para `queue:work` y `schedule:work` en Railway, garantizando que los demonios de colas y cron jamás queden zombis (`<defunct>`).
 - **Garantía de No Regresión:**
   - Desarrollada suite `SosAlertJobAndGuardianTest.php` y ampliada `EvolutionApiServiceTest.php`.
   - Agregado `Http::fake()` en `EmergencyAlertTest` y `EvolutionWebhookTest` para aislar pruebas unitarias y prevenir ralentizaciones por llamadas externas.
   - Suite completa de 189 pruebas pasando al 100% (634 aserciones, 0 errores, 17.83s).
 - **Validación Exitosa en Dispositivo Físico:**
-  - El usuario activó el botón SOS desde la app Android física real.
-  - Los mensajes de WhatsApp hacia todos los contactos de emergencia activos llegaron de inmediato (~2-3 segundos flat), con texto claro y enlace interactivo al mapa de rescate en vivo.
+  - **Alerta SOS por Botón:** Activada desde la app física; entrega instantánea en ~2 segundos a Nico y Analía con mapa en vivo.
+  - **Reloj de Bienestar Vencido:** Probado con fast-forward a 2 minutos tanto en Producción (`nicolas@gmail.com`) como en Desarrollo (`tamarakshop@gmail.com`), recibiendo los mensajes de WhatsApp hacia el usuario y hacia sus contactos sin demoras.
+  - **Respuesta Interactiva ("OK"):** Respuestas procesadas en tiempo real mediante webhook en Producción y replicadas por Peer Mirroring en Desarrollo, renovando el reloj de bienestar a 12 horas.
 
 ## [2026-10-12] Verificación Exitosa de Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring)
 - **Escenario Validado en Vivo:**
