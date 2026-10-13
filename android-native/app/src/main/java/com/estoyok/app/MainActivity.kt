@@ -92,12 +92,14 @@ class MainActivity : ComponentActivity() {
                 val isReady = playBillingManager.isReady.firstOrNull { it }
                 if (isReady == true) {
                     playBillingManager.queryActivePurchases { activePurchase ->
-                        lifecycleScope.launch {
-                            subscriptionRepository.syncGooglePlay(
-                                hasActiveSubscription = activePurchase != null,
-                                purchaseToken = activePurchase?.purchaseToken,
-                                productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM
-                            ).collect { }
+                        if (activePurchase != null) {
+                            lifecycleScope.launch {
+                                subscriptionRepository.syncGooglePlay(
+                                    hasActiveSubscription = true,
+                                    purchaseToken = activePurchase.purchaseToken,
+                                    productId = com.estoyok.app.core.billing.PlayBillingManager.PRODUCT_ID_PREMIUM
+                                ).collect { }
+                            }
                         }
                     }
                 }

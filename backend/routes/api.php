@@ -254,6 +254,7 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
                 'minutes_since_last_checkin' => $user->last_check_in_at ? $nowUtc->diffInMinutes($user->last_check_in_at) : null,
                 'is_premium' => (bool) $user->is_premium,
                 'subscription_status' => $user->subscription_status,
+                'subscription_provider' => $user->subscription_provider,
                 'trial_ends_at' => $user->trial_ends_at?->toDateTimeString(),
                 'has_used_trial' => (bool) $user->has_used_trial,
                 'has_premium_access' => $user->hasPremiumAccess(),

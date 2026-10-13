@@ -330,11 +330,31 @@ class SubscriptionController extends Controller
                 'user' => $user->fresh(),
             ]);
         } else {
-            // Google Play no tiene compras activas
-            // Si el proveedor no es Google Play (ej: mercadopago, stripe, paypal, admin_test), no debe cancelarse
+            // Google Play no tiene compras activas en este dispositivo
+            // 1. Si el usuario aún tiene período de prueba vigente, preservar Premium
+            if ($user->trial_ends_at && $user->trial_ends_at->isFuture()) {
+                return response()->json([
+                    'message' => 'Usuario con período de prueba vigente. Suscripción no cancelada.',
+                    'status' => $user->subscription_status ?? 'trialing',
+                    'is_premium' => true,
+                    'user' => $user->fresh(),
+                ]);
+            }
+
+            // 2. Si el proveedor no es estrictamente Google Play (ej: mercadopago, stripe, paypal, admin_test), preservar Premium
             if ($user->subscription_provider && $user->subscription_provider !== 'google_play') {
                 return response()->json([
                     'message' => 'Suscripción administrada por otro proveedor (' . $user->subscription_provider . ').',
+                    'status' => $user->subscription_status,
+                    'is_premium' => (bool) $user->is_premium,
+                    'user' => $user->fresh(),
+                ]);
+            }
+
+            // 3. Si no tiene proveedor google_play explícito, no cancelar a ciegas
+            if ($user->subscription_provider !== 'google_play') {
+                return response()->json([
+                    'message' => 'Sin suscripción de Google Play registrada para este usuario.',
                     'status' => $user->subscription_status,
                     'is_premium' => (bool) $user->is_premium,
                     'user' => $user->fresh(),
