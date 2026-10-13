@@ -208,17 +208,17 @@ class SendInactivityAlerts implements ShouldQueue
                 $contactPhoneClean = '549' . substr($contactPhoneClean, 2);
             }
 
-            // Si el contacto tiene el mismo teléfono que el usuario y ya se le envió aviso propio, omitir duplicado para no saturar la sesión
-            if ($contactPhoneClean === $userPhoneClean && (bool) $this->user->notify_self_whatsapp_on_inactivity) {
-                Log::info("Contacto {$contact->id} tiene el mismo teléfono que el usuario {$this->user->id}, omitiendo duplicado.");
-                continue;
-            }
-
             if (isset($sentPhones[$contactPhoneClean])) {
                 continue;
             }
 
-            if (! empty($sentPhones) && ! app()->runningUnitTests()) {
+            // Si el contacto coincide con el teléfono del usuario (entornos de pruebas o auto-monitoreo),
+            // aguardamos 3.5s adicionales para que la sesión de WhatsApp/Signal ratchee limpiamente antes del mensaje de contacto
+            if ($contactPhoneClean === $userPhoneClean && (bool) $this->user->notify_self_whatsapp_on_inactivity) {
+                if (! app()->runningUnitTests()) {
+                    usleep(3500000);
+                }
+            } elseif (! empty($sentPhones) && ! app()->runningUnitTests()) {
                 usleep(1500000); // 1.5s espaciado ágil entre números distintos
             }
 
