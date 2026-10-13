@@ -424,7 +424,66 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
-Route::get('/maintenance/connect-qr-data', function () {
+Route::match(['get', 'post'], '/maintenance/purge-instance', function (Request $request) {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
+        return response()->json(['error' => 'EVOLUTION_API_URL not configured'], 400);
+    }
+
+    try {
+        $logout = Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance)->json();
+        sleep(1);
+        $delete = Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/delete/' . $instance)->json();
+
+        $deletedOk = false;
+        for ($i = 0; $i < 6; $i++) {
+            sleep(1);
+            $list = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/fetchInstances')->json();
+            $found = false;
+            if (is_array($list)) {
+                foreach ($list as $item) {
+                    if (($item['name'] ?? null) === $instance) {
+                        $found = true;
+                        break;
+                    }
+                }
+            }
+            if (! $found) {
+                $deletedOk = true;
+                break;
+            }
+        }
+
+        $create = Http::withHeaders(['apikey' => $apiKey])->post(rtrim($baseUrl, '/') . '/instance/create', [
+            'instanceName' => $instance,
+            'integration' => 'WHATSAPP-BAILEYS',
+            'qrcode' => true,
+        ])->json();
+        sleep(1);
+
+        $connect = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance)->json();
+
+        $service = app(\App\Services\EvolutionApiService::class);
+        $service->ensureWebhookConfigured($request->root(), true);
+
+        return response()->json([
+            'success' => $deletedOk && ! empty($create['instance'] ?? $create['qrcode']),
+            'logout' => $logout,
+            'delete' => $delete,
+            'deleted_ok' => $deletedOk,
+            'create' => $create,
+            'connect_has_base64' => ! empty($connect['base64'] ?? ($connect['qrcode']['base64'] ?? null)),
+            'connect_count' => $connect['count'] ?? 0,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
+    }
+});
+
+Route::get('/maintenance/connect-qr-data', function (Request $request) {
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
     $instance = config('services.evolution.instance', 'estoyok_main');
@@ -455,9 +514,10 @@ Route::get('/maintenance/connect-qr-data', function () {
         } catch (\Throwable $e) {}
     }
 
+    $forceQr = $request->has('force_qr') || $request->query('force_qr') == '1';
     $qrBase64 = null;
     $count = 0;
-    if ($state !== 'open') {
+    if ($state !== 'open' || $forceQr) {
         try {
             $connRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
@@ -493,20 +553,45 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     // 1. If user requested reset_instance, completely delete and recreate
     if ($action === 'reset_instance') {
         try {
+            // Desconectar socket
             Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/logout/' . $instance);
-            usleep(300000);
+            sleep(1);
+
+            // Borrar instancia en Evolution API
             Http::withHeaders(['apikey' => $apiKey])->delete(rtrim($baseUrl, '/') . '/instance/delete/' . $instance);
-            usleep(600000);
+
+            // Aguardar a que PostgreSQL complete el cascade delete (hasta 5 intentos)
+            for ($i = 0; $i < 5; $i++) {
+                sleep(1);
+                $fetchRes = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/fetchInstances');
+                $list = $fetchRes->json();
+                $found = false;
+                if (is_array($list)) {
+                    foreach ($list as $item) {
+                        if (($item['name'] ?? null) === $instance) {
+                            $found = true;
+                            break;
+                        }
+                    }
+                }
+                if (! $found) {
+                    break;
+                }
+            }
+
+            // Crear instancia limpia con QR
             Http::withHeaders(['apikey' => $apiKey])->post(rtrim($baseUrl, '/') . '/instance/create', [
                 'instanceName' => $instance,
                 'integration' => 'WHATSAPP-BAILEYS',
                 'qrcode' => true,
             ]);
-            usleep(600000);
+            sleep(1);
+
+            // Configurar webhook
             $service = app(\App\Services\EvolutionApiService::class);
-            $service->sendWhatsApp('dummy', 'dummy');
+            $service->ensureWebhookConfigured($request->root(), true);
         } catch (\Throwable $e) {}
-        return redirect('/api/maintenance/connect-qr?t=' . time());
+        return redirect('/api/maintenance/connect-qr?force_qr=1&t=' . time());
     }
 
     // 2. If user clicked set_webhook, bind Evolution API webhook to this backend
@@ -657,13 +742,14 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         $html .= '<script>
             setInterval(async () => {
                 try {
-                    const res = await fetch("/api/maintenance/connect-qr-data?t=" + Date.now());
+                    const forceParam = window.location.search.includes("force_qr") ? "&force_qr=1" : "";
+                    const res = await fetch("/api/maintenance/connect-qr-data?t=" + Date.now() + forceParam);
                     const data = await res.json();
                     if (data.server_time) {
                         const clock = document.getElementById("server-clock");
                         if (clock) clock.innerText = data.server_time;
                     }
-                    if (data.state === "open") {
+                    if (data.state === "open" && !data.qr_base64 && !forceParam) {
                         location.reload();
                         return;
                     }
@@ -674,7 +760,7 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
                         if (timer) timer.innerText = "⚡ QR sincronizado en vivo (vigente)";
                     }
                 } catch (e) {}
-            }, 4000);
+            }, 3000);
         </script>';
         $html .= '<br><a href="/api/maintenance/connect-qr?t=' . time() . '" class="btn">🔄 Refrescar Estado</a>';
     }
