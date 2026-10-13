@@ -450,6 +450,80 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     }
 });
 
+Route::match(['get', 'post'], '/maintenance/test-job-dispatch', function (Request $request) {
+    try {
+        $email = $request->input('email', 'tamarakshop@gmail.com');
+        $user = \App\Models\User::where('email', $email)->first();
+        if (! $user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $alert = \App\Models\EmergencyAlert::where('user_id', $user->id)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $alert) {
+            $alert = \App\Models\EmergencyAlert::create([
+                'user_id' => $user->id,
+                'type' => 'inactivity',
+                'status' => 'active',
+                'expires_at' => now()->addHours(48),
+            ]);
+        }
+
+        $redis = \Illuminate\Support\Facades\Redis::connection();
+        $keysBefore = $redis->keys('*');
+
+        \App\Jobs\SendInactivityAlerts::dispatch($user, $alert->id);
+
+        $keysAfter = $redis->keys('*');
+        $lenDefaultAfter = $redis->llen('queues:default');
+        $lenDevAfter = $redis->llen('queues:dev_default');
+
+        // Give the worker 2.5 seconds to process
+        usleep(2500000);
+
+        $keysFinal = $redis->keys('*');
+        $lenDefaultFinal = $redis->llen('queues:default');
+        $lenDevFinal = $redis->llen('queues:dev_default');
+
+        return response()->json([
+            'success' => true,
+            'user' => ['id' => $user->id, 'email' => $user->email, 'phone' => $user->phone],
+            'alert_id' => $alert->id,
+            'config' => [
+                'queue_default' => config('queue.default'),
+                'redis_queue' => config('queue.connections.redis.queue'),
+                'redis_prefix' => config('database.redis.options.prefix'),
+                'cache_driver' => config('cache.default'),
+            ],
+            'redis_before' => $keysBefore,
+            'redis_immediate_after' => [
+                'keys' => $keysAfter,
+                'default_len' => $lenDefaultAfter,
+                'dev_default_len' => $lenDevAfter,
+            ],
+            'redis_after_2s' => [
+                'keys' => $keysFinal,
+                'default_len' => $lenDefaultFinal,
+                'dev_default_len' => $lenDevFinal,
+            ],
+            'cache_data' => [
+                'last_received' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_received'),
+                'missing_alert' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_missing_alert'),
+                'self_whatsapp' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_self_whatsapp'),
+                'contacts_result' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_contacts_result'),
+            ],
+            'failed_jobs' => \Illuminate\Support\Facades\DB::table('failed_jobs')->latest('id')->take(3)->get(),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString(),
+        ], 500);
+    }
+});
+
 Route::post('/maintenance/restart-evolution-instance', function () {
     $baseUrl = config('services.evolution.url');
     $instance = config('services.evolution.instance', 'estoyok_main');
