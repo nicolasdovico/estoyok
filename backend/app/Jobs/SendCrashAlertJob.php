@@ -90,11 +90,25 @@ class SendCrashAlertJob implements ShouldQueue
         }
 
         // Send WhatsApp to Emergency Contacts
-        $contacts = $user->emergencyContacts()->where('is_active', true)->get();
+        $contacts = $user->emergencyContacts()->where('is_active', true)->orderBy('priority', 'asc')->get();
         $gForceText = $this->crashEvent->g_force ? " de {$this->crashEvent->g_force} G" : "";
 
-        foreach ($contacts as $contact) {
+        $previousPhone = null;
+        foreach ($contacts as $index => $contact) {
             if ($contact->phone) {
+                if ($index > 0) {
+                    if ($contact->phone === $previousPhone) {
+                        if (! app()->runningUnitTests()) {
+                            sleep(5);
+                        }
+                    } else {
+                        if (! app()->runningUnitTests()) {
+                            usleep(1500000); // 1.5 segundos
+                        }
+                    }
+                }
+                $previousPhone = $contact->phone;
+
                 $contactNameParam = urlencode($contact->name);
                 $contactUrl = "{$emergencyUrl}?contact={$contactNameParam}";
                 $message = "🚨 ¡ALERTA DE ACCIDENTE! Detectamos un fuerte impacto vehicular{$gForceText} en la ubicación de {$user->name}. Ver mapa en vivo: {$contactUrl}";

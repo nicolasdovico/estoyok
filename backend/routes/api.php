@@ -413,7 +413,6 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
 
 Route::post('/maintenance/restart-evolution-instance', function () {
     $baseUrl = config('services.evolution.url');
-    $apiKey = config('services.evolution.api_key');
     $instance = config('services.evolution.instance', 'estoyok_main');
 
     if (! $baseUrl || ! filter_var($baseUrl, FILTER_VALIDATE_URL)) {
@@ -421,16 +420,14 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 
     try {
-        $url = rtrim($baseUrl, '/') . '/instance/restart/' . $instance;
-        $response = Http::withHeaders([
-            'apikey' => $apiKey,
-        ])->post($url);
+        $service = app(\App\Services\EvolutionApiService::class);
+        $reconnected = $service->reconnectInstance();
+        $health = $service->checkConnectionHealth();
 
         return response()->json([
-            'success' => $response->successful(),
+            'success' => $reconnected,
             'instance' => $instance,
-            'http_status' => $response->status(),
-            'evolution_response' => $response->json() ?? $response->body(),
+            'health' => $health,
         ]);
     } catch (\Throwable $e) {
         return response()->json(['success' => false, 'error' => $e->getMessage()], 500);
@@ -527,6 +524,15 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
         try {
             $service = app(\App\Services\EvolutionApiService::class);
             $service->ensureWebhookConfigured($request->root(), true);
+        } catch (\Throwable $e) {}
+        return redirect('/api/maintenance/connect-qr?t=' . time());
+    }
+
+    // 2b. If user clicked reconnect, force a socket reconnect
+    if ($action === 'reconnect') {
+        try {
+            $service = app(\App\Services\EvolutionApiService::class);
+            $service->reconnectInstance();
         } catch (\Throwable $e) {}
         return redirect('/api/maintenance/connect-qr?t=' . time());
     }
@@ -628,6 +634,10 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     if ($state === 'open') {
         $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
         $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa y vinculada correctamente. Si en el futuro necesitas renovarla, puedes usar los botones a continuación:</p>';
+        $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
+        $html .= '<input type="hidden" name="action" value="reconnect">';
+        $html .= '<button type="submit" class="btn" style="background:#00e5d9;color:#0b132b;">🔄 Forzar Reconexión de Socket (Auto-Heal)</button>';
+        $html .= '</form>';
         $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
         $html .= '<input type="hidden" name="action" value="reset_instance">';
         $html .= '<button type="submit" class="btn" style="background:#f59e0b;color:#0b132b;" onclick="return confirm(\'¿Recrear la instancia desde cero? Se borrarán las tablas y claves residuales de la BD en Railway y se generará un QR 100% limpio.\')">🧹 Recrear Instancia Limpia (Solución a SessionError)</button>';

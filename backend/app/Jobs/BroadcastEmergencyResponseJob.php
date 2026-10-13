@@ -112,9 +112,11 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
             }
 
             // 2. Send WhatsApp to the alert initiator (User) if phone is registered and status is critical
+            $userNotifiedViaWa = false;
             if (! empty($user->phone) && ! empty($userWhatsAppMsg) && in_array($status, ['on_my_way', 'acknowledged'])) {
                 try {
                     $whatsAppService->sendWhatsApp($user->phone, $userWhatsAppMsg);
+                    $userNotifiedViaWa = true;
                 } catch (Exception $e) {
                     Log::warning("BroadcastEmergencyResponseJob: Failed sending WhatsApp to user {$user->id}: {$e->getMessage()}");
                 }
@@ -123,8 +125,23 @@ class BroadcastEmergencyResponseJob implements ShouldQueue
             // 3. Send WhatsApp broadcast to other emergency contacts
             if (! empty($contactWhatsAppMsg) && in_array($status, ['on_my_way', 'acknowledged'])) {
                 $contacts = $user->emergencyContacts()->where('is_active', true)->get();
-                foreach ($contacts as $contact) {
+                $previousPhone = $userNotifiedViaWa ? $user->phone : null;
+
+                foreach ($contacts as $index => $contact) {
                     if (! empty($contact->phone)) {
+                        if ($userNotifiedViaWa || $index > 0) {
+                            if ($contact->phone === $previousPhone) {
+                                if (! app()->runningUnitTests()) {
+                                    sleep(5);
+                                }
+                            } else {
+                                if (! app()->runningUnitTests()) {
+                                    usleep(1500000); // 1.5 segundos
+                                }
+                            }
+                        }
+                        $previousPhone = $contact->phone;
+
                         try {
                             $whatsAppService->sendWhatsApp($contact->phone, $contactWhatsAppMsg);
                         } catch (Exception $e) {

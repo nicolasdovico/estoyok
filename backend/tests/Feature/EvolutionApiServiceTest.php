@@ -87,4 +87,79 @@ class EvolutionApiServiceTest extends TestCase
             return $data['linkPreview'] === true && $data['delay'] === 1500;
         });
     }
+
+    public function test_check_connection_health_returns_connected_when_state_is_open(): void
+    {
+        Http::fake([
+            'https://evolution.test/instance/connectionState/test_instance' => Http::response([
+                'instance' => ['state' => 'open'],
+            ], 200),
+        ]);
+
+        $service = new EvolutionApiService();
+        $health = $service->checkConnectionHealth();
+
+        $this->assertTrue($health['connected']);
+        $this->assertEquals('open', $health['status']);
+    }
+
+    public function test_check_connection_health_returns_not_connected_when_state_is_close(): void
+    {
+        Http::fake([
+            'https://evolution.test/instance/connectionState/test_instance' => Http::response([
+                'instance' => ['state' => 'close'],
+            ], 200),
+        ]);
+
+        $service = new EvolutionApiService();
+        $health = $service->checkConnectionHealth();
+
+        $this->assertFalse($health['connected']);
+        $this->assertEquals('close', $health['status']);
+    }
+
+    public function test_reconnect_instance_calls_restart_and_connect(): void
+    {
+        Http::fake([
+            'https://evolution.test/instance/restart/test_instance' => Http::response(['status' => 'SUCCESS'], 200),
+            'https://evolution.test/instance/connect/test_instance' => Http::response(['status' => 'CONNECTING'], 200),
+        ]);
+
+        $service = new EvolutionApiService();
+        $result = $service->reconnectInstance();
+
+        $this->assertTrue($result);
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/instance/restart/test_instance') && $request->method() === 'PUT';
+        });
+
+        Http::assertSent(function ($request) {
+            return str_contains($request->url(), '/instance/connect/test_instance') && $request->method() === 'GET';
+        });
+    }
+
+    public function test_send_whatsapp_retries_and_recovers_when_connection_closed(): void
+    {
+        $callCount = 0;
+        Http::fake([
+            'https://evolution.test/webhook/set/test_instance' => Http::response(['status' => 'ok'], 200),
+            'https://evolution.test/instance/restart/test_instance' => Http::response(['status' => 'SUCCESS'], 200),
+            'https://evolution.test/instance/connect/test_instance' => Http::response(['status' => 'CONNECTING'], 200),
+            'https://evolution.test/message/sendText/test_instance' => function () use (&$callCount) {
+                $callCount++;
+                if ($callCount === 1) {
+                    return Http::response(['error' => 'Connection Closed'], 400);
+                }
+                return Http::response(['status' => 'SUCCESS'], 200);
+            },
+        ]);
+
+        $service = new EvolutionApiService();
+        $result = $service->sendWhatsApp('5491149790220', 'Mensaje de prueba');
+
+        $this->assertTrue($result);
+        $this->assertEquals(2, $callCount);
+    }
 }
+

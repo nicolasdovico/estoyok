@@ -7,6 +7,7 @@ use App\Models\EmergencyAlert;
 use App\Models\CrashEvent;
 use App\Jobs\SendCrashAlertJob;
 use App\Jobs\BroadcastEmergencyResponseJob;
+use App\Jobs\SendSosAlertJob;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -257,22 +258,8 @@ class EmergencyAlertController extends Controller
             }
         }
 
-        // Notify emergency contacts via WhatsApp
-        $contacts = $user->emergencyContacts()->where('is_active', true)->get();
-        $whatsAppService = app(\App\Services\WhatsAppServiceInterface::class);
-
-        $appUrl = config('app.url', env('APP_URL', ''));
-        $isDev = config('app.env') !== 'production' || str_contains($appUrl, 'dev') || str_contains($appUrl, 'railway.app');
-        $apiParam = $isDev ? "&api=" . urlencode(rtrim($appUrl ?: 'https://backend-api-dev-2a56.up.railway.app', '/') . '/api') : '';
-
-        foreach ($contacts as $contact) {
-            if ($contact->phone) {
-                $contactNameParam = urlencode($contact->name);
-                $contactUrl = "{$emergencyUrl}?contact={$contactNameParam}{$apiParam}";
-                $sosBody = "🚨 ¡SOS CRÍTICO! {$user->name} ha activado un SOS de emergencia silenciosa. Ubicación en tiempo real en: {$contactUrl}";
-                $whatsAppService->sendWhatsApp($contact->phone, $sosBody);
-            }
-        }
+        // Enqueue background WhatsApp alert dispatch
+        SendSosAlertJob::dispatch($alert, $user);
 
         return response()->json($alert, 201);
     }
