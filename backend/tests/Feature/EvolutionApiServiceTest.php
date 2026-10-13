@@ -131,7 +131,7 @@ class EvolutionApiServiceTest extends TestCase
         $this->assertTrue($result);
 
         Http::assertSent(function ($request) {
-            return str_contains($request->url(), '/instance/restart/test_instance') && $request->method() === 'PUT';
+            return str_contains($request->url(), '/instance/restart/test_instance') && $request->method() === 'POST';
         });
 
         Http::assertSent(function ($request) {

@@ -108,7 +108,7 @@ class EvolutionApiService implements WhatsAppServiceInterface
             $restartUrl = "{$this->baseUrl}/instance/restart/{$this->instance}";
             $restartRes = Http::withHeaders([
                 'apikey' => $this->apiKey,
-            ])->timeout(8)->put($restartUrl);
+            ])->timeout(8)->post($restartUrl);
 
             $connectUrl = "{$this->baseUrl}/instance/connect/{$this->instance}";
             $connectRes = Http::withHeaders([
