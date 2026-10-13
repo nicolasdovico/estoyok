@@ -12,6 +12,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -35,10 +36,28 @@ class SendInactivityAlerts implements ShouldQueue
     public function handle(WhatsAppServiceInterface $whatsAppService): void
     {
         try {
+            Cache::put('last_inactivity_job_received', [
+                'time' => now()->toDateTimeString(),
+                'server_time_utc' => now('UTC')->toDateTimeString(),
+                'app_env' => app()->environment(),
+                'user_id' => $this->user->id,
+                'alert_id' => $this->emergencyAlertId,
+                'contact_index' => $this->contactIndex,
+                'pid' => getmypid(),
+                'hostname' => gethostname(),
+            ], 3600);
+
             // Find or create emergency alert
             if ($this->emergencyAlertId) {
                 $alert = EmergencyAlert::find($this->emergencyAlertId);
                 if (! $alert || $alert->status !== 'active') {
+                    Cache::put('last_inactivity_job_missing_alert', [
+                        'time' => now()->toDateTimeString(),
+                        'app_env' => app()->environment(),
+                        'alert_id' => $this->emergencyAlertId,
+                        'found' => (bool) $alert,
+                        'status' => $alert?->status,
+                    ], 3600);
                     Log::info("Inactivity alert escalation cancelled or alert not active for user {$this->user->id}");
                     return;
                 }
@@ -142,6 +161,13 @@ class SendInactivityAlerts implements ShouldQueue
 
             $success = $whatsAppService->sendWhatsApp($this->user->phone, $message);
 
+            Cache::put('last_inactivity_job_self_whatsapp', [
+                'time' => now()->toDateTimeString(),
+                'phone' => $this->user->phone,
+                'notify_self_enabled' => true,
+                'success' => $success,
+            ], 3600);
+
             if (! $success) {
                 Log::warning("Self WhatsApp inactivity alert failed for user {$this->user->id} ({$this->user->phone}).");
             } else {
@@ -150,6 +176,13 @@ class SendInactivityAlerts implements ShouldQueue
 
             return $success;
         }
+
+        Cache::put('last_inactivity_job_self_whatsapp', [
+            'time' => now()->toDateTimeString(),
+            'phone' => $this->user->phone,
+            'notify_self_enabled' => (bool) $this->user->notify_self_whatsapp_on_inactivity,
+            'skipped' => true,
+        ], 3600);
 
         return false;
     }
@@ -238,6 +271,18 @@ class SendInactivityAlerts implements ShouldQueue
             $message = "Aviso de seguridad: Su contacto '{$this->user->name}' no ha reportado actividad en la aplicación 'Estoy Ok' durante las últimas {$hours} horas.{$relationshipText} Ver última ubicación y estado aquí: {$contactUrl}";
 
             $success = $whatsAppService->sendWhatsApp($contact->phone, $message);
+
+            $results = Cache::get('last_inactivity_job_contacts_result', []);
+            if (! is_array($results)) {
+                $results = [];
+            }
+            $results[] = [
+                'time' => now()->toDateTimeString(),
+                'contact_id' => $contact->id,
+                'phone' => $contact->phone,
+                'success' => $success,
+            ];
+            Cache::put('last_inactivity_job_contacts_result', $results, 3600);
 
             if (! $success) {
                 Log::warning("WhatsApp failed for contact {$contact->phone} (user {$this->user->id}).");
