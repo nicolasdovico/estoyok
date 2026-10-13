@@ -11,16 +11,17 @@
      - Monitorea periódicamente `/instance/connectionState` y ejecuta latidos continuos para evitar que los túneles TCP y el socket WebSocket de Baileys se duerman. Si detecta desconexión, dispara auto-reconexión preventiva.
   2. **Capa 2: Auto-Recuperación en Caliente con Reintento Inmediato:**
      - En `EvolutionApiService::sendWhatsApp()`, si la API responde con `Connection Closed`, se invoca inmediatamente `reconnectInstance()` (combinando `/instance/restart` y `/instance/connect`), se aguardan 2 segundos para estabilizar el socket y se reintenta automáticamente la entrega del mensaje.
-  3. **Capa 3: Desacoplamiento Asíncrono de Alertas SOS (`SendSosAlertJob`):**
-     - Creado el job encolado `SendSosAlertJob` (`ShouldQueue`), desacoplando el despacho de WhatsApp del ciclo de vida HTTP. El controlador de SOS retorna 201 Created de inmediato al móvil.
+  3. **Capa 3: Entrega Inmediata y Segura de Alertas SOS (`SendSosAlertJob::dispatchSync`):**
+     - Al igual que las alertas de colisión vehicular (`SendCrashAlertJob::dispatchSync`), la entrega de mensajes de WhatsApp de alerta SOS se realiza de forma sincrónica e inmediata (`dispatchSync`) protegida por try-catch. Esto evita cualquier retraso, desconexión o desincronización de workers en cola en Railway, entregando el mensaje en ~2.1 segundos flat a los contactos activos.
      - Espaciado ágil e inteligente: 1.5s entre contactos con números de teléfono distintos (Double Ratchet independiente) y 5s sólo si coinciden teléfonos consecutivos (entornos de pruebas).
      - Bloque `try-catch` y log detallado por contacto, evitando que el fallo en un destinatario aborte el envío al resto.
      - Actualizados análogamente con 1.5s `SendCrashAlertJob` y `BroadcastEmergencyResponseJob`.
-  4. **Capa 4: Auto-Heal Manual en Panel de Mantenimiento:**
-     - Agregado botón «🔄 Forzar Reconexión de Socket (Auto-Heal)» en `/api/maintenance/connect-qr` y actualización del endpoint `/api/maintenance/restart-evolution-instance`.
+  4. **Capa 4: Auto-Heal Manual en Panel de Mantenimiento y Diagnóstico:**
+     - Agregado botón «🔄 Forzar Reconexión de Socket (Auto-Heal)» en `/api/maintenance/connect-qr`, endpoints `/api/maintenance/restart-evolution-instance` y `/api/maintenance/test-queue-worker`.
 - **Garantía de No Regresión:**
   - Desarrollada suite `SosAlertJobAndGuardianTest.php` y ampliada `EvolutionApiServiceTest.php`.
-  - Suite completa de 189 pruebas pasando al 100% (634 aserciones, 0 errores).
+  - Agregado `Http::fake()` en `EmergencyAlertTest` y `EvolutionWebhookTest` para aislar pruebas unitarias y prevenir ralentizaciones por llamadas externas.
+  - Suite completa de 189 pruebas pasando al 100% (634 aserciones, 0 errores, 17.83s).
 
 ## [2026-10-12] Verificación Exitosa de Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring)
 - **Escenario Validado en Vivo:**
