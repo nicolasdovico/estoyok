@@ -424,6 +424,23 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
+Route::get('/maintenance/instance-debug', function () {
+    $baseUrl = config('services.evolution.url');
+    $apiKey = config('services.evolution.api_key');
+    $instance = config('services.evolution.instance', 'estoyok_main');
+
+    $instances = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/fetchInstances')->json();
+    $state = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connectionState/' . $instance)->json();
+    $connect = Http::withHeaders(['apikey' => $apiKey])->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance)->json();
+
+    return response()->json([
+        'configured_instance' => $instance,
+        'fetch_instances' => $instances,
+        'connection_state' => $state,
+        'connect_raw' => $connect,
+    ]);
+});
+
 Route::match(['get', 'post'], '/maintenance/purge-instance', function (Request $request) {
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
