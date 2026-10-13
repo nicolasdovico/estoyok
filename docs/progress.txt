@@ -22,6 +22,9 @@
   - Desarrollada suite `SosAlertJobAndGuardianTest.php` y ampliada `EvolutionApiServiceTest.php`.
   - Agregado `Http::fake()` en `EmergencyAlertTest` y `EvolutionWebhookTest` para aislar pruebas unitarias y prevenir ralentizaciones por llamadas externas.
   - Suite completa de 189 pruebas pasando al 100% (634 aserciones, 0 errores, 17.83s).
+- **Validación Exitosa en Dispositivo Físico:**
+  - El usuario activó el botón SOS desde la app Android física real.
+  - Los mensajes de WhatsApp hacia todos los contactos de emergencia activos llegaron de inmediato (~2-3 segundos flat), con texto claro y enlace interactivo al mapa de rescate en vivo.
 
 ## [2026-10-12] Verificación Exitosa de Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring)
 - **Escenario Validado en Vivo:**
