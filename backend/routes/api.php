@@ -213,12 +213,17 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
         $contacts = $user->emergencyContacts()->get();
 
         $queueDefault = config('queue.default');
-        $redisJobsCount = null;
+        $redisQueues = [];
         if ($queueDefault === 'redis') {
             try {
-                $redisJobsCount = \Illuminate\Support\Facades\Redis::connection()->llen('queues:default');
+                $redis = \Illuminate\Support\Facades\Redis::connection();
+                $redisQueues = [
+                    'default_len' => $redis->llen('queues:default'),
+                    'dev_default_len' => $redis->llen('queues:dev_default'),
+                    'keys' => array_slice($redis->keys('*'), 0, 20),
+                ];
             } catch (\Throwable $e) {
-                $redisJobsCount = 'error: ' . $e->getMessage();
+                $redisQueues = ['error' => $e->getMessage()];
             }
         }
 
@@ -264,7 +269,7 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             'timezone' => $timezone,
             'app_env' => app()->environment(),
             'queue_default' => $queueDefault,
-            'redis_queue_len' => $redisJobsCount,
+            'redis_queues' => $redisQueues,
             'redis_prefix' => config('database.redis.options.prefix'),
             'redis_host' => parse_url(env('REDIS_URL') ?: '', PHP_URL_HOST) ?: config('database.redis.default.host'),
             'redis_port' => parse_url(env('REDIS_URL') ?: '', PHP_URL_PORT) ?: config('database.redis.default.port'),
