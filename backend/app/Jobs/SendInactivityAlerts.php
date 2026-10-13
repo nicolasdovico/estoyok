@@ -65,9 +65,8 @@ class SendInactivityAlerts implements ShouldQueue
                 $this->sendPushNotificationToNucleusMembers($alert);
 
                 if ($selfWhatsAppSent) {
-                    // Espaciado saludable de 10 segundos para permitir que el protocolo Signal/Ratchet de WhatsApp asimile la entrega del primer mensaje antes del siguiente
                     if (! app()->runningUnitTests()) {
-                        sleep(10);
+                        usleep(1500000); // 1.5s espaciado ágil para sesión Signal
                     }
                 }
             }
@@ -86,11 +85,13 @@ class SendInactivityAlerts implements ShouldQueue
 
                 $contact = $contacts->get($this->contactIndex);
                 if ($contact) {
-                    // Send alert to this contact
-                    $this->sendEmailAlertToContact($contact, $emergencyUrl);
+                    // 1. WhatsApp inmediatamente (canal crítico prioritario)
                     if ($this->user->hasPremiumAccess()) {
                         $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
                     }
+
+                    // 2. Email después (canal secundario)
+                    $this->sendEmailAlertToContact($contact, $emergencyUrl);
 
                     // Enqueue next contact if available
                     $nextContact = $contacts->get($this->contactIndex + 1);
@@ -102,12 +103,13 @@ class SendInactivityAlerts implements ShouldQueue
                     }
                 }
             } else {
-                // Traditional behavior: alert all contacts at once immediately
-                $this->sendEmailAlert($emergencyUrl);
-
+                // 1. WhatsApp inmediatamente a contactos (canal crítico prioritario sin esperar emails)
                 if ($this->user->hasPremiumAccess()) {
                     $this->sendPremiumAlerts($whatsAppService, $emergencyUrl);
                 }
+
+                // 2. Email después (canal secundario no bloqueante)
+                $this->sendEmailAlert($emergencyUrl);
             }
 
             // Log success
@@ -192,13 +194,35 @@ class SendInactivityAlerts implements ShouldQueue
     {
         $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
-        foreach ($contacts as $index => $contact) {
-            if ($index > 0) {
-                // Espaciado de 10 segundos entre cada contacto para evitar ráfagas
-                if (! app()->runningUnitTests()) {
-                    sleep(10);
-                }
+        $sentPhones = [];
+        $userPhoneClean = !empty($this->user->phone) ? preg_replace('/[^0-9]/', '', $this->user->phone) : null;
+        if (str_starts_with($userPhoneClean ?? '', '54') && !str_starts_with($userPhoneClean, '549') && strlen($userPhoneClean) === 12) {
+            $userPhoneClean = '549' . substr($userPhoneClean, 2);
+        }
+
+        foreach ($contacts as $contact) {
+            if (empty($contact->phone)) continue;
+
+            $contactPhoneClean = preg_replace('/[^0-9]/', '', $contact->phone);
+            if (str_starts_with($contactPhoneClean, '54') && !str_starts_with($contactPhoneClean, '549') && strlen($contactPhoneClean) === 12) {
+                $contactPhoneClean = '549' . substr($contactPhoneClean, 2);
             }
+
+            // Si el contacto tiene el mismo teléfono que el usuario y ya se le envió aviso propio, omitir duplicado para no saturar la sesión
+            if ($contactPhoneClean === $userPhoneClean && (bool) $this->user->notify_self_whatsapp_on_inactivity) {
+                Log::info("Contacto {$contact->id} tiene el mismo teléfono que el usuario {$this->user->id}, omitiendo duplicado.");
+                continue;
+            }
+
+            if (isset($sentPhones[$contactPhoneClean])) {
+                continue;
+            }
+
+            if (! empty($sentPhones) && ! app()->runningUnitTests()) {
+                usleep(1500000); // 1.5s espaciado ágil entre números distintos
+            }
+
+            $sentPhones[$contactPhoneClean] = true;
             $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
         }
     }

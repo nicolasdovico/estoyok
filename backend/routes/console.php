@@ -10,7 +10,7 @@ Artisan::command('inspire', function () {
 
 if (app()->environment('local')) {
     Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
-    Schedule::command('checkins:verify-inactivity')->everyMinute();
+    Schedule::command('checkins:verify-inactivity')->everyMinute()->withoutOverlapping();
     Schedule::command('checkins:send-reminders')->everyMinute();
     Schedule::command('drive:cleanup-active')->everyMinute();
     Schedule::command('subscriptions:send-trial-reminders')->everyMinute();
@@ -18,7 +18,7 @@ if (app()->environment('local')) {
     Schedule::command('subscriptions:expire-trials')->everyMinute();
 } else {
     Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
-    Schedule::command('checkins:verify-inactivity')->everyMinute();
+    Schedule::command('checkins:verify-inactivity')->everyMinute()->withoutOverlapping();
     Schedule::command('checkins:send-reminders')->everyFifteenMinutes();
     Schedule::command('drive:cleanup-active')->everyTenMinutes();
     Schedule::command('subscriptions:send-trial-reminders')->daily();
