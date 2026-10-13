@@ -15,7 +15,7 @@
   2. `SendInactivityAlerts.php`:
      - Priorización absoluta de WhatsApp sobre Email: `sendPremiumAlerts` se ejecuta antes de `sendEmailAlert`.
      - Espaciado optimizado a 1.5s (`usleep(1500000)`).
-     - Deduplicación inteligente: Si un contacto de emergencia tiene el mismo número que el usuario y ya recibió la alerta propia, se omite el duplicado para no saturar la sesión Signal/Ratchet.
+     - Espaciado ágil inteligente: 1.5s entre contactos distintos y 3.5s si el contacto comparte el teléfono del usuario para permitir la entrega de ambos mensajes (auto-aviso y alerta de contacto con mapa) sin colisiones de sesión en Baileys.
   3. `routes/console.php`:
      - Agregado `->withoutOverlapping()` al comando `checkins:verify-inactivity` tanto en entorno local como de producción.
   4. `SubscriptionController.php` y `MainActivity.kt`:
