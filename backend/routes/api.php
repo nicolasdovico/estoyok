@@ -452,6 +452,24 @@ Route::match(['get', 'post'], '/maintenance/trigger-sos-job', function () {
     ]);
 });
 
+Route::get('/maintenance/test-queue-worker', function () {
+    $token = \Illuminate\Support\Str::random(10);
+    \Illuminate\Support\Facades\Cache::put("test_queue_{$token}", 'pending', 60);
+
+    dispatch(function () use ($token) {
+        \Illuminate\Support\Facades\Cache::put("test_queue_{$token}", 'processed_at_' . now()->toIso8601String(), 60);
+    });
+
+    sleep(2);
+    $status = \Illuminate\Support\Facades\Cache::get("test_queue_{$token}");
+
+    return response()->json([
+        'token' => $token,
+        'status' => $status,
+        'worker_alive' => is_string($status) && str_starts_with($status, 'processed_at_'),
+    ]);
+});
+
 Route::get('/maintenance/sos-debug', function () {
     $latestAlerts = \App\Models\EmergencyAlert::with('user.emergencyContacts')
         ->latest()

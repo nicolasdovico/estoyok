@@ -11,6 +11,12 @@ class EvolutionWebhookTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Http::fake();
+    }
+
     public function test_user_not_found_returns_json_status()
     {
         $response = $this->postJson('/api/webhooks/evolution/message', [
