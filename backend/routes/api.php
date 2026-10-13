@@ -470,6 +470,40 @@ Route::get('/maintenance/test-queue-worker', function () {
     ]);
 });
 
+Route::get('/maintenance/process-queue-work', function (\Illuminate\Http\Request $request) {
+    try {
+        $count = (int) $request->input('count', 5);
+        $executed = 0;
+        for ($i = 0; $i < $count; $i++) {
+            \Illuminate\Support\Facades\Artisan::call('queue:work', [
+                '--once' => true,
+                '--stop-when-empty' => true,
+            ]);
+            $executed++;
+            if (config('queue.default') === 'redis' && \Illuminate\Support\Facades\Redis::connection()->llen('queues:default') === 0) {
+                break;
+            }
+        }
+
+        $redisLen = null;
+        if (config('queue.default') === 'redis') {
+            $redisLen = \Illuminate\Support\Facades\Redis::connection()->llen('queues:default');
+        }
+
+        return response()->json([
+            'success' => true,
+            'cycles_executed' => $executed,
+            'remaining_jobs' => $redisLen,
+            'artisan_output' => trim(\Illuminate\Support\Facades\Artisan::output()),
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage(),
+        ], 500);
+    }
+});
+
 Route::get('/maintenance/sos-debug', function () {
     $latestAlerts = \App\Models\EmergencyAlert::with('user.emergencyContacts')
         ->latest()
