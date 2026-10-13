@@ -424,6 +424,58 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
+Route::get('/maintenance/sos-debug', function () {
+    $latestAlerts = \App\Models\EmergencyAlert::with('user.emergencyContacts')
+        ->latest()
+        ->take(3)
+        ->get();
+
+    $failedJobs = \Illuminate\Support\Facades\DB::table('failed_jobs')
+        ->latest('failed_at')
+        ->take(3)
+        ->get();
+
+    $queueDriver = config('queue.default');
+
+    $pendingJobsCount = 0;
+    try {
+        if ($queueDriver === 'database') {
+            $pendingJobsCount = \Illuminate\Support\Facades\DB::table('jobs')->count();
+        } elseif ($queueDriver === 'redis') {
+            $pendingJobsCount = \Illuminate\Support\Facades\Redis::connection()->llen('queues:default');
+        }
+    } catch (\Throwable $e) {
+        $pendingJobsCount = 'error: ' . $e->getMessage();
+    }
+
+    return response()->json([
+        'server_time' => now()->toIso8601String(),
+        'queue_driver' => $queueDriver,
+        'pending_jobs' => $pendingJobsCount,
+        'failed_jobs' => $failedJobs,
+        'latest_alerts' => $latestAlerts->map(function ($alert) {
+            return [
+                'id' => $alert->id,
+                'user_id' => $alert->user_id,
+                'user_name' => $alert->user?->name,
+                'user_phone' => $alert->user?->phone,
+                'type' => $alert->type,
+                'status' => $alert->status,
+                'created_at' => $alert->created_at?->toIso8601String(),
+                'emergency_contacts' => $alert->user?->emergencyContacts?->map(function ($contact) {
+                    return [
+                        'id' => $contact->id,
+                        'name' => $contact->name,
+                        'phone' => $contact->phone,
+                        'is_active' => (bool) $contact->is_active,
+                        'priority' => $contact->priority,
+                    ];
+                }),
+            ];
+        }),
+    ]);
+});
+
 Route::get('/maintenance/instance-debug', function () {
     $baseUrl = config('services.evolution.url');
     $apiKey = config('services.evolution.api_key');
