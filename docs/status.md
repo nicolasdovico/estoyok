@@ -548,6 +548,11 @@
   - [x] Adaptación Dinámica de Paywall y Exclusión de Ofertas Gratuitas en Google Play Billing (Mobile & Backend): Renderizado condicional en `PremiumScreen.kt` (título, subtítulo, botón CTA y ocultamiento del timeline de 7 días cuando `has_used_trial == true`), selección forzada de plan base sin fase de $0.00 en `PlayBillingManager.kt` y asignación de estado `active` en `verifyGooglePlay` / `syncGooglePlay`.
   - [x] Auto-Ejecución de Scheduler y Worker en Railway Dev (`start.sh` & `railway.json`): Integrado el arranque concurrente de `php artisan queue:work` y `php artisan schedule:work` en background antes de `php artisan serve`, permitiendo la ejecución autónoma de tareas programadas cada 5 minutos y el procesamiento en tiempo real de colas sin requerir servicios paralelos adicionales.
   - [x] Corrección de Exclusión en Verificación de Inactividad (`VerifyInactivity.php`): Acotado el filtro `whereDoesntHave('emergencyAlerts')` exclusivamente a alertas de tipo `inactivity` (`->where('type', 'inactivity')`), evitando que alertas de `silent_sos` previas bloqueen el temporizador del reloj de bienestar. Verificado con despacho exitoso de WhatsApp al usuario y al contacto SOS en Railway Dev.
+  - [x] Optimización y Eliminación de Retrasos en Alertas de Inactividad (`VerifyInactivity.php` y `SendInactivityAlerts.php`):
+    - Bloqueo atómico de 120s en caché (`Cache::add`) y persistencia atómica previa de `EmergencyAlert` para eliminar condiciones de carrera y dobles disparos en el mismo minuto.
+    - Priorización de WhatsApp sobre Email en `SendInactivityAlerts`: WhatsApp se envía de forma inmediata antes de cualquier llamada SMTP síncrona.
+    - Reducción del espaciado entre mensajes de 10 segundos a 1.5 segundos (`usleep(1500000)`), y deduplicación inteligente cuando un contacto comparte el mismo número que el usuario para no bloquear la cola de cifrado Double Ratchet en Baileys.
+    - Agregado `->withoutOverlapping()` a `checkins:verify-inactivity` en el scheduler (`routes/console.php`).
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
