@@ -375,9 +375,6 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     }
 
     try {
-        $url = rtrim(config('services.evolution.url'), '/') . '/message/sendText/' . config('services.evolution.instance', 'estoyok_main');
-        $apiKey = config('services.evolution.api_key');
-
         $cleanPhone = preg_replace('/[^0-9]/', '', $to);
         if (str_starts_with($cleanPhone, '54') && !str_starts_with($cleanPhone, '549') && strlen($cleanPhone) === 12) {
             $cleanPhone = '549' . substr($cleanPhone, 2);
@@ -385,23 +382,16 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
 
         $linkPreview = $request->has('link_preview') ? filter_var($request->input('link_preview'), FILTER_VALIDATE_BOOLEAN) : false;
 
-        $response = Http::withHeaders([
-            'apikey' => $apiKey,
-            'Content-Type' => 'application/json',
-        ])->post($url, [
-            'number' => $cleanPhone,
-            'text' => $message,
-            'linkPreview' => $linkPreview,
-        ]);
+        $service = app(\App\Services\EvolutionApiService::class);
+        $success = $service->sendWhatsApp($cleanPhone, $message, ['linkPreview' => $linkPreview]);
+        $health = $service->checkConnectionHealth();
 
         return response()->json([
-            'success' => $response->successful(),
+            'success' => $success,
             'target_phone' => $to,
             'normalized_phone' => $cleanPhone,
             'link_preview' => $linkPreview,
-            'url_called' => $url,
-            'http_status' => $response->status(),
-            'evolution_response' => $response->json() ?? $response->body(),
+            'health' => $health,
         ]);
     } catch (\Throwable $e) {
         return response()->json([
@@ -582,7 +572,8 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     // 5. If not open, fetch connect QR
     $qrBase64 = null;
     $connectData = null;
-    if ($state !== 'open' || $action === 'force_qr') {
+    $showQr = $state !== 'open' || $action === 'force_qr' || $request->has('force_qr');
+    if ($showQr) {
         try {
             $connRes = Http::withHeaders(['apikey' => $apiKey])->timeout(4)->get(rtrim($baseUrl, '/') . '/instance/connect/' . $instance);
             $connectData = $connRes->json();
@@ -631,12 +622,16 @@ Route::match(['get', 'post'], '/maintenance/connect-qr', function (Request $requ
     }
     $html .= '</div>';
 
-    if ($state === 'open') {
+    if (! $showQr) {
         $html .= '<div class="badge open">🟢 Conectado (Sesión Abierta)</div>';
         $html .= '<p style="color:#94a3b8;font-size:14px;">La sesión está activa y vinculada correctamente. Si en el futuro necesitas renovarla, puedes usar los botones a continuación:</p>';
         $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
         $html .= '<input type="hidden" name="action" value="reconnect">';
         $html .= '<button type="submit" class="btn" style="background:#00e5d9;color:#0b132b;">🔄 Forzar Reconexión de Socket (Auto-Heal)</button>';
+        $html .= '</form>';
+        $html .= '<form method="GET" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
+        $html .= '<input type="hidden" name="force_qr" value="1">';
+        $html .= '<button type="submit" class="btn" style="background:#3b82f6;color:#fff;">📱 Ver / Forzar Código QR de Vinculación</button>';
         $html .= '</form>';
         $html .= '<form method="POST" action="/api/maintenance/connect-qr" style="margin-bottom:10px;">';
         $html .= '<input type="hidden" name="action" value="reset_instance">';
