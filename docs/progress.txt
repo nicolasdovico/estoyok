@@ -1,5 +1,28 @@
 # Progress Log
 
+## [2026-10-13] Eliminación de Retrasos en Alertas de Inactividad y Optimización de Entrega en WhatsApp
+- **Diagnóstico del Retraso de ~2 Minutos:**
+  - En pruebas con fast-forward a 1 minuto, los mensajes de WhatsApp llegaban con 2 minutos de retraso tras expirar el reloj.
+  - Causa 1 (Disparo Duplicado y Bloqueo de Sesión Baileys): `VerifyInactivity` no poseía bloqueo atómico ni creaba la alerta antes de despachar el job. Múltiples workers/procesos consultaban concurrentemente `whereDoesntHave('emergencyAlerts')` y creaban dos alertas al mismo milisegundo. Esto provocaba que dos instancias de `SendInactivityAlerts` enviaran mensajes paralelos al mismo teléfono (+54 9 11 4979-0220), saturando la cola interna del protocolo Double Ratchet en Baileys y generando un retardo acumulativo de 2 minutos.
+  - Causa 2 (Email bloqueante previo a WhatsApp): `SendInactivityAlerts` despachaba `sendEmailAlert` sincrónico (llamadas SMTP de red) *antes* de invocar `sendPremiumAlerts` (WhatsApp). Cualquier latencia de correo demoraba la salida de WhatsApp.
+  - Causa 3 (Espaciado excesivo): `sleep(10)` entre el mensaje propio y los contactos añadía 20 a 30 segundos muertos.
+  - Causa 4 (Cancelación accidental de Premium en Dev): La app móvil llamaba a `syncGooglePlay(hasActiveSubscription = false)` en `onResume` cuando no detectaba compra en Google Play, revocando Premium a usuarios con suscripción por Mercado Pago, Stripe o pruebas admin.
+- **Implementación:**
+  1. `VerifyInactivity.php`:
+     - Agregado bloqueo atómico en caché de 120s por usuario (`Cache::add("inactivity_alert_dispatched_user_{$user->id}", true, 120)`).
+     - Creación atómica de `EmergencyAlert` en la base de datos previa al despacho, garantizando que consultas concurrentes la excluyan inmediatamente.
+     - Paso explícito de `$alert->id` a `SendInactivityAlerts::dispatch($user, $alert->id)`.
+  2. `SendInactivityAlerts.php`:
+     - Priorización absoluta de WhatsApp sobre Email: `sendPremiumAlerts` se ejecuta antes de `sendEmailAlert`.
+     - Espaciado optimizado a 1.5s (`usleep(1500000)`).
+     - Deduplicación inteligente: Si un contacto de emergencia tiene el mismo número que el usuario y ya recibió la alerta propia, se omite el duplicado para no saturar la sesión Signal/Ratchet.
+  3. `routes/console.php`:
+     - Agregado `->withoutOverlapping()` al comando `checkins:verify-inactivity` tanto en entorno local como de producción.
+  4. `SubscriptionController.php`:
+     - `syncGooglePlay` solo revoca Premium si `subscription_provider === 'google_play'`, protegiendo otros proveedores.
+- **Garantía de No Regresión:**
+  - 190 tests pasando al 100% (640 aserciones, 0 errores, 17.73s).
+
 ## [2026-10-13] Blindaje Permanente de 4 Capas en WhatsApp y Desacoplamiento de Alertas SOS
 - **Diagnóstico de Falla de SOS:**
   - El usuario activó el botón SOS en la app Android física a las 10:13:57 (Prod) y 10:14:44 (Dev).

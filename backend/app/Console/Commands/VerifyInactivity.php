@@ -61,8 +61,24 @@ class VerifyInactivity extends Command
                 continue;
             }
 
-            // Despachar el Job de alertas
-            SendInactivityAlerts::dispatch($user);
+            // Bloqueo atómico de 2 minutos para evitar ejecuciones concurrentes o duplicados en el mismo minuto
+            $lockKey = "inactivity_alert_dispatched_user_{$user->id}";
+            if (! \Illuminate\Support\Facades\Cache::add($lockKey, true, 120)) {
+                Log::info("Alerta de inactividad ya despachada recientemente para usuario {$user->id}, omitiendo duplicado.");
+                continue;
+            }
+
+            // Crear la alerta atómicamente para que whereDoesntHave la excluya de inmediato
+            $alert = \App\Models\EmergencyAlert::create([
+                'user_id' => $user->id,
+                'type' => 'inactivity',
+                'status' => 'active',
+                'expires_at' => now()->addHours(48),
+            ]);
+
+            // Despachar el Job con el ID de la alerta ya persistida
+            SendInactivityAlerts::dispatch($user, $alert->id);
+
             $count++;
         }
 
