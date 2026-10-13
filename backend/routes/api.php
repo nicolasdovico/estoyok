@@ -287,6 +287,8 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             'last_inactivity_job_missing_alert' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_missing_alert'),
             'last_inactivity_job_self_whatsapp' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_self_whatsapp'),
             'last_inactivity_job_contacts_result' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_contacts_result'),
+            'last_evolution_success' => \Illuminate\Support\Facades\Cache::get('last_evolution_success'),
+            'last_evolution_error' => \Illuminate\Support\Facades\Cache::get('last_evolution_error'),
             'failed_jobs' => $failedJobs,
             'running_processes' => $runningProcesses,
             'user' => [
