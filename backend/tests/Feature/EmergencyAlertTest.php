@@ -16,6 +16,12 @@ class EmergencyAlertTest extends TestCase
 {
     use RefreshDatabase;
 
+    protected function setUp(): void
+    {
+        parent::setUp();
+        \Illuminate\Support\Facades\Http::fake();
+    }
+
     public function test_inactivity_job_creates_emergency_alert()
     {
         $user = User::factory()->create(['name' => 'John Doe']);

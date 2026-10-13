@@ -258,8 +258,12 @@ class EmergencyAlertController extends Controller
             }
         }
 
-        // Enqueue background WhatsApp alert dispatch
-        SendSosAlertJob::dispatch($alert, $user);
+        // Dispatch immediate WhatsApp alert delivery
+        try {
+            SendSosAlertJob::dispatchSync($alert, $user);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error("SOS WhatsApp dispatch error: " . $e->getMessage());
+        }
 
         return response()->json($alert, 201);
     }
