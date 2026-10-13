@@ -504,6 +504,64 @@ Route::get('/maintenance/process-queue-work', function (\Illuminate\Http\Request
     }
 });
 
+Route::get('/maintenance/test-inactivity-direct', function (\Illuminate\Http\Request $request) {
+    try {
+        $email = $request->input('email', 'tamarakshop@gmail.com');
+        $user = \App\Models\User::where('email', $email)->first();
+        if (! $user) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
+
+        $service = app(\App\Services\WhatsAppServiceInterface::class);
+        $health = $service->checkConnectionHealth();
+
+        $selfSent = false;
+        $selfError = null;
+        if ($user->notify_self_whatsapp_on_inactivity && !empty($user->phone)) {
+            $hours = $user->checkin_interval_hours ?? 24;
+            $msg = "⚠️ Aviso Estoy Ok: Tu reporte diario de bienestar ha vencido (sin confirmación durante las últimas {$hours} horas). Tus contactos de emergencia han sido alertados. Puedes confirmar tu estado ingresando a la app o respondiendo 'OK' a este mensaje.";
+            try {
+                $selfSent = $service->sendWhatsApp($user->phone, $msg);
+            } catch (\Throwable $e) {
+                $selfError = $e->getMessage();
+            }
+        }
+
+        $contacts = [];
+        foreach ($user->emergencyContacts()->where('is_active', true)->get() as $c) {
+            $contactSent = false;
+            $contactError = null;
+            if (!empty($c->phone)) {
+                $msg = "Aviso de seguridad: Su contacto '{$user->name}' no ha reportado actividad en la aplicación 'Estoy Ok'.";
+                try {
+                    $contactSent = $service->sendWhatsApp($c->phone, $msg);
+                } catch (\Throwable $e) {
+                    $contactError = $e->getMessage();
+                }
+            }
+            $contacts[] = [
+                'name' => $c->name,
+                'phone' => $c->phone,
+                'sent' => $contactSent,
+                'error' => $contactError,
+            ];
+        }
+
+        return response()->json([
+            'user' => $user->email,
+            'phone' => $user->phone,
+            'notify_self' => (bool) $user->notify_self_whatsapp_on_inactivity,
+            'has_premium' => $user->hasPremiumAccess(),
+            'health' => $health,
+            'self_sent' => $selfSent,
+            'self_error' => $selfError,
+            'contacts' => $contacts,
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json(['error' => $e->getMessage(), 'line' => $e->getLine()], 500);
+    }
+});
+
 Route::get('/maintenance/sos-debug', function () {
     $latestAlerts = \App\Models\EmergencyAlert::with('user.emergencyContacts')
         ->latest()
