@@ -18,10 +18,11 @@
      - Deduplicación inteligente: Si un contacto de emergencia tiene el mismo número que el usuario y ya recibió la alerta propia, se omite el duplicado para no saturar la sesión Signal/Ratchet.
   3. `routes/console.php`:
      - Agregado `->withoutOverlapping()` al comando `checkins:verify-inactivity` tanto en entorno local como de producción.
-  4. `SubscriptionController.php`:
-     - `syncGooglePlay` solo revoca Premium si `subscription_provider === 'google_play'`, protegiendo otros proveedores.
+  4. `SubscriptionController.php` y `MainActivity.kt`:
+     - Blindaje definitivo de suscripciones: `syncGooglePlay` preserva el estado si `trial_ends_at` está en el futuro (`isFuture()`), si el proveedor no es Google Play (`mercadopago`, `stripe`, `paypal`, `admin_test`), o si no existe proveedor de Play registrado.
+     - En `MainActivity.kt` (`onResume`): `syncGooglePlay` solo se despacha si `activePurchase != null`, evitando que la app móvil envíe `hasActiveSubscription = false` al reanudarse y cancele pruebas activas.
 - **Garantía de No Regresión:**
-  - 190 tests pasando al 100% (640 aserciones, 0 errores, 17.73s).
+  - 190 tests pasando al 100% (640 aserciones, 0 errores, 18.11s).
 
 ## [2026-10-13] Blindaje Permanente de 4 Capas en WhatsApp y Desacoplamiento de Alertas SOS
 - **Diagnóstico de Falla de SOS:**

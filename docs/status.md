@@ -553,6 +553,7 @@
     - Priorización de WhatsApp sobre Email en `SendInactivityAlerts`: WhatsApp se envía de forma inmediata antes de cualquier llamada SMTP síncrona.
     - Reducción del espaciado entre mensajes de 10 segundos a 1.5 segundos (`usleep(1500000)`), y deduplicación inteligente cuando un contacto comparte el mismo número que el usuario para no bloquear la cola de cifrado Double Ratchet en Baileys.
     - Agregado `->withoutOverlapping()` a `checkins:verify-inactivity` en el scheduler (`routes/console.php`).
+    - Blindaje de suscripciones y pruebas activas en `SubscriptionController.php` y `MainActivity.kt`: `syncGooglePlay` preserva Premium si `trial_ends_at` está vigente (`isFuture()`) o si el proveedor no es Google Play, y la app Android solo sincroniza compras si `activePurchase != null`, eliminando cancelaciones accidentales al reanudar la app.
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
 
 ### Next Steps:
