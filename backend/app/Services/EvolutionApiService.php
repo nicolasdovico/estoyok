@@ -169,6 +169,12 @@ class EvolutionApiService implements WhatsAppServiceInterface
             return;
         }
 
+        // Si estamos en Dev y la instancia es la compartida 'estoyok_main', no sobreescribir el webhook
+        // principal de producción para no romper la recepción de WhatsApp en producción.
+        if (env('RAILWAY_ENVIRONMENT_NAME') === 'dev' && $this->instance === 'estoyok_main' && ! $explicitBackendUrl) {
+            return;
+        }
+
         // Cache check once per day to avoid redundant HTTP requests
         $cacheKey = "evolution_webhook_configured_{$this->instance}";
         if (! $force && ! $explicitBackendUrl && \Illuminate\Support\Facades\Cache::has($cacheKey)) {

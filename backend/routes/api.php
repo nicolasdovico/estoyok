@@ -233,7 +233,32 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             $verifyOutput = \Illuminate\Support\Facades\Artisan::output();
         }
 
+        $evolutionDebug = null;
+        if (!empty(config('services.evolution.url')) && !empty(config('services.evolution.api_key'))) {
+            try {
+                $evBase = rtrim(config('services.evolution.url'), '/');
+                $evKey = config('services.evolution.api_key');
+                $evInst = config('services.evolution.instance', 'estoyok_main');
+
+                $fetchRes = \Illuminate\Support\Facades\Http::withHeaders(['apikey' => $evKey])->timeout(3)->get("{$evBase}/instance/fetchInstances");
+                $stateRes = \Illuminate\Support\Facades\Http::withHeaders(['apikey' => $evKey])->timeout(3)->get("{$evBase}/instance/connectionState/{$evInst}");
+                $webhookRes = \Illuminate\Support\Facades\Http::withHeaders(['apikey' => $evKey])->timeout(3)->get("{$evBase}/webhook/find/{$evInst}");
+
+                $evolutionDebug = [
+                    'all_instances' => collect($fetchRes->json() ?? [])->map(fn($i) => [
+                        'name' => $i['name'] ?? null,
+                        'status' => $i['connectionStatus'] ?? null,
+                    ])->all(),
+                    'instance_state' => $stateRes->json(),
+                    'current_webhook' => $webhookRes->json(),
+                ];
+            } catch (\Throwable $e) {
+                $evolutionDebug = ['error' => $e->getMessage()];
+            }
+        }
+
         return response()->json([
+            'evolution_debug' => $evolutionDebug,
             'server_time_utc' => $nowUtc->toDateTimeString(),
             'server_time_local' => $nowLocal->toDateTimeString(),
             'timezone' => $timezone,
