@@ -57,10 +57,21 @@ class EvolutionApiService implements WhatsAppServiceInterface
             ])->post($url, $payload);
 
             if ($response->successful()) {
+                \Illuminate\Support\Facades\Cache::put('last_evolution_success', [
+                    'time' => now()->toDateTimeString(),
+                    'to' => $cleanTo,
+                    'status' => $response->status(),
+                ], 3600);
                 return true;
             }
 
             $responseBody = $response->body();
+            \Illuminate\Support\Facades\Cache::put('last_evolution_error', [
+                'time' => now()->toDateTimeString(),
+                'to' => $cleanTo,
+                'status' => $response->status(),
+                'body' => $responseBody,
+            ], 3600);
 
             // Si el socket devolvió Connection Closed, intentar auto-recuperar en caliente y reintentar una vez
             if (str_contains($responseBody, 'Connection Closed')) {
@@ -89,6 +100,11 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
             return false;
         } catch (Exception $e) {
+            \Illuminate\Support\Facades\Cache::put('last_evolution_error', [
+                'time' => now()->toDateTimeString(),
+                'to' => $cleanTo ?? $to,
+                'exception' => $e->getMessage(),
+            ], 3600);
             Log::error('Evolution API Exception: ' . $e->getMessage());
 
             return false;
