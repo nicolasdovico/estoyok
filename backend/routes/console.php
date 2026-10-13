@@ -9,6 +9,7 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 if (app()->environment('local')) {
+    Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
     Schedule::command('checkins:verify-inactivity')->everyMinute();
     Schedule::command('checkins:send-reminders')->everyMinute();
     Schedule::command('drive:cleanup-active')->everyMinute();
@@ -16,6 +17,7 @@ if (app()->environment('local')) {
     Schedule::command('subscriptions:check-expired-grace-periods')->everyMinute();
     Schedule::command('subscriptions:expire-trials')->everyMinute();
 } else {
+    Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
     Schedule::command('checkins:verify-inactivity')->everyMinute();
     Schedule::command('checkins:send-reminders')->everyFifteenMinutes();
     Schedule::command('drive:cleanup-active')->everyTenMinutes();

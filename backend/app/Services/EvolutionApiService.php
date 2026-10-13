@@ -60,13 +60,103 @@ class EvolutionApiService implements WhatsAppServiceInterface
                 return true;
             }
 
-            Log::error('Evolution API Error: ' . $response->body());
+            $responseBody = $response->body();
+
+            // Si el socket devolvió Connection Closed, intentar auto-recuperar en caliente y reintentar una vez
+            if (str_contains($responseBody, 'Connection Closed')) {
+                Log::warning("Evolution API: 'Connection Closed' detected. Attempting hot auto-recovery and retry...");
+                $this->reconnectInstance();
+
+                if (! app()->runningUnitTests()) {
+                    usleep(2000000); // 2 segundos para asentar el handshake del socket
+                }
+
+                $retryResponse = Http::withHeaders([
+                    'apikey' => $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])->post($url, $payload);
+
+                if ($retryResponse->successful()) {
+                    Log::info("Evolution API: Message sent successfully after hot auto-recovery retry.");
+                    return true;
+                }
+
+                Log::error('Evolution API Error on retry: ' . $retryResponse->body());
+                return false;
+            }
+
+            Log::error('Evolution API Error: ' . $responseBody);
 
             return false;
         } catch (Exception $e) {
             Log::error('Evolution API Exception: ' . $e->getMessage());
 
             return false;
+        }
+    }
+
+    /**
+     * Fuerza la reconexión del socket de la instancia en Evolution API
+     */
+    public function reconnectInstance(): bool
+    {
+        if (! $this->baseUrl || ! $this->apiKey) {
+            return false;
+        }
+
+        try {
+            $restartUrl = "{$this->baseUrl}/instance/restart/{$this->instance}";
+            $restartRes = Http::withHeaders([
+                'apikey' => $this->apiKey,
+            ])->timeout(8)->put($restartUrl);
+
+            $connectUrl = "{$this->baseUrl}/instance/connect/{$this->instance}";
+            $connectRes = Http::withHeaders([
+                'apikey' => $this->apiKey,
+            ])->timeout(8)->get($connectUrl);
+
+            Log::info("Evolution API: Reconnect invoked for instance {$this->instance}", [
+                'restart_status' => $restartRes->status(),
+                'connect_status' => $connectRes->status(),
+            ]);
+
+            return $restartRes->successful() || $connectRes->successful();
+        } catch (\Throwable $e) {
+            Log::warning("Evolution API: Reconnection failed: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    /**
+     * Verifica la salud del socket de la instancia en Evolution API
+     */
+    public function checkConnectionHealth(): array
+    {
+        if (! $this->baseUrl || ! $this->apiKey) {
+            return ['status' => 'unconfigured', 'connected' => false];
+        }
+
+        try {
+            $stateRes = Http::withHeaders(['apikey' => $this->apiKey])
+                ->timeout(4)
+                ->get("{$this->baseUrl}/instance/connectionState/{$this->instance}");
+
+            $data = $stateRes->json();
+            $state = strtolower($data['instance']['state'] ?? ($data['state'] ?? 'unknown'));
+
+            $isHealthy = in_array($state, ['open']);
+
+            return [
+                'status' => $state,
+                'connected' => $isHealthy,
+                'http_code' => $stateRes->status(),
+            ];
+        } catch (\Throwable $e) {
+            return [
+                'status' => 'error',
+                'connected' => false,
+                'error' => $e->getMessage(),
+            ];
         }
     }
 
