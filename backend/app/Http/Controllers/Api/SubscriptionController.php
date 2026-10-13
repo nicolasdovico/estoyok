@@ -331,6 +331,16 @@ class SubscriptionController extends Controller
             ]);
         } else {
             // Google Play no tiene compras activas
+            // Si el proveedor no es Google Play (ej: mercadopago, stripe, paypal, admin_test), no debe cancelarse
+            if ($user->subscription_provider && $user->subscription_provider !== 'google_play') {
+                return response()->json([
+                    'message' => 'Suscripción administrada por otro proveedor (' . $user->subscription_provider . ').',
+                    'status' => $user->subscription_status,
+                    'is_premium' => (bool) $user->is_premium,
+                    'user' => $user->fresh(),
+                ]);
+            }
+
             $wasPremium = (bool) $user->is_premium || in_array($user->subscription_status, ['trialing', 'active', 'grace_period']);
 
             if ($wasPremium) {
