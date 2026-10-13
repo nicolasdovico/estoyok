@@ -551,7 +551,7 @@
   - [x] Optimización y Eliminación de Retrasos en Alertas de Inactividad (`VerifyInactivity.php` y `SendInactivityAlerts.php`):
     - Bloqueo atómico de 120s en caché (`Cache::add`) y persistencia atómica previa de `EmergencyAlert` para eliminar condiciones de carrera y dobles disparos en el mismo minuto.
     - Priorización de WhatsApp sobre Email en `SendInactivityAlerts`: WhatsApp se envía de forma inmediata antes de cualquier llamada SMTP síncrona.
-    - Reducción del espaciado entre mensajes de 10 segundos a 1.5 segundos (`usleep(1500000)`), y deduplicación inteligente cuando un contacto comparte el mismo número que el usuario para no bloquear la cola de cifrado Double Ratchet en Baileys.
+    - Reducción del espaciado entre mensajes de 10 segundos a 1.5 segundos (`usleep(1500000)`), y espaciado de 3.5s si el contacto de emergencia comparte el mismo teléfono que el usuario (entornos de pruebas) para permitir la entrega de ambos mensajes (auto-aviso y alerta de contacto con enlace de mapa) sin bloquear la sesión de Baileys.
     - Agregado `->withoutOverlapping()` a `checkins:verify-inactivity` en el scheduler (`routes/console.php`).
     - Blindaje de suscripciones y pruebas activas en `SubscriptionController.php` y `MainActivity.kt`: `syncGooglePlay` preserva Premium si `trial_ends_at` está vigente (`isFuture()`) o si el proveedor no es Google Play, y la app Android solo sincroniza compras si `activePurchase != null`, eliminando cancelaciones accidentales al reanudar la app.
 - [ ] **FASE 14: Depreciación de Web Funcional y Enfoque Móvil Exclusivo** (Plan de Trabajo en [plan_depreciacion_web.md](file:///home/usuario/aplicaciones/estoyok/docs/plan_depreciacion_web.md))
