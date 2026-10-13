@@ -424,6 +424,34 @@ Route::post('/maintenance/restart-evolution-instance', function () {
     }
 });
 
+Route::get('/maintenance/logs', function () {
+    $logFile = storage_path('logs/laravel.log');
+    if (! file_exists($logFile)) {
+        return response('No log file found', 404);
+    }
+    $lines = file($logFile);
+    $lastLines = array_slice($lines, -150);
+    return response(implode('', $lastLines), 200)->header('Content-Type', 'text/plain');
+});
+
+Route::match(['get', 'post'], '/maintenance/trigger-sos-job', function () {
+    $alert = \App\Models\EmergencyAlert::where('type', 'silent_sos')->latest()->first();
+    if (! $alert) {
+        return response()->json(['error' => 'No SOS alert']);
+    }
+    $user = $alert->user;
+
+    $job = new \App\Jobs\SendSosAlertJob($alert, $user);
+    $service = app(\App\Services\WhatsAppServiceInterface::class);
+    $job->handle($service);
+
+    return response()->json([
+        'handled' => true,
+        'alert_id' => $alert->id,
+        'user' => $user->name,
+    ]);
+});
+
 Route::get('/maintenance/sos-debug', function () {
     $latestAlerts = \App\Models\EmergencyAlert::with('user.emergencyContacts')
         ->latest()
