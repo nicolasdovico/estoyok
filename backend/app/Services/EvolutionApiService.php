@@ -73,13 +73,19 @@ class EvolutionApiService implements WhatsAppServiceInterface
                 'body' => $responseBody,
             ], 3600);
 
-            // Si el socket devolvió Connection Closed, intentar auto-recuperar en caliente y reintentar una vez
-            if (str_contains($responseBody, 'Connection Closed')) {
-                Log::warning("Evolution API: 'Connection Closed' detected. Attempting hot auto-recovery and retry...");
+            // Si el socket devolvió Connection Closed / Error 1006 / close, intentar auto-recuperar en caliente y reintentar una vez
+            if (
+                str_contains($responseBody, 'Connection Closed') ||
+                str_contains($responseBody, '1006') ||
+                str_contains($responseBody, 'is not open') ||
+                str_contains($responseBody, 'Connecting') ||
+                str_contains($responseBody, 'close')
+            ) {
+                Log::warning("Evolution API: Socket closed / Error 1006 detected ({$responseBody}). Attempting hot auto-recovery and retry...");
                 $this->reconnectInstance();
 
                 if (! app()->runningUnitTests()) {
-                    usleep(2000000); // 2 segundos para asentar el handshake del socket
+                    usleep(3000000); // 3 segundos para asentar el handshake del socket
                 }
 
                 $retryResponse = Http::withHeaders([
@@ -89,6 +95,12 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
                 if ($retryResponse->successful()) {
                     Log::info("Evolution API: Message sent successfully after hot auto-recovery retry.");
+                    \Illuminate\Support\Facades\Cache::put('last_evolution_success', [
+                        'time' => now()->toDateTimeString(),
+                        'to' => $cleanTo,
+                        'status' => $retryResponse->status(),
+                        'recovered' => true,
+                    ], 3600);
                     return true;
                 }
 
