@@ -62,7 +62,7 @@
            - Alerta SOS por botón: Entrega instantánea (~2 segundos) a todos los contactos de emergencia.
            - Vencimiento de bienestar: Envío exitoso de avisos al usuario y a sus contactos vía WhatsApp tanto en Producción (`nicolas@gmail.com`) como en Desarrollo (`tamarakshop@gmail.com`).
            - Confirmación interactiva: Respuesta con "OK" procesada inmediatamente vía webhook restableciendo el reloj de bienestar sin duplicación de mensajes.
-        6. *Suite de Tests:* 189 tests pasando al 100% (634 aserciones).
+        6. *Suite de Tests:* 190 tests pasando al 100% (640 aserciones).
 
       - **[RESUELTO] Réplica de Webhooks entre Producción y Desarrollo (Opción A - Peer Mirroring):** Validada en vivo la réplica de webhooks vía `EVOLUTION_WEBHOOK_PEER_URL` y header `X-EstoyOk-Mirrored: 1`. Un único "OK" despachado por el usuario (+54 9 11 4979-0220) actualiza el bienestar simultáneamente en Producción (`api.estoyok24.com`) y en Desarrollo (`backend-api-dev-2a56.up.railway.app`), suprimiendo respuestas duplicadas y permitiendo desarrollo y pruebas continuas en Dev con 1 solo chip SIM sin interrumpir el servicio en Producción.
     - [x] Alerta de Bienestar Vencido por WhatsApp a Sí Mismo (Backend Laravel & Android Nativo):
@@ -600,6 +600,15 @@ Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguien
    * **App Móvil:** Mantener la explicación del funcionamiento (microcopy) integrada de forma directa y sutil en texto pequeño debajo de cada toggle o switch de configuración, garantizando legibilidad y rapidez táctil.
 
 ---
+
+## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-14)
+* **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-14.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-14.md)
+* **Diagnóstico de Falla en Scheduler de Producción (`api.estoyok24.com`):**
+  - **Síntoma:** Al expirar el reloj de bienestar a las 05:40:00 (08:40:00 UTC), se persistió la alerta de inactividad `EmergencyAlert` en PostgreSQL pero ningún mensaje de WhatsApp salió al usuario ni al contacto. En cambio, invocaciones síncronas directas (a las 05:23 y 05:45) entregaron ambos mensajes de WhatsApp de forma inmediata en ~6-9s con HTTP 201.
+  - **Descarte de Bloqueo por Mails (Cronología):** Se demostró cronológicamente que el paso de envío de emails SMTP (paso 7 en `SendInactivityAlerts::handle`) no fue la causa, ya que los pasos 2 y 6 (WhatsApp propio y a contactos) son previos en la secuencia; si el mail hubiese fallado, los WhatsApp ya habrían llegado. Al no llegar ningún WhatsApp, se confirma que la ejecución jamás ingresó al `handle()`.
+  - **Causa Raíz:** En Railway Producción, el worker de Redis en segundo plano (`queue:work` en `start.sh`) está estancado o desconectado, acumulando jobs en `queues:default` (`default_len: 1`) sin procesarlos.
+  - **Desarrollo (`backend-api-dev-2a56.up.railway.app`):** 100% operativo de punta a punta (expiración, doble WhatsApp, recepción de "OK" y confirmación interactiva).
+* **Test Suite:** 190 tests pasando al 100% sin regresiones (`docker compose exec backend php artisan test`).
 
 ## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-13)
 * **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-13.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-13.md)
