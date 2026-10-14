@@ -33,6 +33,7 @@ Durante la sesión de hoy se resolvieron 4 problemas arquitectónicos críticos 
   - **Teléfono usuario:** `+5491149790220`
   - **Contacto de emergencia:** `Nico Sos` (ID 17, `+541149790220`)
 - **Instancia WhatsApp:** `https://evolution-api-production-3449.up.railway.app` (`estoyok_main`)
+- **Estado:** **100% Funcional y verificado en vivo.** Reloj preparado para expirar a las 21:58:10; `schedule:work` corrió a las 21:59:00 UTC, creó la alerta `01a137eb-75f6-7066-b125-986b7dedba9e`, el worker PID 34 tomó el job inmediatamente en el mismo segundo, despachó el auto-aviso a las 21:59:03 (`success: true`), activó la auto-recuperación de socket y entregó la alerta al contacto a las 21:59:10 (`success: true`, HTTP 201).
 
 ---
 
@@ -40,79 +41,43 @@ Durante la sesión de hoy se resolvieron 4 problemas arquitectónicos críticos 
 
 ### A. Aislamiento estricto de Redis entre Ambientes
 - **Archivo:** `backend/config/database.php`
-  - Se modificó la generación del prefijo de Redis:
-    ```php
-    'prefix' => env('REDIS_PREFIX', Str::slug((string) env('APP_NAME', 'estoy-ok')).'_'.(env('RAILWAY_ENVIRONMENT_NAME') ?: env('APP_ENV', 'production')).'-database-'),
-    ```
-  - En Railway Dev: `estoy-ok_dev-database-`
-  - En Railway Producción: `estoy-ok_production-database-`
-  - **Resultado:** Ningún worker de Producción puede leer ni vaciar claves o colas de Dev, y viceversa.
+  - Prefijo dinámico de Redis por entorno (`estoy-ok_dev-database-` vs `estoy-ok_production-database-`).
 - **Archivo:** `backend/start.sh`
-  - El supervisor del worker ahora escucha explícitamente:
-    ```bash
-    php artisan queue:work --queue="${REDIS_QUEUE:-default},dev_default" --sleep=3 --tries=3 --timeout=90 || true
-    ```
+  - Supervisor del worker escuchando `default,dev_default`.
 
 ### B. Protección de Webhooks en Evolution API
 - **Archivo:** `backend/app/Services/EvolutionApiService.php`
-  - En `ensureWebhookConfigured()`: Si el entorno es `dev` y la instancia es `estoyok_main`, se omite sobreescribir el webhook principal de Producción.
-  - Producción mantiene el control del webhook oficial y puede espejar eventos a Dev mediante `EVOLUTION_WEBHOOK_PEER_URL` con header `X-EstoyOk-Mirrored: 1` (`WebhookController.php`).
+  - Dev no sobreescribe el webhook oficial en Evolution API. Producción mantiene el control y replica mensajes mediante Peer Mirroring.
 
 ### C. Auto-recuperación en caliente ante Error 1006 / Socket Cerrado
 - **Archivo:** `backend/app/Services/EvolutionApiService.php`
-  - Se expandió la detección de caída de socket para capturar `1006`, `close`, `is not open` y `Connection Closed`:
-    ```php
-    if (
-        str_contains($responseBody, 'Connection Closed') ||
-        str_contains($responseBody, '1006') ||
-        str_contains($responseBody, 'is not open') ||
-        str_contains($responseBody, 'Connecting') ||
-        str_contains($responseBody, 'close')
-    ) {
-        $this->reconnectInstance();
-        usleep(3000000); // 3s para asentar socket
-        $retryResponse = Http::post($url, $payload);
-        // ...
-    }
-    ```
-  - **Resultado comprobado en vivo:** Al enviar al contacto `+541149790220`, Evolution API devolvió 1006; el servicio ejecutó la auto-reconexión inmediata y el reintento devolvió HTTP `201 Created`, entregando el mensaje en WhatsApp.
+  - Detección de caída de socket (`1006`, `close`, `is not open`, `Connection Closed`).
+  - Polling activo de salud de conexión hasta 6 segundos tras invocar `reconnectInstance()`, garantizando estado `open` antes de enviar el reintento.
 
-### D. Protección de Suscripciones Premium en Android y Backend
-- **Archivo:** `android-native/app/src/main/java/com/estoyok/app/MainActivity.kt`
-  - `onResume()` solo invoca la sincronización si `activePurchase != null`, evitando solicitudes de cancelación involuntarias al minimizar y abrir la app.
-- **Archivo:** `backend/app/Http/Controllers/Api/SubscriptionController.php`
-  - `syncGooglePlay` ahora respeta si el usuario tiene `trial_ends_at` vigente o si su proveedor es de pruebas (`admin_test`) o alternativo (`mercadopago`), sin degradarlo a Free.
-
-### E. Optimización de Concurrencia y Delays en Jobs
+### D. Blindaje de Despacho en Planificador (`VerifyInactivity.php`)
 - **Archivo:** `backend/app/Console/Commands/VerifyInactivity.php`
-  - Bloqueo atómico de 120 segundos mediante `Cache::add("inactivity_alert_dispatched_user_{$user->id}", true, 120)`.
-  - Creación atómica de `EmergencyAlert` en la base de datos antes de encolar `SendInactivityAlerts`, evitando duplicados por solapamiento de minutos.
-- **Archivo:** `backend/app/Jobs/SendInactivityAlerts.php`
-  - WhatsApp enviado con prioridad antes que los correos electrónicos.
-  - Espaciado de 1.5s entre contactos distintos.
-  - Espaciado de 3.5s si el número del contacto coincide con el número del propio usuario (para permitir que la sesión Signal de WhatsApp asiente el ratchet criptográfico entre el auto-aviso y el aviso de rescate).
+  - Bloque `try-catch (\Throwable $e)` alrededor de la creación y despacho de la alerta.
+  - Si el encolado falla, se elimina la alerta huérfana y se libera el lock en caché para permitir que el planificador reintente automáticamente en el minuto siguiente.
+  - Telemetría en caché: `last_verify_dispatch_attempt` y `last_verify_dispatch_error`.
 
-### F. Telemetría y Diagnóstico en Tiempo Real
-- **Ruta:** `GET /api/maintenance/diagnose-inactivity`
-  - Informa: `redis_prefix`, `redis_queues` (`default_len`, `dev_default_len`, `keys`), `evolution_debug` (instancias y webhook), `last_inactivity_job_received`, `last_inactivity_job_self_whatsapp`, `last_inactivity_job_contacts_result`, `last_evolution_success`, `last_evolution_error`.
-- **Ruta:** `GET|POST /api/maintenance/test-job-dispatch`
-  - Inserta un job en Redis, mide la longitud de la cola inmediatamente, aguarda 2.5s y verifica el consumo del worker y los resultados en caché.
+### E. Scheduler Mutex Expiration
+- **Archivo:** `backend/routes/console.php`
+  - `Schedule::command('checkins:verify-inactivity')->everyMinute()->withoutOverlapping(10)` con expiración explícita de 10 minutos para evitar deadlocks de 24 horas.
 
 ---
 
 ## 4. Estado de los Tests Automatizados
 - **Total tests:** `190 passed (640 assertions)`
-- **Duración:** ~20 segundos
+- **Duración:** ~23 segundos
 - **Comando:** `docker compose exec backend php artisan test`
 - **Regresiones:** Cero regresiones detectadas.
 
 ---
 
 ## 5. Puntos de Partida para la Sesión de Mañana
-1. **Comportamiento en Dev entre `schedule:work` y `queue:work`:**
-   - La prueba con `test-job-dispatch` en Dev funcionó de manera impecable: el job ingresó a Redis, el worker PID 57 lo tomó y despachó tanto el auto-aviso (`success: true`) como el aviso al contacto (`success: true`).
-   - Sin embargo, en el disparo natural del reloj a las 21:12:00, `schedule:work` (PID 12) creó la alerta `01a137c0-6eca` en la base de datos `railway`, pero el job no actualizó la caché del worker. Mañana se debe revisar por qué el subproceso de `schedule:work` en Railway Dev no dejó trazas en el worker (revisar si `schedule:work` ejecuta en un contexto de base de datos o cola desfasada, o si requiere reiniciar los workers tras la creación de alerta).
-2. **Verificación final en Dev con la app móvil instalada:**
+1. **Verificación final con la app móvil instalada:**
    - Validar que al expirar el reloj en Dev, la notificación push llegue al teléfono de Tamara (`tamarakshop@gmail.com`) y que ambos mensajes de WhatsApp entren fluidamente.
-3. **Limpieza de endpoints temporales de diagnóstico:**
-   - Una vez consolidada la prueba final, retirar o asegurar con middleware de autenticación los endpoints auxiliares de `/maintenance/*`.
+2. **Respuesta "OK" en Dev:**
+   - Responder "OK" desde el teléfono al mensaje recibido en Dev y constatar la renovación del reloj a 12 horas vía webhook mirroring.
+3. **Limpieza de endpoints auxiliares de diagnóstico:**
+   - Una vez concluida la validación con la app física, asegurar o retirar los endpoints auxiliares de `/maintenance/*`.
