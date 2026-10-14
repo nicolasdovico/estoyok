@@ -9,14 +9,16 @@
   1. `WebhookController.php`:
      - Al igual que en las alertas SOS (`SendSosAlertJob::dispatchSync`) y colisiones vehiculares (`SendCrashAlertJob::dispatchSync`), se migró la confirmación de check-in a despacho sincrónico e inmediato (`SendCheckinConfirmationWhatsAppJob::dispatchSync($targetPhone, $user->id)`).
      - Se mantiene el bloqueo atómico en caché de 20s (`Cache::add("wa_confirm_dispatched_user_{$user->id}", true, 20)`) para garantizar cero duplicados ante eventuales reintentos del webhook de Evolution API.
-  2. `SendCheckinConfirmationWhatsAppJob.php`:
+  2. `VerifyInactivity.php`:
+     - Migrado el despacho de alerta de inactividad a `SendInactivityAlerts::dispatchSync($user, $alert->id)` en producción (manteniendo `dispatch` en unit tests con `Queue::fake()`), eliminando el punto único de falla de la cola Redis y garantizando que el planificador despache los mensajes de WhatsApp directamente.
+  3. `SendCheckinConfirmationWhatsAppJob.php`:
      - Incorporada telemetría atómica en caché (`last_confirmation_job_result`) con estado, destinatario y timestamp para auditoría en tiempo real.
-  3. `EvolutionApiService.php`:
+  4. `EvolutionApiService.php`:
      - Agregada telemetría de caché (`last_evolution_simulated`) cuando la URL o API Key están ausentes.
-  4. `routes/api.php`:
+  5. `routes/api.php`:
      - Expuestos `last_confirmation_job_result` y `last_evolution_simulated` en el endpoint `/api/maintenance/diagnose-inactivity`.
 - **Garantía de No Regresión:**
-  - 190 tests pasando al 100% (640 aserciones, 21.27s).
+  - 190 tests pasando al 100% (640 aserciones, 27.37s).
 
 ## [2026-10-13] Blindaje de Despacho en Scheduler y Polling Activo de Socket en Evolution API
 - **Problema Detectado en Scheduler (`checkins:verify-inactivity`):**
