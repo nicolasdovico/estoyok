@@ -2417,8 +2417,22 @@
     - Se añadió compatibilidad con entornos de desarrollo/staging inyectando el parámetro `&api={app_url}/api` en la URL de emergencia cuando el backend se ejecuta en modo no productivo.
 - **Frontend Web (Next.js):**
     - En `EmergencyClientPage.tsx`, se habilitó la lectura del parámetro `?api=` en la URL para consumo dinámico de la API de backend correspondiente.
-    - Se implementó un mecanismo de fallback automático: si la consulta a producción retorna 404 (alerta emitida desde entorno de pruebas/staging), el cliente consulta automáticamente el backend de desarrollo (`https://backend-api-dev-2a56.up.railway.app/api`) antes de emitir error, asegurando la visualización del mapa en vivo y respuestas de rescate.
-    - Compilación de producción con Turbopack validada exitosamente (`npm run build`).
-    - Suite de 174 pruebas de Laravel superadas al 100% (0 regresiones).
+## [2026-10-13] Aislamiento de Entornos Dev/Prod, Auto-recuperación de WhatsApp y Verificación de Alertas de Inactividad
+- **Arquitectura de Colas y Redis:**
+    - Detectada y resuelta la colisión crítica entre Dev y Producción en `redis.railway.internal`: ambos compartían el prefijo `estoy-ok-database-` y la cola `default`, provocando que el worker de Producción robara y descartara los jobs de Dev.
+    - Se aisló el prefijo en `backend/config/database.php` integrando `(env('RAILWAY_ENVIRONMENT_NAME') ?: env('APP_ENV', 'production'))`: `estoy-ok_dev-database-` para Dev y `estoy-ok_production-database-` para Producción.
+    - En `backend/start.sh`, el supervisor de colas ahora escucha `--queue="${REDIS_QUEUE:-default},dev_default"`.
+- **Integración con Evolution API (WhatsApp):**
+    - Se impidió el secuestro del webhook en `backend/app/Services/EvolutionApiService.php`: Dev ya no sobreescribe la URL del webhook si comparte la instancia `estoyok_main` con Producción.
+    - Implementada la auto-reconexión y reintento en caliente ante caídas de socket con Error 1006 / 400 Bad Request en Evolution API (Baileys), verificando en vivo la entrega exitosa (HTTP 201 Created).
+- **Protección de Suscripciones y Android Nativo:**
+    - En `MainActivity.kt`, se restringió la llamada a `syncGooglePlay` en `onResume` para que solo se ejecute si existe una compra activa en Google Play, evitando la cancelación no intencionada de cuentas de prueba (`admin_test`).
+    - En `SubscriptionController.php`, se blindó la lógica para respetar periodos de prueba vigentes y proveedores no-Google Play.
+- **Jobs y Concurrencia de Alertas:**
+    - En `VerifyInactivity.php`, se añadió un lock atómico de 120s en Cache y creación atómica previa de `EmergencyAlert`.
+    - En `SendInactivityAlerts.php`, se priorizó el despacho de WhatsApp antes de los correos, con 1.5s entre contactos y 3.5s si el contacto comparte el número del usuario para permitir el asentamiento del ratchet de Signal.
+- **Documentación:**
+    - Creado documento de traspaso y diagnóstico integral en [`docs/resumen_sesion_2026-10-13.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-13.md).
+    - Suite de 190 tests de Laravel pasando al 100% con cero regresiones.
 
 
