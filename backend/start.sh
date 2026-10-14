@@ -4,6 +4,7 @@ set -e
 # Ensure public/storage symlink exists
 rm -rf public/storage
 php artisan storage:link --relative || true
+php artisan config:clear || true
 
 # Start queue worker in background with auto-restart supervisor loop
 (while true; do
