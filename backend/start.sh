@@ -8,7 +8,7 @@ php artisan storage:link --relative || true
 # Start queue worker in background with auto-restart supervisor loop
 (while true; do
     echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] Starting queue:work..."
-    php artisan queue:work --queue="${REDIS_QUEUE:-default},dev_default" --sleep=3 --tries=3 --timeout=90 || true
+    php artisan queue:work --queue="${REDIS_QUEUE:-default},dev_default" --sleep=3 --tries=3 --timeout=90 --max-time=3600 --memory=128 || true
     echo "[$(date -u +'%Y-%m-%dT%H:%M:%SZ')] Queue worker exited ($?), restarting in 3s..."
     sleep 3
 done) &

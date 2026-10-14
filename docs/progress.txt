@@ -1,5 +1,34 @@
 # Progress Log
 
+## [2026-10-14] Diagnóstico de Falla de Entrega de Alertas de Inactividad en Producción (Worker Redis vs Despacho Sincrónico)
+- **Contexto y Síntoma:**
+  - En el entorno de Desarrollo (`tamarakshop@gmail.com`), las alertas de inactividad por reloj vencido funcionan al 100%: llegan las notificaciones push, los dos mensajes de WhatsApp (auto-aviso al usuario y alerta de contacto de emergencia con enlace a mapa de rescate), y al responder "OK", el reloj se restablece a 12h y llega la confirmación.
+  - En Producción (`nicolas@gmail.com`), las alertas SOS manuales disparadas por el botón funcionan al 100% en ~2 segundos porque utilizan `SendSosAlertJob::dispatchSync`.
+  - Sin embargo, en Producción, ante el vencimiento automático del reloj a las 05:40:00 (08:40:00 UTC), la alerta `EmergencyAlert` se persistió en la base de datos PostgreSQL (`01a13991-8571-70b9-bc2b-4a7724d818ca`), pero **ningún mensaje de WhatsApp llegó al teléfono del usuario ni al contacto de emergencia**.
+  - Al ejecutar una prueba manual síncrona forzada (a las 05:23 y a las 05:45), ambos mensajes de WhatsApp salieron en ~6 a 9 segundos con código HTTP 201 en Evolution API v2.3.7 y fueron recibidos de inmediato en el celular del usuario (+54 9 11 4979-0220).
+
+- **Análisis Cronológico y Descarte de Errores Posteriores:**
+  - Se analizó la hipótesis de si un fallo en el envío de correos electrónicos (SMTP) pudiera estar bloqueando el flujo.
+  - El usuario razonó con exactitud la secuencia cronológica: dentro de `SendInactivityAlerts::handle`, el orden de ejecución es:
+    1. Notificación Push.
+    2. WhatsApp propio (si `notify_self_whatsapp_on_inactivity` está activo).
+    3. Pausa de 1.5s.
+    4. Bucle de miembros del núcleo familiar (círculos).
+    5. Pausa de 3.5s si el contacto comparte número con el usuario.
+    6. WhatsApp a los contactos de emergencia.
+    7. Envío de correos por SMTP.
+  - Si el problema fuera el envío de mails (Paso 7), los pasos previos 2 y 6 (ambos WhatsApp) ya habrían sido enviados y recibidos antes de intentar el correo.
+  - Dado que a las 05:40 no llegó ningún WhatsApp, se concluye de forma concluyente que la ejecución **jamás llegó a ejecutar el paso 2 ni el paso 1**: el job `SendInactivityAlerts::handle` nunca se inició durante la corrida automática del planificador.
+
+- **Diagnóstico de Causa Raíz:**
+  1. **Worker de Colas de Redis Congelado en Railway Producción:**
+     - En Railway Producción, el proceso demonio en background `queue:work` ejecutado dentro de `start.sh` se encuentra bloqueado / dormido y no consume los trabajos encolados en `queues:default` (clave `estoy-ok_production-database-queues:default`).
+     - Se constató mediante `/api/maintenance/test-job-dispatch?email=nicolas@gmail.com` que los trabajos quedan acumulados indefinidamente (`default_len: 1`) sin ser procesados por ningún worker.
+  2. **Vulnerabilidad de Despacho Asíncrono en Tareas de Emergencia:**
+     - Cualquier alerta crítica que dependa de un worker asíncrono de Redis en Railway corre el riesgo de quedar estancada si el demonio `queue:work` se congela por problemas de conexión a phpredis, prefijos de base de datos o sobrecarga de memoria del contenedor.
+  3. **Confirmación por Despacho Sincrónico Directo:**
+     - En todos los casos donde el envío se realiza de forma síncrona en el hilo principal (`dispatchSync`), como en SOS (`SendSosAlertJob`) o en las invocaciones directas a Evolution API, el 100% de los mensajes se entregan de forma inmediata y sin demoras.
+
 ## [2026-10-14] Entrega Inmediata de Confirmación WhatsApp de Check-in y Verificación End-to-End
 - **Diagnóstico:**
   - Tras verificar con éxito la expiración natural del reloj y el disparo de alertas en Railway Producción (`api.estoyok24.com`) para `nicolas@gmail.com`, el usuario respondió "OK" vía WhatsApp al bot (`+54 9 2323 61-0697`).
