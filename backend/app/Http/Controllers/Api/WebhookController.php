@@ -306,17 +306,15 @@ class WebhookController extends Controller
                 }
             }
 
-            // Confirmation reply via WhatsApp (queued in background to decouple from webhook cycle)
+            // Confirmation reply via WhatsApp (dispatched reliably with deduplication lock)
             if (! $request->header('X-EstoyOk-Mirrored')) {
                 try {
                     $targetPhone = $user->phone;
                     if (! empty($targetPhone)) {
                         $confirmLockKey = "wa_confirm_dispatched_user_{$user->id}";
                         if (app()->runningUnitTests() || Cache::add($confirmLockKey, true, 20)) {
-                            $delaySeconds = app()->runningUnitTests() ? 0 : 6;
-                            SendCheckinConfirmationWhatsAppJob::dispatch($targetPhone, $user->id)
-                                ->delay(now()->addSeconds($delaySeconds));
-                            Log::info("Evolution Webhook: Dispatched confirmation job for {$targetPhone} (delay: {$delaySeconds}s)");
+                            SendCheckinConfirmationWhatsAppJob::dispatchSync($targetPhone, $user->id);
+                            Log::info("Evolution Webhook: Dispatched sync confirmation job for {$targetPhone} (user: {$user->id})");
                         } else {
                             Log::info("Evolution Webhook: Confirmation already dispatched recently for user {$user->id}, skipping duplicate reply");
                         }

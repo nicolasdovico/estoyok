@@ -1,5 +1,23 @@
 # Progress Log
 
+## [2026-10-14] Entrega Inmediata de Confirmación WhatsApp de Check-in y Verificación End-to-End
+- **Diagnóstico:**
+  - Tras verificar con éxito la expiración natural del reloj y el disparo de alertas en Railway Producción (`api.estoyok24.com`) para `nicolas@gmail.com`, el usuario respondió "OK" vía WhatsApp al bot (`+54 9 2323 61-0697`).
+  - El webhook de Producción procesó el check-in a las `04:29:18` (07:29:18 UTC), resolvió la alerta de inactividad, actualizó `last_check_in_at` a 12 horas en el futuro, envió la notificación push silenciosa a la app móvil física y replicó a Dev vía Peer Mirroring sin duplicación.
+  - Sin embargo, el mensaje de confirmación de WhatsApp (*«✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!»*) encolado mediante `SendCheckinConfirmationWhatsAppJob` con delay de 6s en Redis no llegaba al teléfono del usuario debido a las particularidades de migración de colas demoradas (`queues:default:delayed`) con prefijos de base de datos en Redis sobre el worker único de Railway.
+- **Implementación:**
+  1. `WebhookController.php`:
+     - Al igual que en las alertas SOS (`SendSosAlertJob::dispatchSync`) y colisiones vehiculares (`SendCrashAlertJob::dispatchSync`), se migró la confirmación de check-in a despacho sincrónico e inmediato (`SendCheckinConfirmationWhatsAppJob::dispatchSync($targetPhone, $user->id)`).
+     - Se mantiene el bloqueo atómico en caché de 20s (`Cache::add("wa_confirm_dispatched_user_{$user->id}", true, 20)`) para garantizar cero duplicados ante eventuales reintentos del webhook de Evolution API.
+  2. `SendCheckinConfirmationWhatsAppJob.php`:
+     - Incorporada telemetría atómica en caché (`last_confirmation_job_result`) con estado, destinatario y timestamp para auditoría en tiempo real.
+  3. `EvolutionApiService.php`:
+     - Agregada telemetría de caché (`last_evolution_simulated`) cuando la URL o API Key están ausentes.
+  4. `routes/api.php`:
+     - Expuestos `last_confirmation_job_result` y `last_evolution_simulated` en el endpoint `/api/maintenance/diagnose-inactivity`.
+- **Garantía de No Regresión:**
+  - 190 tests pasando al 100% (640 aserciones, 21.27s).
+
 ## [2026-10-13] Blindaje de Despacho en Scheduler y Polling Activo de Socket en Evolution API
 - **Problema Detectado en Scheduler (`checkins:verify-inactivity`):**
   - Si el despacho del job `SendInactivityAlerts::dispatch` fallaba encolando hacia Redis o si la conexión de cola presentaba cualquier anomalía, la alerta `EmergencyAlert` ya había sido persistida en la base de datos pero el comando moría sin capturar la excepción.

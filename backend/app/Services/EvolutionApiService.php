@@ -26,6 +26,16 @@ class EvolutionApiService implements WhatsAppServiceInterface
         if (! $this->baseUrl || ! $this->apiKey) {
             Log::info("[SIMULATED EVOLUTION WHATSAPP] To: {$to} | Message: {$message}");
 
+            \Illuminate\Support\Facades\Cache::put('last_evolution_simulated', [
+                'time' => now()->toDateTimeString(),
+                'to' => $to,
+                'message' => $message,
+                'missing_config' => [
+                    'baseUrl' => empty($this->baseUrl),
+                    'apiKey' => empty($this->apiKey),
+                ],
+            ], 3600);
+
             return true;
         }
 
