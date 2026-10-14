@@ -77,16 +77,30 @@ class SendInactivityAlerts implements ShouldQueue
             }
             $emergencyUrl = "{$baseUrl}/emergencia/{$alert->id}";
 
+            $selfWhatsAppSent = false;
+            $lastSentPhone = null;
+
             // If index is 0, send push notification to the user themselves, self WhatsApp alert if enabled, and to nucleus members
             if ($this->contactIndex === 0) {
-                $this->sendPushNotification();
-                $selfWhatsAppSent = $this->sendSelfWhatsAppAlert($whatsAppService);
-                $this->sendPushNotificationToNucleusMembers($alert);
+                try {
+                    $this->sendPushNotification();
+                } catch (\Throwable $e) {
+                    Log::error("Failed to send push notification to user {$this->user->id}: " . $e->getMessage());
+                }
 
-                if ($selfWhatsAppSent) {
-                    if (! app()->runningUnitTests()) {
-                        usleep(1500000); // 1.5s espaciado ágil para sesión Signal
+                try {
+                    $selfWhatsAppSent = $this->sendSelfWhatsAppAlert($whatsAppService);
+                    if ($selfWhatsAppSent && !empty($this->user->phone)) {
+                        $lastSentPhone = $this->normalizePhone($this->user->phone);
                     }
+                } catch (\Throwable $e) {
+                    Log::error("Failed to send self WhatsApp alert to user {$this->user->id}: " . $e->getMessage());
+                }
+
+                try {
+                    $this->sendPushNotificationToNucleusMembers($alert);
+                } catch (\Throwable $e) {
+                    Log::error("Failed to send push notification to nucleus members for user {$this->user->id}: " . $e->getMessage());
                 }
             }
 
@@ -105,12 +119,30 @@ class SendInactivityAlerts implements ShouldQueue
                 $contact = $contacts->get($this->contactIndex);
                 if ($contact) {
                     // 1. WhatsApp inmediatamente (canal crítico prioritario)
-                    if ($this->user->hasPremiumAccess()) {
-                        $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
+                    if ($this->user->hasPremiumAccess() && !empty($contact->phone)) {
+                        $contactPhoneClean = $this->normalizePhone($contact->phone);
+
+                        if (! app()->runningUnitTests()) {
+                            if ($lastSentPhone !== null && $contactPhoneClean === $lastSentPhone) {
+                                sleep(5); // 5s técnico seguro para mismo número
+                            } elseif ($lastSentPhone !== null) {
+                                usleep(1500000); // 1.5s espaciado ágil entre números distintos
+                            }
+                        }
+
+                        try {
+                            $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
+                        } catch (\Throwable $e) {
+                            Log::error("Failed to send premium WhatsApp to contact ID {$contact->id}: " . $e->getMessage());
+                        }
                     }
 
                     // 2. Email después (canal secundario)
-                    $this->sendEmailAlertToContact($contact, $emergencyUrl);
+                    try {
+                        $this->sendEmailAlertToContact($contact, $emergencyUrl);
+                    } catch (\Throwable $e) {
+                        Log::error("Failed to send email alert to contact ID {$contact->id}: " . $e->getMessage());
+                    }
 
                     // Enqueue next contact if available
                     $nextContact = $contacts->get($this->contactIndex + 1);
@@ -124,11 +156,19 @@ class SendInactivityAlerts implements ShouldQueue
             } else {
                 // 1. WhatsApp inmediatamente a contactos (canal crítico prioritario sin esperar emails)
                 if ($this->user->hasPremiumAccess()) {
-                    $this->sendPremiumAlerts($whatsAppService, $emergencyUrl);
+                    try {
+                        $this->sendPremiumAlerts($whatsAppService, $emergencyUrl, $lastSentPhone);
+                    } catch (\Throwable $e) {
+                        Log::error("Failed to send premium alerts to contacts for user {$this->user->id}: " . $e->getMessage());
+                    }
                 }
 
                 // 2. Email después (canal secundario no bloqueante)
-                $this->sendEmailAlert($emergencyUrl);
+                try {
+                    $this->sendEmailAlert($emergencyUrl);
+                } catch (\Throwable $e) {
+                    Log::error("Failed to send email alerts for user {$this->user->id}: " . $e->getMessage());
+                }
             }
 
             // Log success
@@ -198,7 +238,11 @@ class SendInactivityAlerts implements ShouldQueue
         }
 
         foreach ($contacts as $contact) {
-            $this->sendEmailAlertToContact($contact, $emergencyUrl);
+            try {
+                $this->sendEmailAlertToContact($contact, $emergencyUrl);
+            } catch (\Throwable $e) {
+                Log::error("Failed to send email alert to contact ID {$contact->id} for user {$this->user->id}: " . $e->getMessage());
+            }
         }
     }
 
@@ -223,40 +267,40 @@ class SendInactivityAlerts implements ShouldQueue
         }
     }
 
-    protected function sendPremiumAlerts(WhatsAppServiceInterface $whatsAppService, string $emergencyUrl)
+    protected function sendPremiumAlerts(WhatsAppServiceInterface $whatsAppService, string $emergencyUrl, ?string $lastSentPhone = null)
     {
         $contacts = $this->user->emergencyContacts()->where('is_active', true)->get();
 
         $sentPhones = [];
-        $userPhoneClean = !empty($this->user->phone) ? preg_replace('/[^0-9]/', '', $this->user->phone) : null;
-        if (str_starts_with($userPhoneClean ?? '', '54') && !str_starts_with($userPhoneClean, '549') && strlen($userPhoneClean) === 12) {
-            $userPhoneClean = '549' . substr($userPhoneClean, 2);
-        }
 
         foreach ($contacts as $contact) {
             if (empty($contact->phone)) continue;
 
-            $contactPhoneClean = preg_replace('/[^0-9]/', '', $contact->phone);
-            if (str_starts_with($contactPhoneClean, '54') && !str_starts_with($contactPhoneClean, '549') && strlen($contactPhoneClean) === 12) {
-                $contactPhoneClean = '549' . substr($contactPhoneClean, 2);
-            }
+            $contactPhoneClean = $this->normalizePhone($contact->phone);
 
             if (isset($sentPhones[$contactPhoneClean])) {
                 continue;
             }
 
-            // Si el contacto coincide con el teléfono del usuario (entornos de pruebas o auto-monitoreo),
-            // aguardamos 3.5s adicionales para que la sesión de WhatsApp/Signal ratchee limpiamente antes del mensaje de contacto
-            if ($contactPhoneClean === $userPhoneClean && (bool) $this->user->notify_self_whatsapp_on_inactivity) {
-                if (! app()->runningUnitTests()) {
-                    usleep(3500000);
+            // Espaciado técnico seguro:
+            // Si el contacto coincide con el último número enviado (ej: auto-aviso al mismo teléfono),
+            // aguardamos 5s completos para que Baileys / Signal ratchee limpiamente antes del mensaje de contacto
+            if (! app()->runningUnitTests()) {
+                if ($lastSentPhone !== null && $contactPhoneClean === $lastSentPhone) {
+                    sleep(5); // 5 segundos obligatorios para mismo número
+                } elseif ($lastSentPhone !== null || ! empty($sentPhones)) {
+                    usleep(1500000); // 1.5s espaciado ágil entre números distintos
                 }
-            } elseif (! empty($sentPhones) && ! app()->runningUnitTests()) {
-                usleep(1500000); // 1.5s espaciado ágil entre números distintos
             }
 
             $sentPhones[$contactPhoneClean] = true;
-            $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
+            $lastSentPhone = $contactPhoneClean;
+
+            try {
+                $this->sendPremiumAlertToContact($whatsAppService, $contact, $emergencyUrl);
+            } catch (\Throwable $e) {
+                Log::error("Failed to send WhatsApp alert to contact ID {$contact->id} for user {$this->user->id}: " . $e->getMessage());
+            }
         }
     }
 
@@ -336,5 +380,30 @@ class SendInactivityAlerts implements ShouldQueue
                 Log::info("Inactivity push notification sent to nucleus member ID {$member->id} for user {$this->user->id}");
             }
         }
+    }
+
+    /**
+     * Normaliza un número telefónico a formato canónico con dígitos limpios.
+     * Para números argentinos, garantiza el prefijo internacional 549...
+     */
+    public function normalizePhone(?string $phone): ?string
+    {
+        if (empty($phone)) {
+            return null;
+        }
+
+        $clean = preg_replace('/[^0-9]/', '', $phone);
+
+        if (str_starts_with($clean, '0')) {
+            $clean = substr($clean, 1);
+        }
+
+        if (str_starts_with($clean, '54') && !str_starts_with($clean, '549') && strlen($clean) === 12) {
+            $clean = '549' . substr($clean, 2);
+        } elseif (!str_starts_with($clean, '54') && strlen($clean) === 10) {
+            $clean = '549' . $clean;
+        }
+
+        return $clean;
     }
 }
