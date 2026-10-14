@@ -16,13 +16,20 @@ class EvolutionApiService implements WhatsAppServiceInterface
 
     public function __construct()
     {
-        $this->baseUrl = rtrim(config('services.evolution.url', 'http://evolution-api:8080'), '/');
-        $this->apiKey = config('services.evolution.api_key');
-        $this->instance = config('services.evolution.instance', 'estoyok_main');
+        $this->baseUrl = rtrim(config('services.evolution.url') ?: env('EVOLUTION_API_URL', 'http://evolution-api:8080'), '/');
+        $this->apiKey = config('services.evolution.api_key') ?: env('EVOLUTION_API_KEY') ?: env('EVOLUTION_KEY');
+        $this->instance = config('services.evolution.instance') ?: env('EVOLUTION_INSTANCE_NAME', 'estoyok_main');
     }
 
     public function sendWhatsApp(string $to, string $message, array $parameters = []): bool
     {
+        if (! $this->baseUrl) {
+            $this->baseUrl = rtrim(config('services.evolution.url') ?: env('EVOLUTION_API_URL', 'http://evolution-api:8080'), '/');
+        }
+        if (! $this->apiKey) {
+            $this->apiKey = config('services.evolution.api_key') ?: env('EVOLUTION_API_KEY') ?: env('EVOLUTION_KEY');
+        }
+
         if (! $this->baseUrl || ! $this->apiKey) {
             Log::info("[SIMULATED EVOLUTION WHATSAPP] To: {$to} | Message: {$message}");
 
