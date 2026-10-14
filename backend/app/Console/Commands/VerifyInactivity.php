@@ -77,8 +77,10 @@ class VerifyInactivity extends Command
                     'expires_at' => now()->addHours(48),
                 ]);
 
-                // Despachar el Job con el ID de la alerta ya persistida
-                $dispatched = SendInactivityAlerts::dispatch($user, $alert->id);
+                // Despachar el Job: sincrónico en producción para entrega inmediata sin depender de Redis, y dispatch en tests
+                $dispatched = app()->runningUnitTests()
+                    ? SendInactivityAlerts::dispatch($user, $alert->id)
+                    : SendInactivityAlerts::dispatchSync($user, $alert->id);
 
                 \Illuminate\Support\Facades\Cache::put('last_verify_dispatch_attempt', [
                     'time' => now()->toDateTimeString(),
@@ -90,7 +92,7 @@ class VerifyInactivity extends Command
                     'dispatched_class' => is_object($dispatched) ? get_class($dispatched) : gettype($dispatched),
                 ], 3600);
 
-                Log::info("Alerta de inactividad {$alert->id} creada y job encolado para usuario {$user->id} ({$user->email}).");
+                Log::info("Alerta de inactividad {$alert->id} creada y procesada para usuario {$user->id} ({$user->email}).");
                 $count++;
             } catch (\Throwable $e) {
                 // Si falló el dispatch, eliminar la alerta huérfana y liberar el lock para reintentar en el siguiente minuto

@@ -32,12 +32,27 @@ class SendCheckinConfirmationWhatsAppJob implements ShouldQueue
     public function handle(WhatsAppServiceInterface $whatsAppService): void
     {
         try {
-            $whatsAppService->sendWhatsApp(
+            $success = $whatsAppService->sendWhatsApp(
                 $this->phone,
                 '✅ Bienestar verificado con éxito en Estoy Ok. ¡Gracias!'
             );
+
+            \Illuminate\Support\Facades\Cache::put('last_confirmation_job_result', [
+                'time' => now()->toDateTimeString(),
+                'phone' => $this->phone,
+                'user_id' => $this->userId,
+                'success' => $success,
+            ], 3600);
+
             Log::info("SendCheckinConfirmationWhatsAppJob: Confirmation sent to {$this->phone} for user " . ($this->userId ?? 'null'));
         } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Cache::put('last_confirmation_job_result', [
+                'time' => now()->toDateTimeString(),
+                'phone' => $this->phone,
+                'user_id' => $this->userId,
+                'error' => $e->getMessage(),
+            ], 3600);
+
             Log::warning("SendCheckinConfirmationWhatsAppJob: Failed to send to {$this->phone}: " . $e->getMessage());
         }
     }
