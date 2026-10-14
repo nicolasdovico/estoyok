@@ -68,18 +68,48 @@ class VerifyInactivity extends Command
                 continue;
             }
 
-            // Crear la alerta atómicamente para que whereDoesntHave la excluya de inmediato
-            $alert = \App\Models\EmergencyAlert::create([
-                'user_id' => $user->id,
-                'type' => 'inactivity',
-                'status' => 'active',
-                'expires_at' => now()->addHours(48),
-            ]);
+            try {
+                // Crear la alerta atómicamente para que whereDoesntHave la excluya de inmediato
+                $alert = \App\Models\EmergencyAlert::create([
+                    'user_id' => $user->id,
+                    'type' => 'inactivity',
+                    'status' => 'active',
+                    'expires_at' => now()->addHours(48),
+                ]);
 
-            // Despachar el Job con el ID de la alerta ya persistida
-            SendInactivityAlerts::dispatch($user, $alert->id);
+                // Despachar el Job con el ID de la alerta ya persistida
+                $dispatched = SendInactivityAlerts::dispatch($user, $alert->id);
 
-            $count++;
+                \Illuminate\Support\Facades\Cache::put('last_verify_dispatch_attempt', [
+                    'time' => now()->toDateTimeString(),
+                    'user_id' => $user->id,
+                    'alert_id' => $alert->id,
+                    'queue_driver' => config('queue.default'),
+                    'redis_queue' => config('queue.connections.redis.queue'),
+                    'redis_prefix' => config('database.redis.options.prefix'),
+                    'dispatched_class' => is_object($dispatched) ? get_class($dispatched) : gettype($dispatched),
+                ], 3600);
+
+                Log::info("Alerta de inactividad {$alert->id} creada y job encolado para usuario {$user->id} ({$user->email}).");
+                $count++;
+            } catch (\Throwable $e) {
+                // Si falló el dispatch, eliminar la alerta huérfana y liberar el lock para reintentar en el siguiente minuto
+                if (isset($alert) && $alert->exists) {
+                    $alert->delete();
+                }
+                \Illuminate\Support\Facades\Cache::forget($lockKey);
+
+                Log::error("Error crítico despachando alerta de inactividad para usuario {$user->id}: " . $e->getMessage(), [
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                \Illuminate\Support\Facades\Cache::put('last_verify_dispatch_error', [
+                    'time' => now()->toDateTimeString(),
+                    'user_id' => $user->id,
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ], 3600);
+            }
         }
 
         $this->info("Proceso completado. Se han encolado alertas para {$count} usuarios.");

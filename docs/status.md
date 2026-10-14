@@ -604,5 +604,7 @@ Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguien
 ## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-13)
 * **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-13.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-13.md)
 * **Producción (`api.estoyok24.com`):** 100% Operativo y verificado en vivo. Prefijo de Redis aislado (`estoy-ok_production-database-`). Webhook oficial asignado a producción.
-* **Dev (`backend-api-dev-2a56.up.railway.app`):** Prefijo de Redis aislado (`estoy-ok_dev-database-`). Worker escuchando `default,dev_default`. Auto-recuperación de Error 1006 en Evolution API operativa (reintento HTTP 201 exitoso).
+* **Dev (`backend-api-dev-2a56.up.railway.app`):** Prefijo de Redis aislado (`estoy-ok_dev-database-`). Worker escuchando `default,dev_default`. Despacho de inactividad blindado con rollback de alertas huérfanas ante fallo de cola y telemetría diagnóstica en caché (`last_verify_dispatch_attempt`, `last_verify_dispatch_error`).
+* **Evolution API:** Auto-recuperación ante socket cerrado / Error 1006 con polling activo de salud de conexión hasta 6s (`checkConnectionHealth()`), garantizando reconexión comprobada antes del reintento de envío.
+* **Scheduler:** `withoutOverlapping(10)` configurado con expiración explícita de 10 minutos para evitar deadlocks permanentes de mutex.
 * **Test Suite:** 190 tests pasando al 100% sin regresiones (`docker compose exec backend php artisan test`).

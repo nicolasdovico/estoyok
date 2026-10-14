@@ -85,7 +85,14 @@ class EvolutionApiService implements WhatsAppServiceInterface
                 $this->reconnectInstance();
 
                 if (! app()->runningUnitTests()) {
-                    usleep(3000000); // 3 segundos para asentar el handshake del socket
+                    // Esperar hasta que el socket alcance el estado 'open' (hasta 6 segundos)
+                    for ($attempt = 0; $attempt < 6; $attempt++) {
+                        usleep(1000000); // 1s
+                        $health = $this->checkConnectionHealth();
+                        if (($health['connected'] ?? false) || ($health['status'] ?? '') === 'open') {
+                            break;
+                        }
+                    }
                 }
 
                 $retryResponse = Http::withHeaders([

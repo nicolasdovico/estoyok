@@ -1,5 +1,24 @@
 # Progress Log
 
+## [2026-10-13] Blindaje de Despacho en Scheduler y Polling Activo de Socket en Evolution API
+- **Problema Detectado en Scheduler (`checkins:verify-inactivity`):**
+  - Si el despacho del job `SendInactivityAlerts::dispatch` fallaba encolando hacia Redis o si la conexión de cola presentaba cualquier anomalía, la alerta `EmergencyAlert` ya había sido persistida en la base de datos pero el comando moría sin capturar la excepción.
+  - En los minutos subsiguientes, el filtro `whereDoesntHave('emergencyAlerts', status: 'active')` ignoraba al usuario, dejando la alerta huérfana en estado `active` sin que el job de WhatsApp jamás se ejecutase.
+  - Además, si la sesión WebSocket de Baileys en Evolution API se cerraba, una espera fija de 3s resultaba a veces insuficiente mientras la instancia realizaba el ciclo de reconexión.
+- **Implementación:**
+  1. `VerifyInactivity.php`:
+     - Bloque `try-catch (\Throwable $e)` alrededor de la creación y despacho de alerta.
+     - Si el despacho de cola falla, se elimina automáticamente la alerta creada para evitar alertas huérfanas y se libera el lock atómico en caché para permitir que el planificador reintente en el próximo minuto.
+     - Registro de telemetría de diagnóstico en caché: `last_verify_dispatch_attempt` y `last_verify_dispatch_error`.
+  2. `EvolutionApiService.php`:
+     - Reemplazo del sleep estático de 3s por un bucle de polling activo de salud (`checkConnectionHealth()`) de hasta 6s (intervalos de 1s), asegurando que el estado del socket sea efectivamente `open` o `connected` antes de despachar el reintento del mensaje.
+  3. `routes/console.php`:
+     - Configurado `withoutOverlapping(10)` con expiración explícita de 10 minutos para evitar bloqueos permanentes de 24 horas por caídas imprevistas del planificador.
+  4. `routes/api.php`:
+     - Incorporados `last_verify_dispatch_attempt` y `last_verify_dispatch_error` en `/api/maintenance/diagnose-inactivity`.
+- **Garantía de No Regresión:**
+  - 190 tests pasando al 100% (640 aserciones, 23.46s).
+
 ## [2026-10-13] Eliminación de Retrasos en Alertas de Inactividad y Optimización de Entrega en WhatsApp
 - **Diagnóstico del Retraso de ~2 Minutos:**
   - En pruebas con fast-forward a 1 minuto, los mensajes de WhatsApp llegaban con 2 minutos de retraso tras expirar el reloj.

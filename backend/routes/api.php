@@ -289,6 +289,8 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             'last_inactivity_job_contacts_result' => \Illuminate\Support\Facades\Cache::get('last_inactivity_job_contacts_result'),
             'last_evolution_success' => \Illuminate\Support\Facades\Cache::get('last_evolution_success'),
             'last_evolution_error' => \Illuminate\Support\Facades\Cache::get('last_evolution_error'),
+            'last_verify_dispatch_attempt' => \Illuminate\Support\Facades\Cache::get('last_verify_dispatch_attempt'),
+            'last_verify_dispatch_error' => \Illuminate\Support\Facades\Cache::get('last_verify_dispatch_error'),
             'failed_jobs' => $failedJobs,
             'running_processes' => $runningProcesses,
             'user' => [
