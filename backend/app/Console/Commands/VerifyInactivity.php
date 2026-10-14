@@ -77,10 +77,14 @@ class VerifyInactivity extends Command
                     'expires_at' => now()->addHours(48),
                 ]);
 
+                Log::info("VerifyInactivity: EmergencyAlert {$alert->id} created for user {$user->id} ({$user->email}). Invoking SendInactivityAlerts...");
+
                 // Despachar el Job: sincrónico en producción para entrega inmediata sin depender de Redis, y dispatch en tests
                 $dispatched = app()->runningUnitTests()
                     ? SendInactivityAlerts::dispatch($user, $alert->id)
                     : SendInactivityAlerts::dispatchSync($user, $alert->id);
+
+                Log::info("VerifyInactivity: SendInactivityAlerts finished for user {$user->id} with alert {$alert->id}.");
 
                 \Illuminate\Support\Facades\Cache::put('last_verify_dispatch_attempt', [
                     'time' => now()->toDateTimeString(),

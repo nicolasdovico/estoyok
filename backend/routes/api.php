@@ -293,6 +293,8 @@ Route::get('/maintenance/diagnose-inactivity', function (Request $request) {
             'last_evolution_simulated' => \Illuminate\Support\Facades\Cache::get('last_evolution_simulated'),
             'last_verify_dispatch_attempt' => \Illuminate\Support\Facades\Cache::get('last_verify_dispatch_attempt'),
             'last_verify_dispatch_error' => \Illuminate\Support\Facades\Cache::get('last_verify_dispatch_error'),
+            'git_commit' => trim(shell_exec('git log -n 1 --oneline 2>&1') ?? ''),
+            'latest_logs' => file_exists(storage_path('logs/laravel.log')) ? array_slice(file(storage_path('logs/laravel.log')), -30) : [],
             'failed_jobs' => $failedJobs,
             'running_processes' => $runningProcesses,
             'user' => [
@@ -348,10 +350,11 @@ $prepareInactivityTestHandler = function (Request $request) {
         return response()->json(['error' => "User {$email} not found."], 404);
     }
 
-    // 1. Resolve any active emergency alert
+    // 1. Resolve any active emergency alert and clear dispatch lock
     $resolvedCount = \App\Models\EmergencyAlert::where('user_id', $user->id)
         ->where('status', 'active')
         ->update(['status' => 'resolved']);
+    \Illuminate\Support\Facades\Cache::forget("inactivity_alert_dispatched_user_{$user->id}");
 
     // 2. Set user as Premium with active subscription and calculate last_check_in_at based on minutes_left
     $interval = $user->checkin_interval_hours ?? 12;
