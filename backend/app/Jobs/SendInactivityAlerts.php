@@ -35,6 +35,8 @@ class SendInactivityAlerts implements ShouldQueue
      */
     public function handle(WhatsAppServiceInterface $whatsAppService): void
     {
+        Log::info("SendInactivityAlerts::handle started for user {$this->user->id}, alert {$this->emergencyAlertId}, contactIndex {$this->contactIndex}");
+
         try {
             Cache::put('last_inactivity_job_received', [
                 'time' => now()->toDateTimeString(),

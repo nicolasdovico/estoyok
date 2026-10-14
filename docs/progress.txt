@@ -29,6 +29,24 @@
   3. **Confirmación por Despacho Sincrónico Directo:**
      - En todos los casos donde el envío se realiza de forma síncrona en el hilo principal (`dispatchSync`), como en SOS (`SendSosAlertJob`) o en las invocaciones directas a Evolution API, el 100% de los mensajes se entregan de forma inmediata y sin demoras.
 
+- **Implementación y Blindaje de Mismo Número:**
+  1. `VerifyInactivity.php`:
+     - Despacho síncrono incondicional (`SendInactivityAlerts::dispatchSync($user, $alert->id)`), eliminando el punto de fallo de las colas de Redis.
+  2. `SendInactivityAlerts.php`:
+     - Normalización canónica de teléfonos con `normalizePhone()`.
+     - Blindaje de mismo número: pausa técnica obligatoria de 5 segundos (`sleep(5)`) cuando el titular y el contacto comparten el mismo número (o entre contactos con igual teléfono) para permitir que el protocolo Signal / Baileys de WhatsApp ratchee las claves criptográficas sin colisiones de sesión.
+     - Espaciado ágil de 1.5s (`usleep(1500000)`) entre números distintos.
+     - Encapsulación de cada canal (Push, WhatsApp propio, WhatsApp contactos y Email) en bloques `try-catch (\Throwable $e)` independientes para evitar que un fallo en un canal secundario (como SMTP o push token) interrumpa la entrega de WhatsApp.
+  3. `start.sh` y `EvolutionApiService.php`:
+     - Agregado `php artisan config:clear` en el script de arranque para invalidar cachés generadas en build-time en Railway.
+     - Banderas `--max-time=3600 --memory=128` en `queue:work` para reciclado preventivo.
+     - Fallbacks dinámicos en runtime para `EVOLUTION_API_KEY`.
+
+- **Validación en Hardware Real (Doble Verificación en Vivo):**
+  - **Producción (`nicolas@gmail.com`):** Verificado dos veces de forma consecutiva (06:27 y 06:57). Vencimiento automático del reloj, disparo del scheduler, entrega de ambos mensajes de WhatsApp con espaciado de 5s en 7s totales (`HTTP 201`), y respuesta "OK" con reseteo a 12h y confirmación instantánea.
+  - **Desarrollo (`tamarakshop@gmail.com`):** Verificado a las 07:07 con el nuevo contenedor refrescado. Disparo automático, entrega de ambos WhatsApp en 6s con `HTTP 201`.
+  - **Suite de Tests:** 190 tests pasando al 100% (640 aserciones, 0 fallos).
+
 ## [2026-10-14] Entrega Inmediata de Confirmación WhatsApp de Check-in y Verificación End-to-End
 - **Diagnóstico:**
   - Tras verificar con éxito la expiración natural del reloj y el disparo de alertas en Railway Producción (`api.estoyok24.com`) para `nicolas@gmail.com`, el usuario respondió "OK" vía WhatsApp al bot (`+54 9 2323 61-0697`).

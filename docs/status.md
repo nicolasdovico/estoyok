@@ -601,14 +601,12 @@ Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguien
 
 ---
 
-## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-14)
+## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-14 - Mañana)
 * **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-14.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-14.md)
-* **Diagnóstico de Falla en Scheduler de Producción (`api.estoyok24.com`):**
-  - **Síntoma:** Al expirar el reloj de bienestar a las 05:40:00 (08:40:00 UTC), se persistió la alerta de inactividad `EmergencyAlert` en PostgreSQL pero ningún mensaje de WhatsApp salió al usuario ni al contacto. En cambio, invocaciones síncronas directas (a las 05:23 y 05:45) entregaron ambos mensajes de WhatsApp de forma inmediata en ~6-9s con HTTP 201.
-  - **Descarte de Bloqueo por Mails (Cronología):** Se demostró cronológicamente que el paso de envío de emails SMTP (paso 7 en `SendInactivityAlerts::handle`) no fue la causa, ya que los pasos 2 y 6 (WhatsApp propio y a contactos) son previos en la secuencia; si el mail hubiese fallado, los WhatsApp ya habrían llegado. Al no llegar ningún WhatsApp, se confirma que la ejecución jamás ingresó al `handle()`.
-  - **Causa Raíz:** En Railway Producción, el worker de Redis en segundo plano (`queue:work` en `start.sh`) está estancado o desconectado, acumulando jobs en `queues:default` (`default_len: 1`) sin procesarlos.
-  - **Desarrollo (`backend-api-dev-2a56.up.railway.app`):** 100% operativo de punta a punta (expiración, doble WhatsApp, recepción de "OK" y confirmación interactiva).
-* **Test Suite:** 190 tests pasando al 100% sin regresiones (`docker compose exec backend php artisan test`).
+* **Producción (`api.estoyok24.com`):** 100% Operativo y verificado en dos pruebas consecutivas en hardware real (06:27 y 06:57). Despacho síncrono directo (`dispatchSync`) en el planificador sin dependencia de colas Redis. Blindaje de mismo número: pausa técnica obligatoria de 5 segundos (`sleep(5)`) entre el auto-aviso y la alerta del contacto de emergencia, garantizando que el protocolo Signal / Baileys de WhatsApp ratchee limpiamente las claves criptográficas. Entrega en ~7s con `HTTP 201`. Confirmación por "OK" interactiva renovando el reloj a 12h y confirmación instantánea.
+* **Desarrollo (`backend-api-dev-2a56.up.railway.app`):** 100% Operativo y verificado a las 07:07 en hardware real. Incorporado `config:clear` en el script de arranque (`start.sh`) y fallbacks dinámicos en `EvolutionApiService` para garantizar la resolución en runtime de `EVOLUTION_API_KEY`. Despacho automático de ambos mensajes en 6 segundos con status `HTTP 201`.
+* **Protección Multi-Canal:** Encapsulación de Push, WhatsApp propio, WhatsApp contactos y Email en bloques `try-catch (\Throwable $e)` independientes para evitar que un fallo en un canal secundario afecte la entrega de WhatsApp.
+* **Test Suite:** 190 tests pasando al 100% sin regresiones (640 aserciones, `docker compose exec backend php artisan test`).
 
 ## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-13)
 * **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-13.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-13.md)
