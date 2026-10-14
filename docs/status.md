@@ -598,3 +598,11 @@ Para futuras iteraciones de Estoy Ok, deben respetarse estrictamente los siguien
    * **Landing Page:** Secciones informativas generales con una sección final de FAQs estructurada en acordeones interactivos manejados con estado de React (`openFaqIndex`).
    * **Dashboard Web:** Uso de tooltips descriptivos flotantes (CSS puro con clases `group-hover` de Tailwind) al lado de opciones y configuraciones complejas para guiar al usuario sin sobrecargar de texto la interfaz.
    * **App Móvil:** Mantener la explicación del funcionamiento (microcopy) integrada de forma directa y sutil en texto pequeño debajo de cada toggle o switch de configuración, garantizando legibilidad y rapidez táctil.
+
+---
+
+## 🚀 Estado Operativo y Alertas de Inactividad (Sesión 2026-10-13)
+* **Documento Detallado de Sesión:** [`docs/resumen_sesion_2026-10-13.md`](file:///home/usuario/aplicaciones/estoyok/docs/resumen_sesion_2026-10-13.md)
+* **Producción (`api.estoyok24.com`):** 100% Operativo y verificado en vivo. Prefijo de Redis aislado (`estoy-ok_production-database-`). Webhook oficial asignado a producción.
+* **Dev (`backend-api-dev-2a56.up.railway.app`):** Prefijo de Redis aislado (`estoy-ok_dev-database-`). Worker escuchando `default,dev_default`. Auto-recuperación de Error 1006 en Evolution API operativa (reintento HTTP 201 exitoso).
+* **Test Suite:** 190 tests pasando al 100% sin regresiones (`docker compose exec backend php artisan test`).
