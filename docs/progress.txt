@@ -1,5 +1,33 @@
 # Progress Log
 
+## [2026-10-17] Saneamiento Definitivo de Contenedores Redundantes en Railway (`backend-worker` y `backend_scheduler`) y Validación End-to-End
+- **Contexto y Hallazgo de Causa Raíz:**
+  - Durante las pruebas en vivo de vencimiento de reloj de bienestar en Producción (`nicolas@gmail.com`) y Desarrollo (`tamarakshop@gmail.com`), la telemetría de caché (`last_inactivity_job_received`, `last_verify_dispatch_attempt`, `last_evolution_simulated`) y los UUIDv7 de la tabla `emergency_alerts` revelaron que a las `:00` de cada minuto competían múltiples contenedores distintos sobre la misma base de datos PostgreSQL y Redis:
+    - En `dev`, además del servicio principal `backend-api` (`hostname: 64d5b9cd4c15`), permanecían encendidos dos servicios heredados de la arquitectura inicial: `backend-worker` (`hostname: de88e80c47be`) y `backend_scheduler`.
+    - En `production`, junto al servicio principal `backend-api` (`hostname: bb8cc9dc4ab4`), también permanecían activos servicios heredados equivalentes.
+  - Debido a que el 11 de octubre se creó [`backend/start.sh`](file:///home/usuario/aplicaciones/estoyok/backend/start.sh) y se definió como `startCommand` global en [`backend/railway.json`](file:///home/usuario/aplicaciones/estoyok/backend/railway.json), `backend-api` ya ejecuta internamente los 3 procesos supervisados (`php artisan serve`, `php artisan queue:work` y `php artisan schedule:work`).
+  - Al no haberse apagado `backend-worker` y `backend_scheduler` en aquel momento, dichos contenedores secundarios también ejecutaban `start.sh` (triplicando los procesos `schedule:work` y `queue:work`), pero **carecían de las variables de entorno recientes como `EVOLUTION_API_KEY`**.
+  - Cada vez que `backend-worker` o `backend_scheduler` ganaban la carrera por milisegundos en el segundo `:00` (ej. 9 ms antes en Dev a las `14:41:00`), creaban la alerta `EmergencyAlert` en PostgreSQL y ejecutaban el flujo en modo simulado (`[SIMULATED EVOLUTION WHATSAPP]`, `missing_config.apiKey: true`), bloqueando a `backend-api` e impidiendo la salida real del WhatsApp.
+
+- **Solución Aplicada en Infraestructura Railway:**
+  1. Se pusieron en estado **Offline** (`Remove deployment`) los servicios redundantes `backend-worker` y `backend_scheduler` tanto en el entorno **`dev`** como en **`production`** de Railway.
+  2. Se verificó mediante `ps aux` y telemetría que el contenedor único `backend-api` en cada entorno mantiene activos y supervisados los 3 procesos (`serve`, `schedule:work` y `queue:work`), conservando el 100% de las funcionalidades de colas (geocercas, batería, velocidad, respuestas SOS) y tareas programadas (guardián de WhatsApp, inactividad, recordatorios, limpieza de viajes y suscripciones) con todas las credenciales completas.
+
+- **Validación en Vivo (Producción y Desarrollo):**
+  - **Desarrollo (`backend-api-dev-2a56.up.railway.app` - `tamarakshop@gmail.com`):**
+    - Reloj configurado a 1 minuto (`15:42:47`).
+    - Disparo automático del Scheduler a las **`15:44:00`** ejecutado exclusivamente por `backend-api` (`64d5b9cd4c15`, `pid: 44061`), generando una única alerta limpia (`01a14b2d-9446-739e-88d3-b48dec38f909`).
+    - WhatsApp propio entregado a las **`15:44:02`** (`HTTP 201`) y WhatsApp de contacto de emergencia entregado tras la pausa técnica de 5s a las **`15:44:08`** (`HTTP 201`).
+  - **Producción (`api.estoyok24.com` - `nicolas@gmail.com`):**
+    - *Reloj de Bienestar:* Configurado a 1 minuto (`15:46:50`). Disparo automático del Scheduler a las **`15:48:00`** ejecutado exclusivamente por `backend-api` (`bb8cc9dc4ab4`, `pid: 50898`), generando una única alerta limpia (`01a14b31-3df4-7232-9a86-cbda5771a29d`). WhatsApp propio entregado a las **`15:48:03`** (`HTTP 201`), Contacto #12 entregado a las **`15:48:09`** (5s de pausa mismo número) y Contacto #17 entregado a las **`15:48:12`** (1.5s de pausa distinto número, `HTTP 201`).
+    - *Botón SOS y Coordinación ("Voy en camino"):* Disparada alerta `silent_sos` (`01a14b3a-bf37-70b5-8efe-cd8174750d0d`), subida de grabación ambiental de 15s (`x6KNbWczTrAmSVqtAsJUgkadXW0bbihVipB9fV9a.m4a`), entrega de WhatsApp (`HTTP 201`) y difusión exitosa de respuesta *"Voy en camino"* (`BroadcastEmergencyResponseJob`).
+  - **Desarrollo - SOS Manual y SOS de Bolsillo 4 Toques (`tamarakshop@gmail.com`):**
+    - *SOS Manual (`16:14:43`):* Alerta `01a14b49-b276-71be-b621-155be53d6143` creada, audio de 15s subido (`LHZ8pM8NmZR1TbumzXaT7yZEPWHG9LTaTlq8jq8n.m4a`), WhatsApp entregado y resuelta a las `16:16:09`.
+    - *SOS de Bolsillo - 4 Toques Botón de Encendido (`16:16:37`):* Alerta `01a14b4b-703d-731e-9bf6-f4c3b3182578` creada, WhatsApp entregado en 2 segundos (`16:16:39`, `HTTP 201`) y audio de 15s subido (`16:16:58`, `IMVxszdbibAqcrzYIv76OpelCs1U9Pfii1ierjNX.m4a`).
+- **Compilación de Producción v15 (`1.0.8`) para Google Play Store:**
+  - Actualizado `versionCode = 15` y `versionName = "1.0.8"` en [`build.gradle.kts`](file:///home/usuario/aplicaciones/estoyok/android-native/app/build.gradle.kts) y en [`AjustesScreen.kt`](file:///home/usuario/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt) (`v1.0.8 (Compilación 15)`), integrando el SOS de Bolsillo con 4 toques del botón de encendido, el auto-aviso de bienestar vencido por WhatsApp y la adaptación dinámica del Paywall (`has_used_trial`).
+  - Generado y firmado el bundle de producción final `app-release.aab` (`versionCode = 15`) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+
 ## [2026-10-14] Diagnóstico de Falla de Entrega de Alertas de Inactividad en Producción (Worker Redis vs Despacho Sincrónico)
 - **Contexto y Síntoma:**
   - En el entorno de Desarrollo (`tamarakshop@gmail.com`), las alertas de inactividad por reloj vencido funcionan al 100%: llegan las notificaciones push, los dos mensajes de WhatsApp (auto-aviso al usuario y alerta de contacto de emergencia con enlace a mapa de rescate), y al responder "OK", el reloj se restablece a 12h y llega la confirmación.
