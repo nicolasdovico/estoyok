@@ -31,8 +31,7 @@ Route::get('/descargar', function (\Illuminate\Http\Request $request) {
             var ua = navigator.userAgent || "";
             if (/facebookexternalhit|Facebot|meta-externalagent|Twitterbot|Googlebot|bingbot|crawler|spider/i.test(ua)) return;
             if (/Android/i.test(ua)) {
-                window.location.replace("{$androidIntentUrl}");
-                setTimeout(function() { window.location.replace("{$playStoreUrl}"); }, 400);
+                window.location.href = "{$androidIntentUrl}";
             } else {
                 window.location.replace("{$playStoreUrl}");
             }
@@ -40,9 +39,10 @@ Route::get('/descargar', function (\Illuminate\Http\Request $request) {
     </script>
 </head>
 <body style="background:#09090b;color:#fff;font-family:sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;text-align:center;">
-    <div style="padding:24px;">
-        <h1 style="font-size:20px;margin-bottom:12px;">Abriendo Google Play Store...</h1>
-        <a href="{$playStoreUrl}" style="display:inline-block;padding:14px 28px;background:#10b981;color:#09090b;font-weight:bold;border-radius:12px;text-decoration:none;">Descargar en Google Play</a>
+    <div style="padding:24px;max-width:400px;">
+        <h1 style="font-size:22px;margin-bottom:12px;">Estoy Ok: Localizador Familiar</h1>
+        <p style="color:#d4d4d8;font-size:14px;line-height:1.5;margin-bottom:20px;">Abriendo la aplicación oficial de <strong>Google Play Store</strong>... Si no se abre automáticamente, tocá el botón de abajo:</p>
+        <a href="{$androidIntentUrl}" style="display:inline-block;padding:16px 28px;background:#10b981;color:#09090b;font-weight:bold;border-radius:14px;text-decoration:none;">📲 Abrir en Google Play Store (Gratis)</a>
     </div>
 </body>
 </html>

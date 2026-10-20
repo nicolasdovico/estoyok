@@ -39,10 +39,7 @@ export default function DescargarPage() {
       if (isBot) return;
       var isAndroid = /Android/i.test(ua);
       if (isAndroid) {
-        window.location.replace("${ANDROID_INTENT_URL}");
-        setTimeout(function() {
-          window.location.replace("${PLAY_STORE_URL}");
-        }, 400);
+        window.location.href = "${ANDROID_INTENT_URL}";
       } else {
         window.location.replace("${PLAY_STORE_URL}");
       }
@@ -59,20 +56,20 @@ export default function DescargarPage() {
           className="w-20 h-20 rounded-2xl shadow-lg"
         />
         <h1 className="text-2xl font-bold tracking-tight text-white">
-          Abriendo Google Play Store...
+          Estoy Ok: Localizador Familiar
         </h1>
-        <p className="text-zinc-400 text-sm leading-relaxed">
-          Te estamos redirigiendo a la ficha oficial de{" "}
+        <p className="text-zinc-300 text-sm leading-relaxed">
+          Abriendo la aplicación oficial de{" "}
           <span className="text-emerald-400 font-semibold">
-            Estoy Ok: Localizador Familiar
-          </span>{" "}
-          para instalar la aplicación gratis.
+            Google Play Store
+          </span>
+          ... Si no se abre automáticamente, tocá el botón de abajo:
         </p>
         <a
-          href={PLAY_STORE_URL}
+          href={ANDROID_INTENT_URL}
           className="w-full py-4 px-6 rounded-2xl bg-emerald-500 hover:bg-emerald-400 text-zinc-950 font-bold text-base transition shadow-lg shadow-emerald-500/20"
         >
-          Descargar en Google Play
+          📲 Abrir en Google Play Store (Gratis)
         </a>
       </div>
     </main>

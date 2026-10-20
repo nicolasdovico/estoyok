@@ -174,7 +174,7 @@ Cuando cargues estos 3 videos al Administrador de Anuncios de Meta:
    * 1 Conjunto de Anuncios abierto (Broad targeting):
      * **Ubicación:** Argentina (o ciudades principales: AMBA, Córdoba, Rosario, Mendoza).
      * **Edad:** 28 a 54 años (segmento con hijos, vehículos y poder adquisitivo para la suscripción PRO).
-     * **Ubicaciones:** Exclusivamente **Instagram Reels** y **Facebook Reels** (desactivar el feed tradicional y la columna derecha de PC para no desperdiciar plata en formatos horizontales).
+     * **Ubicaciones:** Exclusivamente **Instagram Reels** (desactivar Facebook por completo, ya que por tener un CPM más bajo en Argentina absorbe hasta el 96% del presupuesto en reacciones sin intención de descarga).
 3. **Prueba A/B de Creativos:**
    * Subí los 3 videos en el mismo conjunto de anuncios con un presupuesto inicial modesto (ej. $3.000 a $5.000 ARS por día).
    * Dejá que el algoritmo corra 48 horas: Meta va a volcar automáticamente el 80% del presupuesto al Reel que tenga menor Costo por Clic (CPC) y mayor tasa de visualización completa.
@@ -450,10 +450,9 @@ El botón *"Promocionar"* dentro de la app móvil es un atajo simplificado que g
    * **Idiomas:** `Español (todos)`.
 4. **Ubicaciones (Placements):**
    * Cambiá de "Ubicaciones Advantage+" a **"Ubicaciones manuales"**.
-   * **Desmarcá todo** (desmarcá Feed de Facebook, Feed de Instagram, Explorar, Messenger, Audience Network, etc.).
-   * **Tildá única y exclusivamente:**
-     * `Instagram Reels`
-     * `Facebook Reels`
+   * **Desmarcá por completo las plataformas:** `Facebook`, `Messenger` y `Audience Network` *(Crítico: si se deja Facebook activo en el mismo conjunto, el algoritmo desvía el 96% del presupuesto hacia Facebook por su menor costo por impresión, generando reacciones sin descargas)*.
+   * **En `Instagram`, tildá única y exclusivamente:**
+     * `Instagram Reels` (y opcionalmente `Instagram Stories`)
 5. **Filtro Exclusivo de Dispositivos Android (CRÍTICO):**
    * Al final de la sección de Ubicaciones, hacé clic en **"Mostrar más opciones"**.
    * Buscá la opción **"Dispositivos móviles y sistemas operativos específicos"**.
