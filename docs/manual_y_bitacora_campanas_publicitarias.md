@@ -90,6 +90,13 @@ Al cumplirse 72 horas del lanzamiento, se realizó la auditoría completa porque
     2. Se apuntó el botón verde principal (`"📲 Abrir en Google Play Store (Gratis)"`) directamente al `ANDROID_INTENT_URL` (`intent://...`), garantizando que tanto la redirección automática como un toque manual en el botón abran **la app nativa de Google Play Store** del teléfono (donde el usuario ya está logueado y descarga con 1 solo toque).
     3. Se conservó en la rama `else` (`!isAndroid`) la redirección web normal para quienes hagan clic desde una computadora o notebook.
 
+* **❌ Error #3: Nombre y Biografía Confusos en el Perfil de Instagram (`@estoyok24`)**
+  * **Hallazgo:** El campo **Nombre** del perfil tenía el nombre personal (`"nicolas Dovico"`) y la **Presentación (Bio)** decía *"Cuenta para seguimiento activo y pasivo de usuarios"*, lo cual hacía que quienes visitaban el perfil creyeran que era una cuenta personal o una herramienta para medir seguidores de Instagram.
+  * **Corrección aplicada hoy (20/10/2026):**
+    - **Nombre:** `Estoy Ok | Seguridad y Localizador Familiar`
+    - **Presentación (Bio):** Reemplazada por propuesta de valor clara (cuidado familiar en tiempo real, mapa GPS con avisos de llegada/salida, botón diario "Estoy OK" y SOS por WhatsApp + llamado a la acción de descarga gratuita).
+    - **Enlace de Bio:** `https://estoyok24.com/descargar`.
+
 ---
 
 ## 🔍 PARTE 3: Protocolo Paso a Paso para Auditar la Campaña en Próximas Sesiones
