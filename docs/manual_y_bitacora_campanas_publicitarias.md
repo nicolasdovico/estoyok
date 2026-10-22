@@ -92,10 +92,49 @@ Al cumplirse 72 horas del lanzamiento, se realizó la auditoría completa porque
 
 * **❌ Error #3: Nombre y Biografía Confusos en el Perfil de Instagram (`@estoyok24`)**
   * **Hallazgo:** El campo **Nombre** del perfil tenía el nombre personal (`"nicolas Dovico"`) y la **Presentación (Bio)** decía *"Cuenta para seguimiento activo y pasivo de usuarios"*, lo cual hacía que quienes visitaban el perfil creyeran que era una cuenta personal o una herramienta para medir seguidores de Instagram.
-  * **Corrección aplicada hoy (20/10/2026):**
+  * **Corrección aplicada el 20/10/2026:**
     - **Nombre:** `Estoy Ok | Seguridad y Localizador Familiar`
     - **Presentación (Bio):** Reemplazada por propuesta de valor clara (cuidado familiar en tiempo real, mapa GPS con avisos de llegada/salida, botón diario "Estoy OK" y SOS por WhatsApp + llamado a la acción de descarga gratuita).
     - **Enlace de Bio:** `https://estoyok24.com/descargar`.
+
+---
+
+### 📅 Hito 3: Auditoría de 48 Horas Post-Corrección de Instagram — Jueves 22 de Octubre de 2026
+
+Al cumplirse 48 horas de haber forzado la exclusividad de Instagram y corregido la redirección nativa en `/descargar`, se analizaron las estadísticas oficiales de Meta Ads Manager (período 21 y 22 de octubre) y su impacto en la conversión real:
+
+#### 1. Resultados Cuantitativos en Instagram Reels (21 y 22 de Octubre):
+
+| Métrica / Elemento | Valor Registrado (48 hs) | Interpretación / Estado |
+| :--- | :---: | :--- |
+| **Gasto Total en el Período** | **$6.397,30 ARS** | Cumplimiento del presupuesto diario de $4.000 ARS. |
+| **Gasto Exclusivo en Instagram** | **$6.126,94 ARS (96%)** | **Éxito total:** Se erradicó la fuga de presupuesto hacia Facebook ($267 residual). |
+| **Impresiones en Instagram** | **1.323 impresiones** | Entrega fluida dentro del ecosistema de Instagram Reels. |
+| **Clics en el enlace (Instagram)** | **93 clics** | Usuarios interesados que tocaron el CTA para descargar. |
+| **Costo por Clic Promedio (CPC)** | **$65,88 ARS** | Muy saludable y por debajo del límite de $90 ARS. |
+
+#### 2. Comportamiento y Desempeño por Reel en Instagram:
+* **🥇 Reel 2 - Vivir Solo (Bienestar Diario):** Continúa siendo el creativo preferido del algoritmo de Meta y de la audiencia. Acaparó el **71% del presupuesto ($4.564,17 ARS)** y generó **69 clics** con un CPC de **$66,15 ARS**. Demuestra que el ángulo de "vivir solo / personas mayores / confirmación de bienestar" conecta con altísima empatía.
+* **🥈 Reel 3 - Urgencia (SOS y Choques):** Tuvo el clic más económico de la cuenta (**$44,17 ARS**), logrando **16 clics** con apenas $706,65 ARS de gasto.
+* **🥉 Reel 1 - Padres Auto:** Generó **16 clics** a **$70,41 ARS** con $1.126,48 ARS asignados.
+
+#### 3. Hallazgos sobre Interacción Orgánica vs Comportamiento de Descarga:
+* **Causa de nula interacción en el perfil de Instagram (0 comentarios/likes en la cuenta):** 
+  En Instagram Reels con anuncios de conversión/utilidad, el usuario no abre el perfil de la cuenta ni comenta el video: el comportamiento natural es presionar directamente el botón de llamado a la acción (*"Descargar"* / *"Instalar"*) y salir de Instagram hacia la tienda. Los comentarios orgánicos acumulados requieren un volumen de impresiones significativamente superior (>15.000 a 20.000 vistas).
+* **Confirmación de Descarga en Google Play Store:** Se constató en Google Play Console la primera descarga confirmada correspondiente al 20/10.
+
+#### 4. Diagnóstico del Cuello de Botella (Tasa de Conversión en la Ficha de Play Store - CVR):
+* Con 93 clics en el enlace desde Instagram, el paso de clics a descargas efectivas (~1% a 2%) revela que el cuello de botella actual no está en los anuncios (que traccionan clics muy baratos y calificados), sino en la **fase de decisión final dentro de la ficha de Google Play Store**.
+* **Factores psicológicos de fricción identificados:**
+  1. *Falta de Prueba Social Visible:* Al ser una app recién lanzada, el indicador de descargas iniciales y pocas valoraciones genera dudas en el usuario frío que llega desde un anuncio de video.
+  2. *Latencia de Reporte de Play Console:* Google Play Console consolida los informes de adquisición con un retraso estándar de 24 a 48 horas, por lo que las descargas de los días 21 y 22 aún están en proceso de consolidación.
+  3. *Coherencia Visual Reel $\rightarrow$ Ficha:* El Reel más exitoso es el Reel 2 (Vivir Solo / Botón Estoy OK diario). Las primeras 2 capturas de la ficha deben reflejar inmediatamente esa propuesta para convalidar lo prometido en el video.
+
+#### 5. Plan de Acción y Recomendaciones Estratégicas:
+1. **Mantener la Campaña Activa sin Reiniciar Aprendizaje:** La entrega en Instagram está estabilizada, barata y optimizada. Pausarla o editarla ahora interrumpiría el aprendizaje de Meta.
+2. **Campaña de Reseñas Iniciales (Prueba Social Prioritaria):** Impulsar de forma inmediata entre 10 y 15 reseñas de 5 estrellas con comentarios de valor en Google Play Store (familiares, amigos y testers). Una calificación de 4.8+ con testimonios reales derriba la desconfianza del usuario que llega desde Instagram Reels.
+3. **Optimización Visual de Capturas ASO en Play Store:** Asegurar que la captura del Botón "Estoy OK" y el aviso automático por WhatsApp ocupen las posiciones #1 y #2 en la ficha de la tienda.
+4. **Monitoreo Continuo:** Cruzar los datos de adquisición de Google Play Console de los días 21 y 22 una vez que el reporte esté consolidado por Google.
 
 ---
 
