@@ -38,6 +38,7 @@
   - [x] Map rendering with Leaflet for last known location.
   - [x] Crisis screen UI.
   - [x] Linked WhatsApp/Email alerts to public emergency view.
+  - [x] Redirección canónica 301 permanente de `www.estoyok24.com` hacia `estoyok24.com` en Next.js para resolución de avisos de indexación de Google Search Console.
 - [x] **FASE 7: Verificación de Email con OTP**
   - [x] Sistema de códigos de 6 dígitos (Backend).
   - [x] Endpoints de verificación y reenvío.

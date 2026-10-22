@@ -1,6 +1,22 @@
 # Progress Log
 
-## [2026-10-20] Auditoría de 72h de Campaña Meta Ads, Exclusividad de Instagram Reels y Corrección de Redirección Nativa en `/descargar`
+## [2026-10-22] Saneamiento Integral de Seguridad en Railway, Rotación de Credenciales, Auditoría Meta Ads (48h) y Redirección Canónica SEO
+- **Saneamiento y Rotación de Credenciales por Incidente de Seguridad en Railway:**
+  - **Pasarelas Obsoletas:** Eliminadas de Railway las variables de entorno de prueba de Mercado Pago, Stripe y PayPal. Revocada la API Secret Key en Stripe ("girar clave") y eliminada la app en PayPal Sandbox.
+  - **Evolution API (WhatsApp):** Rotada la clave de autenticación global a un token seguro aleatorio de 48 caracteres (`be9e5227a478b0cb521712ab8ef8d63e5cb018607a7ed8b4`), sincronizada en Producción y Desarrollo con verificación del socket en `open`.
+  - **PostgreSQL / PostGIS:** Actualizada la contraseña del usuario `postgres` mediante sentencia interna SQL `ALTER USER` en Producción (`estoyok_db`) y Desarrollo (`railway`), resolviendo el error `FATAL: password authentication failed` tras el cambio de variables.
+  - **Redis:** Contraseña rotada y autenticación verificada sin errores de `WRONGPASS`.
+  - **Servicio de Correos (Resend SMTP / API):** Rotada la API Key en Resend (`RESEND_API_KEY` y `MAIL_PASSWORD`), verificando el despacho de email con código 200 en ambos entornos (`/api/maintenance/send-test-email`).
+  - **Laravel `APP_KEY`:** Regenerada e inyectada nueva clave de 32 bytes (`base64:LCRqljTFvoz4P5CAJXOmmjy7ylRrhnVLnZpTZyB2C+E=`), validando el cifrado del framework y las rutas de autenticación.
+- **Auditoría de 48 Horas de Campaña Meta Ads (Instagram Reels) y Optimización ASO:**
+  - Confirmada la entrega del **96% del presupuesto ($6.126 ARS)** en Instagram Reels con 93 clics a CPC de $65,88 ARS, erradicando la fuga hacia Facebook.
+  - El **Reel 2 (Vivir Solo)** concentró el 71% del presupuesto y 69 clics.
+  - Constatadas 85 visitas en Google Play Store y 3 instalaciones registradas (1 orgánica confirmada del 20/10).
+  - Reordenadas las capturas ASO en la ficha de Google Play Store, ubicando en la **Posición #1 la captura del Botón "Estoy OK" y aviso automático por WhatsApp** para alinear la conversión con el mensaje del Reel ganador.
+  - Actualizado [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/usuario/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md).
+- **Resolución de Advertencia de Indexación Google Search Console:**
+  - Configurada redirección HTTP 301 Permanente en [`frontend-web/next.config.ts`](file:///home/usuario/aplicaciones/estoyok/frontend-web/next.config.ts) de `www.estoyok24.com` hacia `https://estoyok24.com`, resolviendo el aviso *"Duplicada: Google ha elegido una versión canónica diferente a la del usuario"*.
+  - Compilación exitosa de Next.js y sincronización de ramas `main` y `dev`.
 - **Auditoría de Métricas de las Primeras 72 Horas en Meta Ads Manager:**
   - **Totales Generales:** $10.127,43 ARS invertidos, 10.786 impresiones (CPM ~$939 ARS), **345 clics en el enlace**, CPC promedio de **$29,35 ARS** (3x más económico que los $60-$90 ARS proyectados) y CTR promedio de **3,20%**.
   - **Desglose por Anuncio:**
