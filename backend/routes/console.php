@@ -12,6 +12,7 @@ if (app()->environment('local')) {
     Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
     Schedule::command('checkins:verify-inactivity')->everyMinute()->withoutOverlapping(10);
     Schedule::command('checkins:send-reminders')->everyMinute();
+    Schedule::command('users:send-activation-nudges')->everyMinute();
     Schedule::command('drive:cleanup-active')->everyMinute();
     Schedule::command('subscriptions:send-trial-reminders')->everyMinute();
     Schedule::command('subscriptions:check-expired-grace-periods')->everyMinute();
@@ -20,6 +21,7 @@ if (app()->environment('local')) {
     Schedule::command('whatsapp:keep-alive-guardian')->everyTwoMinutes();
     Schedule::command('checkins:verify-inactivity')->everyMinute()->withoutOverlapping(10);
     Schedule::command('checkins:send-reminders')->everyFifteenMinutes();
+    Schedule::command('users:send-activation-nudges')->hourly();
     Schedule::command('drive:cleanup-active')->everyTenMinutes();
     Schedule::command('subscriptions:send-trial-reminders')->daily();
     Schedule::command('subscriptions:check-expired-grace-periods')->daily();

@@ -15,6 +15,17 @@
   - Dispositivos activos aumentaron de 63 a **68 dispositivos Android únicos** (+5 dispositivos nuevos).
   - Confirmada la solidez técnica de la ruta puente `/descargar` con Android Intent nativo, permitiendo instalaciones directas en Google Play Store sin fricción de login web.
 - **Documentación:** Actualizados [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md) y [`docs/status.md`](file:///home/nicolas/aplicaciones/estoyok/docs/status.md). Creada la guía maestra de crecimiento orgánico [`docs/estrategia_reels_organicos_ia.md`](file:///home/nicolas/aplicaciones/estoyok/docs/estrategia_reels_organicos_ia.md) con prompts de Google Flow para video IA, textos en bucle (loop) y tácticas de viralización algorítmica sin costo. Publicados los 2 primeros Reels orgánicos en colaboración con cuenta personal. Desarrollado el plan maestro [`docs/plan_activacion_y_conversion_premium_2026-10-26.md`](file:///home/nicolas/aplicaciones/estoyok/docs/plan_activacion_y_conversion_premium_2026-10-26.md) de activación temprana y conversión a suscripción Premium.
+- **Implementación Fase 1 (Backend - Notificaciones Push de Activación Temprana):**
+  - Creado el comando `users:send-activation-nudges` ([`SendActivationNudges.php`](file:///home/nicolas/aplicaciones/estoyok/backend/app/Console/Commands/SendActivationNudges.php)) en Laravel con ciclo inteligente de nutrición:
+    1. *Nudge 6h:* Invita al primer reporte de bienestar si nunca hizo check-in (*"👋 ¡Hola [Nombre]! Tu botón Estoy OK está listo..."*).
+    2. *Nudge 24h:* Alerta sobre la falta de contactos de seguridad (*"🛡️ [Nombre], ¿quién te cuidará? Agregá a tu contacto de confianza..."*).
+    3. *Nudge 48h:* Ofrece la prueba de 7 días de Google Play Store (*"⚡ Probá Estoy Ok Premium Gratis: Tenés 7 días sin cargo..."*).
+    4. *Nudge 72h:* Reenganche si lleva más de 48 hs inactivo.
+  - Bloqueo atómico y deduplicación por usuario en caché (`activation_nudge_{X}h_user_{id}`) por 14 días para evitar spam.
+  - Respeto automático a las Horas Silenciosas (`isInQuietHours()`).
+  - Registrado en [`routes/console.php`](file:///home/nicolas/aplicaciones/estoyok/backend/routes/console.php) para ejecución horaria en producción y por minuto en desarrollo.
+  - Suite de pruebas completa en [`SendActivationNudgesTest.php`](file:///home/nicolas/aplicaciones/estoyok/backend/tests/Feature/SendActivationNudgesTest.php) (4 nuevos tests).
+  - Suite total de backend: **194 tests y 648 aserciones pasando al 100%**.
 
 ## [2026-10-22] Saneamiento Integral de Seguridad en Railway, Rotación de Credenciales, Auditoría Meta Ads (48h) y Redirección Canónica SEO
 - **Saneamiento y Rotación de Credenciales por Incidente de Seguridad en Railway:**
