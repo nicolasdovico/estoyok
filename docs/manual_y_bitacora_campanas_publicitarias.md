@@ -138,6 +138,52 @@ Al cumplirse 48 horas de haber forzado la exclusividad de Instagram y corregido 
 
 ---
 
+### 📅 Hito 4: Auditoría del 9º Día y Consolidación de Instagram Reels — Lunes 26 de Octubre de 2026
+
+Al acumularse 9 días de campaña (período total 17 al 26 de octubre de 2026), se auditaron las capturas oficiales de Meta Ads Manager (`desglose2610.png` y `metricas.png`) y se cruzaron con la telemetría de producción en PostgreSQL/FCM.
+
+#### 1. Resultados Acumulados por Plataforma (17 al 26 de Octubre):
+
+| Plataforma | Clics en el enlace | CPC Promedio | Monto Gastado | Impresiones |
+| :--- | :---: | :---: | :---: | :---: |
+| **Instagram** | **356** | **$63,46 ARS** | **$22.591,50 (63,0%)** | 5.646 |
+| **Facebook** (Histórico inicial previo al 20/10) | 446 | $29,13 ARS | $12.989,89 (36,2%) | 14.136 |
+| **Audience Network** | 5 | $39,80 ARS | $199,01 (0,5%) | 46 |
+| **WhatsApp** | 1 | $78,64 ARS | $78,64 (0,2%) | 159 |
+| **TOTAL GENERAL** | **808 clics** | **$44,38 ARS** | **$35.859,04** | **19.987** |
+
+* **Consolidación en Instagram:** Del 22 al 26 de octubre se invirtieron ~$16.465 ARS casi de forma pura en Instagram Reels. La fuga de presupuesto hacia Facebook quedó 100% erradicada tras la corrección de ubicaciones manuales.
+
+#### 2. Desempeño Acumulado por Creativo / Anuncio:
+
+| Anuncio | Clics en el enlace | Costo por Clic (CPC) | Monto Gastado | Impresiones | CTR (% de clics) |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **🥇 Reel 2 - Vivir Solo (Bienestar Diario)** | **408** | **$53,25 ARS** | **$21.727,62 (60,6%)** | 7.445 | **5,48%** 🔥 |
+| **🥈 Reel 1 - Padres Auto** | **336** | **$34,61 ARS** | **$11.628,45 (32,4%)** | 10.717 | **3,14%** |
+| **🥉 Reel 3 - Urgencia (SOS Audio y Choques)** | **64** | **$39,11 ARS** | **$2.502,97 (7,0%)** | 1.825 | **3,51%** |
+| **TOTALES** | **808 clics** | **$44,38 ARS** | **$35.859,04** | **19.987** | **4,04%** |
+
+* **Hallazgo Clave sobre la Audiencia:**
+  * El **Reel 2 (Vivir Solo / Bienestar)** es la pieza reina de la campaña: acumula un **CTR sobresaliente del 5,48%** (más del doble del benchmark de la industria) y acapara más del 60% del presupuesto de forma orgánica según el algoritmo de Meta.
+  * El **Reel 1 (Padres Auto)** conserva el clic más barato (**$34,61 ARS**), garantizando volumen bruto de visitas a bajo costo.
+  * El CTR global de la cuenta se ubica en **4,04%**, confirmando que los videos conectan con alta efectividad con el público argentino.
+
+#### 3. Cruce con Base de Datos de Producción y Dispositivos:
+* **Registros de usuarios nuevos:** Se pasó de 18 a 21 usuarios reales verificados (+3 usuarios con cuenta activa):
+  * User #42: Ernesto (`jito51cer@gmail.com`) con token FCM Android activo.
+  * User #43: Alfredo (`alfredoramosv@gmail.com`) verificado el 25/10 con token FCM Android activo.
+  * User #44: Adriana Virginia Almada (`avalmada@gmail.com`) con token FCM Android activo.
+* **Dispositivos registrados:** Subió de 63 a **68 dispositivos** (+5 nuevos dispositivos Android instalados).
+* **Confirmación Técnica:** El flujo nativo del Android Intent en `/descargar` funciona sin fricción; los usuarios instalan desde Google Play Store y crean sus credenciales y tokens FCM de forma normal.
+* **Costo por Instalación Efectiva (CPI):** Se estima en ~$3.200 ARS por instalación activa en este período de arranque.
+
+#### 4. Directivas Operativas Vigentes:
+1. **Mantener Anuncios Activos:** No pausar ningún Reel; los 3 anuncios conviven con métricas muy saludables y complementarias.
+2. **Presupuesto Estable:** Continuar en $4.000 ARS diarios para consolidar la entrega en Instagram sin reiniciar la fase de aprendizaje.
+3. **Foco en Conversión en Tienda (ASO y Reseñas):** Fortalecer la prueba social (reseñas de 5 estrellas con testimonios) para reducir la desconfianza del usuario frío y elevar el ratio de visita a instalación.
+
+---
+
 ## 🔍 PARTE 3: Protocolo Paso a Paso para Auditar la Campaña en Próximas Sesiones
 
 Cada vez que revisemos la campaña (a las 24h, 48h o fin de semana), seguir este orden:

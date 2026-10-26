@@ -1,5 +1,21 @@
 # Progress Log
 
+## [2026-10-26] Auditoría del 9º Día de Meta Ads (Instagram Reels), Consolidación del Reel 2 y Conversión en Play Store (Hito 4)
+- **Resultados Cuantitativos Acumulados (17 al 26 de Octubre - $35.859,04 ARS Invertidos):**
+  - **Entrega por Plataforma:**
+    - Instagram: **$22.591,50 ARS (63,0%)**, 356 clics, CPC $63,46 ARS, 5.646 impresiones. En los últimos 4 días (22 al 26 de octubre) se invirtieron ~$16.465 ARS de manera 100% pura y exclusiva en Instagram Reels.
+    - Facebook (Histórico previo a corrección del 20/10): $12.989,89 ARS (36,2%), 446 clics. Fuga de presupuesto completamente erradicada.
+    - Métricas globales de la cuenta: **808 clics**, CPC promedio **$44,38 ARS** y CTR global del **4,04%** (duplicando ampliamente los estándares del sector).
+  - **Desempeño por Creativo / Anuncio:**
+    - *Reel 2 (Vivir Solo / Bienestar Diario):* **Ganador indiscutido**. Concentró el 60,6% del presupuesto total ($21.727,62 ARS) logrando **408 clics** a un CPC de **$53,25 ARS** con un **CTR extraordinario de 5,48%** en 7.445 impresiones.
+    - *Reel 1 (Padres Auto):* 336 clics a **$34,61 ARS** (el más económico), $11.628,45 ARS gastados y CTR de 3,14% en 10.717 impresiones.
+    - *Reel 3 (Urgencia SOS y Choques):* 64 clics a $39,11 ARS, $2.502,97 ARS gastados y CTR de 3,51% en 1.825 impresiones.
+- **Cruce con Telemetría Real de Base de Datos en Producción:**
+  - Registros de usuarios reales verificados aumentaron de 18 a **21 usuarios** (+3 usuarios orgánicos/adquisición: User #42 Ernesto `jito51cer@gmail.com`, User #43 Alfredo `alfredoramosv@gmail.com` y User #44 Adriana Virginia Almada `avalmada@gmail.com`).
+  - Dispositivos activos aumentaron de 63 a **68 dispositivos Android únicos** (+5 dispositivos nuevos).
+  - Confirmada la solidez técnica de la ruta puente `/descargar` con Android Intent nativo, permitiendo instalaciones directas en Google Play Store sin fricción de login web.
+- **Documentación:** Actualizados [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md) y [`docs/status.md`](file:///home/nicolas/aplicaciones/estoyok/docs/status.md). Creada la guía maestra de crecimiento orgánico [`docs/estrategia_reels_organicos_ia.md`](file:///home/nicolas/aplicaciones/estoyok/docs/estrategia_reels_organicos_ia.md) con prompts de Google Flow para video IA, textos en bucle (loop) y tácticas de viralización algorítmica sin costo. Publicados los 2 primeros Reels orgánicos en colaboración con cuenta personal. Desarrollado el plan maestro [`docs/plan_activacion_y_conversion_premium_2026-10-26.md`](file:///home/nicolas/aplicaciones/estoyok/docs/plan_activacion_y_conversion_premium_2026-10-26.md) de activación temprana y conversión a suscripción Premium.
+
 ## [2026-10-22] Saneamiento Integral de Seguridad en Railway, Rotación de Credenciales, Auditoría Meta Ads (48h) y Redirección Canónica SEO
 - **Saneamiento y Rotación de Credenciales por Incidente de Seguridad en Railway:**
   - **Pasarelas Obsoletas:** Eliminadas de Railway las variables de entorno de prueba de Mercado Pago, Stripe y PayPal. Revocada la API Secret Key en Stripe ("girar clave") y eliminada la app en PayPal Sandbox.

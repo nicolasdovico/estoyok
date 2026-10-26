@@ -48,7 +48,16 @@
 - [x] **FASE Mobile: Estabilización y Expo Go**
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
-    - [x] Ejecución en Background de Scheduler y Worker en Railway Dev & Testing Natural de Reloj:
+  - [x] Auditoría de Campaña Meta Ads (Instagram Reels) y Conversión en Play Store (Hito 4 - 26/10/2026):
+    - Inversión total acumulada de $35.859 ARS con 808 clics (CPC promedio $44,38 ARS y CTR global 4,04%).
+    - Confirmada la entrega exclusiva en Instagram Reels ($22.591 ARS acumulados, con ~$16.465 ARS consumidos post-corrección de forma 100% pura en Instagram).
+    - Reel 2 (Vivir Solo / Bienestar) consolidado como el anuncio líder acaparando el 60% del presupuesto con un CTR extraordinario del 5,48% (408 clics a $53,25 ARS).
+    - Verificada la entrada continua de usuarios reales y dispositivos en producción (+3 usuarios verificados con FCM tokens activos y +5 dispositivos nuevos), validando la efectividad del Android Intent en `/descargar`.
+    - Documentada la bitácora completa en `docs/manual_y_bitacora_campanas_publicitarias.md` y `docs/progress.txt`.
+    - Creado el manual de crecimiento orgánico y viralización sin costo publicitario en `docs/estrategia_reels_organicos_ia.md` con prompts de Google Flow, guiones en loop y técnicas de colaboración.
+    - Publicados los primeros 2 Reels orgánicos generados con IA (Google Flow) en Instagram bajo la modalidad de colaboración compartida con la cuenta personal, optimizados en loop de 7 segundos y audio nativo.
+    - Creado el plan maestro de activación temprana y conversión a Premium en `docs/plan_activacion_y_conversion_premium_2026-10-26.md` para usuarios adquiridos por Meta Ads (Soft Paywall post-onboarding, ciclo de push de 6h/24h/48h y WhatsApp de prueba).
+  - [x] Ejecución en Background de Scheduler y Worker en Railway Dev & Testing Natural de Reloj:
       - **Background daemons en Railway:** Creado `backend/start.sh` que ejecuta concurrentemente `queue:work` y `schedule:work` junto con `serve` en Railway Dev.
       - **Frecuencia del Scheduler:** Actualizado `routes/console.php` para ejecutar `checkins:verify-inactivity` cada minuto (`everyMinute()`) garantizando despacho sin demoras.
       - **Testing Natural (Fast-Forward):** Creados `/api/maintenance/prepare-inactivity-test` y `/api/maintenance/set-clock-remaining` (`minutes_left`) para adelantar el reloj a 2 minutos sin forzar envíos artificiales ni hacer esperar 12 horas a testers de Google Play Sandbox.
