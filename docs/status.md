@@ -59,6 +59,7 @@
     - Creado el plan maestro de activación temprana y conversión a Premium en `docs/plan_activacion_y_conversion_premium_2026-10-26.md` para usuarios adquiridos por Meta Ads (Soft Paywall post-onboarding, ciclo de push de 6h/24h/48h y WhatsApp de prueba).
     - Implementada y probada la Fase 1 en backend (`dev`): comando `users:send-activation-nudges` (`SendActivationNudges.php`) con deduplicación por usuario en caché, respeto a Quiet Hours y cadencia 6h (check-in), 24h (contactos de seguridad), 48h (oferta trial 7 días) y 72h (reenganche bienestar). 194 tests pasando al 100% (648 aserciones).
     - Creado endpoint de pruebas `/api/maintenance/test-activation-nudge` y validado exitosamente en vivo en Railway Dev con la cuenta `tamarakshop@gmail.com` (recibiendo el push FCM de primer check-in y la oferta de Trial de 48h en dispositivo Android físico).
+    - Desplegado en Producción (`main`): comando activo en scheduler horario y validado en vivo el primer despacho de rescate de check-in hacia el usuario real Alfredo (`alfredoramosv@gmail.com`).
   - [x] Ejecución en Background de Scheduler y Worker en Railway Dev & Testing Natural de Reloj:
       - **Background daemons en Railway:** Creado `backend/start.sh` que ejecuta concurrentemente `queue:work` y `schedule:work` junto con `serve` en Railway Dev.
       - **Frecuencia del Scheduler:** Actualizado `routes/console.php` para ejecutar `checkins:verify-inactivity` cada minuto (`everyMinute()`) garantizando despacho sin demoras.

@@ -30,6 +30,9 @@
     - Creado endpoint `/api/maintenance/test-activation-nudge`.
     - Disparada la prueba con `tamarakshop@gmail.com` en Dev (`Nudge de primer check-in enviado: tamarakshop@gmail.com`, `HTTP 200` y `Nudge de oferta de Trial enviado: tamarakshop@gmail.com`).
     - Entrega exitosa del push FCM de Firebase en hardware Android real.
+  - **Despliegue y Activación en Producción (`main`):**
+    - Sincronizada la rama `main` y desplegado en Railway Producción (`api.estoyok24.com`).
+    - Al ejecutarse la evaluación del comando `users:send-activation-nudges`, el sistema identificó y rescató exitosamente al usuario real Alfredo (`alfredoramosv@gmail.com`), entregándole su notificación push de bienvenida para invitarlo a su primer reporte de bienestar.
 
 ## [2026-10-22] Saneamiento Integral de Seguridad en Railway, Rotación de Credenciales, Auditoría Meta Ads (48h) y Redirección Canónica SEO
 - **Saneamiento y Rotación de Credenciales por Incidente de Seguridad en Railway:**
