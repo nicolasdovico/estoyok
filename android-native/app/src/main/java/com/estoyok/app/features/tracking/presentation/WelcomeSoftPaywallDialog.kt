@@ -161,19 +161,19 @@ fun WelcomeSoftPaywallDialog(
                             verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             BenefitRowItem(
+                                iconText = "🟢",
+                                title = "El Botón \"Estoy OK\"",
+                                description = "Confirmá tu bienestar diario con un solo toque y viví con total tranquilidad."
+                            )
+                            BenefitRowItem(
                                 iconText = "📲",
                                 title = "Alertas automáticas por WhatsApp",
-                                description = "Si no confirmás tu bienestar diario, avisamos a tus contactos con mapa de rescate."
+                                description = "Si no confirmás en tu horario configurado, tus contactos reciben un aviso con tu mapa de rescate."
                             )
                             BenefitRowItem(
                                 iconText = "🚨",
                                 title = "SOS de Bolsillo (4 toques)",
-                                description = "Presioná 4 veces el botón de encendido para enviar audio de 15s y GPS en vivo."
-                            )
-                            BenefitRowItem(
-                                iconText = "🚗",
-                                title = "Protección Vehicular y Choques",
-                                description = "Detección de impactos por Fuerza G y rastreo de alta frecuencia en ruta."
+                                description = "Presioná 4 veces el botón de encendido con celular bloqueado para alertar con audio de 15s y GPS en vivo."
                             )
                         }
                     }

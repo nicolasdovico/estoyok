@@ -54,6 +54,7 @@ android {
                 ?: System.getenv("DEV_API_URL")
                 ?: "https://api-dev.estoyok24.com/api/"
             buildConfigField("String", "BASE_URL", "\"$devApiUrl\"")
+            signingConfig = signingConfigs.getByName("release")
         }
         release {
             buildConfigField("String", "BASE_URL", "\"https://api.estoyok24.com/api/\"")

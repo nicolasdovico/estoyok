@@ -46,6 +46,8 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -785,45 +787,127 @@ fun CheckInButton(
     onClick: () -> Unit,
     size: androidx.compose.ui.unit.Dp = 180.dp
 ) {
-    Button(
-        onClick = onClick,
-        modifier = Modifier.size(size),
-        shape = CircleShape,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Unspecified),
-        contentPadding = PaddingValues(0.dp)
+    val interactionSource = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val animatedScale by androidx.compose.animation.core.animateFloatAsState(
+        targetValue = if (isPressed) 0.95f else 1.0f,
+        animationSpec = androidx.compose.animation.core.spring(
+            dampingRatio = androidx.compose.animation.core.Spring.DampingRatioLowBouncy,
+            stiffness = androidx.compose.animation.core.Spring.StiffnessMediumLow
+        ),
+        label = "neon_button_scale"
+    )
+
+    // Diámetro generoso idéntico a hero_mockup.jpg
+    val ringDiameter = 215.dp
+    val totalBoxSize = ringDiameter + 80.dp
+
+    Box(
+        modifier = Modifier
+            .size(totalBoxSize)
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+            }
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
     ) {
+        // 1. Resplandor Neón exterior y Anillo tubular idéntico a hero_mockup.jpg
+        androidx.compose.foundation.Canvas(
+            modifier = Modifier.size(totalBoxSize)
+        ) {
+            val centerOffset = center
+            val strokeRadius = ringDiameter.toPx() / 2f
+
+            // Efecto Bloom / Corona de resplandor neón exterior con PrimaryEmerald (0xFF00E5D9)
+            val glowSteps = listOf(
+                Pair(45.dp.toPx(), PrimaryEmerald.copy(alpha = 0.12f)),
+                Pair(32.dp.toPx(), PrimaryEmerald.copy(alpha = 0.22f)),
+                Pair(22.dp.toPx(), PrimaryEmerald.copy(alpha = 0.38f)),
+                Pair(14.dp.toPx(), PrimaryEmerald.copy(alpha = 0.55f)),
+                Pair(7.dp.toPx(), PrimaryEmerald.copy(alpha = 0.75f))
+            )
+
+            for ((blurRadius, glowColor) in glowSteps) {
+                drawCircle(
+                    color = glowColor,
+                    radius = strokeRadius,
+                    center = centerOffset,
+                    style = androidx.compose.ui.graphics.drawscope.Stroke(width = blurRadius)
+                )
+            }
+
+            // Anillo tubular nítido con el color característico de la marca (PrimaryEmerald)
+            drawCircle(
+                color = PrimaryEmerald,
+                radius = strokeRadius,
+                center = centerOffset,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = 6.dp.toPx(),
+                    cap = androidx.compose.ui.graphics.StrokeCap.Round
+                )
+            )
+
+            // Núcleo blanco interno para darle brillo de tubo eléctrico
+            drawCircle(
+                color = Color(0xF2FFFFFF),
+                radius = strokeRadius,
+                center = centerOffset,
+                style = androidx.compose.ui.graphics.drawscope.Stroke(
+                    width = 2.dp.toPx()
+                )
+            )
+        }
+
+        // 2. Interior oscuro del botón (completamente transparente/sin borde duro, fusionado al fondo)
         Box(
             modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(PrimaryEmerald, Color(0xFF0F6D38))
-                    ),
-                    shape = CircleShape
-                ),
+                .size(ringDiameter - 14.dp)
+                .clip(CircleShape),
             contentAlignment = Alignment.Center
         ) {
             if (isCheckingIn) {
                 CircularProgressIndicator(
-                    color = Color.White,
-                    modifier = Modifier.size(size * 0.27f)
+                    color = PrimaryEmerald,
+                    modifier = Modifier.size(ringDiameter * 0.25f),
+                    strokeWidth = 3.5.dp
                 )
             } else {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
                     Text(
-                        text = "Estoy OK",
-                        fontSize = if (size < 150.dp) 18.sp else 22.sp,
-                        fontWeight = FontWeight.ExtraBold,
-                        color = Color.White
+                        text = "ESTOY OK",
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Black,
+                        color = Color.White,
+                        letterSpacing = 0.8.sp
                     )
-                    if (size >= 150.dp) {
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Text(
-                            text = "Reportar bienestar",
-                            fontSize = 11.sp,
-                            color = Color.White.copy(alpha = 0.8f)
-                        )
-                    }
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    // Ícono tilde estilizado en PrimaryEmerald de la marca
+                    Text(
+                        text = "✔",
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        color = PrimaryEmerald
+                    )
+
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = "Notificar",
+                        fontSize = 13.5.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color(0xFFCBD5E1),
+                        letterSpacing = 0.4.sp
+                    )
                 }
             }
         }
