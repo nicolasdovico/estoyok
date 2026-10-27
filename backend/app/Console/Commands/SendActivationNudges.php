@@ -59,11 +59,14 @@ class SendActivationNudges extends Command
                         $body = "Tu botón Estoy OK está listo. Tocalo para confirmar tu bienestar y activar tu escudo diario.";
                         $data = ['type' => 'activation_checkin', 'screen' => 'Panel'];
 
-                        if ($pushService->sendPush($user->expo_push_token, $title, $body, $data)) {
+                        $sent = $pushService->sendPush($user->expo_push_token, $title, $body, $data);
+                        $this->info("Nudge de primer check-in enviado a: {$user->email} - Resultado: " . ($sent ? 'EXITOSO' : 'FALLIDO'));
+                        if ($sent) {
                             Cache::put($cacheKey, true, now()->addDays(14));
                             $sentCount++;
-                            $this->info("Nudge de primer check-in enviado a: {$user->email}");
                         }
+                    } else {
+                        $this->info("Nudge de primer check-in ya enviado a: {$user->email} (en cache)");
                     }
                     // Si nunca hizo check-in, priorizamos este aviso antes de pedirle contactos o premium
                     continue;
