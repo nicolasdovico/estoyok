@@ -430,7 +430,14 @@ Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Re
     }
 
     // Configuramos el estado del usuario según el paso a probar
-    if ($step === '6h') {
+    if ($step === 'reset_users_free') {
+        \Illuminate\Support\Facades\DB::table('users')->whereIn('id', [42, 44])->update([
+            'is_premium' => false,
+            'subscription_status' => null,
+            'subscription_provider' => null,
+            'trial_ends_at' => null,
+        ]);
+    } elseif ($step === '6h') {
         \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
             'created_at' => now()->subHours(8),
             'last_check_in_at' => null,
