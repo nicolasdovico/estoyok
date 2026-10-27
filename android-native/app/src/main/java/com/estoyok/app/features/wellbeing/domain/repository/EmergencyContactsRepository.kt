@@ -11,4 +11,5 @@ interface EmergencyContactsRepository {
     fun updateContact(id: Int, contact: EmergencyContactDto): Flow<Resource<EmergencyContactDto>>
     fun deleteContact(id: Int): Flow<Resource<MessageResponse>>
     fun reorderContacts(ids: List<Int>): Flow<Resource<MessageResponse>>
+    fun sendTestWhatsApp(id: Int): Flow<Resource<MessageResponse>>
 }

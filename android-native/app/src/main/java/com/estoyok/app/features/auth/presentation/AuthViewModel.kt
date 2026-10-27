@@ -45,9 +45,23 @@ class AuthViewModel @Inject constructor(
             initialValue = null
         )
 
+    val isWelcomePaywallShown: StateFlow<Boolean?> = sessionManager.isWelcomePaywallShownFlow
+        .map { it }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
+
     fun completeOnboarding() {
         viewModelScope.launch {
             sessionManager.saveOnboardingCompleted(true)
+        }
+    }
+
+    fun completeWelcomePaywall() {
+        viewModelScope.launch {
+            sessionManager.saveWelcomePaywallShown(true)
         }
     }
 

@@ -35,7 +35,18 @@ class SessionManager @Inject constructor(
         private val SELECTED_CIRCLE_ID = intPreferencesKey("selected_circle_id")
         private val DISCLAIMER_ACCEPTED = booleanPreferencesKey("disclaimer_accepted")
         private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
+        private val WELCOME_PAYWALL_SHOWN = booleanPreferencesKey("welcome_paywall_shown")
         private val POWER_BUTTON_SOS_ENABLED = booleanPreferencesKey("power_button_sos_enabled")
+    }
+
+    val isWelcomePaywallShownFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[WELCOME_PAYWALL_SHOWN] ?: false
+    }
+
+    suspend fun saveWelcomePaywallShown(shown: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[WELCOME_PAYWALL_SHOWN] = shown
+        }
     }
 
     val isPowerButtonSosEnabledFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->

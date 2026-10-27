@@ -80,6 +80,9 @@ class PanelViewModel @Inject constructor(
     var showManageContactsModal by mutableStateOf(false)
         private set
 
+    var isSendingTestWa by mutableStateOf(false)
+        private set
+
     val totalAlertRecipients: Int
         get() = circleMembers.size + contactsCount
 
@@ -243,6 +246,36 @@ class PanelViewModel @Inject constructor(
                     fetchEmergencyContacts()
                 } else if (resource is Resource.Error) {
                     android.widget.Toast.makeText(context, resource.message ?: "Error al actualizar contacto", android.widget.Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
+
+    fun sendTestWhatsApp(contactId: Int, context: android.content.Context) {
+        if (isSendingTestWa) return
+        isSendingTestWa = true
+        viewModelScope.launch {
+            contactsRepository.sendTestWhatsApp(contactId).collectLatest { resource ->
+                when (resource) {
+                    is Resource.Success -> {
+                        isSendingTestWa = false
+                        android.widget.Toast.makeText(
+                            context,
+                            "✅ Mensaje de prueba enviado por WhatsApp",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    is Resource.Error -> {
+                        isSendingTestWa = false
+                        android.widget.Toast.makeText(
+                            context,
+                            resource.message ?: "No se pudo enviar el WhatsApp de prueba",
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                    }
+                    is Resource.Loading -> {
+                        // Loading handled by isSendingTestWa
+                    }
                 }
             }
         }

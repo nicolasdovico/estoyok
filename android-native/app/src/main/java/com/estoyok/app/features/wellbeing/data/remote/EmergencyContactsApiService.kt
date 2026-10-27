@@ -31,4 +31,9 @@ interface EmergencyContactsApiService {
     suspend fun reorderContacts(
         @Body request: ReorderContactsRequest
     ): Response<MessageResponse>
+
+    @POST("emergency-contacts/{id}/send-test-whatsapp")
+    suspend fun sendTestWhatsApp(
+        @Path("id") id: Int
+    ): Response<MessageResponse>
 }

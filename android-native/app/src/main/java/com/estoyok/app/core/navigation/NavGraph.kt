@@ -33,6 +33,7 @@ import com.estoyok.app.features.wellbeing.presentation.AjustesScreen
 import com.estoyok.app.features.wellbeing.presentation.PanelScreen
 import com.estoyok.app.features.wellbeing.presentation.DisclaimerMandatoryDialog
 import com.estoyok.app.features.auth.presentation.onboarding.OnboardingScreen
+import com.estoyok.app.features.tracking.presentation.WelcomeSoftPaywallDialog
 
 @Composable
 fun MainScreen(
@@ -44,8 +45,10 @@ fun MainScreen(
     val isAuthenticated by authViewModel.isAuthenticated.collectAsState()
     val isDisclaimerAccepted by authViewModel.isDisclaimerAccepted.collectAsState()
     val isOnboardingCompleted by authViewModel.isOnboardingCompleted.collectAsState()
+    val isWelcomePaywallShown by authViewModel.isWelcomePaywallShown.collectAsState()
     val showMandatoryDisclaimer = isAuthenticated && (isDisclaimerAccepted == false)
     val showOnboarding = isAuthenticated && (isDisclaimerAccepted == true) && (isOnboardingCompleted == false)
+    val showWelcomePaywall = isAuthenticated && (isDisclaimerAccepted == true) && (isOnboardingCompleted == true) && (isWelcomePaywallShown == false)
     val isDisclaimerPending = (isDisclaimerAccepted != true || isOnboardingCompleted != true)
     
     val items = listOf(
@@ -248,6 +251,11 @@ fun MainScreen(
                 // First-time Onboarding Walkthrough for freshly registered users
                 OnboardingScreen(
                     onFinish = { authViewModel.completeOnboarding() }
+                )
+            } else if (showWelcomePaywall) {
+                // Soft Paywall Post-Onboarding (7 days free trial)
+                WelcomeSoftPaywallDialog(
+                    onDismiss = { authViewModel.completeWelcomePaywall() }
                 )
             }
         }

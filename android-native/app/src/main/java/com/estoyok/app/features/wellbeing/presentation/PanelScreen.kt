@@ -29,6 +29,7 @@ import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
@@ -168,6 +169,8 @@ fun PanelScreen(
         onDeleteContact = { id -> viewModel.deleteContact(id) },
         onMoveContactUp = { idx -> viewModel.moveContactUp(idx) },
         onMoveContactDown = { idx -> viewModel.moveContactDown(idx) },
+        onSendTestWhatsApp = { contactId -> viewModel.sendTestWhatsApp(contactId, context) },
+        isSendingTestWa = viewModel.isSendingTestWa,
         onSos = handleSosAction,
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings,
@@ -261,6 +264,8 @@ fun PanelContent(
     onDeleteContact: (Int) -> Unit,
     onMoveContactUp: (Int) -> Unit,
     onMoveContactDown: (Int) -> Unit,
+    onSendTestWhatsApp: (Int) -> Unit = {},
+    isSendingTestWa: Boolean = false,
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -307,7 +312,9 @@ fun PanelContent(
                 onUpdateContact = onUpdateContact,
                 onDeleteContact = onDeleteContact,
                 onMoveContactUp = onMoveContactUp,
-                onMoveContactDown = onMoveContactDown
+                onMoveContactDown = onMoveContactDown,
+                onSendTestWhatsApp = onSendTestWhatsApp,
+                isSendingTestWa = isSendingTestWa
             )
         }
 
@@ -1401,7 +1408,9 @@ fun ManageContactsModal(
     onUpdateContact: (Int, String, String, String, String) -> Unit,
     onDeleteContact: (Int) -> Unit,
     onMoveContactUp: (Int) -> Unit,
-    onMoveContactDown: (Int) -> Unit
+    onMoveContactDown: (Int) -> Unit,
+    onSendTestWhatsApp: (Int) -> Unit = {},
+    isSendingTestWa: Boolean = false
 ) {
     var isFormVisible by remember { mutableStateOf(false) }
     var editingContactId by remember { mutableStateOf<Int?>(null) }
@@ -1667,6 +1676,27 @@ fun ManageContactsModal(
                                 color = TextMuted,
                                 modifier = Modifier.padding(bottom = 4.dp)
                             )
+                            if (emergencyContacts.isNotEmpty()) {
+                                Surface(
+                                    color = PrimaryEmerald.copy(alpha = 0.10f),
+                                    shape = RoundedCornerShape(8.dp),
+                                    modifier = Modifier.fillMaxWidth().padding(bottom = 6.dp)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text("🧪", fontSize = 13.sp)
+                                        Spacer(modifier = Modifier.width(6.dp))
+                                        Text(
+                                            text = "Tocá la campanita 🔔 junto a cualquier contacto para enviarle un WhatsApp de prueba y verificar el enlace de rescate.",
+                                            fontSize = 10.5.sp,
+                                            color = PrimaryEmerald,
+                                            lineHeight = 14.sp
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         if (emergencyContacts.isEmpty()) {
@@ -1767,7 +1797,20 @@ fun ManageContactsModal(
                                             )
                                         }
 
-                                        contact.id?.let {
+                                        contact.id?.let { contactId ->
+                                            IconButton(
+                                                onClick = { onSendTestWhatsApp(contactId) },
+                                                enabled = !isSendingTestWa,
+                                                modifier = Modifier.size(32.dp)
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Notifications,
+                                                    contentDescription = "Enviar WhatsApp de prueba",
+                                                    tint = PrimaryEmerald,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+
                                             IconButton(
                                                 onClick = { contactToDelete = contact },
                                                 modifier = Modifier.size(32.dp)

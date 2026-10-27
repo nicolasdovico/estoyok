@@ -39,6 +39,10 @@ class EmergencyContactsRepositoryImpl @Inject constructor(
         apiService.reorderContacts(ReorderContactsRequest(ids))
     }
 
+    override fun sendTestWhatsApp(id: Int): Flow<Resource<MessageResponse>> = safeApiCall {
+        apiService.sendTestWhatsApp(id)
+    }
+
     private fun <T> safeApiCall(apiCall: suspend () -> Response<T>): Flow<Resource<T>> = flow {
         emit(Resource.Loading())
         try {
