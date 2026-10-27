@@ -80,7 +80,7 @@ fun WelcomeSoftPaywallDialog(
                         .verticalScroll(scrollState),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Header con botón de cierre sutil
+                    // Header con badge estilizado y botón de cierre
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
@@ -91,74 +91,58 @@ fun WelcomeSoftPaywallDialog(
                             shape = RoundedCornerShape(20.dp)
                         ) {
                             Text(
-                                text = "🎁 REGALO DE BIENVENIDA",
+                                text = "🛡️ REGALO DE BIENVENIDA · 7 DÍAS",
                                 color = PrimaryEmerald,
-                                fontSize = 11.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontSize = 10.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
                             )
                         }
 
                         IconButton(
                             onClick = { onDismiss() },
-                            modifier = Modifier.size(32.dp)
+                            modifier = Modifier.size(28.dp)
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Close,
                                 contentDescription = "Cerrar",
-                                tint = TextMuted
+                                tint = TextMuted,
+                                modifier = Modifier.size(20.dp)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    // Título e Ícono
-                    Box(
-                        modifier = Modifier
-                            .size(60.dp)
-                            .background(
-                                Brush.radialGradient(
-                                    listOf(PrimaryEmerald.copy(alpha = 0.35f), Color.Transparent)
-                                ),
-                                shape = CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(text = "🛡️", fontSize = 34.sp)
-                    }
-
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
                         text = "¡Te damos la bienvenida a Estoy Ok!",
-                        fontSize = 20.sp,
+                        fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
                         text = "Disfrutá de 7 días gratis de protección completa para vos y tu familia sin pagar nada hoy.",
-                        fontSize = 13.sp,
+                        fontSize = 12.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,
-                        lineHeight = 18.sp
+                        lineHeight = 16.sp
                     )
 
-                    Spacer(modifier = Modifier.height(18.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
 
                     // Beneficios clave en tarjeta
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-                        shape = RoundedCornerShape(16.dp)
+                        shape = RoundedCornerShape(14.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(14.dp),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             BenefitRowItem(
                                 iconText = "🟢",
@@ -178,7 +162,7 @@ fun WelcomeSoftPaywallDialog(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(16.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Selector de Plan: Mensual vs Anual
                     Text(
@@ -189,11 +173,11 @@ fun WelcomeSoftPaywallDialog(
                         modifier = Modifier.align(Alignment.Start)
                     )
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         PlanSelectCard(
                             title = "Anual (Ahorra 40%)",
@@ -215,7 +199,7 @@ fun WelcomeSoftPaywallDialog(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(14.dp))
 
                     // Botón Principal: Comenzar prueba gratis de 7 días
                     Button(
@@ -236,8 +220,8 @@ fun WelcomeSoftPaywallDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(54.dp),
-                        shape = RoundedCornerShape(14.dp),
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PrimaryEmerald,
                             contentColor = TextOnPrimary
@@ -246,19 +230,19 @@ fun WelcomeSoftPaywallDialog(
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             Text(
                                 text = "Comenzar prueba gratis de 7 días 👑",
-                                fontSize = 15.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.ExtraBold,
                                 color = TextOnPrimary
                             )
                             Text(
                                 text = "$0.00 hoy • Cancela cuando quieras en Play Store",
-                                fontSize = 10.sp,
+                                fontSize = 9.5.sp,
                                 color = TextOnPrimary.copy(alpha = 0.85f)
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     // Botón Secundario: No bloqueante
                     TextButton(
@@ -267,7 +251,7 @@ fun WelcomeSoftPaywallDialog(
                     ) {
                         Text(
                             text = "Continuar con la versión básica gratuita",
-                            fontSize = 12.sp,
+                            fontSize = 11.5.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextMuted
                         )
@@ -333,7 +317,7 @@ private fun PlanSelectCard(
         )
     ) {
         Column(
-            modifier = Modifier.padding(10.dp),
+            modifier = Modifier.padding(horizontal = 6.dp, vertical = 7.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             if (badge != null) {
@@ -343,43 +327,43 @@ private fun PlanSelectCard(
                 ) {
                     Text(
                         text = badge,
-                        fontSize = 8.5.sp,
+                        fontSize = 8.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextOnPrimary,
-                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                        modifier = Modifier.padding(horizontal = 4.dp, vertical = 1.5.dp)
                     )
                 }
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(3.dp))
             } else {
-                Spacer(modifier = Modifier.height(15.dp))
+                Spacer(modifier = Modifier.height(13.dp))
             }
 
             Text(
                 text = title,
-                fontSize = 11.sp,
+                fontSize = 10.5.sp,
                 fontWeight = FontWeight.Bold,
                 color = if (isSelected) PrimaryEmerald else TextPrimary,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(1.dp))
 
             Text(
                 text = price,
-                fontSize = 13.sp,
+                fontSize = 12.5.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = TextPrimary,
                 textAlign = TextAlign.Center
             )
 
-            Spacer(modifier = Modifier.height(2.dp))
+            Spacer(modifier = Modifier.height(1.dp))
 
             Text(
                 text = subtitle,
-                fontSize = 9.5.sp,
+                fontSize = 9.sp,
                 color = TextMuted,
                 textAlign = TextAlign.Center,
-                lineHeight = 12.sp
+                lineHeight = 11.sp
             )
         }
     }
