@@ -51,8 +51,8 @@ class SendActivationNudges extends Command
                 $hoursSinceCreation = $user->created_at->diffInHours($now);
                 $firstName = explode(' ', trim($user->name ?: ''))[0] ?: 'Hola';
 
-                // Nudge 1: A las 6 horas de registro si nunca hizo check-in
-                if ($hoursSinceCreation >= 6 && $hoursSinceCreation < 24 && is_null($user->last_check_in_at)) {
+                // Nudge 1: Si nunca hizo check-in (A partir de las 6 horas, rescata también a los que llevan 1 o 2 días sin reporte)
+                if ($hoursSinceCreation >= 6 && is_null($user->last_check_in_at)) {
                     $cacheKey = "activation_nudge_6h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "👋 ¡Hola {$firstName}!";
@@ -62,14 +62,15 @@ class SendActivationNudges extends Command
                         if ($pushService->sendPush($user->expo_push_token, $title, $body, $data)) {
                             Cache::put($cacheKey, true, now()->addDays(14));
                             $sentCount++;
-                            $this->info("Nudge 6h enviado a: {$user->email}");
+                            $this->info("Nudge de primer check-in enviado a: {$user->email}");
                         }
                     }
+                    // Si nunca hizo check-in, priorizamos este aviso antes de pedirle contactos o premium
                     continue;
                 }
 
-                // Nudge 2: A las 24 horas si no tiene contactos de emergencia cargados
-                if ($hoursSinceCreation >= 24 && $hoursSinceCreation < 48 && $user->emergencyContacts->isEmpty()) {
+                // Nudge 2: A partir de las 24 horas si no tiene contactos de emergencia cargados
+                if ($hoursSinceCreation >= 24 && $user->emergencyContacts->isEmpty()) {
                     $cacheKey = "activation_nudge_24h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "🛡️ {$firstName}, ¿quién te cuidará?";
@@ -79,14 +80,14 @@ class SendActivationNudges extends Command
                         if ($pushService->sendPush($user->expo_push_token, $title, $body, $data)) {
                             Cache::put($cacheKey, true, now()->addDays(14));
                             $sentCount++;
-                            $this->info("Nudge 24h enviado a: {$user->email}");
+                            $this->info("Nudge de contactos de emergencia enviado a: {$user->email}");
                         }
                     }
                     continue;
                 }
 
-                // Nudge 3: A las 48 horas si no es Premium y no ha usado su trial
-                if ($hoursSinceCreation >= 48 && $hoursSinceCreation < 72 && !$user->is_premium && !$user->has_used_trial) {
+                // Nudge 3: A partir de las 48 horas si no es Premium y no ha usado su trial
+                if ($hoursSinceCreation >= 48 && !$user->is_premium && !$user->has_used_trial) {
                     $cacheKey = "activation_nudge_48h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "⚡ Probá Estoy Ok Premium Gratis";
@@ -96,7 +97,7 @@ class SendActivationNudges extends Command
                         if ($pushService->sendPush($user->expo_push_token, $title, $body, $data)) {
                             Cache::put($cacheKey, true, now()->addDays(14));
                             $sentCount++;
-                            $this->info("Nudge 48h (Trial) enviado a: {$user->email}");
+                            $this->info("Nudge de oferta de Trial enviado a: {$user->email}");
                         }
                     }
                     continue;
@@ -113,7 +114,7 @@ class SendActivationNudges extends Command
                         if ($pushService->sendPush($user->expo_push_token, $title, $body, $data)) {
                             Cache::put($cacheKey, true, now()->addDays(14));
                             $sentCount++;
-                            $this->info("Nudge 72h enviado a: {$user->email}");
+                            $this->info("Nudge de reenganche enviado a: {$user->email}");
                         }
                     }
                 }
