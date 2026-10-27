@@ -476,6 +476,7 @@ Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Re
         'now' => (string) now(),
         'diff_hours' => $user->created_at->diffInHours(now()),
         'is_in_quiet_hours' => $user->isInQuietHours(),
+        'last_fcm_error' => \Illuminate\Support\Facades\Cache::get('last_fcm_error_detail'),
         'candidates_count' => $allCandidates->count(),
         'candidates' => $allCandidates,
         'artisan_output' => trim($output),

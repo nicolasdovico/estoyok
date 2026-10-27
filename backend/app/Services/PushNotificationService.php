@@ -116,6 +116,12 @@ class PushNotificationService
             Log::info("Google FCM Push Notification sent successfully to " . substr($to, 0, 15) . "...");
             return true;
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Cache::put('last_fcm_error_detail', [
+                'token_snippet' => substr($to, 0, 20),
+                'error' => $e->getMessage(),
+                'class' => get_class($e),
+                'at' => now()->toDateTimeString(),
+            ], 3600);
             Log::error("Error sending Google FCM Push to " . substr($to, 0, 15) . "... : " . $e->getMessage());
             return false;
         }
