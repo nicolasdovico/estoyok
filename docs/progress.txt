@@ -26,6 +26,10 @@
   - Registrado en [`routes/console.php`](file:///home/nicolas/aplicaciones/estoyok/backend/routes/console.php) para ejecución horaria en producción y por minuto en desarrollo.
   - Suite de pruebas completa en [`SendActivationNudgesTest.php`](file:///home/nicolas/aplicaciones/estoyok/backend/tests/Feature/SendActivationNudgesTest.php) (4 nuevos tests).
   - Suite total de backend: **194 tests y 648 aserciones pasando al 100%**.
+  - **Prueba End-to-End en Vivo (Railway Dev):**
+    - Creado endpoint `/api/maintenance/test-activation-nudge`.
+    - Disparada la prueba con `tamarakshop@gmail.com` en Dev (`Nudge de primer check-in enviado: tamarakshop@gmail.com`, `HTTP 200` y `Nudge de oferta de Trial enviado: tamarakshop@gmail.com`).
+    - Entrega exitosa del push FCM de Firebase en hardware Android real.
 
 ## [2026-10-22] Saneamiento Integral de Seguridad en Railway, Rotación de Credenciales, Auditoría Meta Ads (48h) y Redirección Canónica SEO
 - **Saneamiento y Rotación de Credenciales por Incidente de Seguridad en Railway:**
