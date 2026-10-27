@@ -404,6 +404,75 @@ $prepareInactivityTestHandler = function (Request $request) {
 Route::match(['get', 'post'], '/maintenance/prepare-inactivity-test', $prepareInactivityTestHandler);
 Route::match(['get', 'post'], '/maintenance/set-clock-remaining', $prepareInactivityTestHandler);
 
+Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Request $request) {
+    $email = $request->input('email', 'tamarakshop@gmail.com');
+    $step = $request->input('step', '6h'); // '6h', '24h', '48h', '72h'
+    $force = $request->boolean('force', true);
+
+    $user = \App\Models\User::where('email', $email)->first();
+    if (! $user) {
+        return response()->json(['error' => "Usuario no encontrado con email: {$email}"], 404);
+    }
+
+    if (empty($user->expo_push_token)) {
+        return response()->json([
+            'error' => "El usuario {$email} no tiene expo_push_token registrado en este entorno.",
+            'user_id' => $user->id,
+        ], 422);
+    }
+
+    if ($force) {
+        // Limpiamos las claves de caché de prueba para permitir reenvíos inmediatos
+        \Illuminate\Support\Facades\Cache::forget("activation_nudge_6h_user_{$user->id}");
+        \Illuminate\Support\Facades\Cache::forget("activation_nudge_24h_user_{$user->id}");
+        \Illuminate\Support\Facades\Cache::forget("activation_nudge_48h_user_{$user->id}");
+        \Illuminate\Support\Facades\Cache::forget("activation_nudge_72h_user_{$user->id}");
+    }
+
+    // Configuramos el estado del usuario según el paso a probar
+    if ($step === '6h') {
+        $user->update([
+            'created_at' => now()->subHours(8),
+            'last_check_in_at' => null,
+            'quiet_hours_enabled' => false,
+        ]);
+    } elseif ($step === '24h') {
+        $user->update([
+            'created_at' => now()->subHours(30),
+            'last_check_in_at' => now()->subHours(10),
+            'quiet_hours_enabled' => false,
+        ]);
+        // Borramos temporalmente contactos si queremos probar el nudge 24h
+        if ($request->boolean('clear_contacts', false)) {
+            $user->emergencyContacts()->delete();
+        }
+    } elseif ($step === '48h') {
+        $user->update([
+            'created_at' => now()->subHours(50),
+            'last_check_in_at' => now()->subHours(10),
+            'is_premium' => false,
+            'has_used_trial' => false,
+            'quiet_hours_enabled' => false,
+        ]);
+    }
+
+    // Ejecutamos el comando directamente
+    \Illuminate\Support\Facades\Artisan::call('users:send-activation-nudges');
+    $output = \Illuminate\Support\Facades\Artisan::output();
+
+    return response()->json([
+        'success' => true,
+        'email' => $user->email,
+        'user_id' => $user->id,
+        'token_snippet' => substr($user->expo_push_token, 0, 25) . '...',
+        'tested_step' => $step,
+        'created_at' => (string) $user->created_at,
+        'last_check_in_at' => (string) $user->last_check_in_at,
+        'artisan_output' => trim($output),
+    ]);
+});
+
+
 Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
     $to = $request->input('phone') ?? $request->json('phone');
     if (! $to) {
