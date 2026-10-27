@@ -431,23 +431,22 @@ Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Re
 
     // Configuramos el estado del usuario según el paso a probar
     if ($step === '6h') {
-        $user->update([
+        \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
             'created_at' => now()->subHours(8),
             'last_check_in_at' => null,
             'quiet_hours_enabled' => false,
         ]);
     } elseif ($step === '24h') {
-        $user->update([
+        \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
             'created_at' => now()->subHours(30),
             'last_check_in_at' => now()->subHours(10),
             'quiet_hours_enabled' => false,
         ]);
-        // Borramos temporalmente contactos si queremos probar el nudge 24h
         if ($request->boolean('clear_contacts', false)) {
             $user->emergencyContacts()->delete();
         }
     } elseif ($step === '48h') {
-        $user->update([
+        \Illuminate\Support\Facades\DB::table('users')->where('id', $user->id)->update([
             'created_at' => now()->subHours(50),
             'last_check_in_at' => now()->subHours(10),
             'is_premium' => false,
