@@ -869,6 +869,44 @@
                 ]
             }
         },
+        "/emergency-contacts/{id}/send-test-whatsapp": {
+            "post": {
+                "tags": [
+                    "Contactos de Emergencia"
+                ],
+                "summary": "Enviar WhatsApp oficial de prueba al contacto de emergencia",
+                "operationId": "1b2f41fa6b3bed488d24b4db5cdf0e35",
+                "parameters": [
+                    {
+                        "name": "id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Mensaje de prueba enviado con éxito"
+                    },
+                    "403": {
+                        "description": "No autorizado"
+                    },
+                    "422": {
+                        "description": "Contacto sin número válido o inactivo"
+                    },
+                    "429": {
+                        "description": "Demasiadas solicitudes (cooldown activo)"
+                    }
+                },
+                "security": [
+                    {
+                        "sanctum": []
+                    }
+                ]
+            }
+        },
         "/emergency-contacts/{id}": {
             "get": {
                 "tags": [

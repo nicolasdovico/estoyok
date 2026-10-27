@@ -79,6 +79,60 @@ class EmergencyContactController extends Controller
         return response()->json($contact, 201);
     }
 
+    #[OA\Post(
+        path: '/emergency-contacts/{id}/send-test-whatsapp',
+        summary: 'Enviar WhatsApp oficial de prueba al contacto de emergencia',
+        tags: ['Contactos de Emergencia'],
+        security: [['sanctum' => []]],
+        parameters: [
+            new OA\Parameter(name: 'id', in: 'path', required: true, schema: new OA\Schema(type: 'integer')),
+        ],
+        responses: [
+            new OA\Response(response: 200, description: 'Mensaje de prueba enviado con éxito'),
+            new OA\Response(response: 403, description: 'No autorizado'),
+            new OA\Response(response: 422, description: 'Contacto sin número válido o inactivo'),
+            new OA\Response(response: 429, description: 'Demasiadas solicitudes (cooldown activo)'),
+        ]
+    )]
+    public function sendTestWhatsApp(EmergencyContact $emergencyContact, \App\Services\WhatsAppServiceInterface $whatsAppService)
+    {
+        $user = Auth::user();
+        if ($emergencyContact->user_id !== $user->id) {
+            return response()->json(['message' => 'Unauthorized'], 403);
+        }
+
+        if (!$emergencyContact->is_active || empty($emergencyContact->phone)) {
+            return response()->json(['message' => 'El contacto no está activo o no tiene un teléfono válido.'], 422);
+        }
+
+        // Cooldown de 60 segundos por contacto para evitar spam
+        $lockKey = "test_wa_contact_{$emergencyContact->id}";
+        if (!\Illuminate\Support\Facades\Cache::add($lockKey, true, 60)) {
+            return response()->json([
+                'message' => 'Por favor aguardá 1 minuto antes de enviar otro mensaje de prueba a este contacto.'
+            ], 429);
+        }
+
+        $senderName = $user->name ?: 'Tu familiar';
+        $contactName = $emergencyContact->name ?: 'Hola';
+
+        $message = "👋 Hola {$contactName}, {$senderName} te acaba de agregar como su contacto de seguridad en Estoy Ok.\n\n"
+                 . "🛡️ Si algún día no confirma su bienestar diario o activa el botón de emergencia SOS, recibirás automáticamente un aviso por este canal con su ubicación en tiempo real.\n\n"
+                 . "💚 No hace falta que respondas este mensaje. ¡Estoy Ok te cuida!";
+
+        $sent = $whatsAppService->sendWhatsApp($emergencyContact->phone, $message);
+
+        return response()->json([
+            'success' => $sent,
+            'message' => 'Mensaje de prueba de WhatsApp enviado correctamente al contacto.',
+            'contact' => [
+                'id' => $emergencyContact->id,
+                'name' => $emergencyContact->name,
+                'phone' => $emergencyContact->phone,
+            ]
+        ]);
+    }
+
     #[OA\Get(
         path: '/emergency-contacts/{id}',
         summary: 'Obtener un contacto específico',

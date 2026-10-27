@@ -1674,6 +1674,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Emergency Contacts
     Route::post('/emergency-contacts/reorder', [EmergencyContactController::class, 'reorder']);
+    Route::post('/emergency-contacts/{emergencyContact}/send-test-whatsapp', [EmergencyContactController::class, 'sendTestWhatsApp']);
     Route::apiResource('emergency-contacts', EmergencyContactController::class);
 
     // Settings
