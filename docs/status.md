@@ -48,6 +48,12 @@
 - [x] **FASE Mobile: Estabilización y Expo Go**
   - [x] Migración a Expo SDK 54.
   - [x] Soporte para React 19 y React Native 0.81.
+  - [x] Lanzamiento de Versión 16 (1.0.9) - Activación Temprana, Soft Paywall de 7 Días, WhatsApp de Prueba y Rediseño Neon Halo de Bienestar:
+    - **Soft Paywall Post-Onboarding:** Diálogo de bienvenida con oferta de prueba gratuita de 7 días ($0.00 hoy, luego $4.99/mes o $35.99/año con 40% OFF) integrado con Google Play Billing 8.0 y salida no bloqueante ("Continuar con versión básica gratuita").
+    - **Efecto WhatsApp (Momento Ajá):** Endpoint `POST /api/emergency-contacts/{id}/send-test-whatsapp` con cooldown antispam de 60s y botón con icono de campana 🔔 en el modal de contactos para enviar un WhatsApp oficial de bienvenida/presentación al contacto.
+    - **Rediseño del Botón "Estoy OK" (Neon Halo Bloom):** Botón central con halo de resplandor neón difuso (Bloom) en `PrimaryEmerald` (#00E5D9), anillo tubular nítido con filamento blanco eléctrico, centro oscuro de máximo contraste y tilde `✔` verde brillante.
+    - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 16`, `versionName = "1.0.9"`) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+    - **Suite de Pruebas:** 199 tests de backend pasando al 100% (658 aserciones). Desplegado en `dev` y `main` (Railway Producción y Dev).
   - [x] Auditoría de Campaña Meta Ads (Instagram Reels) y Conversión en Play Store (Hito 4 - 26/10/2026):
     - Inversión total acumulada de $35.859 ARS con 808 clics (CPC promedio $44,38 ARS y CTR global 4,04%).
     - Confirmada la entrega exclusiva en Instagram Reels ($22.591 ARS acumulados, con ~$16.465 ARS consumidos post-corrección de forma 100% pura en Instagram).

@@ -1,5 +1,25 @@
 # Progress Log
 
+## [2026-10-27] Implementación de la Fase 2: Soft Paywall de 7 Días, Efecto WhatsApp en Contactos y Rediseño Neón de Bienestar (v16 - 1.0.9)
+- **Soft Paywall Post-Onboarding (Android Nativo):**
+  - Creado `WelcomeSoftPaywallDialog.kt`: se presenta automáticamente una única vez inmediatamente después de completar el Onboarding inicial.
+  - Destaca los 3 pilares clave: 1) El Botón "Estoy OK" (Bienestar diario), 2) Alertas automáticas por WhatsApp a contactos, 3) SOS de Bolsillo (4 toques con audio ambiental y GPS en vivo).
+  - Selector de plan integrado (Anual con 40% OFF vs Mensual) con CTA hacia Google Play Billing 8.0 ("Comenzar prueba gratis de 7 días 👑", $0.00 hoy) y opción secundaria no bloqueante ("Continuar con la versión básica gratuita").
+  - Persistencia en DataStore (`WELCOME_PAYWALL_SHOWN`).
+- **El "Efecto WhatsApp" / Momento Ajá (Backend Laravel & Android Nativo):**
+  - Creado endpoint autenticado `POST /api/emergency-contacts/{id}/send-test-whatsapp` en `EmergencyContactController.php` con cooldown atómico en caché de 60 segundos para prevenir abusos.
+  - Dispara a través de Evolution API el mensaje oficial de bienvenida al contacto de seguridad: *"👋 Hola [Contacto], [Nombre] te acaba de agregar como su contacto de seguridad en Estoy Ok... 🛡️ Si algún día no confirma su bienestar o activa el SOS..."*.
+  - En la aplicación móvil, se incorporó el botón con icono de campana 🔔 (`PrimaryEmerald`) en cada tarjeta de contacto y un banner informativo dentro del modal de gestión de contactos para enviar la prueba con 1 toque.
+  - Saneadas las credenciales de PostgreSQL en Evolution API (`DATABASE_CONNECTION_URI`), restableciendo el despacho exitoso con código HTTP 201 en Railway.
+- **Rediseño del Botón Central "Estoy OK" (Neon Halo Bloom):**
+  - Reemplazado el diseño anterior por un halo exterior con efecto Bloom/resplandor ambiental difuso y anillo tubular de neón en color característico de la marca `PrimaryEmerald` (`#00E5D9`), con núcleo blanco de alta intensidad lumínica y centro oscuro plano de contraste.
+  - Incorporada animación elástica de pulsación (`spring` scale) al presionar.
+- **Control de Versiones y Release:**
+  - Actualizado `versionCode = 16` y `versionName = "1.0.9"` en `build.gradle.kts` y `AjustesScreen.kt`.
+  - Suite de backend pasando al 100% (199 tests, 658 aserciones).
+  - Generado y firmado el bundle final `app-release.aab` (22 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+  - Sincronizadas y desplegadas las ramas `dev` y `main` en Railway.
+
 ## [2026-10-26] Auditoría del 9º Día de Meta Ads (Instagram Reels), Consolidación del Reel 2 y Conversión en Play Store (Hito 4)
 - **Resultados Cuantitativos Acumulados (17 al 26 de Octubre - $35.859,04 ARS Invertidos):**
   - **Entrega por Plataforma:**
