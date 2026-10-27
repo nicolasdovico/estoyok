@@ -566,6 +566,8 @@ Route::post('/maintenance/send-test-whatsapp', function (Request $request) {
             'normalized_phone' => $cleanPhone,
             'link_preview' => $linkPreview,
             'health' => $health,
+            'last_evolution_raw' => \Illuminate\Support\Facades\Cache::get('last_evolution_raw_response'),
+            'last_evolution_error' => \Illuminate\Support\Facades\Cache::get('last_evolution_error'),
         ]);
     } catch (\Throwable $e) {
         return response()->json([
