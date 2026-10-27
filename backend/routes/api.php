@@ -455,6 +455,12 @@ Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Re
         ]);
     }
 
+    // Diagnóstico detallado
+    $allCandidates = \App\Models\User::whereNotNull('expo_push_token')
+        ->where('expo_push_token', '!=', '')
+        ->where('created_at', '>=', now()->subDays(7))
+        ->get(['id', 'email', 'name', 'created_at', 'last_check_in_at', 'is_premium']);
+
     // Ejecutamos el comando directamente
     \Illuminate\Support\Facades\Artisan::call('users:send-activation-nudges');
     $output = \Illuminate\Support\Facades\Artisan::output();
@@ -467,6 +473,11 @@ Route::match(['get', 'post'], '/maintenance/test-activation-nudge', function (Re
         'tested_step' => $step,
         'created_at' => (string) $user->created_at,
         'last_check_in_at' => (string) $user->last_check_in_at,
+        'now' => (string) now(),
+        'diff_hours' => $user->created_at->diffInHours(now()),
+        'is_in_quiet_hours' => $user->isInQuietHours(),
+        'candidates_count' => $allCandidates->count(),
+        'candidates' => $allCandidates,
         'artisan_output' => trim($output),
     ]);
 });
