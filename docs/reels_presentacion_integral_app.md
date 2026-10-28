@@ -6,9 +6,11 @@
 ---
 
 ## 💡 Cómo usar estos 3 Reels
-1. **En el Perfil de Instagram (`@estoyok24`):** Publicar al menos el **Reel Presentación 1** y dejarlo **Fijado (Anclado 📌) arriba de todo** en la grilla del perfil. Así, cualquier persona que entre a curiosear la cuenta entiende en 30 segundos qué hace la aplicación.
-2. **En Campañas de Meta Ads:** Ponerlos a competir para evaluar qué ángulo de presentación integral convierte mejor en descargas reales en Google Play Store.
-3. **Reutilización del B-Roll ya creado:** Los 3 guiones están diseñados para usar **exactamente las piezas gráficas y videos 9:16 que ya tenemos generados** en [`docs/reels_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/), combinando en la Pista V2 una captura de cada pilar.
+1. **En el Perfil de Instagram (`@estoyok24`):** Publicar al menos el **Reel Presentación 1** y dejarlo **Fijado (Anclado 📌) arriba de todo** en la grilla del perfil. Así, cualquier persona que entre a curiosear la cuenta entiende en 30 segundos qué hace la aplicación. El usuario escucha *"Buscá Estoy Ok en Google Play o tocala desde el enlace de nuestro perfil"* y tiene el link directo a un toque en la bio.
+2. **En Historias de Instagram (tuya, de la marca y de familiares):** Al compartir el video o subirlo como Historia, agregarle el **Sticker de Enlace** nativo de Instagram apuntando a `https://estoyok24.com/descargar` (o directamente a Google Play Store). El video encaja perfecto con el CTA auditivo y visual.
+3. **En Estados de WhatsApp:** Al publicar el video en los estados familiares o personales, acompañarlo con el texto o enlace directo `https://estoyok24.com/descargar`.
+4. **En Campañas de Meta Ads:** Ponerlos a competir para evaluar qué ángulo de presentación integral convierte mejor en descargas reales en Google Play Store (el CTA universal funciona tanto con el botón de anuncio como orgánicamente).
+5. **Reutilización del B-Roll ya creado:** Los 3 guiones están diseñados para usar **exactamente las piezas gráficas y videos 9:16 que ya tenemos generados** en [`docs/reels_assets/`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/), combinando en la Pista V2 una captura de cada pilar.
 
 ---
 
