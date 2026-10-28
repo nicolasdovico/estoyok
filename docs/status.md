@@ -2,6 +2,25 @@
 
 ## Current Phase: FASE 8: Gestión de Círculos y Seguridad Avanzada
 
+### Próximas Tareas y Backlog (Fase 9 / v17 - 1.1.0):
+- [x] **Corrección de Pasarela por Defecto y Soporte Google Play en Filament Admin:**
+  - Creada y corrida la migración `2026_10_28_182118_remove_default_stripe_from_users_table.php` eliminando el default `'stripe'` de `subscription_provider` en `users` y limpiando a `null` a todos los usuarios gratuitos que tenían asignado Stripe por defecto.
+  - Actualizado [`UserResource.php`](file:///home/nicolas/aplicaciones/estoyok/backend/app/Filament/Resources/UserResource.php) en Filament incorporando `'google_play' => 'Google Play Store'` y permitiendo valor nulo con placeholder *"Ninguna (Plan Gratuito)"*.
+- [ ] **Estrategia de Activación Temprana y Primeros Pasos (Product-Led Onboarding):**
+  - Documentado el plan maestro en `docs/plan_activacion_onboarding_y_v17.md`.
+  - Crear tarjeta interactiva de primeros pasos (`SecurityChecklistCard.kt`) con barra de progreso (0% a 100%) y 3 misiones inmediatas: 1) Confirmar bienestar hoy con el botón "Estoy OK", 2) Agregar un contacto de confianza, 3) Crear primera Zona Segura.
+  - Rediseñar Empty States en contactos y zonas seguras con llamadas a la acción educativas ("¿A quién le avisamos por WhatsApp si no confirmás tu bienestar?").
+- [ ] **Google Play In-App Updates (Actualizaciones Automáticas dentro de la App):**
+  - Integrar la biblioteca oficial de Google Play `com.google.android.play:app-update` en `android-native`.
+  - Chequeo automático en segundo plano al abrir la aplicación (`AppUpdateManager.getAppUpdateInfo()`).
+  - Modo *Flexible* (aviso descargable en segundo plano con notificación de instalación lista) y modo *Inmediato* para releases críticas.
+  - Elimina la fricción de la caché de la app Google Play Store que retiene el botón "Abrir" en lugar de "Actualizar", avisándole al usuario dentro de Estoy OK que hay una versión nueva disponible.
+  - Endpoint de fallback opcional en backend: `GET /api/app-version` para avisos in-app programados.
+- [ ] **Refuerzo de Credential Manager para Google Sign-In (`GetSignInWithGoogleOption`):**
+  - En `LoginViewModel.kt` y `RegisterViewModel.kt`, incorporar `GetSignInWithGoogleOption` junto con `GetGoogleIdOption`.
+  - Máxima tolerancia y compatibilidad para botones explícitos de "Continuar con Google" en versiones antiguas de Google Play Services o tras cancelaciones de diálogo.
+  - Actualizar el archivo local `google-services.json` con la huella oficial de Play Store (`65:cd:23:e5:f6:10:9e:9c:7a:df:78:ae:e5:5b:cf:3d:82:8b:7d:34`).
+
 ### Completed Phases:
 - [x] **FASE 1: Infraestructura de Contenedores**
   - [x] Docker Compose orchestration.

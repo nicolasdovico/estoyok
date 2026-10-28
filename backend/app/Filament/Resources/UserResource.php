@@ -60,11 +60,14 @@ class UserResource extends Resource
                             }),
                         Forms\Components\Select::make('subscription_provider')
                             ->label('Pasarela de Pago')
+                            ->placeholder('Ninguna (Plan Gratuito)')
                             ->options([
-                                'stripe' => 'Stripe (Tarjeta)',
+                                'google_play' => 'Google Play Store',
                                 'mercadopago' => 'Mercado Pago',
+                                'stripe' => 'Stripe (Tarjeta)',
                                 'paypal' => 'PayPal',
-                            ]),
+                            ])
+                            ->nullable(),
                         Forms\Components\DateTimePicker::make('trial_ends_at')->label('Fin de Prueba Gratuita'),
                         Forms\Components\DateTimePicker::make('billing_cycle_ends_at')->label('Fin del Período de Facturación'),
                         Forms\Components\TextInput::make('mp_subscription_id')->label('MP Subscription ID'),

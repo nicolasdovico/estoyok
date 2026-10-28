@@ -1,11 +1,38 @@
 # Progress Log
 
+## [2026-10-28] Corrección de Pasarela por Defecto (`subscription_provider`) y Soporte de Google Play en Filament Admin
+- **Problema Solucionado:** Los usuarios nuevos registrados nacían con `subscription_provider = 'stripe'` debido a un valor default histórico de migración (`DEFAULT 'stripe'`), a pesar de ser usuarios gratuitos inactivos y de que Stripe ya no está en uso activo. Además, en el panel administrativo de Filament no existía la opción de Google Play Store ni la posibilidad de desasignar pasarela.
+- **Implementación (Backend Laravel):**
+  - Creada la migración [`2026_10_28_182118_remove_default_stripe_from_users_table.php`](file:///home/nicolas/aplicaciones/estoyok/backend/database/migrations/2026_10_28_182118_remove_default_stripe_from_users_table.php) que:
+    1. Modifica la columna `subscription_provider` para que su valor default sea `null`.
+    2. Ejecuta una actualización para limpiar a `null` a todos los usuarios gratuitos que tenían asignado `'stripe'` de forma residual.
+  - Actualizado [`UserResource.php`](file:///home/nicolas/aplicaciones/estoyok/backend/app/Filament/Resources/UserResource.php) agregando `'google_play' => 'Google Play Store'` al selector de pasarelas, con placeholder descriptivo *"Ninguna (Plan Gratuito)"* y habilitando valor nullable.
+  - Verificada la no regresión: 199 tests pasando al 100% (658 aserciones).
+
+## [2026-10-28] Planificación de Estrategia de Activación Temprana y Alcance de Release v17 (1.1.0)
+- **Diagnóstico y Plan Maestro de Activación:**
+  - Creado [`docs/plan_activacion_onboarding_y_v17.md`](file:///home/nicolas/aplicaciones/estoyok/docs/plan_activacion_onboarding_y_v17.md) para atacar el problema de abandono post-registro ("The Empty State Paradox") mediante Product-Led Onboarding inspirado en las apps líderes (Life360, Duolingo).
+  - Definidos los 3 ejes de la estrategia:
+    1. *App:* Checklist interactivo de primeros pasos (Barra de progreso de 3 misiones: botón Estoy OK, contacto de confianza y primera zona segura) y Empty States educativos y accionables.
+    2. *Instagram (@estoyok24):* Estrategia de "1 Reel = 1 Caso de Uso Real" (vivir solo, aviso automático de llegada, SOS de bolsillo) e Historias Destacadas como manual visual interactivo.
+    3. *Web:* Landing segmentada por roles con micro-demostraciones animadas.
+- **Unificación de Backlog para v17 (1.1.0):**
+  - Se consolida en esta misma release:
+    1. Checklist de activación temprana y rediseño de estados vacíos.
+    2. Google Play In-App Updates (`com.google.android.play:app-update` en modos Flexible e Inmediato).
+    3. Refuerzo de Credential Manager con `GetSignInWithGoogleOption` y sincronización de huella SHA-1 de Google Play en `google-services.json`.
+  - Actualizado [`docs/status.md`](file:///home/nicolas/aplicaciones/estoyok/docs/status.md).
+
 ## [2026-10-27] Implementación de la Fase 2: Soft Paywall de 7 Días, Efecto WhatsApp en Contactos y Rediseño Neón de Bienestar (v16 - 1.0.9)
-- **Soft Paywall Post-Onboarding (Android Nativo):**
+- **Soft Paywall Post-Onboarding y Optimización 720p (Android Nativo):**
   - Creado `WelcomeSoftPaywallDialog.kt`: se presenta automáticamente una única vez inmediatamente después de completar el Onboarding inicial.
   - Destaca los 3 pilares clave: 1) El Botón "Estoy OK" (Bienestar diario), 2) Alertas automáticas por WhatsApp a contactos, 3) SOS de Bolsillo (4 toques con audio ambiental y GPS en vivo).
   - Selector de plan integrado (Anual con 40% OFF vs Mensual) con CTA hacia Google Play Billing 8.0 ("Comenzar prueba gratis de 7 días 👑", $0.00 hoy) y opción secundaria no bloqueante ("Continuar con la versión básica gratuita").
+  - Optimizado el layout vertical eliminando el escudo de 60dp e integrándolo de forma compacta en el badge superior (`🛡️ REGALO DE BIENVENIDA · 7 DÍAS`) y reduciendo paddings/espaciados, logrando que el diálogo quepa 100% visible sin necesidad de deslizar (Above the Fold) en pantallas de 720p (Motorola 720x1520).
   - Persistencia en DataStore (`WELCOME_PAYWALL_SHOWN`).
+- **Backlog Agregado para v17 (1.1.0):**
+  - Incorporada al plan la feature **Google Play In-App Updates** (`com.google.android.play:app-update`) para detectar automáticamente versiones nuevas al abrir la app e invitar a actualizar en segundo plano (Flexible / Inmediata), solucionando de raíz el retraso por caché de la Play Store donde sólo figura "Abrir".
+  - Incorporado el refuerzo de Google Sign-In con **`GetSignInWithGoogleOption`** en `LoginViewModel` y `RegisterViewModel` para máxima compatibilidad con dispositivos de versiones anteriores de Play Services, junto con la sincronización del `google-services.json`.
 - **El "Efecto WhatsApp" / Momento Ajá (Backend Laravel & Android Nativo):**
   - Creado endpoint autenticado `POST /api/emergency-contacts/{id}/send-test-whatsapp` en `EmergencyContactController.php` con cooldown atómico en caché de 60 segundos para prevenir abusos.
   - Dispara a través de Evolution API el mensaje oficial de bienvenida al contacto de seguridad: *"👋 Hola [Contacto], [Nombre] te acaba de agregar como su contacto de seguridad en Estoy Ok... 🛡️ Si algún día no confirma su bienestar o activa el SOS..."*.
