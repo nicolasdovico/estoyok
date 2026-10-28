@@ -26,7 +26,7 @@
 | **Clip 2 (4 - 9s)** | **A-Roll (A cámara):** Presentador explicando el concepto general con entusiasmo y claridad. | *"Se llama Estoy Ok, y reúne en un solo lugar las tres herramientas que necesitás para cuidar a los tuyos sin invadirlos."* | **"Estoy Ok: 3 herramientas en 1 sola app 📲"** |
 | **Clip 3 (9 - 16s)** | **B-Roll (Pilar 1 - Mapa):** [`broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel1_padres_auto/broll_mapa_con_notificacion_9x16.mp4) y [`broll_mapa_telemetria_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel1_padres_auto/broll_mapa_telemetria_9x16.png) | *"Uno: un mapa familiar en tiempo real que te avisa solo cuando tus hijos o tu pareja llegan o salen de casa, la escuela o el trabajo."* | **"1️⃣ Mapa en vivo y avisos de llegada/salida"** |
 | **Clip 4 (16 - 23s)** | **B-Roll (Pilar 2 y 3 - Estoy OK + SOS):** [`broll_reel2_01_estoy_ok_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel2_vivir_solo/broll_reel2_01_estoy_ok_9x16.png) (3.5s) $\rightarrow$ [`broll_reel3_02_web_rescate_audio_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel3_sos_choques/broll_reel3_02_web_rescate_audio_9x16.png) (3.5s) | *"Dos: un reporte diario automático para saber que quien vive solo está bien. Y tres: un botón SOS y detector de choques que envía ubicación y audio por WhatsApp."* | **"2️⃣ Reporte diario • 3️⃣ SOS con Audio a WhatsApp"** |
-| **Clip 5 (23 - 30s)** | **A-Roll (A cámara):** Vuelve el presentador sonriendo y señalando hacia el botón inferior. | *"Simple, privada y gratuita. Tocá acá abajo en 'Descargar' y empezá a usarla hoy con tu familia en Google Play."* | **"Descargala Gratis en Google Play 👇"** |
+| **Clip 5 (23 - 30s)** | **A-Roll (A cámara):** Vuelve el presentador sonriendo con gesto cercano. | *"Simple, privada y gratuita. Buscá Estoy Ok en Google Play o tocala desde el enlace de nuestro perfil y probala hoy con tu familia."* | **"Buscá Estoy Ok en Google Play 📲 (Link en perfil)"** |
 
 ---
 
@@ -84,18 +84,17 @@ Animate the person in the attached reference image as a live-action presenter sp
 "Dos: un reporte diario automático para saber que quien vive solo está bien. Y tres: un botón SOS y detector de choques que envía ubicación y audio por WhatsApp."
 ```
 
-#### Clip 5 (Llamado a la Acción - 23 a 30s | ~20 palabras):
+#### Clip 5 (Llamado a la Acción Universal - 23 a 30s | ~22 palabras):
 ```text
 Animate the person in the attached reference image as a live-action presenter speaking directly to camera.
 - Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and appearance as the attached image.
 - Framing & Camera: Vertical 9:16 (1080x1920), medium close-up (chest up), smiling warmly at the viewer with an inviting gesture.
 - Environment & Background: Bright, modern contemporary apartment living room during daytime. Soft natural daylight, clean minimalist background in soft focus.
-- Animation & Motion: Friendly nod, pointing subtly downward towards the screen bottom call-to-action button, welcoming smile, smooth lip-sync.
-- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, friendly and encouraging tone: 'tocá / empezá').
+- Animation & Motion: Friendly reassuring nod, warm welcoming smile, relaxed hand gesture, smooth lip-sync.
+- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, friendly and encouraging tone: 'buscá / tocala / probala').
 - Aspect ratio: 9:16 (Vertical 1080x1920).
-- Don't draw the "Descargar" button.
 - Dialogue:
-"Simple, privada y gratuita. Tocá acá abajo en 'Descargar' y empezá a usarla hoy con tu familia en Google Play."
+"Simple, privada y gratuita. Buscá Estoy Ok en Google Play o tocala desde el enlace de nuestro perfil y probala hoy con tu familia."
 ```
 
 ---
@@ -114,7 +113,7 @@ Animate the person in the attached reference image as a live-action presenter sp
 | **Clip 2 (5 - 10s)** | **A-Roll (A cámara):** Presentador presentando la app con alivio y sonrisa. | *"Para resolver eso de raíz creamos Estoy Ok: una aplicación de seguridad familiar que te avisa todo automáticamente."* | **"Conocé Estoy Ok: Seguridad Familiar Automática 🛡️"** |
 | **Clip 3 (10 - 17s)** | **B-Roll (Mapa + Zonas Seguras):** [`broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel1_padres_auto/broll_mapa_con_notificacion_9x16.mp4) | *"Si tus hijos o tu pareja salen, ves en el mapa por dónde van, cuánta batería tienen y recibís un aviso automático cuando llegan a destino."* | **"📍 Mapa en vivo, batería y avisos de llegada"** |
 | **Clip 4 (17 - 24s)** | **B-Roll (Bienestar + SOS):** [`broll_reel2_02_wifi_ajustes_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel2_vivir_solo/broll_reel2_02_wifi_ajustes_9x16.png) (3.5s) $\rightarrow$ [`broll_reel3_03_choque_fuerzag_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel3_sos_choques/broll_reel3_03_choque_fuerzag_9x16.png) (3.5s) | *"Si alguien vive solo, confirma su bienestar diario con un botón o con su Wi-Fi. Y si hay una emergencia o un choque, dispara una alerta con audio directo a tu WhatsApp."* | **"🟢 Bienestar diario • 🚨 Alerta SOS y Choques a WhatsApp"** |
-| **Clip 5 (24 - 30s)** | **A-Roll (A cámara):** Presentador a cámara señalando abajo con gesto cercano. | *"Dejá de sufrir esperando que te contesten un mensaje. Descargá Estoy Ok gratis desde el botón de acá abajo."* | **"Descargá Estoy Ok Gratis 👇"** |
+| **Clip 5 (24 - 30s)** | **A-Roll (A cámara):** Presentador a cámara con sonrisa y gesto cálido. | *"Dejá de sufrir esperando que te contesten un mensaje. Buscá Estoy Ok gratis en Google Play o desde el enlace de nuestro perfil."* | **"Buscá Estoy Ok en Google Play 📲 (Link en perfil)"** |
 
 ---
 
@@ -172,18 +171,17 @@ Animate the person in the attached reference image as a live-action presenter sp
 "Si alguien vive solo, confirma su bienestar diario con un botón o con su Wi-Fi. Y si hay una emergencia o un choque, dispara una alerta con audio directo a tu WhatsApp."
 ```
 
-#### Clip 5 (Llamado a la Acción - 24 a 30s | ~19 palabras):
+#### Clip 5 (Llamado a la Acción Universal - 24 a 30s | ~20 palabras):
 ```text
 Animate the person in the attached reference image as a live-action presenter speaking directly to camera.
 - Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and appearance as the attached image.
 - Framing & Camera: Vertical 9:16 (1080x1920), medium close-up (chest up), smiling warmly and inviting action.
 - Environment & Background: Modern, warm home kitchen or dining area with soft morning daylight. Blurred contemporary domestic background.
-- Animation & Motion: Warm nod, pointing subtly downward towards the bottom call-to-action button, friendly smile, smooth lip-sync.
-- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm and decisive tone: 'dejá / descargá').
+- Animation & Motion: Warm reassuring nod, inviting open gesture, friendly smile, smooth lip-sync.
+- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm and decisive tone: 'dejá / buscá').
 - Aspect ratio: 9:16 (Vertical 1080x1920).
-- Don't draw the "Descargar" button.
 - Dialogue:
-"Dejá de sufrir esperando que te contesten un mensaje. Descargá Estoy Ok gratis desde el botón de acá abajo."
+"Dejá de sufrir esperando que te contesten un mensaje. Buscá Estoy Ok gratis en Google Play o desde el enlace de nuestro perfil."
 ```
 
 ---
@@ -202,7 +200,7 @@ Animate the person in the attached reference image as a live-action presenter sp
 | **Clip 2 (5 - 10s)** | **A-Roll (A cámara en auto):** Presentador explicando el propósito de Estoy Ok. | *"Por eso desarrollamos Estoy Ok: la primera aplicación de seguridad familiar que se adapta a cada etapa de tu familia."* | **"Estoy Ok: Seguridad que se adapta a toda tu familia 📲"** |
 | **Clip 3 (10 - 17s)** | **B-Roll (Mapa + Zonas Seguras):** [`broll_mapa_telemetria_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel1_padres_auto/broll_mapa_telemetria_9x16.png) y [`broll_mapa_con_notificacion_9x16.mp4`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel1_padres_auto/broll_mapa_con_notificacion_9x16.mp4) | *"Para tus hijos y tu día a día, tenés mapa GPS en vivo, historial de recorridos y avisos automáticos cuando entran o salen de Zonas Seguras."* | **"📍 Hijos y pareja: Mapa GPS y Zonas Seguras"** |
 | **Clip 4 (17 - 24s)** | **B-Roll (Estoy OK + SOS):** [`broll_reel2_01_estoy_ok_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel2_vivir_solo/broll_reel2_01_estoy_ok_9x16.png) (3.5s) $\rightarrow$ [`broll_reel3_04_whatsapp_choque_9x16.png`](file:///home/usuario/aplicaciones/estoyok/docs/reels_assets/reel3_sos_choques/broll_reel3_04_whatsapp_choque_9x16.png) (3.5s) | *"Para quien vive solo, un botón diario 'Estoy OK' que avisa por WhatsApp si no reporta. Y en la calle o en auto, botón SOS con audio y detector de accidentes."* | **"🟢 Adultos y vivir solo: Botón Estoy OK • 🚨 SOS y Choques"** |
-| **Clip 5 (24 - 30s)** | **A-Roll (A cámara en auto):** Presentador sonriendo y señalando abajo hacia el botón de descarga. | *"Conectá y protegé a toda tu familia en dos minutos. Tocá acá abajo en 'Descargar' y probala gratis en Google Play."* | **"Probala Gratis hoy en Google Play 👇"** |
+| **Clip 5 (24 - 30s)** | **A-Roll (A cámara en auto):** Presentador sonriendo con gesto cercano y convincente. | *"Conectá y protegé a toda tu familia en dos minutos. Buscá Estoy Ok en Google Play o tocala desde el enlace de nuestro perfil."* | **"Buscá Estoy Ok en Google Play 📲 (Link en perfil)"** |
 
 ---
 
@@ -260,16 +258,15 @@ Animate the person in the attached reference image as a live-action presenter sp
 "Para quien vive solo, un botón diario 'Estoy OK' que avisa por WhatsApp si no reporta. Y en la calle o en auto, botón SOS con audio y detector de accidentes."
 ```
 
-#### Clip 5 (Llamado a la Acción - 24 a 30s | ~20 palabras):
+#### Clip 5 (Llamado a la Acción Universal - 24 a 30s | ~20 palabras):
 ```text
 Animate the person in the attached reference image as a live-action presenter speaking directly to camera.
 - Character consistency: Maintain identical facial features, age, hairstyle, skin tone, clothing and appearance as the attached image.
 - Framing & Camera: Vertical 9:16 (1080x1920), medium close-up (chest up), sitting in the driver's seat, smiling warmly at the viewer.
 - Environment & Background: Modern car interior during daytime, natural daylight through the windshield, realistic vehicle cabin textures.
-- Animation & Motion: Friendly nod, pointing subtly downward towards the screen bottom call-to-action button, welcoming smile, smooth lip-sync.
-- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm and encouraging tone: 'conectá / protegé / tocá').
+- Animation & Motion: Friendly nod, open engaging gesture, welcoming smile, smooth lip-sync.
+- Audio & Voice: Clear voice in native Argentinian Spanish with an authentic Rioplatense accent (Buenos Aires cadence, warm and encouraging tone: 'conectá / protegé / buscá / tocala').
 - Aspect ratio: 9:16 (Vertical 1080x1920).
-- Don't draw the "Descargar" button.
 - Dialogue:
-"Conectá y protegé a toda tu familia en dos minutos. Tocá acá abajo en 'Descargar' y probala gratis en Google Play."
+"Conectá y protegé a toda tu familia en dos minutos. Buscá Estoy Ok en Google Play o tocala desde el enlace de nuestro perfil."
 ```
