@@ -258,31 +258,36 @@ fun SecurityChecklistCard(
                 .clickable(onClick = onReopenInSession)
         ) {
             Row(
-                modifier = Modifier.padding(horizontal = 14.dp, vertical = 9.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        imageVector = Icons.Default.Security,
-                        contentDescription = null,
-                        tint = if (completedCount == 0) Color(0xFFFB7185) else MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
+                Icon(
+                    imageVector = Icons.Default.Security,
+                    contentDescription = null,
+                    tint = if (completedCount == 0) Color(0xFFFB7185) else MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Tareas pendientes ($completedCount de 3)",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(6.dp))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Text(
-                        text = "Tareas de seguridad pendientes ($completedCount de 3)",
+                        text = "Ver",
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "Ver tareas",
-                        fontSize = 11.5.sp,
                         fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.primary
+                        color = MaterialTheme.colorScheme.primary,
+                        maxLines = 1
                     )
                     Spacer(modifier = Modifier.width(2.dp))
                     Icon(
@@ -356,35 +361,39 @@ private fun VibrantChecklistStep(
 
                 Spacer(modifier = Modifier.width(10.dp))
 
-                Column {
+                Column(modifier = Modifier.fillMaxWidth()) {
                     Text(
                         text = title,
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = if (isCompleted) PrimaryEmerald else Color.White,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        lineHeight = 16.sp
                     )
+                    Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = subtitle,
                         fontSize = 11.sp,
                         color = if (isCompleted) TextMuted else TextMuted.copy(alpha = 0.9f),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        maxLines = 2,
+                        lineHeight = 14.sp
                     )
                 }
             }
 
             if (!isCompleted) {
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(10.dp))
                 Button(
                     onClick = onClick,
                     colors = ButtonDefaults.buttonColors(containerColor = actionButtonColor),
                     shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 6.dp),
                     modifier = Modifier.height(32.dp)
                 ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Icon(
                             imageVector = icon,
                             contentDescription = null,
@@ -396,7 +405,8 @@ private fun VibrantChecklistStep(
                             text = actionLabel,
                             fontSize = 11.5.sp,
                             fontWeight = FontWeight.Bold,
-                            color = Color.White
+                            color = Color.White,
+                            maxLines = 1
                         )
                     }
                 }
