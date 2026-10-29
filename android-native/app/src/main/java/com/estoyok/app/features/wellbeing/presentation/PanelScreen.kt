@@ -69,6 +69,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.ui.platform.LocalLifecycleOwner
 import com.estoyok.app.services.MyFirebaseMessagingService
+import kotlinx.coroutines.delay
 
 @Composable
 fun PanelScreen(
@@ -310,11 +311,25 @@ fun PanelContent(
         }
     }
 
+    // Control de confeti para la celebración de las 3 misiones cumplidas
+    var showConfettiCelebration by remember { mutableStateOf(false) }
+
+    LaunchedEffect(showConfettiCelebration) {
+        if (showConfettiCelebration) {
+            delay(4000L)
+            showConfettiCelebration = false
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        if (showConfettiCelebration) {
+            com.estoyok.app.features.wellbeing.presentation.components.ConfettiCelebrationOverlay()
+        }
+
         if (showMandatoryDisclaimer) {
             DisclaimerMandatoryDialog(onAccept = onAcceptDisclaimer)
         }
@@ -506,7 +521,10 @@ fun PanelContent(
                     onCreateGeofenceClick = onNavigateToMap,
                     onHideForSession = onHideChecklistForSession,
                     onReopenInSession = onReopenChecklistInSession,
-                    onAllMissionsDone = onAllMissionsDone
+                    onAllMissionsDone = {
+                        showConfettiCelebration = true
+                        onAllMissionsDone()
+                    }
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 // 1. Wellbeing Status Banner

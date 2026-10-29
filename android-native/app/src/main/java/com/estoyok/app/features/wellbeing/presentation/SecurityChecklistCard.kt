@@ -62,7 +62,7 @@ fun SecurityChecklistCard(
     LaunchedEffect(isAllCompleted) {
         if (isAllCompleted) {
             showCelebration = true
-            delay(3500L) // 3.5 segundos de festejo visible
+            delay(4000L) // 4 segundos de festejo visible antes de graduar y guardar
             onAllMissionsDone()
         }
     }
