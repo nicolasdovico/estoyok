@@ -148,6 +148,9 @@ dependencies {
     // Google Play Billing
     implementation("com.android.billingclient:billing:8.0.0")
 
+    // Google Play In-App Updates
+    implementation("com.google.android.play:app-update-ktx:2.1.0")
+
     // Google Identity / Credential Manager for Sign in with Google
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")

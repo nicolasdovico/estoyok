@@ -24,6 +24,7 @@ import androidx.credentials.CustomCredential
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import com.estoyok.app.BuildConfig
 import com.estoyok.app.features.auth.data.model.GoogleLoginRequest
@@ -128,8 +129,12 @@ class LoginViewModel @Inject constructor(
             .setAutoSelectEnabled(false)
             .build()
 
+        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId)
+            .build()
+
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)
+            .addCredentialOption(signInWithGoogleOption)
             .build()
 
         viewModelScope.launch {

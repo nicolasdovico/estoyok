@@ -26,6 +26,15 @@ import javax.inject.Inject
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import kotlinx.coroutines.flow.MutableStateFlow
+import com.google.android.play.core.appupdate.AppUpdateManager
+import com.google.android.play.core.appupdate.AppUpdateManagerFactory
+import com.google.android.play.core.install.InstallStateUpdatedListener
+import com.google.android.play.core.install.model.AppUpdateType
+import com.google.android.play.core.install.model.InstallStatus
+import com.google.android.play.core.install.model.UpdateAvailability
+import com.google.android.play.core.ktx.isFlexibleUpdateAllowed
+import com.google.android.play.core.ktx.isImmediateUpdateAllowed
+import android.widget.Toast
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
@@ -34,10 +43,26 @@ class MainActivity : ComponentActivity() {
     lateinit var sessionManager: SessionManager
 
     private val deepLinkFlow = MutableStateFlow<String?>(null)
+    private var appUpdateManager: AppUpdateManager? = null
+    private val installStateUpdatedListener = InstallStateUpdatedListener { state ->
+        if (state.installStatus() == InstallStatus.DOWNLOADED) {
+            Toast.makeText(
+                this,
+                "Actualización lista para instalar. Reiniciando...",
+                Toast.LENGTH_LONG
+            ).show()
+            appUpdateManager?.completeUpdate()
+        }
+    }
+
+    companion object {
+        private const val REQUEST_CODE_FLEXIBLE_UPDATE = 1001
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         handleDeepLink(intent)
+        checkForInAppUpdates()
 
         setContent {
             EstoyOkTheme {
@@ -73,6 +98,79 @@ class MainActivity : ComponentActivity() {
         super.onResume()
         autoStartTrackingServiceIfAuthenticated()
         syncSubscriptionOnResume()
+        checkPendingUpdateOnResume()
+    }
+
+    private fun checkForInAppUpdates() {
+        try {
+            val manager = AppUpdateManagerFactory.create(this)
+            appUpdateManager = manager
+            manager.registerListener(installStateUpdatedListener)
+
+            val appUpdateInfoTask = manager.appUpdateInfo
+            appUpdateInfoTask.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.updateAvailability() == UpdateAvailability.UPDATE_AVAILABLE) {
+                    if (appUpdateInfo.isImmediateUpdateAllowed) {
+                        try {
+                            manager.startUpdateFlowForResult(
+                                appUpdateInfo,
+                                AppUpdateType.IMMEDIATE,
+                                this,
+                                REQUEST_CODE_FLEXIBLE_UPDATE
+                            )
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error starting immediate update: ${e.message}")
+                        }
+                    } else if (appUpdateInfo.isFlexibleUpdateAllowed) {
+                        try {
+                            manager.startUpdateFlowForResult(
+                                appUpdateInfo,
+                                AppUpdateType.FLEXIBLE,
+                                this,
+                                REQUEST_CODE_FLEXIBLE_UPDATE
+                            )
+                        } catch (e: Exception) {
+                            Log.e("MainActivity", "Error starting flexible update: ${e.message}")
+                        }
+                    }
+                }
+            }.addOnFailureListener { e ->
+                Log.d("MainActivity", "In-App Update check skipped or failed: ${e.message}")
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error initializing In-App Update manager: ${e.message}")
+        }
+    }
+
+    private fun checkPendingUpdateOnResume() {
+        try {
+            appUpdateManager?.appUpdateInfo?.addOnSuccessListener { appUpdateInfo ->
+                if (appUpdateInfo.installStatus() == InstallStatus.DOWNLOADED) {
+                    appUpdateManager?.completeUpdate()
+                } else if (appUpdateInfo.updateAvailability() == UpdateAvailability.DEVELOPER_TRIGGERED_UPDATE_IN_PROGRESS) {
+                    // Si una actualización inmediata fue interrumpida, reanudar
+                    try {
+                        appUpdateManager?.startUpdateFlowForResult(
+                            appUpdateInfo,
+                            AppUpdateType.IMMEDIATE,
+                            this,
+                            REQUEST_CODE_FLEXIBLE_UPDATE
+                        )
+                    } catch (e: Exception) {
+                        Log.e("MainActivity", "Error resuming in-app update: ${e.message}")
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            Log.e("MainActivity", "Error checking pending update on resume: ${e.message}")
+        }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        try {
+            appUpdateManager?.unregisterListener(installStateUpdatedListener)
+        } catch (_: Exception) { }
     }
 
     @Inject
