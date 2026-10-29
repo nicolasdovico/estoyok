@@ -220,24 +220,32 @@ fun WelcomeSoftPaywallDialog(
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
+                            .heightIn(min = 52.dp),
+                        contentPadding = PaddingValues(vertical = 6.dp, horizontal = 12.dp),
                         shape = RoundedCornerShape(12.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = PrimaryEmerald,
                             contentColor = TextOnPrimary
                         )
                     ) {
-                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
                             Text(
                                 text = "Comenzar prueba gratis de 7 días 👑",
-                                fontSize = 14.sp,
+                                fontSize = 13.5.sp,
                                 fontWeight = FontWeight.ExtraBold,
-                                color = TextOnPrimary
+                                color = TextOnPrimary,
+                                lineHeight = 16.sp
                             )
+                            Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "$0.00 hoy • Cancela cuando quieras en Play Store",
-                                fontSize = 9.5.sp,
-                                color = TextOnPrimary.copy(alpha = 0.85f)
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextOnPrimary.copy(alpha = 0.9f),
+                                lineHeight = 12.sp
                             )
                         }
                     }
