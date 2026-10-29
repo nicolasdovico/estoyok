@@ -151,14 +151,13 @@ class RegisterViewModel @Inject constructor(
         }
 
         val credentialManager = CredentialManager.create(context)
-        val googleIdOption = GetGoogleIdOption.Builder()
-            .setFilterByAuthorizedAccounts(false)
-            .setServerClientId(webClientId)
-            .setAutoSelectEnabled(false)
+        // GetSignInWithGoogleOption está diseñado por Google específicamente para el tap explícito en un botón
+        // Permite reautenticar cuentas cerradas, agregar cuentas nuevas y garantiza compatibilidad total
+        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId)
             .build()
 
         val request = GetCredentialRequest.Builder()
-            .addCredentialOption(googleIdOption)
+            .addCredentialOption(signInWithGoogleOption)
             .build()
 
         viewModelScope.launch {
