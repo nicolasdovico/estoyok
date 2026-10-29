@@ -183,8 +183,11 @@ fun PanelScreen(
         hasCheckedIn = viewModel.user?.lastCheckInAt != null,
         hasContacts = viewModel.contactsCount > 0,
         hasGeofences = viewModel.geofencesCount > 0,
-        isChecklistDismissed = viewModel.isChecklistDismissed,
-        onDismissChecklist = { viewModel.dismissChecklist() }
+        isChecklistCompletedPermanently = viewModel.isChecklistCompletedPermanently,
+        isChecklistHiddenInSession = viewModel.isChecklistHiddenInSession,
+        onHideChecklistForSession = { viewModel.hideChecklistForSession() },
+        onReopenChecklistInSession = { viewModel.showChecklistInSession() },
+        onAllMissionsDone = { viewModel.completeChecklistPermanently() }
     )
 
     if (showSosAudioDisclosureDialog) {
@@ -284,8 +287,11 @@ fun PanelContent(
     hasCheckedIn: Boolean = false,
     hasContacts: Boolean = false,
     hasGeofences: Boolean = false,
-    isChecklistDismissed: Boolean = false,
-    onDismissChecklist: () -> Unit = {}
+    isChecklistCompletedPermanently: Boolean = false,
+    isChecklistHiddenInSession: Boolean = false,
+    onHideChecklistForSession: () -> Unit = {},
+    onReopenChecklistInSession: () -> Unit = {},
+    onAllMissionsDone: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -493,11 +499,14 @@ fun PanelContent(
                     hasCheckedIn = hasCheckedIn,
                     hasContacts = hasContacts,
                     hasGeofences = hasGeofences,
-                    isDismissed = isChecklistDismissed,
+                    isCompletedPermanently = isChecklistCompletedPermanently,
+                    isHiddenInSession = isChecklistHiddenInSession,
                     onCheckInClick = onCheckIn,
                     onAddContactClick = onOpenManageContactsModal,
                     onCreateGeofenceClick = onNavigateToMap,
-                    onDismiss = onDismissChecklist
+                    onHideForSession = onHideChecklistForSession,
+                    onReopenInSession = onReopenChecklistInSession,
+                    onAllMissionsDone = onAllMissionsDone
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 // 1. Wellbeing Status Banner

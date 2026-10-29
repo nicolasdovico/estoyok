@@ -83,7 +83,11 @@ class PanelViewModel @Inject constructor(
     var isSendingTestWa by mutableStateOf(false)
         private set
 
-    var isChecklistDismissed by mutableStateOf(false)
+    var isChecklistCompletedPermanently by mutableStateOf(false)
+        private set
+
+    // Control en memoria para la sesión activa (si el usuario la oculta temporalmente)
+    var isChecklistHiddenInSession by mutableStateOf(false)
         private set
 
     var geofencesCount by mutableStateOf(0)
@@ -115,16 +119,24 @@ class PanelViewModel @Inject constructor(
     init {
         refreshDashboard()
         viewModelScope.launch {
-            sessionManager.isChecklistDismissedFlow.collectLatest { dismissed ->
-                isChecklistDismissed = dismissed
+            sessionManager.isChecklistCompletedFlow.collectLatest { completed ->
+                isChecklistCompletedPermanently = completed
             }
         }
     }
 
-    fun dismissChecklist() {
-        isChecklistDismissed = true
+    fun hideChecklistForSession() {
+        isChecklistHiddenInSession = true
+    }
+
+    fun showChecklistInSession() {
+        isChecklistHiddenInSession = false
+    }
+
+    fun completeChecklistPermanently() {
+        isChecklistCompletedPermanently = true
         viewModelScope.launch {
-            sessionManager.saveChecklistDismissed(true)
+            sessionManager.saveChecklistCompleted(true)
         }
     }
 
