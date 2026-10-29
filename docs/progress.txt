@@ -1,5 +1,29 @@
 # Progress Log
 
+## [2026-10-29] Implementación Completa de la Versión 17 (1.1.0) - Activación Temprana, In-App Updates y Credential Manager
+- **Checklist Interactivo de Primeros Pasos (`SecurityChecklistCard.kt`):**
+  - Implementada tarjeta interactiva en el panel principal (`PanelScreen.kt`) con barra de progreso lineal (0% a 100%) y navegación con cero fricción a las 3 misiones clave:
+    1. *Confirmar bienestar hoy:* Ejecuta la confirmación directa del botón "Estoy OK" iniciando el reloj diario.
+    2. *Agregar a quién te cuidará:* Abre inmediatamente el modal de contactos de emergencia (`ManageContactsModal`) con el formulario listo.
+    3. *Crear primera Zona Segura:* Navega a la pestaña de mapa (`MapaScreen.kt`) y abre el diálogo para registrar el perímetro con radio de 150m.
+  - Persistencia de descarte en Jetpack DataStore (`isChecklistDismissedFlow` y `saveChecklistDismissed`).
+  - Al completar las 3 misiones, la tarjeta se transforma en un escudo verde esmeralda celebrando la protección al 100%.
+- **Empty States Accionables y Formativos:**
+  - Rediseñada la lista vacía de contactos en `PanelScreen`: tarjeta amigable *"🛡️ ¿Quién te cuidará? Agrega a un familiar o amigo de confianza..."* con botón directo.
+  - Rediseñada la lista vacía de perímetros en `MapaScreen`: tarjeta formativa *"📍 ¿Casa, Escuela o Trabajo? Mantén presionado cualquier punto del mapa para crear una Zona Segura..."*.
+- **Google Play In-App Updates:**
+  - Integrada la biblioteca oficial `com.google.android.play:app-update-ktx:2.1.0` en `build.gradle.kts`.
+  - En `MainActivity.kt`, implementado chequeo automático en segundo plano al abrir la aplicación (`checkForInAppUpdates`) soportando modo *Flexible* e *Inmediato*, con listener de estado para completar e instalar la actualización tras la descarga.
+- **Refuerzo de Google Credential Manager:**
+  - En `LoginViewModel.kt` y `RegisterViewModel.kt`, incorporado `GetSignInWithGoogleOption` junto con `GetGoogleIdOption` en la petición de credenciales.
+  - Mayor tolerancia ante versiones antiguas de Google Play Services y cancelaciones de diálogo.
+- **Corrección de Paywall de Bienvenida:**
+  - Ajustada la altura del botón principal en `WelcomeSoftPaywallDialog.kt` (`.heightIn(min = 52.dp)` y `contentPadding` vertical), evitando el recorte del texto secundario en pantallas compactas de 720p.
+- **Release y Compilación:**
+  - Actualizado `versionCode = 17` y `versionName = "1.1.0"` en `build.gradle.kts` y `AjustesScreen.kt`.
+  - Compilado y firmado el bundle final de producción `app-release.aab` (22 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+  - Garantía de no regresión verificada: suite de 199 tests de backend pasando al 100% (658 aserciones) y compilación Android en verde (`BUILD SUCCESSFUL`).
+
 ## [2026-10-28] Corrección de Pasarela por Defecto (`subscription_provider`) y Soporte de Google Play en Filament Admin
 - **Problema Solucionado:** Los usuarios nuevos registrados nacían con `subscription_provider = 'stripe'` debido a un valor default histórico de migración (`DEFAULT 'stripe'`), a pesar de ser usuarios gratuitos inactivos y de que Stripe ya no está en uso activo. Además, en el panel administrativo de Filament no existía la opción de Google Play Store ni la posibilidad de desasignar pasarela.
 - **Implementación (Backend Laravel):**
