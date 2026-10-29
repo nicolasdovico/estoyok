@@ -129,12 +129,8 @@ class LoginViewModel @Inject constructor(
             .setAutoSelectEnabled(false)
             .build()
 
-        val signInWithGoogleOption = GetSignInWithGoogleOption.Builder(webClientId)
-            .build()
-
         val request = GetCredentialRequest.Builder()
             .addCredentialOption(googleIdOption)
-            .addCredentialOption(signInWithGoogleOption)
             .build()
 
         viewModelScope.launch {
