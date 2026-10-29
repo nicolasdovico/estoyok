@@ -13,6 +13,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -34,6 +37,8 @@ import com.estoyok.app.features.wellbeing.presentation.PanelScreen
 import com.estoyok.app.features.wellbeing.presentation.DisclaimerMandatoryDialog
 import com.estoyok.app.features.auth.presentation.onboarding.OnboardingScreen
 import com.estoyok.app.features.tracking.presentation.WelcomeSoftPaywallDialog
+import com.estoyok.app.features.wellbeing.presentation.components.ConfettiCelebrationOverlay
+import kotlinx.coroutines.delay
 
 @Composable
 fun MainScreen(

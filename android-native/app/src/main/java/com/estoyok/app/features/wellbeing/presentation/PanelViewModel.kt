@@ -93,6 +93,9 @@ class PanelViewModel @Inject constructor(
     var geofencesCount by mutableStateOf(0)
         private set
 
+    var isCelebrationShown by mutableStateOf(false)
+        private set
+
     val totalAlertRecipients: Int
         get() = circleMembers.size + contactsCount
 
@@ -123,6 +126,11 @@ class PanelViewModel @Inject constructor(
                 isChecklistCompletedPermanently = completed
             }
         }
+        viewModelScope.launch {
+            sessionManager.isCelebrationShownFlow.collectLatest { shown ->
+                isCelebrationShown = shown
+            }
+        }
     }
 
     fun hideChecklistForSession() {
@@ -135,8 +143,10 @@ class PanelViewModel @Inject constructor(
 
     fun completeChecklistPermanently() {
         isChecklistCompletedPermanently = true
+        isCelebrationShown = true
         viewModelScope.launch {
             sessionManager.saveChecklistCompleted(true)
+            sessionManager.saveCelebrationShown(true)
         }
     }
 

@@ -1853,6 +1853,8 @@ fun MapaScreen(
                                 )
                                 showCreateGeofenceDialog = false
                                 longClickedLatLng = null
+                                // Redirigir de regreso al panel (donde se ubica el escudo y checklist)
+                                navController?.popBackStack(Screen.EstoyOk.route, false) ?: navController?.navigate(Screen.EstoyOk.route)
                             } else {
                                 Toast.makeText(context, "El nombre no puede estar vacío", Toast.LENGTH_SHORT).show()
                             }

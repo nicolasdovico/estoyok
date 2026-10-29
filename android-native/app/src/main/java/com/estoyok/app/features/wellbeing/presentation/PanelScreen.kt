@@ -314,8 +314,10 @@ fun PanelContent(
     // Control de confeti para la celebración de las 3 misiones cumplidas
     var showConfettiCelebration by remember { mutableStateOf(false) }
 
-    LaunchedEffect(showConfettiCelebration) {
-        if (showConfettiCelebration) {
+    LaunchedEffect(hasCheckedIn, hasContacts, hasGeofences, isChecklistCompletedPermanently) {
+        val completedCount = (if (hasCheckedIn) 1 else 0) + (if (hasContacts) 1 else 0) + (if (hasGeofences) 1 else 0)
+        if (completedCount == 3 && !isChecklistCompletedPermanently) {
+            showConfettiCelebration = true
             delay(4000L)
             showConfettiCelebration = false
         }
