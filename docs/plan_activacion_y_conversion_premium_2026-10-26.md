@@ -78,9 +78,21 @@ flowchart TD
 
 ## 📋 Hoja de Ruta de Implementación
 
-1. **Fase Inmediata (Backend Laravel - 0 Riesgo, Sin actualización en Google Play):**
-   * Crear el comando `php artisan users:send-lifecycle-nudge` en Laravel.
+1. **Fase Inmediata (Backend Laravel - 0 Riesgo, Sin actualización en Google Play) [COMPLETADA]:**
+   * Crear el comando `php artisan users:send-activation-nudges` en Laravel.
    * Filtrar usuarios con `created_at >= 6 hours`, `last_check_in_at IS NULL` y enviar el push FCM correspondiente a los usuarios activos (#42, #43, #44).
-2. **Fase 2 (Próxima Compilación Android v16 / 1.0.9):**
-   * Integrar la pantalla de Soft Paywall (Prueba de 7 días gratis) tras el Onboarding.
-   * Agregar el botón de *"Enviar WhatsApp de prueba al contacto"*.
+2. **Fase 2 (Compilación Android v16 / 1.0.9) [COMPLETADA]:**
+   * Integrar la pantalla de Soft Paywall (Prueba de 7 días gratis) tras el Onboarding con optimización para pantallas de 720p sin scroll.
+   * Agregar el botón de *"Enviar WhatsApp de prueba al contacto"* con cooldown antispam de 60s.
+   * Rediseño del botón central de bienestar (Neon Halo Bloom con `PrimaryEmerald`).
+3. **Fase 3 (Próxima Compilación Android v17 / 1.1.0 - Retención y Actualizaciones):**
+   * **Google Play In-App Updates (Actualizaciones dentro de la App):**
+     * Integrar la biblioteca oficial `com.google.android.play:app-update`.
+     * Comprobar al iniciar la app si hay una versión superior publicada en Google Play Store (`AppUpdateManager.getAppUpdateInfo()`).
+     * Ofrecer actualización *Flexible* (descarga en segundo plano mientras el usuario navega) o *Inmediata* para parches críticos.
+     * Resuelve de raíz el problema de caché de Play Store donde a los usuarios solo les sale el botón "Abrir" en lugar de "Actualizar".
+   * **Refuerzo de Credential Manager (`GetSignInWithGoogleOption`):**
+     * Incorporar `GetSignInWithGoogleOption` en `LoginViewModel.kt` y `RegisterViewModel.kt` para garantizar compatibilidad total en botones explícitos de login en cualquier versión de Google Play Services.
+     * Actualizar `google-services.json` con la huella digital de Play Store (`65:cd:23:...`).
+   * **Endpoint de Fallback en Backend (`GET /api/app-version`):**
+     * Notificación interna tipo modal o snackbar si Google Play In-App Updates reporta demoras de propagación.
