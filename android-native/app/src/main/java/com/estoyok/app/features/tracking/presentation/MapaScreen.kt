@@ -1574,6 +1574,38 @@ fun MapaScreen(
                                         onDeleteClick = { viewModel.deleteGeofence(geofence.id) }
                                     )
                                 }
+                            } else {
+                                item {
+                                    Spacer(modifier = Modifier.height(12.dp))
+                                    HorizontalDivider(color = BorderColor)
+                                    Spacer(modifier = Modifier.height(8.dp))
+                                    Surface(
+                                        color = CardBackground,
+                                        shape = RoundedCornerShape(10.dp),
+                                        border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.2f)),
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Column(
+                                            modifier = Modifier.padding(12.dp),
+                                            horizontalAlignment = Alignment.CenterHorizontally
+                                        ) {
+                                            Text(
+                                                text = "📍 ¿Casa, Escuela o Trabajo?",
+                                                fontSize = 13.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextPrimary
+                                            )
+                                            Spacer(modifier = Modifier.height(2.dp))
+                                            Text(
+                                                text = "Mantén presionado cualquier punto del mapa para crear una Zona Segura y recibir avisos automáticos de llegada.",
+                                                fontSize = 11.5.sp,
+                                                color = TextMuted,
+                                                textAlign = TextAlign.Center,
+                                                lineHeight = 15.sp
+                                            )
+                                        }
+                                    }
+                                }
                             }
                         }
                     } else {

@@ -180,6 +180,15 @@ fun MainScreen(
                     PanelScreen(
                         onNavigateToSettings = {
                             navController.navigate(Screen.Ajustes.route)
+                        },
+                        onNavigateToMap = {
+                            navController.navigate(Screen.Mapa.route) {
+                                popUpTo(navController.graph.findStartDestination().id) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
                         }
                     )
                 }

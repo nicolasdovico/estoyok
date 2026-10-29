@@ -37,6 +37,17 @@ class SessionManager @Inject constructor(
         private val ONBOARDING_COMPLETED = booleanPreferencesKey("onboarding_completed")
         private val WELCOME_PAYWALL_SHOWN = booleanPreferencesKey("welcome_paywall_shown")
         private val POWER_BUTTON_SOS_ENABLED = booleanPreferencesKey("power_button_sos_enabled")
+        private val CHECKLIST_DISMISSED = booleanPreferencesKey("checklist_dismissed")
+    }
+
+    val isChecklistDismissedFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->
+        preferences[CHECKLIST_DISMISSED] ?: false
+    }
+
+    suspend fun saveChecklistDismissed(dismissed: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[CHECKLIST_DISMISSED] = dismissed
+        }
     }
 
     val isWelcomePaywallShownFlow: Flow<Boolean> = context.dataStore.data.map { preferences ->

@@ -83,6 +83,12 @@ class PanelViewModel @Inject constructor(
     var isSendingTestWa by mutableStateOf(false)
         private set
 
+    var isChecklistDismissed by mutableStateOf(false)
+        private set
+
+    var geofencesCount by mutableStateOf(0)
+        private set
+
     val totalAlertRecipients: Int
         get() = circleMembers.size + contactsCount
 
@@ -108,6 +114,18 @@ class PanelViewModel @Inject constructor(
 
     init {
         refreshDashboard()
+        viewModelScope.launch {
+            sessionManager.isChecklistDismissedFlow.collectLatest { dismissed ->
+                isChecklistDismissed = dismissed
+            }
+        }
+    }
+
+    fun dismissChecklist() {
+        isChecklistDismissed = true
+        viewModelScope.launch {
+            sessionManager.saveChecklistDismissed(true)
+        }
     }
 
     fun startActivePolling() {
@@ -324,10 +342,12 @@ class PanelViewModel @Inject constructor(
                     activeCircleId = targetCircle.id
                     activeCircleName = targetCircle.name
                     circleMembers = targetCircle.members.filter { it.id != currentUserId }
+                    geofencesCount = targetCircle.geofences.size
                 } else {
                     activeCircleId = null
                     activeCircleName = null
                     circleMembers = emptyList()
+                    geofencesCount = 0
                 }
             }
         }

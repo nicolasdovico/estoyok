@@ -73,6 +73,7 @@ import com.estoyok.app.services.MyFirebaseMessagingService
 @Composable
 fun PanelScreen(
     onNavigateToSettings: () -> Unit = {},
+    onNavigateToMap: () -> Unit = {},
     viewModel: PanelViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -176,8 +177,14 @@ fun PanelScreen(
         onSos = handleSosAction,
         onSendReminder = { memberId -> viewModel.sendReminderPing(memberId, context) },
         onNavigateToSettings = onNavigateToSettings,
+        onNavigateToMap = onNavigateToMap,
         showMandatoryDisclaimer = (viewModel.user != null && viewModel.user?.disclaimerAcceptedAt.isNullOrBlank()),
-        onAcceptDisclaimer = { viewModel.acceptDisclaimer() }
+        onAcceptDisclaimer = { viewModel.acceptDisclaimer() },
+        hasCheckedIn = viewModel.user?.lastCheckInAt != null,
+        hasContacts = viewModel.contactsCount > 0,
+        hasGeofences = viewModel.geofencesCount > 0,
+        isChecklistDismissed = viewModel.isChecklistDismissed,
+        onDismissChecklist = { viewModel.dismissChecklist() }
     )
 
     if (showSosAudioDisclosureDialog) {
@@ -271,8 +278,14 @@ fun PanelContent(
     onSos: (android.content.Context) -> Unit,
     onSendReminder: (Int) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToMap: () -> Unit = {},
     showMandatoryDisclaimer: Boolean = false,
-    onAcceptDisclaimer: () -> Unit = {}
+    onAcceptDisclaimer: () -> Unit = {},
+    hasCheckedIn: Boolean = false,
+    hasContacts: Boolean = false,
+    hasGeofences: Boolean = false,
+    isChecklistDismissed: Boolean = false,
+    onDismissChecklist: () -> Unit = {}
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -475,6 +488,18 @@ fun PanelContent(
 
             item {
                 Spacer(modifier = Modifier.height(spacingHeaderToBanner))
+                // 0.5 Checklist de Primeros Pasos
+                SecurityChecklistCard(
+                    hasCheckedIn = hasCheckedIn,
+                    hasContacts = hasContacts,
+                    hasGeofences = hasGeofences,
+                    isDismissed = isChecklistDismissed,
+                    onCheckInClick = onCheckIn,
+                    onAddContactClick = onOpenManageContactsModal,
+                    onCreateGeofenceClick = onNavigateToMap,
+                    onDismiss = onDismissChecklist
+                )
+                Spacer(modifier = Modifier.height(10.dp))
                 // 1. Wellbeing Status Banner
                 StatusBanner(status = status)
                 Spacer(modifier = Modifier.height(10.dp))
@@ -1786,16 +1811,58 @@ fun ManageContactsModal(
                         if (emergencyContacts.isEmpty()) {
                             item {
                                 Surface(
-                                    color = CardBackground.copy(alpha = 0.5f),
-                                    shape = RoundedCornerShape(10.dp),
+                                    color = CardBackground,
+                                    shape = RoundedCornerShape(12.dp),
+                                    border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.25f)),
                                     modifier = Modifier.fillMaxWidth()
                                 ) {
-                                    Text(
-                                        text = "No has registrado contactos externos aún.\nPulsa el botón de abajo para agregar uno.",
-                                        fontSize = 12.sp,
-                                        color = TextMuted,
-                                        modifier = Modifier.padding(16.dp)
-                                    )
+                                    Column(
+                                        modifier = Modifier.padding(16.dp),
+                                        horizontalAlignment = Alignment.CenterHorizontally
+                                    ) {
+                                        Text(
+                                            text = "🛡️ ¿Quién te cuidará?",
+                                            fontSize = 14.sp,
+                                            fontWeight = FontWeight.Bold,
+                                            color = TextPrimary
+                                        )
+                                        Spacer(modifier = Modifier.height(4.dp))
+                                        Text(
+                                            text = "Agrega a un familiar o amigo de confianza para que reciba tu ubicación por WhatsApp si algún día no confirmas tu bienestar.",
+                                            fontSize = 12.sp,
+                                            color = TextMuted,
+                                            textAlign = TextAlign.Center,
+                                            lineHeight = 16.sp
+                                        )
+                                        Spacer(modifier = Modifier.height(10.dp))
+                                        Button(
+                                            onClick = {
+                                                newName = ""
+                                                newPhone = ""
+                                                newEmail = ""
+                                                newRelationship = ""
+                                                editingContactId = null
+                                                isFormVisible = true
+                                            },
+                                            colors = ButtonDefaults.buttonColors(containerColor = PrimaryEmerald),
+                                            shape = RoundedCornerShape(8.dp),
+                                            contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.Add,
+                                                contentDescription = null,
+                                                tint = TextOnPrimary,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                            Spacer(modifier = Modifier.width(6.dp))
+                                            Text(
+                                                text = "Agregar primer contacto",
+                                                fontSize = 12.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                color = TextOnPrimary
+                                            )
+                                        }
+                                    }
                                 }
                             }
                         } else {
