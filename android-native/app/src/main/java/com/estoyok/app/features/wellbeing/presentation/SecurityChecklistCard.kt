@@ -208,7 +208,7 @@ fun SecurityChecklistCard(
                 VibrantChecklistStep(
                     stepNumber = "1",
                     title = "Confirmá tu bienestar hoy",
-                    subtitle = "Tocá Estoy OK para iniciar el reloj diario",
+                    subtitle = "Iniciá tu reloj diario con Estoy OK",
                     isCompleted = hasCheckedIn,
                     actionLabel = "Confirmar",
                     icon = Icons.Default.Check,
@@ -222,7 +222,7 @@ fun SecurityChecklistCard(
                 VibrantChecklistStep(
                     stepNumber = "2",
                     title = "Agregá a quién te cuidará",
-                    subtitle = "Recibirá un WhatsApp con tu mapa si no reportás",
+                    subtitle = "Recibirá tu alerta y mapa ante emergencias",
                     isCompleted = hasContacts,
                     actionLabel = "Agregar",
                     icon = Icons.Default.PersonAdd,
@@ -236,7 +236,7 @@ fun SecurityChecklistCard(
                 VibrantChecklistStep(
                     stepNumber = "3",
                     title = "Creá tu primera Zona Segura",
-                    subtitle = "Marcá Casa o Trabajo para avisos de llegada",
+                    subtitle = "Avisos automáticos de llegada (ej: Casa)",
                     isCompleted = hasGeofences,
                     actionLabel = "Crear",
                     icon = Icons.Default.LocationOn,
@@ -375,7 +375,7 @@ private fun VibrantChecklistStep(
                         text = subtitle,
                         fontSize = 11.sp,
                         color = if (isCompleted) TextMuted else TextMuted.copy(alpha = 0.9f),
-                        maxLines = 2,
+                        maxLines = 3,
                         lineHeight = 14.sp
                     )
                 }
