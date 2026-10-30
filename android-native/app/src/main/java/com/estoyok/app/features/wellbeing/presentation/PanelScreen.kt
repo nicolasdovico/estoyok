@@ -316,7 +316,8 @@ fun PanelContent(
 
     LaunchedEffect(hasCheckedIn, hasContacts, hasGeofences, isChecklistCompletedPermanently) {
         val completedCount = (if (hasCheckedIn) 1 else 0) + (if (hasContacts) 1 else 0) + (if (hasGeofences) 1 else 0)
-        if (completedCount == 3 && !isChecklistCompletedPermanently) {
+        // Solo se dispara si alcanzó exactamente las 3 misiones Y la celebración aún no fue completada permanentemente
+        if (completedCount == 3 && !isChecklistCompletedPermanently && !showConfettiCelebration) {
             showConfettiCelebration = true
             delay(4000L)
             showConfettiCelebration = false
@@ -2243,6 +2244,8 @@ fun ManageContactsModal(
                                     newEmail = ""
                                     newRelationship = ""
                                     isFormVisible = false
+                                    // Cerrar también el modal completo para regresar al panel principal
+                                    onDismiss()
                                 }
                             },
                             enabled = isFormValid,

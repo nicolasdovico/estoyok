@@ -9,7 +9,6 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.drawscope.rotate
-import kotlinx.coroutines.delay
 import kotlin.math.sin
 import kotlin.random.Random
 
@@ -27,7 +26,7 @@ private data class ConfettiParticle(
 @Composable
 fun ConfettiCelebrationOverlay(
     modifier: Modifier = Modifier,
-    particleCount: Int = 90
+    particleCount: Int = 85
 ) {
     val particles = remember {
         val vibrantColors = listOf(
@@ -52,16 +51,17 @@ fun ConfettiCelebrationOverlay(
         }
     }
 
-    val transition = rememberInfiniteTransition(label = "confetti")
-    val time by transition.animateFloat(
-        initialValue = 0f,
-        targetValue = 3.5f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 3500, easing = LinearEasing),
-            repeatMode = RepeatMode.Restart
-        ),
-        label = "time"
-    )
+    // Animación de UN SOLO DISPARO (One-shot de 3.8 segundos, sin bucle infinito)
+    val timeAnim = remember { Animatable(0f) }
+
+    LaunchedEffect(Unit) {
+        timeAnim.animateTo(
+            targetValue = 3.8f,
+            animationSpec = tween(durationMillis = 3800, easing = LinearEasing)
+        )
+    }
+
+    val time = timeAnim.value
 
     Canvas(modifier = modifier.fillMaxSize()) {
         val canvasWidth = size.width
