@@ -311,20 +311,15 @@ fun PanelContent(
         }
     }
 
-    // Control de confeti para la celebración de las 3 misiones cumplidas
-    var showConfettiCelebration by remember { mutableStateOf(false) }
+    // Control del diálogo de festejo al completar las 3 misiones
+    var showCelebrationDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(hasCheckedIn, hasContacts, hasGeofences, isChecklistCompletedPermanently, showManageContactsModal) {
         val completedCount = (if (hasCheckedIn) 1 else 0) + (if (hasContacts) 1 else 0) + (if (hasGeofences) 1 else 0)
-        // Solo disparar cuando:
-        // 1. Están las 3 misiones completas
-        // 2. Aún no fue completada permanentemente
-        // 3. El modal de contactos NO está abierto en pantalla (espera a que el modal se cierre)
-        if (completedCount == 3 && !isChecklistCompletedPermanently && !showManageContactsModal && !showConfettiCelebration) {
-            delay(300L) // Breve pausa tras cerrar modal para que el usuario aprecie el panel y la tarjeta
-            showConfettiCelebration = true
-            delay(5000L) // 5 segundos para disfrutar el festejo
-            showConfettiCelebration = false
+        // Disparar solo si las 3 están cumplidas, no está permanente aún y no hay modales abiertos
+        if (completedCount == 3 && !isChecklistCompletedPermanently && !showManageContactsModal && !showCelebrationDialog) {
+            delay(200L)
+            showCelebrationDialog = true
         }
     }
 
@@ -333,8 +328,13 @@ fun PanelContent(
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
-        if (showConfettiCelebration) {
-            com.estoyok.app.features.wellbeing.presentation.components.ConfettiCelebrationOverlay()
+        if (showCelebrationDialog) {
+            com.estoyok.app.features.wellbeing.presentation.components.CelebrationSuccessDialog(
+                onDismiss = {
+                    showCelebrationDialog = false
+                    onAllMissionsDone()
+                }
+            )
         }
 
         if (showMandatoryDisclaimer) {
@@ -528,10 +528,7 @@ fun PanelContent(
                     onCreateGeofenceClick = onNavigateToMap,
                     onHideForSession = onHideChecklistForSession,
                     onReopenInSession = onReopenChecklistInSession,
-                    onAllMissionsDone = {
-                        showConfettiCelebration = true
-                        onAllMissionsDone()
-                    }
+                    onAllMissionsDone = {}
                 )
                 Spacer(modifier = Modifier.height(10.dp))
                 // 1. Wellbeing Status Banner
