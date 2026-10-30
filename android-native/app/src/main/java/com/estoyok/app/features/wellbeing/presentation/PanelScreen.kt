@@ -314,12 +314,16 @@ fun PanelContent(
     // Control de confeti para la celebración de las 3 misiones cumplidas
     var showConfettiCelebration by remember { mutableStateOf(false) }
 
-    LaunchedEffect(hasCheckedIn, hasContacts, hasGeofences, isChecklistCompletedPermanently) {
+    LaunchedEffect(hasCheckedIn, hasContacts, hasGeofences, isChecklistCompletedPermanently, showManageContactsModal) {
         val completedCount = (if (hasCheckedIn) 1 else 0) + (if (hasContacts) 1 else 0) + (if (hasGeofences) 1 else 0)
-        // Solo se dispara si alcanzó exactamente las 3 misiones Y la celebración aún no fue completada permanentemente
-        if (completedCount == 3 && !isChecklistCompletedPermanently && !showConfettiCelebration) {
+        // Solo disparar cuando:
+        // 1. Están las 3 misiones completas
+        // 2. Aún no fue completada permanentemente
+        // 3. El modal de contactos NO está abierto en pantalla (espera a que el modal se cierre)
+        if (completedCount == 3 && !isChecklistCompletedPermanently && !showManageContactsModal && !showConfettiCelebration) {
+            delay(300L) // Breve pausa tras cerrar modal para que el usuario aprecie el panel y la tarjeta
             showConfettiCelebration = true
-            delay(4000L)
+            delay(5000L) // 5 segundos para disfrutar el festejo
             showConfettiCelebration = false
         }
     }
@@ -2244,8 +2248,10 @@ fun ManageContactsModal(
                                     newEmail = ""
                                     newRelationship = ""
                                     isFormVisible = false
-                                    // Cerrar también el modal completo para regresar al panel principal
-                                    onDismiss()
+                                    // Si no tenía contactos y este es el primer contacto, cerrar el modal completo para volver al Panel
+                                    if (emergencyContacts.isEmpty()) {
+                                        onDismiss()
+                                    }
                                 }
                             },
                             enabled = isFormValid,
