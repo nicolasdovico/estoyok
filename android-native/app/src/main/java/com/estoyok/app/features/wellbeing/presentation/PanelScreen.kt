@@ -60,6 +60,8 @@ import com.estoyok.app.core.util.rememberWindowInfo
 import com.estoyok.app.features.wellbeing.data.model.CheckInDto
 import java.text.SimpleDateFormat
 import java.util.*
+import com.estoyok.app.features.tracking.presentation.GoldTrialPromoCard
+import com.estoyok.app.features.tracking.presentation.WelcomeSoftPaywallDialog
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -188,7 +190,9 @@ fun PanelScreen(
         isChecklistHiddenInSession = viewModel.isChecklistHiddenInSession,
         onHideChecklistForSession = { viewModel.hideChecklistForSession() },
         onReopenChecklistInSession = { viewModel.showChecklistInSession() },
-        onAllMissionsDone = { viewModel.completeChecklistPermanently() }
+        onAllMissionsDone = { viewModel.completeChecklistPermanently() },
+        isUserPremium = (viewModel.user?.isPremium == true || viewModel.user?.hasPremiumAccess == true),
+        hasUsedTrial = (viewModel.user?.hasUsedTrial == true)
     )
 
     if (showSosAudioDisclosureDialog) {
@@ -292,7 +296,9 @@ fun PanelContent(
     isChecklistHiddenInSession: Boolean = false,
     onHideChecklistForSession: () -> Unit = {},
     onReopenChecklistInSession: () -> Unit = {},
-    onAllMissionsDone: () -> Unit = {}
+    onAllMissionsDone: () -> Unit = {},
+    isUserPremium: Boolean = false,
+    hasUsedTrial: Boolean = false
 ) {
     val context = LocalContext.current
     val windowInfo = rememberWindowInfo()
@@ -303,6 +309,7 @@ fun PanelContent(
     val spacingButtonToTitle = if (windowInfo.isNarrowScreen || windowInfo.isHugeFont) 20.dp else 36.dp
 
     var isHistoryExpanded by remember { mutableStateOf(false) }
+    var showTrialPaywallDialog by remember { mutableStateOf(false) }
     val visibleCheckInHistory = remember(isHistoryExpanded, checkInHistory) {
         if (isHistoryExpanded || checkInHistory.size <= 5) {
             checkInHistory
@@ -516,6 +523,17 @@ fun PanelContent(
 
             item {
                 Spacer(modifier = Modifier.height(spacingHeaderToBanner))
+
+                // Banner Dorado de 7 Días Gratis en el tope (visible solo para usuarios sin suscripción activa)
+                if (!isUserPremium) {
+                    GoldTrialPromoCard(
+                        visible = true,
+                        hasUsedTrial = hasUsedTrial,
+                        onActivateClick = { showTrialPaywallDialog = true }
+                    )
+                    Spacer(modifier = Modifier.height(10.dp))
+                }
+
                 // 0.5 Checklist de Primeros Pasos
                 SecurityChecklistCard(
                     hasCheckedIn = hasCheckedIn,
@@ -686,6 +704,13 @@ fun PanelContent(
                 }
             }
         }
+    }
+
+    // Modal de Soft Paywall activado desde el Banner Dorado
+    if (showTrialPaywallDialog) {
+        WelcomeSoftPaywallDialog(
+            onDismiss = { showTrialPaywallDialog = false }
+        )
     }
 }
 

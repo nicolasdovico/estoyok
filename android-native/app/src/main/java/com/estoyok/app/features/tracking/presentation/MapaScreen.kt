@@ -216,6 +216,7 @@ fun MapaScreen(
     var pendingPermissionsToRequest by remember { mutableStateOf<List<String>>(emptyList()) }
     var showBackgroundLocationDialog by remember { mutableStateOf(false) }
     var showBatteryOptimizationDialog by remember { mutableStateOf(false) }
+    var showTrialPaywallDialog by remember { mutableStateOf(false) }
 
     val backgroundPermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
@@ -319,6 +320,7 @@ fun MapaScreen(
     var isCircleDropdownExpanded by remember { mutableStateOf(false) }
     var isExpanded by remember { mutableStateOf(false) }
     var showCreateGeofenceDialog by remember { mutableStateOf(false) }
+    var showNoCircleGeofenceDialog by remember { mutableStateOf(false) }
     var longClickedLatLng by remember { mutableStateOf<LatLng?>(null) }
     var showEditGeofenceDialog by remember { mutableStateOf(false) }
     var geofenceToEdit by remember { mutableStateOf<GeofenceDto?>(null) }
@@ -549,8 +551,12 @@ fun MapaScreen(
             ),
             contentPadding = PaddingValues(bottom = 120.dp),
             onMapLongClick = { latLng ->
-                longClickedLatLng = latLng
-                showCreateGeofenceDialog = true
+                if (viewModel.selectedCircle == null) {
+                    showNoCircleGeofenceDialog = true
+                } else {
+                    longClickedLatLng = latLng
+                    showCreateGeofenceDialog = true
+                }
             }
         ) {
             // Render location history route if loaded
@@ -1300,6 +1306,18 @@ fun MapaScreen(
             }
         }
 
+        // Chip sutil de oferta de 7 Días Gratis (visible solo para usuarios sin suscripción activa)
+        val isUserPremium = viewModel.currentUserProfile?.isPremium == true || viewModel.currentUserProfile?.hasPremiumAccess == true
+        val hasUsedTrial = viewModel.currentUserProfile?.hasUsedTrial == true
+        MapTrialOfferChip(
+            visible = !isUserPremium,
+            hasUsedTrial = hasUsedTrial,
+            onClick = { showTrialPaywallDialog = true },
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = 70.dp)
+        )
+
         if (isCircleDropdownExpanded) {
             Popup(
                 alignment = Alignment.TopCenter,
@@ -1731,8 +1749,12 @@ fun MapaScreen(
                     navController = navController,
                     imagePickerLauncher = imagePickerLauncher,
                     onCreateGeofence = { latLng ->
-                        longClickedLatLng = latLng
-                        showCreateGeofenceDialog = true
+                        if (viewModel.selectedCircle == null) {
+                            showNoCircleGeofenceDialog = true
+                        } else {
+                            longClickedLatLng = latLng
+                            showCreateGeofenceDialog = true
+                        }
                     },
                     onEditGeofence = { geofence ->
                         geofenceToEdit = geofence
@@ -1870,6 +1892,54 @@ fun MapaScreen(
                         longClickedLatLng = null
                     }) {
                         Text("Cancelar")
+                    }
+                }
+            )
+        }
+
+        // Diálogo informativo cuando no hay un Núcleo creado al intentar registrar una Zona Segura
+        if (showNoCircleGeofenceDialog) {
+            AlertDialog(
+                onDismissRequest = { showNoCircleGeofenceDialog = false },
+                icon = {
+                    Icon(
+                        imageVector = Icons.Default.Shield,
+                        contentDescription = null,
+                        tint = PrimaryEmerald,
+                        modifier = Modifier.size(32.dp)
+                    )
+                },
+                title = {
+                    Text(
+                        text = "Núcleo Requerido",
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 18.sp
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Para crear una Zona Segura, primero necesitas tener un Núcleo. ¿Deseas crear tu Núcleo ahora?",
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            showNoCircleGeofenceDialog = false
+                            navController?.navigate(Screen.Familia.route)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = PrimaryEmerald,
+                            contentColor = TextOnPrimary
+                        )
+                    ) {
+                        Text("Crear Núcleo", fontWeight = FontWeight.Bold)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showNoCircleGeofenceDialog = false }) {
+                        Text("Ahora no", color = MaterialTheme.colorScheme.outline)
                     }
                 }
             )
@@ -2270,6 +2340,13 @@ fun MapaScreen(
                         Text("Ahora no", color = MaterialTheme.colorScheme.outline)
                     }
                 }
+            )
+        }
+
+        // Diálogo de prueba gratuita de 7 Días impulsado por el chip flotante
+        if (showTrialPaywallDialog) {
+            WelcomeSoftPaywallDialog(
+                onDismiss = { showTrialPaywallDialog = false }
             )
         }
     }

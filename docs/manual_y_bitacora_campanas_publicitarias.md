@@ -184,6 +184,177 @@ Al acumularse 9 días de campaña (período total 17 al 26 de octubre de 2026), 
 
 ---
 
+### 📅 Hito 5: Auditoría del 17º Día, Análisis del Embudo Completo (Google Play) y Reajuste Estratégico — Martes 3 de Noviembre de 2026
+
+Al completarse 17 días desde el lanzamiento de la campaña (16 de octubre al 3 de noviembre de 2026), se auditaron las capturas oficiales de Meta Ads Manager (`campana03.png` y `desglose03.png`), cruzándolas con las métricas oficiales de adquisición en Google Play Console (**Visitantes de la ficha** e **Instalaciones registradas**).
+
+#### 1. Resultados Acumulados Generales (16 de Octubre al 3 de Noviembre):
+* **Inversión Total Acumulada:** **$65.732,22 ARS** (+$29.873 ARS invertidos en la última semana).
+* **Impresiones Totales:** **30.597 impresiones**.
+* **Alcance:** **24.504 personas únicas**.
+* **Clics en el enlace (Resultados Meta):** **1.290 clics salientes** (+482 clics desde la última auditoría).
+* **Costo por Clic Promedio (CPC global):** **$50,96 ARS** (excelente nivel de costo de tráfico en Argentina).
+* **Visitantes Reales a la Ficha en Google Play Store:** **286 visitantes**.
+* **Instalaciones Reales Registradas en Google Play Console:** **8 instalaciones**.
+
+---
+
+#### 2. Desempeño Acumulado por Creativo / Anuncio:
+
+| Anuncio | Clics en el enlace | Costo por Clic (CPC) | Monto Gastado | Impresiones | Alcance | % del Presupuesto |
+| :--- | :---: | :---: | :---: | :---: | :---: | :---: |
+| **🥇 Reel 2 - Vivir Solo (Bienestar Diario)** | **804** | $56,04 ARS | **$45.056,43** | 15.750 | 13.309 | **68,5%** |
+| **🥈 Reel 1 - Padres Auto** | **409** | **$41,80 ARS** | **$17.094,75** | 12.605 | 10.574 | **26,0%** |
+| **🥉 Reel 3 - Urgencia (SOS y Choques)** | **77** | $46,51 ARS | **$3.581,04** | 2.242 | 1.926 | **5,5%** |
+| **TOTALES** | **1.290** | **$50,96 ARS** | **$65.732,22** | **30.597** | **24.504** | **100%** |
+
+* **Conclusión de Creativos:**
+  * El **Reel 2 (Vivir Solo)** se consolida como el creativo rey indiscutido del algoritmo de Meta, absorbiendo casi el 70% del presupuesto con 804 clics generados.
+  * El **Reel 1 (Padres Auto)** conserva el CPC más bajo ($41,80 ARS) y funciona como soporte de volumen bruto.
+  * El **Reel 3 (SOS y Choques)** fue prácticamente apagado por el algoritmo ante la preferencia de los otros dos temas.
+
+---
+
+#### 3. Auditoría de Entrega por Plataforma:
+* **En el Reel 2 (el principal):**
+  * **Instagram:** **$32.275,49 ARS (71,6%)** $\rightarrow$ 449 clics a **$71,88 ARS**.
+  * **Facebook:** **$12.474,12 ARS (27,7%)** *(histórico de los primeros días antes del corte)* $\rightarrow$ 348 clics a $35,85 ARS.
+  * **Audience Network / WhatsApp / Otros:** Marginal ($300 ARS).
+* **Confirmación Técnica:** Se confirma que desde el 20 de octubre el 100% del gasto nuevo se concentró en Instagram Reels, logrando un CPC real en Instagram de $71,88 ARS.
+
+---
+
+#### 4. Mapeo y Diagnóstico Preciso del Embudo de Conversión:
+
+```
+[1.290 Clics en Meta Ads] (100%)
+         │
+         ▼  (22,17% de llegada a la tienda)
+[ 286 Visitantes en Ficha Google Play ]
+         │
+         ▼  (2,80% de tasa de conversión CVR)
+[   8 Instalaciones Reales Confirmadas ]
+```
+
+* **Métricas Unitarias Derivadas:**
+  * **Costo por Clic Saliente (Meta):** $50,96 ARS
+  * **Costo por Visitante Calificado de Tienda (CPV):** **$229,83 ARS** ($65.732 / 286 visitantes)
+  * **Costo por Instalación Efectiva (CPI):** **$8.216,52 ARS** ($65.732 / 8 instalaciones)
+
+* **Diagnóstico de los Dos Tramos:**
+  1. **Tramo 1 (Meta Ads $\rightarrow$ Play Store: 22,2% de llegada):** De cada 5 personas que hicieron clic en Instagram, solo 1 esperó y abrió efectivamente la ficha de Google Play. El resto abandonó por curiosidad superficial, lentitud de conexión o desestimiento ante el cambio de app. Este es el comportamiento típico del **Objetivo Tráfico** de Meta (premia a usuarios que hacen clics compulsivos pero sin intención de compra/descarga).
+  2. **Tramo 2 (Ficha de Play Store $\rightarrow$ Instalación: 2,80% CVR):** Casi un 3% de los visitantes que leyeron la ficha decidieron instalar Estoy Ok. Este porcentaje se encuentra dentro del rango de mercado para apps utilitarias nuevas sin marca establecida (2% a 5%), confirmando que la ficha y las capturas ASO cumplen su función básica.
+
+---
+
+#### 5. Plan de Acción y Próximos Pasos (Hoja de Ruta Recomendada):
+
+1. **Pausar o Reducir al Mínimo la Campaña Actual de Tráfico:**
+   * La campaña ya cumplió su ciclo de validación de creativos (el Reel 2 es un éxito probado).
+   * Mantener el objetivo Tráfico con un CPI de ~$8.200 ARS resulta financieramente ineficiente para adquisición escalable. Se recomienda pausarla o dejarla en presupuesto testimonial para frenar el desgaste de dinero.
+2. **Priorizar la Activación con la Versión 17 (1.1.0):**
+   * Aprovechar que la v17 recién lanzada cuenta con el **Checklist Interactivo de Primeros Pasos** (`SecurityChecklistCard.kt`) y estados vacíos formativos para maximizar que los usuarios ya instalados (y los que lleguen orgánicamente) configuren su primer check-in diario, contacto y zona segura.
+3. **Evolución de Pauta Publicitaria (Siguiente Fase):**
+   * **Opción A (Recomendada):** Configurar una campaña con **Objetivo "Promoción de la aplicación" (App Installs)** directamente vinculada a Google Play Store, para que el algoritmo de Meta optimice la entrega hacia personas con historial de instalar apps y no solo hacer clic.
+   * **Opción B (Comunidad / Lead):** Probar campañas hacia WhatsApp o Landing web enfocadas en resolver el dolor de familias con personas mayores que viven solas.
+4. **Fomentar Reseñas y Prueba Social en Google Play:**
+   * Continuar sumando reseñas de 5 estrellas de confianza para que la tasa de conversión en la ficha (CVR) suba del 2,8% actual hacia un 6% - 8%.
+
+---
+
+### 📅 Hito 6: Transición a Campaña de "Promoción de la App" (App Installs) — Martes 3 de Noviembre de 2026 (Tarde)
+
+Tras concluir la auditoría del Hito 5, se ejecutó el cambio estructural en la estrategia publicitaria de Meta Ads:
+
+1. **Pausa Definitiva de Campaña de Tráfico:**
+   * Apagada la campaña histórica de Tráfico (16 oct - 3 nov) para detener el gasto ineficiente por clics vacíos.
+2. **Registro Oficial de la App en Meta for Developers:**
+   * Se creó la app oficial de Estoy Ok en Meta Developers con **App ID `1105219368949683`**.
+   * Se configuró la plataforma Android vinculando el package `com.estoyok.app` y la plataforma Web (`https://estoyok24.com`), asociando las políticas de privacidad y eliminación de datos en `https://estoyok24.com/politica-de-privacidad`.
+   * Se cambió el estado de la app en Developers de *Desarrollo* a **En vivo (Active)**.
+3. **Lanzamiento de Nueva Campaña de "Promoción de la App" (App Installs Nativo):**
+   * **Objetivo de Campaña:** *Promoción de la aplicación (App Promotion)*.
+   * **Objetivo de Rendimiento:** *Maximizar el número de instalaciones de la app*.
+   * **Vinculación Oficial:** Seleccionada la app mediante su App ID `1105219368949683` vinculada a Google Play, resolviendo los errores `#1487678` y `#1815437` de `promoted_object.application_id`.
+   * **Presupuesto:** Advantage+ CBO a nivel Campaña en **$4.000 ARS diarios**.
+   * **Segmentación:** Argentina, 28 a 54 años, Solo dispositivos Android (8.0+).
+   * **Creativos Activos (Dúo Competitivo A/B):**
+     1. **Reel 2 (Vivir Solo / Bienestar Diario):** Creativo líder con llamado a la acción "Instalar" y copy enfocado en tranquilidad personal y reporte diario.
+     2. **Reel 1 (Padres Auto):** Creativo complementario enfocado en padres de familia, eliminación del estrés del "¿Llegaste?" y alertas automáticas de zonas seguras.
+
+---
+
+### 📅 Hito 7: Auditoría de 48h de Campaña "App Installs", Corrección de Ubicaciones y Desplome de CPI — Jueves 5 de Noviembre de 2026
+
+A las 48 horas de activa la nueva campaña con objetivo *Promoción de la App*, se analizó la captura oficial de Meta Ads Manager (`desglose05.png`) y se cruzó con la base de datos de producción:
+
+#### 1. Rendimiento Cuantitativo (3 al 5 de Noviembre):
+* **Inversión Total en el período:** **$9.313,51 ARS**.
+* **Impresiones Totales:** **2.579 impresiones**.
+* **Alcance:** **1.944 personas**.
+* **Distribución de Presupuesto por Creativo:**
+  * **Reel 2 (Vivir Solo):** **$8.105,81 ARS (87,0%)** con 2.161 impresiones. Se consolida una vez más como el anuncio favorito de la audiencia y del algoritmo.
+  * **Reel 1 (Padres Auto):** **$272,53 ARS (2,9%)** con 85 impresiones.
+  * **Residual Anuncio previo:** $91,04 ARS.
+
+#### 2. Diagnóstico de Fuga Detectada y Corrección Inmediata:
+* **Fuga de Ubicaciones Advantage+:** Al crearse la nueva campaña, Meta volvió a setear por defecto *Ubicaciones Advantage+ (automáticas)*.
+* Del gasto del Reel 2 ($8.105,81 ARS):
+  * **Instagram:** $3.186,77 ARS (39,3%)
+  * **Facebook:** $2.729,12 ARS (33,7%)
+  * **Audience Network:** $2.189,92 ARS (27,0%)
+* **Acción Inmediata (05/11/2026):** Se editó el Conjunto de Anuncios, pasando a **Ubicaciones Manuales** y desmarcando Facebook y Audience Network para dejar **100% exclusivo Instagram**.
+
+#### 3. Impacto en Producción y Desplome del Costo por Instalación (CPI):
+* **Registros de Usuarios Reales:** Pasaron de **21 a 32 usuarios (+11 nuevos usuarios verificados)** con token FCM nativo (ej. Agustín Rodríguez #45, Liz Lonné #46, Tomas Delvechio #47, Mary Lucas #48, Susana #50, Stella Garcia #51, Osvaldo Rueda #52, Cristina Zarate #53, Anna AM #54, Gabriela Morelli #55).
+* **Dispositivos Android Únicos:** Pasaron de **68 a 82 dispositivos (+14 instalaciones activas)**.
+* **Usuarios con Check-in Activo:** Múltiples usuarios nuevos (Tomas Delvechio #47, Osvaldo Rueda #52, Cristina Zarate #53) ya están realizando check-ins manuales diarios.
+* **Cálculo de CPI Real:**
+  * **Campaña 1 (Tráfico):** $8.216,52 ARS por instalación.
+  * **Campaña 2 (Promoción App):** **~$665 a $846 ARS por instalación/usuario**.
+  * **Resultado:** Reducción de más de **9x en el costo de adquisición**, incluso con el 60% del presupuesto fugado en Facebook/Audience Network. Con el 100% enfocado en Instagram, la eficiencia crecerá sustancialmente.
+
+---
+
+### 📅 Hito 8: Auditoría de los 6 Días de "App Installs", Conversión en Play Store al 9,43% y Diagnóstico de Resultados Vacíos — Lunes 9 de Noviembre de 2026
+
+Al cumplirse 6 días de la campaña con objetivo *Promoción de la App*, se realizó el cruce entre la captura oficial de Meta Ads Manager ([`docs/desglose09.png`](file:///home/nicolas/aplicaciones/estoyok/docs/desglose09.png)), el informe de Google Play Console ([`docs/analisisficha_play09.png`](file:///home/nicolas/aplicaciones/estoyok/docs/analisisficha_play09.png)) y la telemetría en tiempo real de la base de datos de producción:
+
+#### 1. Rendimiento Cuantitativo Acumulado (3 al 9 de Noviembre):
+* **Inversión Total Acumulada:** **$24.623,91 ARS**.
+* **Impresiones Totales:** **7.180 impresiones**.
+* **Alcance:** **5.819 personas**.
+* **Desglose de Gasto por Creativo y Plataforma:**
+  * **Reel 1 (Padres Auto):** **$14.875,00 ARS (60,4%)** | 4.490 impresiones | 3.819 personas.
+    * *Instagram:* $13.525,64 ARS (90,9% del gasto de este anuncio).
+    * *Audience Network:* $999,75 ARS (6,7%).
+    * *Facebook:* $349,56 ARS (2,3%).
+  * **Reel 2 (Vivir Solo):** **$8.813,74 ARS (35,8%)** | 2.357 impresiones | 1.695 personas.
+    * *Instagram:* $3.846,95 ARS (43,6%).
+    * *Facebook (previo al 05/11):* $2.768,00 ARS.
+    * *Audience Network (previo al 05/11):* $2.198,79 ARS.
+* **Diagnóstico de Distribución:** El Reel 1 absorbió el 90% del presupuesto durante el fin de semana del 5 al 9 de nov debido a que el algoritmo CBO de Meta, al no tener medición de instalaciones in-app, optimizó por impresiones y clics más baratos en Instagram.
+
+#### 2. Validación de Embudo en Google Play Store:
+* **Impresiones de Ficha:** 469 visitas en la ficha de Play Store en los últimos 7 días (+66,31% de crecimiento).
+* **Adquisiciones en Dispositivos:** **32 descargas registradas en Google Play Store**.
+* **Tasa de Conversión de la Ficha (CVR):** **9,43%** (vs 2,80% en la campaña de Tráfico previa). Esto valida que el ASO y los nuevos screenshots con el botón "Estoy OK" multiplicaron por más de 3x la efectividad en tienda.
+* **Costo por Descarga Real (CPI Tienda):**
+  $$\text{CPI} = \frac{\$24.623,91}{32} = \mathbf{\$769,50 \text{ ARS}}$$
+* **Costo por Usuario Registrado (CAC Base de Datos):**
+  * La base de datos subió de 21 a **38 usuarios verificados (+17 altas reales)**.
+  $$\text{CAC} = \frac{\$24.623,91}{17} = \mathbf{\$1.448,46 \text{ ARS}}$$
+
+#### 3. Hallazgo Técnico y Solución: Columna "Resultados" Vacía en Meta:
+* **Causa Raíz:** Meta Ads no recibía los eventos de descarga porque Google Play no los notifica externamente. Al no existir un SDK dentro de la app que leyera el `InstallReferrer`, Meta mantenía en 0 la columna de Resultados y el algoritmo operaba a ciegas.
+* **Solución Implementada (Versión 18 - 1.1.1):**
+  * Integrado el SDK oficial `com.facebook.android:facebook-core:18.0.2` y `com.android.installreferrer:installreferrer:2.2`.
+  * Configurados App ID `1105219368949683` y Client Token `6ff163df453e5b9752fae6918bece5c5` con auto-log de instalaciones de forma no bloqueante en `EstoyOkApplication.kt`.
+  * Generado y firmado el bundle `app-release.aab` (v18 - 1.1.1) y enviado a revisión en Google Play Console el 09/11/2026.
+  * Desplegado en GitHub y Railway en ramas `dev` y `main`.
+
+---
+
 ## 🔍 PARTE 3: Protocolo Paso a Paso para Auditar la Campaña en Próximas Sesiones
 
 Cada vez que revisemos la campaña (a las 24h, 48h o fin de semana), seguir este orden:
