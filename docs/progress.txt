@@ -1,5 +1,17 @@
 # Progress Log
 
+## [2026-11-09] Lanzamiento de Versión 19 (1.1.2) - Banners de Conversión y Fix Creación de Zonas Seguras
+- **Banners Inteligentes de Suscripción Premium:**
+  - Creado `TrialPromoComponents.kt` con `MapTrialOfferChip` (chip superior en Mapa con padding inteligente de 160 dp con cartel de núcleo o 68 dp estándar) y `GoldTrialPromoCard` (tarjeta dorada en tope de PanelScreen "Above the Fold").
+  - Adaptación contextual: muestra "7 Días de Regalo (GRATIS)" para usuarios sin prueba previa, o "Activá Estoy Ok Premium" para quienes ya la utilizaron, y se oculta ante suscripciones activas. Apertura directa de Google Play Billing 8.0.
+- **Resolución de Zona Segura sin Núcleo:**
+  - Evitada la falla silenciosa al crear geocercas cuando `selectedCircle == null`: agregado diálogo interactivo con icono de escudo *"Para crear una Zona Segura, primero necesitas tener un Núcleo. ¿Deseas crear tu Núcleo ahora?"* y botón directo hacia `Screen.Familia.route`.
+- **Selector de Límite de Velocidad en Núcleo:**
+  - Sustituido el `FilterChip` por pastillas táctiles en `FamiliaScreen.kt` con `softWrap = false`, garantizando que velocidades de 3 dígitos (ej. 100, 110, 120, 140) nunca hagan salto de línea en teléfonos de 720p.
+- **Compilación de Producción:**
+  - Actualizado `versionCode = 19` y `versionName = "1.1.2"` en `build.gradle.kts` y `AjustesScreen.kt`.
+  - Generado y firmado el bundle `app-release.aab` (22 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+
 ## [2026-11-09] Integración de Meta App Events y Google Play Install Referrer (Versión 18 - 1.1.1)
 - **Diagnóstico en Meta Ads Manager:**
   - Al auditar la campaña activa de *Promoción de la App*, se constató que la columna *"Resultados"* (Instalaciones de la app) figuraba vacía a pesar de registrarse nuevas altas en la base de datos de producción (38 usuarios totales, +6 altas entre el 5 y el 9 de noviembre).

@@ -1309,13 +1309,16 @@ fun MapaScreen(
         // Chip sutil de oferta de 7 Días Gratis (visible solo para usuarios sin suscripción activa)
         val isUserPremium = viewModel.currentUserProfile?.isPremium == true || viewModel.currentUserProfile?.hasPremiumAccess == true
         val hasUsedTrial = viewModel.currentUserProfile?.hasUsedTrial == true
+        val hasNoCirclesBanner = viewModel.circles.isEmpty() && viewModel.currentUserProfile != null
+        val trialChipTopPadding = if (hasNoCirclesBanner) 160.dp else 68.dp
+
         MapTrialOfferChip(
             visible = !isUserPremium,
             hasUsedTrial = hasUsedTrial,
             onClick = { showTrialPaywallDialog = true },
             modifier = Modifier
                 .align(Alignment.TopCenter)
-                .padding(top = 70.dp)
+                .padding(top = trialChipTopPadding)
         )
 
         if (isCircleDropdownExpanded) {

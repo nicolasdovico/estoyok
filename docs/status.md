@@ -1,8 +1,16 @@
 # Project Status
 
-## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.1 (v18 - Atribución de Meta Ads)
+## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.2 (v19 - Banners de Suscripción y Fix Núcleo)
 
 ### Completed Phases:
+- [x] **Lanzamiento de Versión 19 (1.1.2) - Banners de Conversión Premium y Diálogo de Núcleo Requerido (09/11/2026):**
+  - **Banners Inteligentes de Suscripción Premium:**
+    - *En el Mapa (`MapaScreen.kt`):* Chip flotante dorado superior (`MapTrialOfferChip`) adaptativo: se posiciona debajo del aviso de núcleos (160 dp) o a 68 dp si ya existe un núcleo activo.
+    - *En el Panel ("Estoy OK" - `PanelScreen.kt`):* Tarjeta dorada (`GoldTrialPromoCard`) ubicada en el tope de la pantalla ("Above the Fold") para máxima visibilidad sin requerir scroll.
+    - *Comportamiento Dinámico:* Si el usuario nunca usó la prueba muestra *"Tenés 7 Días de Regalo (GRATIS)"*; si ya usó y canceló la prueba muestra *"Activá Estoy Ok Premium"*; y si tiene suscripción activa se oculta automáticamente. Al tocarlo abre directamente Google Play Billing.
+  - **Corrección de Creación de Zona Segura sin Núcleo:** Detección de `selectedCircle == null` al presionar prolongadamente el mapa, mostrando diálogo guiado (*"Para crear una Zona Segura, primero necesitas tener un Núcleo. ¿Deseas crear tu Núcleo ahora?"*) con botón directo a la creación de núcleos familiares.
+  - **Selector de Velocidad Prolijo en Núcleo:** Rediseñado el componente de límite de velocidad en `FamiliaScreen.kt` con pastillas táctiles y `softWrap = false`, evitando el salto de línea del 3er dígito en pantallas de 720p.
+  - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 19`, `versionName = "1.1.2"`).
 - [x] **Integración de Meta App Events & Google Play Install Referrer (Versión 18 - 1.1.1):**
   - **Resolución de Atribución en Meta Ads:** Identificada la causa de la columna *"Resultados"* vacía en Meta Ads Manager. Integradas las bibliotecas oficiales `com.android.installreferrer:installreferrer:2.2` y `com.facebook.android:facebook-core:18.0.2` de forma limpia y desacoplada sin componentes intrusivos de UI ni login con Facebook.
   - **Configuración en Manifest y Recursos:** Configurados `com.facebook.sdk.ApplicationId` (`1105219368949683`), `com.facebook.sdk.ClientToken` (`6ff163df453e5b9752fae6918bece5c5`) y flags de auto-registro en [`strings.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/res/values/strings.xml) y [`AndroidManifest.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).

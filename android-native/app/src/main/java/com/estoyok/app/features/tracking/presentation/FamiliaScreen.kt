@@ -375,32 +375,40 @@ fun FamiliaScreen(
                             Spacer(modifier = Modifier.height(8.dp))
                             Row(
                                 modifier = Modifier.fillMaxWidth(),
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 speedOptions.forEach { option ->
                                     val isSelected = option == currentLimit
-                                    FilterChip(
-                                        selected = isSelected,
-                                        onClick = {
-                                            if (!isSelected && !viewModel.isActionInProgress) {
+                                    Surface(
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .clickable(enabled = !isSelected && !viewModel.isActionInProgress) {
                                                 viewModel.updateSpeedLimit(activeCircle.id, option)
-                                            }
-                                        },
-                                        label = {
+                                            },
+                                        shape = RoundedCornerShape(8.dp),
+                                        color = if (isSelected) PrimaryRed else DarkSurfaceVariant.copy(alpha = 0.6f),
+                                        border = BorderStroke(
+                                            1.dp,
+                                            if (isSelected) PrimaryRed else BorderColor.copy(alpha = 0.5f)
+                                        )
+                                    ) {
+                                        Box(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(vertical = 8.dp, horizontal = 2.dp),
+                                            contentAlignment = Alignment.Center
+                                        ) {
                                             Text(
                                                 text = "$option",
-                                                fontSize = 10.sp,
-                                                fontWeight = if (isSelected) FontWeight.ExtraBold else FontWeight.Medium
+                                                fontSize = 11.sp,
+                                                fontWeight = if (isSelected) FontWeight.Black else FontWeight.Bold,
+                                                color = if (isSelected) TextOnPrimary else TextMuted,
+                                                maxLines = 1,
+                                                softWrap = false,
+                                                textAlign = TextAlign.Center
                                             )
-                                        },
-                                        colors = FilterChipDefaults.filterChipColors(
-                                            selectedContainerColor = PrimaryRed,
-                                            selectedLabelColor = TextOnPrimary,
-                                            containerColor = DarkSurfaceVariant.copy(alpha = 0.6f),
-                                            labelColor = TextMuted
-                                        ),
-                                        modifier = Modifier.weight(1f)
-                                    )
+                                        }
+                                    }
                                 }
                             }
                         }
