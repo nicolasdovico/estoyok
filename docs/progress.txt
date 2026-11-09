@@ -1,5 +1,58 @@
 # Progress Log
 
+## [2026-11-09] Integración de Meta App Events y Google Play Install Referrer (Versión 18 - 1.1.1)
+- **Diagnóstico en Meta Ads Manager:**
+  - Al auditar la campaña activa de *Promoción de la App*, se constató que la columna *"Resultados"* (Instalaciones de la app) figuraba vacía a pesar de registrarse nuevas altas en la base de datos de producción (38 usuarios totales, +6 altas entre el 5 y el 9 de noviembre).
+  - Causa: Google Play Store no notifica por sí sola a Meta cuando alguien instala una app. Sin un SDK o receptor de `InstallReferrer`, Meta Ads no podía atribuir las conversiones a los anuncios ni alimentar el algoritmo de optimización de entrega.
+- **Implementación (Android Nativo):**
+  - Incorporadas las dependencias oficiales `com.android.installreferrer:installreferrer:2.2` y `com.facebook.android:facebook-core:18.0.2` en [`build.gradle.kts`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/build.gradle.kts).
+  - Añadido el `facebook_app_id` (`1105219368949683`) y el `facebook_client_token` (`6ff163df453e5b9752fae6918bece5c5`) en [`strings.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/res/values/strings.xml) y vinculados en [`AndroidManifest.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml) con activación de `AutoLogAppEventsEnabled` y `AdvertiserIDCollectionEnabled`.
+  - Inicialización no bloqueante y encapsulada en [`EstoyOkApplication.kt`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/EstoyOkApplication.kt) con `FacebookSdk.fullyInitialize()` y `AppEventsLogger.activateApp(this)`.
+  - Actualizada la versión a `versionCode = 18` y `versionName = "1.1.1"` en [`build.gradle.kts`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/build.gradle.kts) y [`AjustesScreen.kt`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/java/com/estoyok/app/features/wellbeing/presentation/AjustesScreen.kt).
+- **Compilación y Garantía de Calidad:**
+  - Generado y firmado exitosamente el bundle de producción final `app-release.aab` (22 MB) en `android-native/app/build/outputs/bundle/release/app-release.aab`.
+  - Suite de 199 tests de backend pasando al 100% (658 aserciones en verde).
+
+## [2026-11-05] Auditoría de 48h de Campaña "App Installs", Corrección de Ubicaciones y Desplome de CPI (Hito 7)
+- **Diagnóstico y Métricas Acumuladas (3 al 5 de Noviembre - $9.313,51 ARS Invertidos):**
+  - **Entrega Total:** 2.579 impresiones y 1.944 personas alcanzadas.
+  - **Distribución por Creativo:** El **Reel 2 (Vivir Solo)** absorbió el 87,0% ($8.105,81 ARS), confirmando preferencia total del público y algoritmo frente al Reel 1 ($272,53 ARS).
+  - **Hallazgo Crítico y Corrección de Ubicaciones:** Meta reseteó por defecto el Conjunto de Anuncios a *Ubicaciones Advantage+*, fugando el 60,7% del presupuesto a Facebook ($2.729 ARS) y Audience Network ($2.189 ARS), con solo $3.186 ARS (39,3%) entrando en Instagram. Se editó inmediatamente el Addset forzando **Ubicaciones Manuales con 100% exclusivo Instagram**.
+- **Impacto Real en Producción y Reducción del Costo por Instalación (CPI):**
+  - Los usuarios reales registrados en producción subieron de 21 a **32 usuarios (+11 nuevos usuarios verificados)** con tokens FCM nativos (User #45 a #55).
+  - Los dispositivos Android únicos subieron de 68 a **82 dispositivos (+14 instalaciones reales)**.
+  - Varios usuarios nuevos ya están activos confirmando su bienestar diario con check-ins manuales (Tomas Delvechio #47, Osvaldo Rueda #52, Cristina Zarate #53).
+  - **Cálculo de CPI:** El Costo por Instalación real bajó de **$8.216 ARS** (campaña previa de Tráfico) a **~$665 - $846 ARS** por usuario instalado en esta nueva campaña (reducción de más de 9x en costo de adquisición).
+  - Al concentrar ahora el 100% de la inversión diaria en Instagram, se proyecta una aceleración aún mayor de nuevas altas.
+  - Documentada la bitácora completa en [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md) y [`docs/status.md`](file:///home/nicolas/aplicaciones/estoyok/docs/status.md).
+
+## [2026-11-03] Auditoría Completa de Meta Ads (17 Días), Análisis de Embudo Google Play y Plan Estratégico (Hito 5)
+- **Métricas Acumuladas de Campaña (16 oct al 3 nov 2026 - $65.732,22 ARS Invertidos):**
+  - **Entrega Total:** 30.597 impresiones, 24.504 personas alcanzadas y 1.290 clics en el enlace a un CPC promedio de $50,96 ARS.
+  - **Desempeño por Creativo:**
+    - *Reel 2 (Vivir Solo / Bienestar):* Campeón indiscutido, acaparando el 68,5% del presupuesto ($45.056 ARS) con 804 clics a $56,04 ARS de CPC.
+    - *Reel 1 (Padres Auto):* 409 clics a $41,80 ARS (clic más económico) con $17.094 ARS.
+    - *Reel 3 (SOS y Choques):* 77 clics a $46,51 ARS con $3.581 ARS.
+  - **Desglose de Plataforma:** 100% de la nueva inversión concentrada en Instagram Reels (CPC real en Instagram: $71,88 ARS).
+- **Mapeo Completo del Embudo de Conversión (Meta $\rightarrow$ Google Play Store):**
+  - Clics en el enlace (Meta Ads): **1.290** (100%).
+  - Visitantes reales de la ficha (Google Play Console): **286** (22,17% de llegada a la tienda; 1 de cada 5 clics). Costo por Visitante (CPV): **$229,83 ARS**.
+  - Instalaciones reales registradas: **8** (2,80% de tasa de conversión CVR en tienda). Costo por Instalación (CPI): **$8.216,52 ARS**.
+- **Diagnóstico y Hoja de Ruta Inmediata:**
+  - El objetivo "Tráfico" atrajo un excelente volumen de clics baratos pero de baja intención de instalación efectiva.
+  - Se recomienda pausar o reducir a gasto testimonial la campaña actual de Tráfico.
+  - Foco inmediato en activar a los usuarios existentes mediante el nuevo Checklist de Primeros Pasos de la Versión 17 (1.1.0).
+  - Próximo paso publicitario: evaluar campaña orientada directamente a **Promoción de la Aplicación (App Installs)** o captación comunitaria/WhatsApp.
+  - Actualizados en profundidad [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md) y [`docs/status.md`](file:///home/nicolas/aplicaciones/estoyok/docs/status.md).
+- **Ejecución de la Transición a Campaña "Promoción de la App" (Hito 6):**
+  - Pausada definitivamente la campaña previa de Tráfico.
+  - Creada y verificada la App oficial en Meta for Developers (App ID: `1105219368949683`) con package `com.estoyok.app` y estado **En vivo**.
+  - Creada y publicada la nueva campaña con objetivo **Promoción de la aplicación** (App Promotion) con rendimiento configurado en **"Maximizar el número de instalaciones de la app"** (`promoted_object.application_id` enlazado nativamente).
+  - Presupuesto CBO Advantage+ en $4.000 ARS/día, segmentación Argentina (28-54 años), solo Android (8.0+), 100% exclusivo Instagram.
+  - Publicados los dos anuncios complementarios en competencia A/B: **Reel 2 (Vivir Solo)** y **Reel 1 (Padres Auto)** con botón nativo "Instalar".
+  - Estado: *Procesando / En revisión*.
+  - Documentada la bitácora completa en [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md).
+
 ## [2026-10-29] Implementación Completa de la Versión 17 (1.1.0) - Activación Temprana, In-App Updates y Credential Manager
 - **Checklist Interactivo de Primeros Pasos (`SecurityChecklistCard.kt`):**
   - Implementada tarjeta interactiva en el panel principal (`PanelScreen.kt`) con barra de progreso lineal (0% a 100%) y navegación con cero fricción a las 3 misiones clave:

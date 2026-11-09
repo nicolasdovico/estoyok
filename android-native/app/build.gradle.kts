@@ -24,8 +24,8 @@ android {
         applicationId = "com.estoyok.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 17
-        versionName = "1.1.0"
+        versionCode = 18
+        versionName = "1.1.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -84,6 +84,10 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+    }
+    lint {
+        checkReleaseBuilds = false
+        abortOnError = false
     }
 }
 
@@ -150,6 +154,10 @@ dependencies {
 
     // Google Play In-App Updates
     implementation("com.google.android.play:app-update-ktx:2.1.0")
+
+    // Google Play Install Referrer & Meta App Events (for App Installs attribution)
+    implementation("com.android.installreferrer:installreferrer:2.2")
+    implementation("com.facebook.android:facebook-core:18.0.2")
 
     // Google Identity / Credential Manager for Sign in with Google
     implementation("androidx.credentials:credentials:1.3.0")

@@ -9,6 +9,8 @@ import androidx.work.WorkManager
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.hilt.work.HiltWorkerFactory
 import com.estoyok.app.services.LocationSyncWorker
+import com.facebook.FacebookSdk
+import com.facebook.appevents.AppEventsLogger
 import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 import javax.inject.Inject
@@ -26,7 +28,18 @@ class EstoyOkApplication : Application(), Configuration.Provider {
 
     override fun onCreate() {
         super.onCreate()
+        initMetaAppEvents()
         scheduleLocationSync()
+    }
+
+    private fun initMetaAppEvents() {
+        try {
+            FacebookSdk.setAutoInitEnabled(true)
+            FacebookSdk.fullyInitialize()
+            AppEventsLogger.activateApp(this)
+        } catch (e: Exception) {
+            // Non-blocking fail-safe
+        }
     }
 
     private fun scheduleLocationSync() {

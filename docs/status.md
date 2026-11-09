@@ -1,8 +1,26 @@
 # Project Status
 
-## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.0 (v17)
+## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.1 (v18 - Atribución de Meta Ads)
 
 ### Completed Phases:
+- [x] **Integración de Meta App Events & Google Play Install Referrer (Versión 18 - 1.1.1):**
+  - **Resolución de Atribución en Meta Ads:** Identificada la causa de la columna *"Resultados"* vacía en Meta Ads Manager. Integradas las bibliotecas oficiales `com.android.installreferrer:installreferrer:2.2` y `com.facebook.android:facebook-core:18.0.2` de forma limpia y desacoplada sin componentes intrusivos de UI ni login con Facebook.
+  - **Configuración en Manifest y Recursos:** Configurados `com.facebook.sdk.ApplicationId` (`1105219368949683`), `com.facebook.sdk.ClientToken` (`6ff163df453e5b9752fae6918bece5c5`) y flags de auto-registro en [`strings.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/res/values/strings.xml) y [`AndroidManifest.xml`](file:///home/nicolas/aplicaciones/estoyok/android-native/app/src/main/AndroidManifest.xml).
+  - **Inicialización No Bloqueante:** Inicialización en `EstoyOkApplication.kt` con `FacebookSdk.fullyInitialize()` y activación de eventos (`AppEventsLogger.activateApp`), permitiendo a Meta registrar el evento nativo de instalación (`fb_mobile_activate_app`) y optimizar el algoritmo de entrega.
+  - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 18`, `versionName = "1.1.1"`).
+  - **Garantía de No Regresión:** 199 tests de backend pasando al 100% (658 aserciones) y compilación exitosa (`BUILD SUCCESSFUL`).
+- [x] **Auditoría de 48h de Campaña "App Installs" y Desplome de CPI a ~$665 ARS (Hito 7 - 05/11/2026):**
+  - **Inversión y Métricas:** $9.313,51 ARS invertidos en 48 hs con 2.579 impresiones y 1.944 personas alcanzadas. Reel 2 absorbió el 87% del presupuesto ($8.105,81 ARS).
+  - **Corrección de Ubicaciones Advantage+:** Detectada y subsanada la fuga del 60,7% hacia Facebook ($2.729 ARS) y Audience Network ($2.189 ARS), forzando nuevamente **Ubicaciones Manuales 100% Instagram**.
+  - **Explosión de Crecimiento en Producción:** Usuarios aumentaron de 21 a **32 usuarios (+11 nuevos registros)** y dispositivos de 68 a **82 (+14 nuevas instalaciones)**. Usuarios activos usando el check-in (Tomas #47, Osvaldo #52, Cristina #53).
+  - **Reducción de CPI:** El costo por instalación cayó de **$8.216 ARS** (en tráfico) a **~$665 - $846 ARS**, mejorando más de 9 veces la eficiencia de inversión.
+- [x] **Auditoría Integral de Campaña Meta Ads & Embudo Google Play (Hito 5 - 03/11/2026):**
+  - **Inversión y Métricas:** $65.732,22 ARS invertidos con 1.290 clics en el enlace (CPC promedio $50,96 ARS, 30.597 impresiones y 24.504 personas alcanzadas).
+  - **Reel 2 (Vivir Solo / Bienestar) Consolidado:** 804 clics generados ($45.056 ARS, 68,5% del presupuesto) confirmándose como el creativo preferido del público y del algoritmo.
+  - **Mapeo de Embudo de Conversión Real:** 1.290 clics salientes $\rightarrow$ 286 visitantes de la ficha en Play Console (22,17% de llegada, CPV $229,83 ARS) $\rightarrow$ 8 instalaciones reales (2,80% CVR de ficha, CPI $8.216,52 ARS).
+  - **Diagnóstico y Plan de Acción:** El objetivo Tráfico demostró alta efectividad de atracción pero baja intención de descarga. Se acordó pausar/reducir la campaña de Tráfico para frenar el gasto ineficiente, focalizarse en la activación de usuarios con la Versión 17 (Checklist de Primeros Pasos) y preparar una campaña con objetivo específico de *Promoción de la Aplicación (App Installs)*.
+  - **Lanzamiento de Nueva Campaña de "Promoción de la App" (Hito 6 - 03/11/2026):** Pausada la campaña de Tráfico y publicada la nueva campaña con objetivo *App Installs* vinculada a Google Play (`com.estoyok.app`), 100% Instagram Reels, solo Android, $4.000 ARS/día y creativo líder Reel 2 con CTA "Instalar".
+  - Documentada la bitácora completa en [`docs/manual_y_bitacora_campanas_publicitarias.md`](file:///home/nicolas/aplicaciones/estoyok/docs/manual_y_bitacora_campanas_publicitarias.md) y [`docs/progress.txt`](file:///home/nicolas/aplicaciones/estoyok/docs/progress.txt).
 - [x] **FASE 9: Lanzamiento de Versión 17 (1.1.0) - Activación Temprana, Google Play In-App Updates y Credential Manager:**
   - **Checklist Interactivo de Primeros Pasos (`SecurityChecklistCard.kt`):** Implementada en el panel principal (`PanelScreen`) con barra de progreso fluida (0% a 100%) y navegación con cero fricción a las 3 misiones clave:
     1. Confirmar bienestar diario (disparo directo).
