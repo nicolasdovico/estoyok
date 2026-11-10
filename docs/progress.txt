@@ -1,5 +1,31 @@
 # Progress Log
 
+## [2026-11-10] Aprobación de Versión 20 (1.1.2) en Google Play y Campaña de Activación por Email de Prueba Gratuita
+- **Publicación Exitosa en Producción (Google Play Store):**
+  - Versión 20 (`versionCode = 20`, `versionName = "1.1.2"`) aprobada por Google Play e implementada en vivo en 178 países.
+  - Resuelto el bloqueo de política declarando formalmente el permiso `com.google.android.gms.permission.AD_ID` para atribución y estadísticas de marketing (SDK de Meta y Google Play Install Referrer).
+- **Campaña de Rescate y Activación por Correo Transaccional (Resend):**
+  - Creado mailable responsive `WelcomeTrialOfferMail.php` con modo oscuro, logo oficial de Estoy OK y enlaces directos a Google Play (`https://estoyok24.com/descargar`).
+  - Énfasis pedagógico en el valor de las alertas automáticas de WhatsApp al cargar familiares y personas de confianza como *contactos de emergencia*.
+  - Despachado por lote exitoso al 100% (15/15) a través de la API de Resend en producción hacia los usuarios recientes:
+    1. #57 José Saavedra (`josemariosaavedramolina680@gmail.com`) - 10/11/2026 19:55:24 UTC
+    2. #58 Eluney (`kamala63@gmail.com`) - 10/11/2026 19:55:24 UTC
+    3. #59 Mirtha Gomez (`mirthabiasizzo07@gmail.com`) - 10/11/2026 19:55:24 UTC
+    4. #60 Renforth Tallo (`renforthtallo@gmail.com`) - 10/11/2026 19:55:25 UTC
+    5. #61 Diego Gloazzo (`dgloazzo@gmail.com`) - 10/11/2026 19:55:25 UTC
+    6. #62 Tommy Watkins (`tommywatkins.23667@gmail.com`) - 10/11/2026 19:55:26 UTC
+    7. #63 Cristina Robbins (`cristinarobbins.01265@gmail.com`) - 10/11/2026 19:55:26 UTC
+    8. #64 Eunice Weber (`euniceweber.68625@gmail.com`) - 10/11/2026 19:55:27 UTC
+    9. #65 Travis Sutton (`travissutton.50509@gmail.com`) - 10/11/2026 19:55:27 UTC
+    10. #66 José Antonio Aravena (`pepe1912@live.com.ar`) - 10/11/2026 19:55:27 UTC
+    11. #67 Marisa Carner (`carnermarisa@gmail.com`) - 10/11/2026 19:55:28 UTC
+    12. #68 Choni celular (`chonicelular@gmail.com`) - 10/11/2026 19:55:28 UTC
+    13. #69 Nancy Fernanda Garabito (`nancyfernandagarabito@gmail.com`) - 10/11/2026 19:55:29 UTC
+    14. #70 Silvia Monica Gargiulo (`smg509@gmail.com`) - 10/11/2026 19:55:29 UTC
+    15. #71 Patricia Szlaien (`pszlaien@gmail.com`) - 10/11/2026 19:55:30 UTC
+  - Fallos: 0 (100% de tasa de entrega).
+
+
 ## [2026-11-09] Lanzamiento de Versión 19 (1.1.2) - Banners de Conversión y Fix Creación de Zonas Seguras
 - **Banners Inteligentes de Suscripción Premium:**
   - Creado `TrialPromoComponents.kt` con `MapTrialOfferChip` (chip superior en Mapa con padding inteligente de 160 dp con cartel de núcleo o 68 dp estándar) y `GoldTrialPromoCard` (tarjeta dorada en tope de PanelScreen "Above the Fold").
