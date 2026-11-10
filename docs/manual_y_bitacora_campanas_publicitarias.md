@@ -349,7 +349,7 @@ Al cumplirse 6 días de la campaña con objetivo *Promoción de la App*, se real
 * **Causa Raíz:** Meta Ads no recibía los eventos de descarga porque Google Play no los notifica externamente. Al no existir un SDK dentro de la app que leyera el `InstallReferrer`, Meta mantenía en 0 la columna de Resultados y el algoritmo operaba a ciegas.
 * **Solución Implementada (Versión 18 - 1.1.1):**
   * Integrado el SDK oficial `com.facebook.android:facebook-core:18.0.2` y `com.android.installreferrer:installreferrer:2.2`.
-  * Configurados App ID `1105219368949683` y Client Token `6ff163df453e5b9752fae6918bece5c5` con auto-log de instalaciones de forma no bloqueante en `EstoyOkApplication.kt`.
+  * Configurados App ID y Client Token de Meta con auto-log de instalaciones de forma no bloqueante en `EstoyOkApplication.kt`.
   * Generado y firmado el bundle `app-release.aab` (v18 - 1.1.1) y enviado a revisión en Google Play Console el 09/11/2026.
   * Desplegado en GitHub y Railway en ramas `dev` y `main`.
 
