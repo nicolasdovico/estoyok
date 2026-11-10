@@ -22,6 +22,55 @@ Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
+Route::post('/maintenance/dispatch-welcome-trial-batch', function (Request $request) {
+    $minId = (int) $request->input('min_id', 57);
+    $maxId = (int) $request->input('max_id', 71);
+
+    // Usuarios reales en rango, excluyendo cuentas internas de prueba
+    $users = \App\Models\User::whereBetween('id', [$minId, $maxId])
+        ->whereNotIn('email', ['test@example.com', 'admin@estoyok.com'])
+        ->orderBy('id', 'asc')
+        ->get();
+
+    $sent = [];
+    $failed = [];
+
+    foreach ($users as $user) {
+        // Extraer primer nombre para un saludo cálido
+        $firstName = trim(explode(' ', trim($user->name ?? ''))[0] ?? '');
+        if (empty($firstName) || strtolower($firstName) === 'usuario') {
+            $firstName = 'Hola';
+        }
+
+        try {
+            \Illuminate\Support\Facades\Mail::to($user->email)->send(
+                new \App\Mail\WelcomeTrialOfferMail($firstName, '1.1.2')
+            );
+            $sent[] = [
+                'id' => $user->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'sent_at' => now()->toDateTimeString()
+            ];
+            // Pausa de 300ms entre envíos para respetar límites de tasa de Resend
+            usleep(300000);
+        } catch (\Throwable $e) {
+            $failed[] = [
+                'id' => $user->id,
+                'email' => $user->email,
+                'error' => $e->getMessage()
+            ];
+        }
+    }
+
+    return response()->json([
+        'total_attempted' => $users->count(),
+        'total_sent' => count($sent),
+        'sent_users' => $sent,
+        'failed' => $failed
+    ]);
+});
+
 Route::post('/maintenance/send-welcome-trial-test', function (Request $request) {
     $to = $request->input('email', 'nicolasdovico@gmail.com');
     $name = $request->input('name', 'Nicolás');
