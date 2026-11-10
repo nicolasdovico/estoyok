@@ -22,6 +22,40 @@ Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
+Route::get('/maintenance/users-activity', function (Request $request) {
+    $limit = (int) $request->input('limit', 25);
+    $users = \App\Models\User::orderBy('id', 'desc')->take($limit)->get()->map(function ($u) {
+        return [
+            'id' => $u->id,
+            'name' => $u->name,
+            'email' => $u->email,
+            'created_at' => $u->created_at ? $u->created_at->toDateTimeString() : null,
+            'last_check_in_at' => $u->last_check_in_at,
+            'is_premium' => (bool) $u->is_premium,
+            'subscription_status' => $u->subscription_status,
+            'subscription_provider' => $u->subscription_provider,
+            'trial_ends_at' => $u->trial_ends_at,
+            'has_used_trial' => (bool) $u->has_used_trial,
+            'contacts_count' => $u->emergencyContacts()->count(),
+            'circles_count' => $u->circles()->count(),
+            'devices_count' => $u->devices()->count(),
+            'checkins_count' => $u->checkIns()->count(),
+        ];
+    });
+
+    $activeSubscriptions = \App\Models\User::where('subscription_status', 'active')
+        ->orWhere('is_premium', true)
+        ->orWhere('has_used_trial', true)
+        ->orWhereNotNull('trial_ends_at')
+        ->get(['id', 'name', 'email', 'subscription_status', 'subscription_provider', 'trial_ends_at', 'is_premium', 'has_used_trial']);
+
+    return response()->json([
+        'total_users' => \App\Models\User::count(),
+        'users' => $users,
+        'subscription_activity' => $activeSubscriptions
+    ]);
+});
+
 Route::post('/maintenance/reset-password', function (Request $request) {
     $email = $request->input('email');
     $password = $request->input('password', 'password123');
