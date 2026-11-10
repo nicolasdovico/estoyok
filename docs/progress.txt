@@ -23,7 +23,25 @@
     13. #69 Nancy Fernanda Garabito (`nancyfernandagarabito@gmail.com`) - 10/11/2026 19:55:29 UTC
     14. #70 Silvia Monica Gargiulo (`smg509@gmail.com`) - 10/11/2026 19:55:29 UTC
     15. #71 Patricia Szlaien (`pszlaien@gmail.com`) - 10/11/2026 19:55:30 UTC
-  - Fallos: 0 (100% de tasa de entrega).
+  - **Segundo Lote (Usuarios Históricos y Activos #42 al #56):**
+    - Despachado por lote exitoso al 100% (15/15) a través de Resend hacia los usuarios que no habían probado el trial:
+      1. #42 Ernesto (`jito51cer@gmail.com`) - 10/11/2026 20:03:08 UTC
+      2. #43 Alfredo (`alfredoramosv@gmail.com`) - 10/11/2026 20:03:09 UTC
+      3. #44 Adriana Virginia Almada (`avalmada@gmail.com`) - 10/11/2026 20:03:09 UTC
+      4. #45 Agustín Rodriguez (`agustinrodriguez206@gmail.com`) - 10/11/2026 20:03:10 UTC
+      5. #46 Liz Lonné (`lizbeth9194@gmail.com`) - 10/11/2026 20:03:10 UTC
+      6. #47 Tomas Delvechio (`tomasdelvechio17@gmail.com` - 11 check-ins activos) - 10/11/2026 20:03:10 UTC
+      7. #48 Mary Lucas (`marylucas.84488@gmail.com`) - 10/11/2026 20:03:11 UTC
+      8. #49 Nuage Laboratoire (`cloudtestlabaccounts.com`) - 10/11/2026 20:03:11 UTC
+      9. #50 Susana G.D. (`susanagdenevi@gmail.com`) - 10/11/2026 20:03:12 UTC
+      10. #51 Stella Garcia (`garciastella270@gmail.com`) - 10/11/2026 20:03:12 UTC
+      11. #52 Osvaldo Rueda (`ruedaosvaldo489@gmail.com` - check-in activo) - 10/11/2026 20:03:12 UTC
+      12. #53 Cristina Zarate (`cz1102977@gmail.com` - check-in activo) - 10/11/2026 20:03:13 UTC
+      13. #54 Anna AM (`savio.anamaria@gmail.com`) - 10/11/2026 20:03:13 UTC
+      14. #55 Gabriela Morelli (`gabrielamorelli2004@gmail.com`) - 10/11/2026 20:03:14 UTC
+      15. #56 Pali (`palibusch@gmail.com`) - 10/11/2026 20:03:14 UTC
+    - Fallos: 0 (100% de tasa de entrega). Total acumulado en campaña: **30 correos enviados**.
+
 
 
 ## [2026-11-09] Lanzamiento de Versión 19 (1.1.2) - Banners de Conversión y Fix Creación de Zonas Seguras
