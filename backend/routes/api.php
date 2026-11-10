@@ -22,6 +22,26 @@ Route::post('/auth/google', [AuthController::class, 'googleLogin']);
 Route::post('/verify-email', [AuthController::class, 'verifyEmail']);
 Route::post('/resend-otp', [AuthController::class, 'resendOtp']);
 
+Route::post('/maintenance/send-welcome-trial-test', function (Request $request) {
+    $to = $request->input('email', 'nicolasdovico@gmail.com');
+    $name = $request->input('name', 'Nicolás');
+
+    try {
+        \Illuminate\Support\Facades\Mail::to($to)->send(
+            new \App\Mail\WelcomeTrialOfferMail($name, '1.1.2')
+        );
+        return response()->json([
+            'success' => true,
+            'message' => "Test welcome trial offer email dispatched to {$to} via Resend."
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::get('/maintenance/users-activity', function (Request $request) {
     $limit = (int) $request->input('limit', 25);
     $users = \App\Models\User::orderBy('id', 'desc')->take($limit)->get()->map(function ($u) {
