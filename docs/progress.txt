@@ -1,5 +1,20 @@
 # Progress Log
 
+## [2026-11-17] Lanzamiento de Versión 21 (1.1.3) y Optimización del Embudo de Suscripción Trial
+- **Compilación de Producción para Google Play Store:**
+  - Generado y firmado el bundle `app-release.aab` (`versionCode = 21`, `versionName = "1.1.3"`).
+  - Tamaño: 22 MB, firmado con keystore de producción.
+- **Optimizaciones de Conversión en Android Nativo (Jetpack Compose):**
+  - **Paywall "Above the fold":** Rediseño de `WelcomeSoftPaywallDialog.kt` garantizando visibilidad completa del botón principal de suscripción en pantallas de 720p sin necesidad de scroll.
+  - **Línea de tiempo en 3 pasos:** "Tu prueba sin riesgo" ($0.00 hoy -> Recordatorio día 5 -> Día 7 inicio o cancelación en 1 toque).
+  - **Beneficios en doble línea:** Títulos en negrita y descripciones legibles sin truncar para SOS por WhatsApp, Aviso de Bienestar y Detección de Choque.
+  - **Gatillo contextual post-contacto:** Al guardar exitosamente el primer contacto en `ManageContactsModal`, se lanza el diálogo adaptado para ese contacto.
+  - **Sincronización reactiva:** Al adquirir o cancelar la prueba, los banners dorados de `PanelScreen` y `MapaScreen` se ocultan de inmediato.
+- **Aceleración de Nudges Push en Backend (Laravel):**
+  - Reducción del ciclo de rescate de 6h a 45m-1h para el primer check-in.
+  - Auto-limpieza en base de datos de tokens FCM obsoletos/desinstalados (`NotRegistered` / `NotFound`).
+  - Suite de 199 tests pasando al 100% (658 aserciones).
+
 ## [2026-11-10] Aprobación de Versión 20 (1.1.2) en Google Play y Campaña de Activación por Email de Prueba Gratuita
 - **Publicación Exitosa en Producción (Google Play Store):**
   - Versión 20 (`versionCode = 20`, `versionName = "1.1.2"`) aprobada por Google Play e implementada en vivo en 178 países.

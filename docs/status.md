@@ -1,8 +1,21 @@
 # Project Status
 
-## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.2 (v19 - Banners de Suscripción y Fix Núcleo)
+## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.3 (v21 - Optimización Paywall y Nudges Backend)
 
 ### Completed Phases:
+- [x] **Lanzamiento de Versión 21 (1.1.3) - Optimización de Paywall y Aceleración de Nudges Push (17/11/2026):**
+  - **Rediseño Integral de Paywall "Above the Fold":**
+    - `WelcomeSoftPaywallDialog.kt` optimizado para pantallas de 720p sin scroll vertical: paddings, espaciados y jerarquía compacta.
+    - **Línea de tiempo en 3 pasos:** Claridad total de Google Play ($0.00 hoy -> Día 5 recordatorio -> Día 7 inicio o cancelación en 1 toque).
+    - **Beneficios en doble línea:** Títulos destacados y descripciones completas sin cortes (`SOS por WhatsApp`, `Aviso de Bienestar`, `Detección de Choque`).
+    - **Gatillo Contextual In-App:** Al guardar el primer contacto de seguridad en `ManageContactsModal`, se dispara automáticamente el diálogo de 7 días gratis adaptado al contacto recién guardado.
+    - **Actualización Reactiva de Banners:** Al cerrar el diálogo tras suscribirse, se refrescan `PanelScreen` y `MapaScreen` ocultando de inmediato las promociones doradas.
+  - **Aceleración de Nudges Push en Backend:**
+    - Nudge 1 (primer check-in) reducido de 6h a 45m-1h para capturar al usuario en su primera sesión.
+    - Nudge 2 (contacto) a 12h y Nudge 3 (oferta trial) a 24h.
+    - Auto-limpieza en base de datos de tokens FCM huérfanos/desinstalados reportados por Firebase (`NotRegistered` / `NotFound`).
+  - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 21`, `versionName = "1.1.3"`).
+  - **Garantía de No Regresión:** 199 tests de backend pasando al 100% (658 aserciones).
 - [x] **Lanzamiento de Versión 19 (1.1.2) - Banners de Conversión Premium y Diálogo de Núcleo Requerido (09/11/2026):**
   - **Banners Inteligentes de Suscripción Premium:**
     - *En el Mapa (`MapaScreen.kt`):* Chip flotante dorado superior (`MapTrialOfferChip`) adaptativo: se posiciona debajo del aviso de núcleos (160 dp) o a 68 dp si ya existe un núcleo activo.
