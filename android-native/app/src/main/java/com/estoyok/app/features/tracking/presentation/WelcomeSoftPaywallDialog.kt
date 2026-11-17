@@ -146,23 +146,23 @@ fun WelcomeSoftPaywallDialog(
                         shape = RoundedCornerShape(12.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
-                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                            verticalArrangement = Arrangement.spacedBy(5.dp)
                         ) {
                             BenefitRowItem(
                                 iconText = "🚨",
                                 title = "SOS por WhatsApp",
-                                description = "Audio de 15s y GPS en vivo ante emergencias."
+                                description = "Audio de 15s y ubicación GPS en tiempo real."
                             )
                             BenefitRowItem(
                                 iconText = "⚠️",
                                 title = "Aviso de Bienestar",
-                                description = "Alerta con mapa de rescate si no confirmás tu reporte."
+                                description = "Alerta con mapa si no confirmás tu reporte."
                             )
                             BenefitRowItem(
                                 iconText = "💥",
-                                title = "Choque Vehicular",
-                                description = "Pre-alerta automática ante impactos por Fuerza G."
+                                title = "Detección de Choque",
+                                description = "Alerta automática por impactos de Fuerza G."
                             )
                         }
                     }
@@ -349,24 +349,26 @@ private fun BenefitRowItem(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.Top,
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Text(text = iconText, fontSize = 14.sp)
-        Text(
-            text = title,
-            fontSize = 11.5.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Text(
-            text = "• $description",
-            fontSize = 10.5.sp,
-            color = TextSecondary,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis,
+        Column(
             modifier = Modifier.weight(1f)
-        )
+        ) {
+            Text(
+                text = title,
+                fontSize = 11.5.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            Text(
+                text = description,
+                fontSize = 10.5.sp,
+                color = TextSecondary,
+                lineHeight = 13.5.sp
+            )
+        }
     }
 }
 
