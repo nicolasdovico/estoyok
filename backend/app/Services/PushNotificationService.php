@@ -122,6 +122,17 @@ class PushNotificationService
                 'class' => get_class($e),
                 'at' => now()->toDateTimeString(),
             ], 3600);
+
+            // Auto-limpieza de tokens huérfanos/desinstalados reportados por Firebase
+            if (str_contains($e->getMessage(), 'NotRegistered') || $e instanceof \Kreait\Firebase\Exception\Messaging\NotFound) {
+                try {
+                    \App\Models\User::where('expo_push_token', $to)->update(['expo_push_token' => null]);
+                    Log::info("Auto-cleaned invalid/uninstalled FCM token: " . substr($to, 0, 15) . "...");
+                } catch (\Throwable $dbEx) {
+                    Log::warning("Could not auto-clean FCM token: " . $dbEx->getMessage());
+                }
+            }
+
             Log::error("Error sending Google FCM Push to " . substr($to, 0, 15) . "... : " . $e->getMessage());
             return false;
         }

@@ -310,6 +310,7 @@ fun PanelContent(
 
     var isHistoryExpanded by remember { mutableStateOf(false) }
     var showTrialPaywallDialog by remember { mutableStateOf(false) }
+    var newlyAddedContactName by remember { mutableStateOf<String?>(null) }
     val visibleCheckInHistory = remember(isHistoryExpanded, checkInHistory) {
         if (isHistoryExpanded || checkInHistory.size <= 5) {
             checkInHistory
@@ -364,7 +365,13 @@ fun PanelContent(
                 onMoveContactUp = onMoveContactUp,
                 onMoveContactDown = onMoveContactDown,
                 onSendTestWhatsApp = onSendTestWhatsApp,
-                isSendingTestWa = isSendingTestWa
+                isSendingTestWa = isSendingTestWa,
+                onContactAddedSuccess = { contactName ->
+                    if (!isUserPremium && !hasUsedTrial) {
+                        newlyAddedContactName = contactName
+                        showTrialPaywallDialog = true
+                    }
+                }
             )
         }
 
@@ -706,10 +713,15 @@ fun PanelContent(
         }
     }
 
-    // Modal de Soft Paywall activado desde el Banner Dorado
+    // Modal de Soft Paywall activado desde el Banner Dorado o tras agregar contacto
     if (showTrialPaywallDialog) {
         WelcomeSoftPaywallDialog(
-            onDismiss = { showTrialPaywallDialog = false }
+            contactName = newlyAddedContactName,
+            onDismiss = { 
+                showTrialPaywallDialog = false 
+                newlyAddedContactName = null
+                onRefresh()
+            }
         )
     }
 }
@@ -1575,7 +1587,8 @@ fun ManageContactsModal(
     onMoveContactUp: (Int) -> Unit,
     onMoveContactDown: (Int) -> Unit,
     onSendTestWhatsApp: (Int) -> Unit = {},
-    isSendingTestWa: Boolean = false
+    isSendingTestWa: Boolean = false,
+    onContactAddedSuccess: (String) -> Unit = {}
 ) {
     var isFormVisible by remember { mutableStateOf(false) }
     var editingContactId by remember { mutableStateOf<Int?>(null) }
@@ -2259,10 +2272,12 @@ fun ManageContactsModal(
                                 if (isFormValid) {
                                     val formattedPhone = if (cleanedPhone.startsWith("+")) cleanedPhone else "+$cleanedPhone"
                                     val currentId = editingContactId
+                                    val savedName = newName.trim()
                                     if (currentId != null) {
-                                        onUpdateContact(currentId, newName.trim(), formattedPhone, newEmail.trim(), newRelationship.trim())
+                                        onUpdateContact(currentId, savedName, formattedPhone, newEmail.trim(), newRelationship.trim())
                                     } else {
-                                        onAddContact(newName.trim(), formattedPhone, newEmail.trim(), newRelationship.trim())
+                                        onAddContact(savedName, formattedPhone, newEmail.trim(), newRelationship.trim())
+                                        onContactAddedSuccess(savedName)
                                     }
                                     editingContactId = null
                                     newName = ""
@@ -2270,10 +2285,8 @@ fun ManageContactsModal(
                                     newEmail = ""
                                     newRelationship = ""
                                     isFormVisible = false
-                                    // Si no tenía contactos y este es el primer contacto, cerrar el modal completo para volver al Panel
-                                    if (emergencyContacts.isEmpty()) {
-                                        onDismiss()
-                                    }
+                                    // Cerrar el modal para permitir la interacción directa en el Panel
+                                    onDismiss()
                                 }
                             },
                             enabled = isFormValid,

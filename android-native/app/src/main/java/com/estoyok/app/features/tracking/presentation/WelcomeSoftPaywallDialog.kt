@@ -29,6 +29,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -39,6 +40,7 @@ import com.estoyok.app.core.theme.*
 @Composable
 fun WelcomeSoftPaywallDialog(
     onDismiss: () -> Unit,
+    contactName: String? = null,
     viewModel: FamiliaViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -115,7 +117,7 @@ fun WelcomeSoftPaywallDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = "¡Te damos la bienvenida a Estoy Ok!",
+                        text = if (!contactName.isNullOrBlank()) "¡$contactName ya está guardado!" else "¡Te damos la bienvenida a Estoy Ok!",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary,
@@ -125,7 +127,10 @@ fun WelcomeSoftPaywallDialog(
                     Spacer(modifier = Modifier.height(4.dp))
 
                     Text(
-                        text = "Disfrutá de 7 días gratis de protección completa para vos y tu familia sin pagar nada hoy.",
+                        text = if (!contactName.isNullOrBlank()) 
+                            "Activá tus 7 días gratis para que $contactName reciba automáticamente tus alertas oficiales por WhatsApp sin pagar nada hoy." 
+                        else 
+                            "Disfrutá de 7 días gratis de protección completa para vos y tu familia sin pagar nada hoy.",
                         fontSize = 12.sp,
                         color = TextSecondary,
                         textAlign = TextAlign.Center,
@@ -134,46 +139,84 @@ fun WelcomeSoftPaywallDialog(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Beneficios clave en tarjeta
+                    // Beneficios clave en tarjeta compacta
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         colors = CardDefaults.cardColors(containerColor = DarkSurfaceVariant),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(12.dp)
                     ) {
                         Column(
-                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
                         ) {
                             BenefitRowItem(
-                                iconText = "🟢",
-                                title = "El Botón \"Estoy OK\"",
-                                description = "Confirmá tu bienestar diario con un solo toque y viví con total tranquilidad."
-                            )
-                            BenefitRowItem(
-                                iconText = "📲",
-                                title = "Alertas automáticas por WhatsApp",
-                                description = "Si no confirmás en tu horario configurado, tus contactos reciben un aviso con tu mapa de rescate."
-                            )
-                            BenefitRowItem(
                                 iconText = "🚨",
-                                title = "SOS de Bolsillo (4 toques)",
-                                description = "Presioná 4 veces el botón de encendido con celular bloqueado para alertar con audio de 15s y GPS en vivo."
+                                title = "SOS por WhatsApp",
+                                description = "Audio de 15s y GPS en vivo ante emergencias."
+                            )
+                            BenefitRowItem(
+                                iconText = "⚠️",
+                                title = "Aviso de Bienestar",
+                                description = "Alerta con mapa de rescate si no confirmás tu reporte."
+                            )
+                            BenefitRowItem(
+                                iconText = "💥",
+                                title = "Choque Vehicular",
+                                description = "Pre-alerta automática ante impactos por Fuerza G."
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    // Línea de Tiempo Visual: "Prueba sin Riesgo de Google Play" compacta
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = DarkBackground),
+                        shape = RoundedCornerShape(10.dp),
+                        border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.25f))
+                    ) {
+                        Column(
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                            verticalArrangement = Arrangement.spacedBy(4.dp)
+                        ) {
+                            Text(
+                                text = "TU PRUEBA SIN RIESGO EN 3 PASOS:",
+                                fontSize = 9.5.sp,
+                                fontWeight = FontWeight.ExtraBold,
+                                color = PrimaryEmerald
+                            )
+
+                            TrialTimelineRow(
+                                stepEmoji = "🟢",
+                                dayText = "Hoy:",
+                                descText = "Acceso total Premium por $0.00."
+                            )
+                            TrialTimelineRow(
+                                stepEmoji = "🔔",
+                                dayText = "Día 5:",
+                                descText = "Notificación de aviso antes de que termine."
+                            )
+                            TrialTimelineRow(
+                                stepEmoji = "🛡️",
+                                dayText = "Día 7:",
+                                descText = "Comienza tu plan o cancelás antes en Play Store en 1 toque."
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(8.dp))
 
                     // Selector de Plan: Mensual vs Anual
                     Text(
                         text = "Elegí tu modalidad post-prueba:",
-                        fontSize = 11.sp,
+                        fontSize = 10.5.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextMuted,
                         modifier = Modifier.align(Alignment.Start)
                     )
 
-                    Spacer(modifier = Modifier.height(6.dp))
+                    Spacer(modifier = Modifier.height(4.dp))
 
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -199,7 +242,7 @@ fun WelcomeSoftPaywallDialog(
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     // Botón Principal: Comenzar prueba gratis de 7 días
                     Button(
@@ -271,6 +314,34 @@ fun WelcomeSoftPaywallDialog(
 }
 
 @Composable
+private fun TrialTimelineRow(
+    stepEmoji: String,
+    dayText: String,
+    descText: String
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.Top,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(text = stepEmoji, fontSize = 12.sp)
+        Text(
+            text = dayText,
+            fontSize = 11.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
+        Text(
+            text = descText,
+            fontSize = 10.5.sp,
+            color = TextSecondary,
+            lineHeight = 14.sp,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+
+@Composable
 private fun BenefitRowItem(
     iconText: String,
     title: String,
@@ -278,24 +349,24 @@ private fun BenefitRowItem(
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Text(text = iconText, fontSize = 18.sp)
-        Column {
-            Text(
-                text = title,
-                fontSize = 12.5.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            Text(
-                text = description,
-                fontSize = 11.sp,
-                color = TextSecondary,
-                lineHeight = 15.sp
-            )
-        }
+        Text(text = iconText, fontSize = 14.sp)
+        Text(
+            text = title,
+            fontSize = 11.5.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary
+        )
+        Text(
+            text = "• $description",
+            fontSize = 10.5.sp,
+            color = TextSecondary,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
     }
 }
 

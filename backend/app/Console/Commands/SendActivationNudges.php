@@ -48,12 +48,13 @@ class SendActivationNudges extends Command
                     continue;
                 }
 
+                $minutesSinceCreation = $user->created_at->diffInMinutes($now);
                 $hoursSinceCreation = $user->created_at->diffInHours($now);
                 $firstName = explode(' ', trim($user->name ?: ''))[0] ?: 'Hola';
 
-                // Nudge 1: Si nunca hizo check-in (A partir de las 6 horas, rescata también a los que llevan 1 o 2 días sin reporte)
-                if ($hoursSinceCreation >= 6 && is_null($user->last_check_in_at)) {
-                    $cacheKey = "activation_nudge_6h_user_{$user->id}";
+                // Nudge 1: Si nunca hizo check-in (A partir de los 45 minutos para rescatar al usuario caliente de Meta Ads)
+                if ($minutesSinceCreation >= 45 && is_null($user->last_check_in_at)) {
+                    $cacheKey = "activation_nudge_1h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "👋 ¡Hola {$firstName}!";
                         $body = "Tu botón Estoy OK está listo. Tocalo para confirmar tu bienestar y activar tu escudo diario.";
@@ -72,9 +73,9 @@ class SendActivationNudges extends Command
                     continue;
                 }
 
-                // Nudge 2: A partir de las 24 horas si no tiene contactos de emergencia cargados
-                if ($hoursSinceCreation >= 24 && $user->emergencyContacts->isEmpty()) {
-                    $cacheKey = "activation_nudge_24h_user_{$user->id}";
+                // Nudge 2: A partir de las 12 horas si no tiene contactos de emergencia cargados
+                if ($hoursSinceCreation >= 12 && $user->emergencyContacts->isEmpty()) {
+                    $cacheKey = "activation_nudge_12h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "🛡️ {$firstName}, ¿quién te cuidará?";
                         $body = "Agregá a tu contacto de confianza en Ajustes para avisarle automáticamente por WhatsApp si te pasa algo.";
@@ -89,9 +90,9 @@ class SendActivationNudges extends Command
                     continue;
                 }
 
-                // Nudge 3: A partir de las 48 horas si no es Premium y no ha usado su trial
-                if ($hoursSinceCreation >= 48 && !$user->is_premium && !$user->has_used_trial) {
-                    $cacheKey = "activation_nudge_48h_user_{$user->id}";
+                // Nudge 3: A partir de las 24 horas si no es Premium y no ha usado su trial
+                if ($hoursSinceCreation >= 24 && !$user->is_premium && !$user->has_used_trial) {
+                    $cacheKey = "activation_nudge_24h_user_{$user->id}";
                     if (!Cache::has($cacheKey)) {
                         $title = "⚡ Probá Estoy Ok Premium Gratis";
                         $body = "Tenés 7 días sin cargo para activar WhatsApp automático, SOS de bolsillo y detección de choques.";

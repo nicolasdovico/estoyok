@@ -47,7 +47,7 @@ class SendActivationNudgesTest extends TestCase
             ->expectsOutputToContain('Nudge de primer check-in enviado a: ' . $user->email)
             ->assertExitCode(0);
 
-        $this->assertTrue(Cache::has("activation_nudge_6h_user_{$user->id}"));
+        $this->assertTrue(Cache::has("activation_nudge_1h_user_{$user->id}"));
 
         // Correr de nuevo no debería duplicar el envío
         $this->artisan('users:send-activation-nudges')
@@ -83,7 +83,7 @@ class SendActivationNudgesTest extends TestCase
             ->expectsOutputToContain('Nudge de primer check-in enviado a: ' . $user->email)
             ->assertExitCode(0);
 
-        $this->assertTrue(Cache::has("activation_nudge_6h_user_{$user->id}"));
+        $this->assertTrue(Cache::has("activation_nudge_1h_user_{$user->id}"));
     }
 
     public function test_it_sends_contact_nudge_to_user_who_did_checkin_but_has_no_contacts()
@@ -113,7 +113,7 @@ class SendActivationNudgesTest extends TestCase
             ->expectsOutputToContain('Nudge de contactos de emergencia enviado a: ' . $user->email)
             ->assertExitCode(0);
 
-        $this->assertTrue(Cache::has("activation_nudge_24h_user_{$user->id}"));
+        $this->assertTrue(Cache::has("activation_nudge_12h_user_{$user->id}"));
     }
 
     public function test_it_does_not_send_contact_nudge_if_user_already_has_contacts()
@@ -172,6 +172,6 @@ class SendActivationNudgesTest extends TestCase
             ->expectsOutputToContain('Nudge de oferta de Trial enviado a: ' . $user->email)
             ->assertExitCode(0);
 
-        $this->assertTrue(Cache::has("activation_nudge_48h_user_{$user->id}"));
+        $this->assertTrue(Cache::has("activation_nudge_24h_user_{$user->id}"));
     }
 }

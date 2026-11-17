@@ -2349,7 +2349,10 @@ fun MapaScreen(
         // Diálogo de prueba gratuita de 7 Días impulsado por el chip flotante
         if (showTrialPaywallDialog) {
             WelcomeSoftPaywallDialog(
-                onDismiss = { showTrialPaywallDialog = false }
+                onDismiss = { 
+                    showTrialPaywallDialog = false 
+                    viewModel.loadUserProfile()
+                }
             )
         }
     }
