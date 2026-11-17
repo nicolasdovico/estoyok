@@ -17,12 +17,12 @@
 
 Antes de publicar las historias, actualizar el perfil:
 
-* **Texto de la Bio (Copiar y Pegar):**
+* **Texto de la Bio (Copiar y Pegar - 141 caracteres):**
   ```text
   🛡️ Seguridad familiar activa y pasiva
-  📍 Rastreo GPS en vivo + Botón diario "Estoy OK"
-  🚨 Alertas automáticas por WhatsApp ante emergencias
-  🎁 Probá 7 días GRATIS en el link 👇
+  📍 Rastreo GPS en vivo + Botón 'Estoy OK'
+  🚨 Alertas automáticas por WhatsApp
+  🎁 Probá 7 días GRATIS acá 👇
   ```
 * **Enlace:** `estoyok24.com/descargar` *(asegurar que termine con 'r' para redireccionar directo a Google Play)*.
 
