@@ -53,8 +53,8 @@ Antes de publicar las historias, actualizar el perfil:
 ### HISTORIA 2: El Desafío de los 3 Pasos ("Activá tu Escudo al 100%")
 
 * **Objetivo:** Educar a los usuarios que instalaron la app pero la tienen incompleta, explicándoles por qué deben completar los 3 pasos.
-* **Imagen / Fondo Sugerido:**  
-  * Captura de pantalla de la app mostrando el botón verde y la checklist: [`docs/imagen02.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/imagen02.jpg) o [`docs/captura_modal_contactos.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/captura_modal_contactos.jpg).
+* **Imagen / Fondo Oficial Creado:**  
+  * Usar el fondo oficial limpio: [`docs/fondo_historia_02_instagram.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/fondo_historia_02_instagram.jpg) *(1080x1920 px, dark mode grafito con resplandor esmeralda suave y centro despejado para máxima legibilidad de las 3 viñetas)*.
 * **Textos en pantalla:**
   * **Encabezado llamativo (Fondo rojo suave o esmeralda):**  
     > *"⚠️ Si ya descargaste la app, asegurate de tener tu escudo al 100%:"*
