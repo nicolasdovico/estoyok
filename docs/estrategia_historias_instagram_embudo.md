@@ -69,23 +69,25 @@ Antes de publicar las historias, actualizar el perfil:
 
 ---
 
-### HISTORIA 3: El Valor de WhatsApp y la Prueba de 7 Días Gratis
+### HISTORIA 3: La Oferta de los 7 Días de Regalo (El Cierre del Embudo)
 
-* **Objetivo:** Desbloquear la percepción de valor de las alertas por WhatsApp y llevarlos a iniciar el Trial de Google Play.
-* **Imagen / Fondo Sugerido:**  
-  * La captura real del mensaje de WhatsApp con el enlace de rescate: [`docs/captura_alerta_inactividad_whatsapp.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/captura_alerta_inactividad_whatsapp.jpg) o [`docs/crash_alert_message_whatsapp.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/crash_alert_message_whatsapp.jpg).
-* **Textos en pantalla:**
-  * **Título superior:**  
-    > *"Esto es lo que recibe tu familia si un día no confirmás tu bienestar o activás el SOS 📲🚨"*
-  * **Destacados sobre la captura:**  
-    > ✅ Alerta oficial automática por WhatsApp.  
-    > ✅ Ubicación GPS exacta y mapa de rescate.  
-    > ✅ Audio de auxilio ambiental de 15 segundos.
-  * **La Oferta Irresistible:**  
-    > *"🎁 Tenés **7 días de prueba completamente GRATIS** para activar la protección completa de WhatsApp para tu familia."*
+* **Objetivo:** Mostrar una propuesta de valor limpia e irresistible que lleve al usuario a activar el Trial en Google Play sin saturación visual.
+* **Imagen / Fondo Oficial Creado:**  
+  * Usar el fondo oficial limpio: [`docs/fondo_historia_03_instagram.jpg`](file:///home/nicolas/aplicaciones/estoyok/docs/fondo_historia_03_instagram.jpg) *(1080x1920 px, dark mode profundo con resplandores esmeralda y dorados sutiles, centro despejado)*.
+* **Textos en pantalla (Breves y contundentes):**
+  * **Título destacado (en letras doradas o esmeraldas):**  
+    > *"🎁 Tenés 7 días de regalo para vos y tu familia"*
+  * **Subtexto central (blanco, fácil de leer):**  
+    > *"Probá la protección completa sin pagar nada hoy:*  
+    >  
+    > *🚨 Alertas automáticas por WhatsApp*  
+    > *🎙️ SOS con audio ambiental de 15 segundos*  
+    > *💥 Detección de choques e impacto*  
+    >  
+    > *Cancela cuando quieras desde Google Play en un solo toque."*
   * **Llamado a la Acción (CTA):**  
-    > 🔗 **Sticker de Enlace:** `https://estoyok24.com/descargar` *(Texto del sticker: "Probar 7 Días Gratis 👑")*.  
-    > O *"Respondé a esta historia con la palabra **ESCUDO** y te paso el link directo por privado."*
+    > 🔗 **Sticker de Enlace:** `https://estoyok24.com/descargar` *(Texto del sticker: "Comenzar Prueba Gratis 👑")*.  
+    > *(Opcional abajo): "O respondé 'REGALO' a esta historia y te paso el link directo."*
 
 ---
 
