@@ -64,6 +64,14 @@ fun OnboardingScreen(
             accentColor = PrimaryEmerald
         ),
         OnboardingStep(
+            tagText = "👥 CONTACTOS DE SEGURIDAD",
+            tagColor = PrimaryEmerald,
+            title = "Tus Seres Queridos\nProtegidos y Avisados",
+            description = "Agendá a tus contactos de confianza. Si surge una emergencia o te retrasás con tu check-in, la app les avisa automáticamente por WhatsApp con tu ubicación en el mapa.",
+            imageRes = R.drawable.img_onboarding_05_contactos,
+            accentColor = PrimaryEmerald
+        ),
+        OnboardingStep(
             tagText = "📍 LLEGADAS Y SALIDAS AUTOMÁTICAS",
             tagColor = PrimaryOrange,
             title = "Avisos de Casa,\nEscuela y Trabajo",
@@ -78,14 +86,6 @@ fun OnboardingScreen(
             description = "Consultá los recorridos realizados sobre el mapa calle por calle, con horarios de salida, llegada y duración de cada viaje.",
             imageRes = R.drawable.img_onboarding_04_rutas,
             accentColor = Color(0xFF38BDF8)
-        ),
-        OnboardingStep(
-            tagText = "🏠 CONFIRMACIÓN POR WI-FI",
-            tagColor = PrimaryEmerald,
-            title = "Auto Check-in Cómodo\nen tu Casa",
-            description = "Vinculá el Wi-Fi de tu casa para reportar tu bienestar automáticamente sin necesidad de abrir la app todos los días.",
-            imageRes = R.drawable.img_onboarding_05_hogar,
-            accentColor = PrimaryEmerald
         ),
         OnboardingStep(
             tagText = "🚗 PROTECCIÓN VEHICULAR",
