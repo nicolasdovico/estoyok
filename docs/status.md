@@ -3,6 +3,10 @@
 ## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.4 (v23 - Captura Temprana de Contacto, Despliegue en Play Store y Guardián de WhatsApp)
 
 ### Completed Phases:
+- [x] **Optimización del Tutorial de Bienvenida (`OnboardingScreen.kt`) (21/11/2026):**
+  - Reemplazada la slide secundaria de auto check-in por Wi-Fi por una slide central de **Contactos de Seguridad y Aviso por WhatsApp**.
+  - Posicionada estratégicamente como la Slide #3 (inmediatamente después del Check-in diario) para generar la transición natural hacia el paso guiado de carga de contactos.
+  - Mockup visual dedicado (`img_onboarding_05_contactos.webp`) ilustrando la tarjeta de contacto con alerta activa y la simulación del mensaje oficial de WhatsApp recibido por el familiar.
 - [x] **Monitoreo Continuo y Centinela de WhatsApp Gateway (`WhatsAppKeepAliveGuardian` + Email) (21/11/2026):**
   - Implementación de alerta por correo electrónico ante desconexiones de Evolution API (Baileys) enviada directamente a `nicolasdovico@gmail.com` vía Resend.
   - Rate limiting y deduplicación inteligente con cooldown de 3 horas por caída persistente para evitar spam administrativo.

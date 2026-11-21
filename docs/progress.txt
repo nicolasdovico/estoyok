@@ -1,6 +1,11 @@
 # Progress Log
 
-## [2026-11-21] Guardián de WhatsApp con Alerta por Correo a Administración & Publicación de Versión 23 (1.1.4) en Play Store
+## [2026-11-21] Optimización del Tutorial de Bienvenida (Slide de Contactos de Emergencia) & Centinela WhatsApp
+- **Tutorial de Bienvenida en Android Nativo (`OnboardingScreen.kt`):**
+  - Se sustituyó la slide de Wi-Fi por la slide fundamental de **Contactos de Seguridad y Alerta por WhatsApp**.
+  - Ubicación en Puesto 3 (tras el Check-in diario) para explicar de forma nítida a quién y cómo se le avisa antes de pedirle que agende al familiar en la pantalla siguiente.
+  - Arte gráfico optimizado `img_onboarding_05_contactos.webp` (540x1200) generado con tarjeta activa de contacto, burbuja oficial de WhatsApp y beneficios clave.
+  - Compilación Kotlin verificada exitosamente en `compileDebugKotlin`.
 - **Monitoreo Continuo y Centinela de WhatsApp (`WhatsAppKeepAliveGuardian`):**
   - Implementación de notificaciones automáticas por correo electrónico ante caídas de la pasarela de WhatsApp (Evolution API / Baileys) hacia `nicolasdovico@gmail.com`.
   - Cooldown inteligente de 3 horas para evitar repeticiones ante caídas persistentes.
