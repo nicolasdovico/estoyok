@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Services\EvolutionApiService;
 use App\Services\WhatsAppServiceInterface;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Queue;
 use Mockery;
 use Tests\TestCase;
@@ -164,6 +166,9 @@ class SosAlertJobAndGuardianTest extends TestCase
 
     public function test_whatsapp_guardian_command_triggers_reconnect_when_unhealthy(): void
     {
+        Mail::fake();
+        Cache::flush();
+
         $evolutionService = Mockery::mock(EvolutionApiService::class);
         $evolutionService->shouldReceive('checkConnectionHealth')
             ->once()
@@ -180,5 +185,64 @@ class SosAlertJobAndGuardianTest extends TestCase
 
         $this->artisan('whatsapp:keep-alive-guardian')
             ->assertExitCode(1);
+
+        Mail::assertSent(\App\Mail\WhatsAppGatewayDownMail::class, function ($mail) {
+            return $mail->hasTo('nicolasdovico@gmail.com') && $mail->status === 'close';
+        });
+
+        $this->assertTrue(Cache::has('whatsapp_guardian_alert_cooldown'));
+    }
+
+    public function test_whatsapp_guardian_command_respects_cooldown(): void
+    {
+        Mail::fake();
+        Cache::flush();
+        Cache::put('whatsapp_guardian_alert_cooldown', true, now()->addHours(3));
+
+        $evolutionService = Mockery::mock(EvolutionApiService::class);
+        $evolutionService->shouldReceive('checkConnectionHealth')
+            ->once()
+            ->andReturn([
+                'connected' => false,
+                'status' => 'close',
+            ]);
+
+        $evolutionService->shouldReceive('reconnectInstance')
+            ->once()
+            ->andReturn(true);
+
+        $this->app->instance(EvolutionApiService::class, $evolutionService);
+
+        $this->artisan('whatsapp:keep-alive-guardian')
+            ->assertExitCode(1);
+
+        Mail::assertNothingSent();
+    }
+
+    public function test_whatsapp_guardian_command_sends_recovery_email_when_restored(): void
+    {
+        Mail::fake();
+        Cache::flush();
+        Cache::put('whatsapp_guardian_was_down', true, now()->addHours(2));
+        Cache::put('whatsapp_guardian_down_first_seen', now()->subMinutes(25)->toIso8601String(), now()->addHours(2));
+
+        $evolutionService = Mockery::mock(EvolutionApiService::class);
+        $evolutionService->shouldReceive('checkConnectionHealth')
+            ->once()
+            ->andReturn([
+                'connected' => true,
+                'status' => 'open',
+            ]);
+
+        $this->app->instance(EvolutionApiService::class, $evolutionService);
+
+        $this->artisan('whatsapp:keep-alive-guardian')
+            ->assertExitCode(0);
+
+        Mail::assertSent(\App\Mail\WhatsAppGatewayRecoveredMail::class, function ($mail) {
+            return $mail->hasTo('nicolasdovico@gmail.com') && $mail->downtimeMinutes >= 24;
+        });
+
+        $this->assertFalse(Cache::has('whatsapp_guardian_was_down'));
     }
 }

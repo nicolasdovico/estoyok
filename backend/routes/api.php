@@ -91,6 +91,35 @@ Route::post('/maintenance/send-welcome-trial-test', function (Request $request) 
     }
 });
 
+Route::post('/maintenance/test-whatsapp-alert-mail', function (Request $request) {
+    $to = $request->input('email', 'nicolasdovico@gmail.com');
+    $type = $request->input('type', 'down'); // 'down' or 'recovered'
+
+    try {
+        if ($type === 'recovered') {
+            \Illuminate\Support\Facades\Mail::to($to)->send(
+                new \App\Mail\WhatsAppGatewayRecoveredMail(now()->toDateTimeString(), 15)
+            );
+        } else {
+            \Illuminate\Support\Facades\Mail::to($to)->send(
+                new \App\Mail\WhatsAppGatewayDownMail('close', now()->toDateTimeString(), 'Socket disconnected or connection closed unexpectedly.')
+            );
+        }
+
+        return response()->json([
+            'success' => true,
+            'type' => $type,
+            'sent_to' => $to,
+            'message' => "WhatsApp gateway alert test email ({$type}) dispatched successfully to {$to} via Resend."
+        ]);
+    } catch (\Throwable $e) {
+        return response()->json([
+            'success' => false,
+            'error' => $e->getMessage()
+        ], 500);
+    }
+});
+
 Route::get('/maintenance/users-activity', function (Request $request) {
     $limit = (int) $request->input('limit', 25);
     $users = \App\Models\User::orderBy('id', 'desc')->take($limit)->get()->map(function ($u) {
