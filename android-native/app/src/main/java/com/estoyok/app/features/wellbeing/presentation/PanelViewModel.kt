@@ -105,6 +105,9 @@ class PanelViewModel @Inject constructor(
     var showCheckInSuccessDialog by mutableStateOf(false)
         private set
 
+    var showIncompleteShieldDialog by mutableStateOf(false)
+        private set
+
     var isRefreshing by mutableStateOf(false)
         private set
 
@@ -244,6 +247,11 @@ class PanelViewModel @Inject constructor(
             contactsRepository.createContact(dto).collectLatest { resource ->
                 if (resource is Resource.Success) {
                     android.widget.Toast.makeText(context, "Contacto agregado exitosamente", android.widget.Toast.LENGTH_SHORT).show()
+                    val created = resource.data
+                    created?.id?.let { newContactId ->
+                        // Disparar automáticamente el WhatsApp de bienvenida al agregarlo
+                        contactsRepository.sendTestWhatsApp(newContactId).collectLatest { }
+                    }
                     fetchEmergencyContacts()
                 } else if (resource is Resource.Error) {
                     android.widget.Toast.makeText(context, resource.message ?: "Error al agregar contacto", android.widget.Toast.LENGTH_SHORT).show()
@@ -436,7 +444,11 @@ class PanelViewModel @Inject constructor(
                     }
                     is Resource.Success -> {
                         isCheckingIn = false
-                        showCheckInSuccessDialog = true
+                        if (emergencyContacts.isEmpty() && circleMembers.isEmpty()) {
+                            showIncompleteShieldDialog = true
+                        } else {
+                            showCheckInSuccessDialog = true
+                        }
                         refreshDashboard()
                     }
                     is Resource.Error -> {
@@ -450,6 +462,10 @@ class PanelViewModel @Inject constructor(
 
     fun dismissSuccessDialog() {
         showCheckInSuccessDialog = false
+    }
+
+    fun dismissIncompleteShieldDialog() {
+        showIncompleteShieldDialog = false
     }
 
     fun triggerSos(context: Context) {

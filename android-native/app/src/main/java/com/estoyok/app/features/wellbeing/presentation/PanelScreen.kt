@@ -1,6 +1,9 @@
 package com.estoyok.app.features.wellbeing.presentation
 
+import android.app.Activity
 import android.Manifest
+import android.net.Uri
+import android.provider.ContactsContract
 import android.content.pm.PackageManager
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
@@ -25,6 +28,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.ContactPhone
 import androidx.compose.material.icons.filled.ArrowDownward
 import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.Delete
@@ -164,10 +168,12 @@ fun PanelScreen(
         wifiAutoCheckinActive = viewModel.user?.isWifiAutoCheckinActive == true,
         isCheckingIn = viewModel.isCheckingIn,
         showSuccessDialog = viewModel.showCheckInSuccessDialog,
+        showIncompleteShieldDialog = viewModel.showIncompleteShieldDialog,
         isSosTriggered = viewModel.isSosTriggered,
         onRefresh = { viewModel.refreshDashboard() },
         onCheckIn = { viewModel.performCheckIn() },
         onDismissSuccessDialog = { viewModel.dismissSuccessDialog() },
+        onDismissIncompleteShieldDialog = { viewModel.dismissIncompleteShieldDialog() },
         onOpenManageContactsModal = { viewModel.openManageContactsModal() },
         onDismissManageContactsModal = { viewModel.dismissManageContactsModal() },
         onAddContact = { name, phone, email, rel -> viewModel.addContact(name, phone, email, rel, context) },
@@ -270,10 +276,12 @@ fun PanelContent(
     wifiAutoCheckinActive: Boolean,
     isCheckingIn: Boolean,
     showSuccessDialog: Boolean,
+    showIncompleteShieldDialog: Boolean = false,
     isSosTriggered: Boolean,
     onRefresh: () -> Unit,
     onCheckIn: () -> Unit,
     onDismissSuccessDialog: () -> Unit,
+    onDismissIncompleteShieldDialog: () -> Unit = {},
     onOpenManageContactsModal: () -> Unit,
     onDismissManageContactsModal: () -> Unit,
     onAddContact: (String, String, String, String) -> Unit,
@@ -351,6 +359,13 @@ fun PanelContent(
 
         if (showSuccessDialog) {
             CheckInSuccessDialog(onDismiss = onDismissSuccessDialog)
+        }
+
+        if (showIncompleteShieldDialog) {
+            IncompleteShieldDialog(
+                onDismiss = onDismissIncompleteShieldDialog,
+                onAddContact = onOpenManageContactsModal
+            )
         }
 
         if (showManageContactsModal) {
@@ -1574,6 +1589,76 @@ fun CheckInSuccessDialog(
     )
 }
 
+@Composable
+fun IncompleteShieldDialog(
+    onDismiss: () -> Unit,
+    onAddContact: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            Button(
+                onClick = {
+                    onDismiss()
+                    onAddContact()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = PrimaryEmerald,
+                    contentColor = TextOnPrimary
+                ),
+                shape = RoundedCornerShape(10.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Agregar Contacto Ahora 👥",
+                    fontWeight = FontWeight.Bold,
+                    color = TextOnPrimary
+                )
+            }
+        },
+        dismissButton = {
+            TextButton(
+                onClick = onDismiss,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Continuar así por ahora",
+                    fontSize = 12.sp,
+                    color = TextMuted
+                )
+            }
+        },
+        title = {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("⚠️🛡️", fontSize = 36.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "¡Bienestar Confirmado!\nPero tu escudo está incompleto",
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center,
+                    lineHeight = 22.sp
+                )
+            }
+        },
+        text = {
+            Text(
+                text = "Tu reporte de bienestar quedó registrado con éxito, pero aún no tenés a nadie configurado para avisarle por WhatsApp si un día no podés responder. Agregá tu contacto ahora para activar tus alertas.",
+                fontSize = 13.sp,
+                color = TextSecondary,
+                textAlign = TextAlign.Center,
+                lineHeight = 18.sp
+            )
+        },
+        containerColor = CardBackground,
+        shape = RoundedCornerShape(20.dp)
+    )
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ManageContactsModal(
@@ -1597,6 +1682,44 @@ fun ManageContactsModal(
     var newPhone by remember { mutableStateOf("") }
     var newEmail by remember { mutableStateOf("") }
     var newRelationship by remember { mutableStateOf("") }
+
+    val context = LocalContext.current
+    val contactPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val contactUri: Uri? = result.data?.data
+            if (contactUri != null) {
+                try {
+                    val cursor = context.contentResolver.query(
+                        contactUri,
+                        arrayOf(
+                            ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                            ContactsContract.CommonDataKinds.Phone.NUMBER
+                        ),
+                        null,
+                        null,
+                        null
+                    )
+                    cursor?.use {
+                        if (it.moveToFirst()) {
+                            val nameIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME)
+                            val numberIndex = it.getColumnIndex(ContactsContract.CommonDataKinds.Phone.NUMBER)
+                            if (nameIndex != -1) {
+                                newName = it.getString(nameIndex) ?: ""
+                            }
+                            if (numberIndex != -1) {
+                                val rawNumber = it.getString(numberIndex) ?: ""
+                                newPhone = rawNumber.replace(" ", "").replace("-", "")
+                            }
+                        }
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(context, "No se pudo leer el contacto", Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+    }
 
     // Validaciones en tiempo real para nombre, teléfono y email
     val cleanedPhone = newPhone.trim().replace(" ", "").replace("-", "")
@@ -2149,6 +2272,34 @@ fun ManageContactsModal(
                             .verticalScroll(rememberScrollState()),
                         verticalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
+                        // Botón para elegir directamente desde los contactos del celular
+                        OutlinedButton(
+                            onClick = {
+                                val intent = Intent(Intent.ACTION_PICK, ContactsContract.CommonDataKinds.Phone.CONTENT_URI)
+                                contactPickerLauncher.launch(intent)
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(46.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.6f)),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = PrimaryEmerald
+                            )
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.ContactPhone,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Elegir de mis contactos del celular",
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+
                         Surface(
                             color = CardBackground,
                             shape = RoundedCornerShape(14.dp),

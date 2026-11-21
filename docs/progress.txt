@@ -1,5 +1,32 @@
 # Progress Log
 
+## [2026-11-21] Lanzamiento de Versión 22 (1.1.4) y Cierre del Embudo de Contacto & Suscripción
+- **Compilación de Producción para Google Play Store:**
+  - Generado y firmado el bundle `app-release.aab` (`versionCode = 22`, `versionName = "1.1.4"`).
+  - Ubicación: `android-native/app/build/outputs/bundle/release/app-release.aab` (22 MB).
+- **Optimizaciones de Conversión y Activación en Android Nativo (Jetpack Compose):**
+  - **Paso Guiado de Contacto en Onboarding (`OnboardingContactStep.kt`):** Implementada pantalla tras el tutorial de bienvenida con microcopy *"¿A quién debemos cuidar y avisar? 🛡️"*, chips táctiles de parentesco y botón con selector nativo de la agenda del teléfono (`ACTION_PICK`).
+  - **Cierre del Embudo con Disparo Inmediato de WhatsApp y Paywall Contextual:** Al guardar el contacto, se despacha el WhatsApp de presentación al familiar y se abre el `WelcomeSoftPaywallDialog` con tarjeta informativa esmeralda que confirma el envío del mensaje oficial antes de invitar a iniciar la prueba de 7 días ($0.00 hoy).
+  - **Doble Red de Captura en Check-in Diario (`IncompleteShieldDialog`):** Si un usuario omite el contacto y toca "Estoy OK", la app le celebra el reporte diario pero le muestra el aviso formativo *"¡Bienestar Confirmado! Pero tu escudo está incompleto ⚠️🛡️"* con botón directo para agregar al familiar.
+  - **Selector de Contactos en Modal Tradicional:** Unificado el formulario de `ManageContactsModal` incorporando el botón de selección directa de contactos del celular y el envío automático de bienvenida.
+- **Documentación:** Actualizado `docs/status.md` y `docs/progress.txt`.
+
+## [2026-11-21] Auditoría de Meta Ads (Hito 9): Desplome de CPI a $149 ARS y Análisis de Embudo de Activación In-App
+- **Auditoría de Campaña de Meta Ads (Promoción de la App / App Installs):**
+  - **Confirmación de Atribución del SDK de Meta:** La integración de `facebook-core` y `InstallReferrer` registra oficialmente **258 Instalaciones** en el acumulado total y **249 instalaciones** en el período con SDK (10 al 21 de noviembre).
+  - **Período Optimizado (10 al 21 de noviembre - $42.550,53 ARS invertidos):**
+    - **Reel 2 (Vivir Solo / Bienestar Diario):** 186 instalaciones atribuidas a un CPI récord de **$149,63 ARS** (65,4% del presupuesto absorbido con 8.115 personas alcanzadas y tasa de instalación de 2,29%).
+    - **Reel 1 (Padres Auto):** 63 instalaciones atribuidas a un CPI de **$233,64 ARS** (34,6% del presupuesto con 3.391 personas alcanzadas).
+    - **CPI Global Promedio:** **$170,89 ARS** (reducción acumulada de 48x respecto a los $8.216 ARS de la campaña original de Tráfico).
+- **Cruce con Telemetría de Base de Datos en Producción (Embudo In-App):**
+  - **Usuarios Registrados:** Crecimiento de 21 a **161 usuarios totales (+140 nuevos usuarios)** con el último ID en `#181`.
+  - **Dispositivos Únicos:** Escalaron de 68 a **215 dispositivos registrados** (142 usuarios con dispositivo activo vinculado).
+  - **Uso del Check-in Diario:** **12 usuarios de la campaña** ya realizaron check-ins activos (Carlos Guerra #122, Roberto Moutafian #128, Horacio Escobar #171, Anandi Mazariche #145, Zunilda Vassalli #72, José Antonio Aravena #66, Cristina Zarate #53, Osvaldo Rueda #52, Tomás Delvechio #47, Alfredo #43, Nelida Matas #92, Cristina Robbins #63).
+  - **Teléfonos y WhatsApp:** 28 usuarios cargaron su número telefónico.
+  - **Zonas Seguras:** 4 geocercas activas registradas en el mapa.
+  - **Contactos de Emergencia:** Baja tasa de adopción espontánea sin estímulo; la mayoría interactúa primero con el botón o el mapa. Queda validada la necesidad estratégica de las optimizaciones de la Versión 21 (v21 / 1.1.3): el gatillo del Paywall contextual al agregar el contacto y los Nudges push acelerados a 45 minutos.
+- **Documentación:** Actualizada la bitácora completa en `docs/manual_y_bitacora_campanas_publicitarias.md` y `docs/status.md`.
+
 ## [2026-11-17] Lanzamiento de Versión 21 (1.1.3) y Optimización del Embudo de Suscripción Trial
 - **Compilación de Producción para Google Play Store:**
   - Generado y firmado el bundle `app-release.aab` (`versionCode = 21`, `versionName = "1.1.3"`).

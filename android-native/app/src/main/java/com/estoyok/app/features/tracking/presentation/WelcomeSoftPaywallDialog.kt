@@ -117,14 +117,39 @@ fun WelcomeSoftPaywallDialog(
                     Spacer(modifier = Modifier.height(10.dp))
 
                     Text(
-                        text = if (!contactName.isNullOrBlank()) "¡$contactName ya está guardado!" else "¡Te damos la bienvenida a Estoy Ok!",
+                        text = if (!contactName.isNullOrBlank()) "¡$contactName ya está protegido!" else "¡Te damos la bienvenida a Estoy Ok!",
                         fontSize = 18.sp,
                         fontWeight = FontWeight.ExtraBold,
                         color = TextPrimary,
                         textAlign = TextAlign.Center
                     )
 
-                    Spacer(modifier = Modifier.height(4.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    if (!contactName.isNullOrBlank()) {
+                        Surface(
+                            color = PrimaryEmerald.copy(alpha = 0.12f),
+                            shape = RoundedCornerShape(10.dp),
+                            border = BorderStroke(1.dp, PrimaryEmerald.copy(alpha = 0.35f)),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 10.dp, vertical = 7.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text("💬 ", fontSize = 16.sp)
+                                Text(
+                                    text = "Le acabamos de enviar un WhatsApp oficial a $contactName avisándole que lo agregaste como tu contacto de seguridad.",
+                                    fontSize = 11.5.sp,
+                                    color = PrimaryEmerald,
+                                    fontWeight = FontWeight.Medium,
+                                    lineHeight = 15.sp
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
 
                     Text(
                         text = if (!contactName.isNullOrBlank()) 

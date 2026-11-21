@@ -355,6 +355,39 @@ Al cumplirse 6 días de la campaña con objetivo *Promoción de la App*, se real
 
 ---
 
+### 📅 Hito 9: Auditoría del 18º Día de "App Installs", Desplome Histórico de CPI a $149 ARS y Explosión de Usuarios — Sábado 21 de Noviembre de 2026
+
+Al completarse 18 días de la campaña de *Promoción de la App* (3 al 21 de noviembre) y 11 días con el SDK de Meta activo en producción (10 al 21 de noviembre), se auditaron las capturas oficiales de Meta Ads Manager ([`docs/analisis3a21.png`](file:///home/nicolas/aplicaciones/estoyok/docs/analisis3a21.png) y [`docs/analisis10a21.png`](file:///home/nicolas/aplicaciones/estoyok/docs/analisis10a21.png)), cruzándolas en vivo con la base de datos de producción:
+
+#### 1. Rendimiento General y Validación de Atribución del SDK:
+* **Columna "Resultados" Operativa:** Confirmado el funcionamiento del SDK de Meta y el `InstallReferrer`. Meta registró oficialmente **258 Instalaciones de la aplicación** en el acumulado total y **249 instalaciones** en el período del 10 al 21 de noviembre.
+* **Período Optimizado (10 al 21 de Noviembre - 11 Días con SDK):**
+  * **Inversión Total:** **$42.550,53 ARS**.
+  * **Instalaciones de la App:** **249 instalaciones**.
+  * **Costo por Instalación Promedio (CPI Global):** **$170,89 ARS**.
+  * **Alcance:** 10.677 personas | **Impresiones:** 14.088.
+
+#### 2. Batalla de Creativos (10 al 21 de Noviembre):
+| Anuncio | Instalaciones | Costo por Instalación (CPI) | Gasto Total | Alcance | Tasa de Instalación |
+| :--- | :---: | :---: | :---: | :---: | :---: |
+| **🥇 Reel 2 - Vivir Solo** | **186** (74,7%) | **$149,63 ARS** 🚀 | $27.831,19 (65,4%) | 8.115 | **2,29%** |
+| **🥈 Reel 1 - Padres Auto** | **63** (25,3%) | **$233,64 ARS** | $14.719,34 (34,6%) | 3.391 | **1,86%** |
+
+* **Conclusiones de Creativos:**
+  * El **Reel 2 (Vivir Solo)** se consolida como un caso de éxito masivo: costo de adquisición de **$149,63 ARS** (~0,13 USD por usuario instalado). El algoritmo CBO le destinó el 65% de la inversión automáticamente.
+  * El **Reel 1 (Padres Auto)** mantiene una eficiencia excelente ($233,64 ARS) aportando diversificación al público familiar.
+
+#### 3. Auditoría de Comportamiento In-App en Producción (Embudo de Activación):
+* **Crecimiento de Usuarios:** La base de datos escaló de **21 a 161 usuarios registrados (+140 nuevos usuarios)**, con el ID más reciente en `#181`.
+* **Dispositivos Registrados:** Subieron de 68 a **215 dispositivos** (142 usuarios únicos con dispositivo activo vinculado).
+* **Comportamiento y Retención:**
+  * **Primer Check-in Realizado:** **12 usuarios de la campaña** ya realizaron check-ins regulares (ej. Carlos Guerra #122, Roberto Moutafian #128, Horacio Escobar #171, Anandi Mazariche #145, Zunilda Vassalli #72, José Antonio Aravena #66, Cristina Zarate #53, Osvaldo Rueda #52, Tomás Delvechio #47, Alfredo #43).
+  * **Teléfonos vinculados para WhatsApp:** 28 usuarios cargaron su número telefónico.
+  * **Zonas Seguras Creadas:** 4 geocercas activas registradas.
+  * **Contactos de Emergencia:** Baja tasa de adopción orgánica inmediata (la gran mayoría descarga para probar el botón o mapa y aún no carga su contacto de emergencia). Esto ratifica el valor del gatillo contextual de la Versión 21 (1.1.3) que abre el diálogo de prueba gratis e invita activamente a cargar a quién te cuidará.
+
+---
+
 ## 🔍 PARTE 3: Protocolo Paso a Paso para Auditar la Campaña en Próximas Sesiones
 
 Cada vez que revisemos la campaña (a las 24h, 48h o fin de semana), seguir este orden:

@@ -1,8 +1,33 @@
 # Project Status
 
-## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.3 (v21 - Optimización Paywall y Nudges Backend)
+## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.4 (v22 - Captura Temprana de Contacto y Cierre del Embudo de Suscripción)
 
 ### Completed Phases:
+- [x] **Lanzamiento de Versión 22 (1.1.4) - Captura Temprana de Contactos y Cierre de Embudo (21/11/2026):**
+  - **Paso Guiado de Contacto en Onboarding (`OnboardingContactStep.kt`):**
+    - Pantalla obligatoria guiada antes de entrar al panel principal: *"¿A quién debemos cuidar y avisar? 🛡️"*.
+    - Integración de selector nativo de contactos del celular (`ACTION_PICK` con `ContactsContract.CommonDataKinds.Phone`) para elegir a familiares en 1 solo toque.
+    - Filtro de parentesco (Madre, Padre, Pareja, Hijo/a, Hermano/a, Amigo/a) y validaciones completas.
+  - **Efecto WhatsApp y Contextualización Inmediata en el Paywall:**
+    - Al guardar el contacto, se dispara automáticamente el WhatsApp oficial de bienvenida hacia el familiar.
+    - Apertura inmediata del diálogo de 7 días gratis contextualizado con tarjeta esmeralda confirmando: *"Le acabamos de enviar un WhatsApp oficial a [Nombre] avisándole que lo agregaste como tu contacto de seguridad"*.
+  - **Doble Red de Captura en Check-in Diario (`IncompleteShieldDialog`):**
+    - Si un usuario omitió el contacto y realiza el check-in diario en el panel principal, se le celebra el reporte pero se le muestra el diálogo formativo: *"¡Bienestar Confirmado! Pero tu escudo está incompleto ⚠️🛡️"* con botón directo para agregar contacto.
+    - Integrado el botón de selector de contactos de la agenda también en el formulario tradicional (`ManageContactsModal`).
+  - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 22`, `versionName = "1.1.4"`, tamaño 22 MB).
+- [x] **Auditoría de Meta Ads (Hito 9) y Análisis de Embudo In-App (21/11/2026):**
+  - **Confirmación de Atribución del SDK de Meta:** La integración de `facebook-core` y `InstallReferrer` registra oficialmente **258 Instalaciones** en el acumulado total y **249 instalaciones** en el período con SDK (10 al 21 de noviembre).
+  - **Período Optimizado (10 al 21 de noviembre - $42.550,53 ARS invertidos):**
+    - **Reel 2 (Vivir Solo / Bienestar Diario):** 186 instalaciones atribuidas a un CPI récord de **$149,63 ARS** (65,4% del presupuesto absorbido con 8.115 personas alcanzadas y tasa de instalación de 2,29%).
+    - **Reel 1 (Padres Auto):** 63 instalaciones atribuidas a un CPI de **$233,64 ARS** (34,6% del presupuesto con 3.391 personas alcanzadas).
+    - **CPI Global Promedio:** **$170,89 ARS** (reducción acumulada de 48x respecto a los $8.216 ARS de la campaña original de Tráfico).
+  - **Cruce con Telemetría de Base de Datos en Producción (Embudo In-App):**
+    - **Usuarios Registrados:** Crecimiento de 21 a **161 usuarios totales (+140 nuevos usuarios)** con el último ID en `#181`.
+    - **Dispositivos Únicos:** Escalaron de 68 a **215 dispositivos registrados** (142 usuarios con dispositivo activo vinculado).
+    - **Uso del Check-in Diario:** **12 usuarios de la campaña** ya realizaron check-ins activos (Carlos Guerra #122, Roberto Moutafian #128, Horacio Escobar #171, Anandi Mazariche #145, Zunilda Vassalli #72, José Antonio Aravena #66, Cristina Zarate #53, Osvaldo Rueda #52, Tomás Delvechio #47, Alfredo #43, Nelida Matas #92, Cristina Robbins #63).
+    - **Teléfonos y WhatsApp:** 28 usuarios cargaron su número telefónico.
+    - **Zonas Seguras:** 4 geocercas activas registradas en el mapa.
+    - **Contactos de Emergencia:** Baja tasa de adopción espontánea sin estímulo; la mayoría interactúa primero con el botón o el mapa. Queda validada la necesidad estratégica de las optimizaciones de la Versión 21 (v21 / 1.1.3): el gatillo del Paywall contextual al agregar el contacto y los Nudges push acelerados a 45 minutos.
 - [x] **Lanzamiento de Versión 21 (1.1.3) - Optimización de Paywall y Aceleración de Nudges Push (17/11/2026):**
   - **Rediseño Integral de Paywall "Above the Fold":**
     - `WelcomeSoftPaywallDialog.kt` optimizado para pantallas de 720p sin scroll vertical: paddings, espaciados y jerarquía compacta.

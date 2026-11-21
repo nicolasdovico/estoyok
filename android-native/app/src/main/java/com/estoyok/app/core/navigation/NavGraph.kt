@@ -36,6 +36,7 @@ import com.estoyok.app.features.wellbeing.presentation.AjustesScreen
 import com.estoyok.app.features.wellbeing.presentation.PanelScreen
 import com.estoyok.app.features.wellbeing.presentation.DisclaimerMandatoryDialog
 import com.estoyok.app.features.auth.presentation.onboarding.OnboardingScreen
+import com.estoyok.app.features.auth.presentation.onboarding.OnboardingContactStep
 import com.estoyok.app.features.tracking.presentation.WelcomeSoftPaywallDialog
 import com.estoyok.app.features.wellbeing.presentation.components.ConfettiCelebrationOverlay
 import kotlinx.coroutines.delay
@@ -51,6 +52,7 @@ fun MainScreen(
     val isDisclaimerAccepted by authViewModel.isDisclaimerAccepted.collectAsState()
     val isOnboardingCompleted by authViewModel.isOnboardingCompleted.collectAsState()
     val isWelcomePaywallShown by authViewModel.isWelcomePaywallShown.collectAsState()
+    var isOnboardingContactStepActive by remember { mutableStateOf(false) }
     val showMandatoryDisclaimer = isAuthenticated && (isDisclaimerAccepted == false)
     val showOnboarding = isAuthenticated && (isDisclaimerAccepted == true) && (isOnboardingCompleted == false)
     val showWelcomePaywall = isAuthenticated && (isDisclaimerAccepted == true) && (isOnboardingCompleted == true) && (isWelcomePaywallShown == false)
@@ -262,13 +264,33 @@ fun MainScreen(
                     onAccept = { authViewModel.acceptDisclaimer() }
                 )
             } else if (showOnboarding) {
-                // First-time Onboarding Walkthrough for freshly registered users
-                OnboardingScreen(
-                    onFinish = { authViewModel.completeOnboarding() }
-                )
+                if (isOnboardingContactStepActive) {
+                    // Contact capture step immediately following onboarding walkthrough
+                    OnboardingContactStep(
+                        onContactSaved = { contactName ->
+                            isOnboardingContactStepActive = false
+                            authViewModel.completeOnboarding()
+                        },
+                        onSkip = {
+                            isOnboardingContactStepActive = false
+                            authViewModel.completeOnboarding()
+                        },
+                        onSaveContactApi = { name, phone, email, rel, onSuccess, onError ->
+                            authViewModel.saveOnboardingContact(name, phone, email, rel, onSuccess, onError)
+                        }
+                    )
+                } else {
+                    // First-time Onboarding Walkthrough for freshly registered users
+                    OnboardingScreen(
+                        onFinish = {
+                            isOnboardingContactStepActive = true
+                        }
+                    )
+                }
             } else if (showWelcomePaywall) {
                 // Soft Paywall Post-Onboarding (7 days free trial)
                 WelcomeSoftPaywallDialog(
+                    contactName = authViewModel.savedOnboardingContactName,
                     onDismiss = { authViewModel.completeWelcomePaywall() }
                 )
             }
