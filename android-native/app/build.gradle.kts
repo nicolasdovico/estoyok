@@ -24,7 +24,7 @@ android {
         applicationId = "com.estoyok.app"
         minSdk = 26
         targetSdk = 36
-        versionCode = 22
+        versionCode = 23
         versionName = "1.1.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
