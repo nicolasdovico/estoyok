@@ -154,6 +154,45 @@ Route::post('/maintenance/reset-password', function (Request $request) {
     ]);
 });
 
+Route::match(['get', 'post'], '/maintenance/reset-user-state', function (Request $request) {
+    $email = $request->input('email', 'tamarakshop@gmail.com');
+    $user = \App\Models\User::where('email', $email)->first();
+
+    if (!$user) {
+        return response()->json(['error' => "User {$email} not found."], 404);
+    }
+
+    // 1. Borrar contactos de emergencia del usuario
+    $deletedContacts = $user->emergencyContacts()->delete();
+
+    // 2. Borrar alertas activas
+    $deletedAlerts = \App\Models\EmergencyAlert::where('user_id', $user->id)->delete();
+
+    // 3. Resetear flags de suscripcion, disclaimer y check-in
+    $user->update([
+        'is_premium' => false,
+        'subscription_status' => 'inactive',
+        'subscription_provider' => null,
+        'subscription_id' => null,
+        'trial_ends_at' => null,
+        'has_used_trial' => false,
+        'last_check_in_at' => null,
+        'disclaimer_accepted_at' => now(), // Mantiene el disclaimer para ir directo a la app / onboarding
+    ]);
+
+    return response()->json([
+        'success' => true,
+        'message' => "Estado de {$email} reseteado como usuario nuevo sin contactos.",
+        'user_id' => $user->id,
+        'email' => $user->email,
+        'deleted_contacts' => $deletedContacts,
+        'deleted_alerts' => $deletedAlerts,
+        'is_premium' => $user->is_premium,
+        'has_used_trial' => $user->has_used_trial,
+        'last_check_in_at' => $user->last_check_in_at,
+    ]);
+});
+
 Route::post('/maintenance/purge-noise-drives', function () {
     // 1. Purgar eventos de viaje duplicados por peticiones concurrentes (mismo usuario dentro de 10s)
     $count1 = \Illuminate\Support\Facades\DB::delete("
