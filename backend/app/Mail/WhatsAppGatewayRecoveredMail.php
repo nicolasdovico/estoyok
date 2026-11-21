@@ -31,7 +31,7 @@ class WhatsAppGatewayRecoveredMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.whatsapp-gateway-recovered'
+            markdown: 'emails.whatsapp-gateway-recovered'
         );
     }
 }

@@ -35,7 +35,7 @@ class WhatsAppGatewayDownMail extends Mailable
     public function content(): Content
     {
         return new Content(
-            view: 'emails.whatsapp-gateway-down'
+            markdown: 'emails.whatsapp-gateway-down'
         );
     }
 }
