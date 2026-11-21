@@ -1,26 +1,30 @@
 package com.estoyok.app.features.auth.presentation.onboarding
 
 import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.detectTransformGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -297,8 +301,38 @@ private fun OnboardingPhoneMockup(
     accentColor: Color,
     modifier: Modifier = Modifier
 ) {
+    var scale by remember { mutableStateOf(1f) }
+    var offset by remember { mutableStateOf(Offset.Zero) }
+
+    val animatedScale by animateFloatAsState(
+        targetValue = scale,
+        animationSpec = spring(stiffness = 400f),
+        label = "zoomScale"
+    )
+
     Box(
-        modifier = modifier,
+        modifier = modifier
+            .pointerInput(Unit) {
+                detectTransformGestures { _, pan, zoom, _ ->
+                    scale = (scale * zoom).coerceIn(1f, 3.2f)
+                    if (scale > 1f) {
+                        val maxOffset = 300f * (scale - 1f)
+                        val newOffset = offset + pan
+                        offset = Offset(
+                            x = newOffset.x.coerceIn(-maxOffset, maxOffset),
+                            y = newOffset.y.coerceIn(-maxOffset, maxOffset)
+                        )
+                    } else {
+                        offset = Offset.Zero
+                    }
+                }
+            }
+            .graphicsLayer {
+                scaleX = animatedScale
+                scaleY = animatedScale
+                translationX = if (scale > 1f) offset.x else 0f
+                translationY = if (scale > 1f) offset.y else 0f
+            },
         contentAlignment = Alignment.Center
     ) {
         // Ambient glow behind phone
