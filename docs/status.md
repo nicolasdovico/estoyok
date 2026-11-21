@@ -1,9 +1,19 @@
 # Project Status
 
-## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.4 (v22 - Captura Temprana de Contacto y Cierre del Embudo de Suscripción)
+## Current Phase: FASE 9: Activación Temprana, In-App Updates y Versión 1.1.4 (v23 - Captura Temprana de Contacto, Despliegue en Play Store y Guardián de WhatsApp)
 
 ### Completed Phases:
-- [x] **Lanzamiento de Versión 22 (1.1.4) - Captura Temprana de Contactos y Cierre de Embudo (21/11/2026):**
+- [x] **Monitoreo Continuo y Centinela de WhatsApp Gateway (`WhatsAppKeepAliveGuardian` + Email) (21/11/2026):**
+  - Implementación de alerta por correo electrónico ante desconexiones de Evolution API (Baileys) enviada directamente a `nicolasdovico@gmail.com` vía Resend.
+  - Rate limiting y deduplicación inteligente con cooldown de 3 horas por caída persistente para evitar spam administrativo.
+  - Correo de recuperación automática cuando el socket vuelve al estado `open`, informando el tiempo exacto que estuvo fuera de línea.
+  - Botón de acción directa en el correo para acceder de un solo toque al panel de escaneo de QR y reconexión (`/api/maintenance/connect-qr`).
+  - Suite de pruebas completa (`SosAlertJobAndGuardianTest`) cubriendo alerta de caída, respeto de cooldown y notificación de restablecimiento. 201 tests de backend aprobados al 100%.
+- [x] **Lanzamiento de Versión 23 (1.1.4) en Google Play Store (21/11/2026):**
+  - Corrección de restricción de hardware en Play Console (`android.hardware.wifi` y sensores declarados opcionales con `android:required="false"`).
+  - Incremento de versión a `versionCode = 23`, `versionName = "1.1.4"`.
+  - Bundle `app-release.aab` generado, verificado y subido exitosamente a la consola de Google Play.
+- [x] **Captura Temprana de Contactos y Cierre de Embudo (1.1.4 - 21/11/2026):**
   - **Paso Guiado de Contacto en Onboarding (`OnboardingContactStep.kt`):**
     - Pantalla obligatoria guiada antes de entrar al panel principal: *"¿A quién debemos cuidar y avisar? 🛡️"*.
     - Integración de selector nativo de contactos del celular (`ACTION_PICK` con `ContactsContract.CommonDataKinds.Phone`) para elegir a familiares en 1 solo toque.
@@ -14,7 +24,6 @@
   - **Doble Red de Captura en Check-in Diario (`IncompleteShieldDialog`):**
     - Si un usuario omitió el contacto y realiza el check-in diario en el panel principal, se le celebra el reporte pero se le muestra el diálogo formativo: *"¡Bienestar Confirmado! Pero tu escudo está incompleto ⚠️🛡️"* con botón directo para agregar contacto.
     - Integrado el botón de selector de contactos de la agenda también en el formulario tradicional (`ManageContactsModal`).
-  - **Compilación de Producción:** Generado y firmado el bundle final `app-release.aab` (`versionCode = 22`, `versionName = "1.1.4"`, tamaño 22 MB).
 - [x] **Auditoría de Meta Ads (Hito 9) y Análisis de Embudo In-App (21/11/2026):**
   - **Confirmación de Atribución del SDK de Meta:** La integración de `facebook-core` y `InstallReferrer` registra oficialmente **258 Instalaciones** en el acumulado total y **249 instalaciones** en el período con SDK (10 al 21 de noviembre).
   - **Período Optimizado (10 al 21 de noviembre - $42.550,53 ARS invertidos):**

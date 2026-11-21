@@ -1,9 +1,17 @@
 # Progress Log
 
-## [2026-11-21] Lanzamiento de Versión 22 (1.1.4) y Cierre del Embudo de Contacto & Suscripción
-- **Compilación de Producción para Google Play Store:**
-  - Generado y firmado el bundle `app-release.aab` (`versionCode = 22`, `versionName = "1.1.4"`).
-  - Ubicación: `android-native/app/build/outputs/bundle/release/app-release.aab` (22 MB).
+## [2026-11-21] Guardián de WhatsApp con Alerta por Correo a Administración & Publicación de Versión 23 (1.1.4) en Play Store
+- **Monitoreo Continuo y Centinela de WhatsApp (`WhatsAppKeepAliveGuardian`):**
+  - Implementación de notificaciones automáticas por correo electrónico ante caídas de la pasarela de WhatsApp (Evolution API / Baileys) hacia `nicolasdovico@gmail.com`.
+  - Cooldown inteligente de 3 horas para evitar repeticiones ante caídas persistentes.
+  - Correo de recuperación automática cuando el servicio regresa a estado `open`, indicando los minutos aproximados fuera de línea.
+  - Botón directo con enlace a la consola de reconexión y escaneo de QR (`https://api.estoyok24.com/api/maintenance/connect-qr`).
+  - Pruebas unitarias y de integración (`SosAlertJobAndGuardianTest`) verificando el envío, cooldown y recuperación. 201 tests de backend pasando al 100%.
+  - Desplegado a producción (Railway) y verificado con envíos reales hacia `nicolasdovico@gmail.com`.
+- **Publicación de Versión 23 (1.1.4) en Google Play Store:**
+  - Solucionada la advertencia de hardware de Google Play (`android.hardware.wifi` y sensores declarados con `android:required="false"`).
+  - Incrementado `versionCode = 23`, `versionName = "1.1.4"`.
+  - Compilado y firmado `app-release.aab` (22 MB), subido exitosamente a Play Console.
 - **Optimizaciones de Conversión y Activación en Android Nativo (Jetpack Compose):**
   - **Paso Guiado de Contacto en Onboarding (`OnboardingContactStep.kt`):** Implementada pantalla tras el tutorial de bienvenida con microcopy *"¿A quién debemos cuidar y avisar? 🛡️"*, chips táctiles de parentesco y botón con selector nativo de la agenda del teléfono (`ACTION_PICK`).
   - **Cierre del Embudo con Disparo Inmediato de WhatsApp y Paywall Contextual:** Al guardar el contacto, se despacha el WhatsApp de presentación al familiar y se abre el `WelcomeSoftPaywallDialog` con tarjeta informativa esmeralda que confirma el envío del mensaje oficial antes de invitar a iniciar la prueba de 7 días ($0.00 hoy).
